@@ -7,9 +7,17 @@ export type SongItemProps = {
 
   /** name of song */
   name: string;
+
+  /** song notes */
+  notes?: string;
 };
 
-export const SongItem: React.FC<SongItemProps> = ({ index, songKey, name }) => {
+export const SongItem: React.FC<SongItemProps> = ({
+  index,
+  songKey,
+  name,
+  notes,
+}) => {
   // something
 
   return (
@@ -17,11 +25,18 @@ export const SongItem: React.FC<SongItemProps> = ({ index, songKey, name }) => {
       <p className="h-[18px] w-[18px] flex-none text-right text-xs/[18px] text-slate-400">
         {index}.
       </p>
-      <div className="items-top flex gap-2">
-        <p className="flex h-4 w-4 flex-none place-content-center rounded bg-slate-200">
-          {songKey}
-        </p>
-        <p className="text-slate-900">{name}</p>
+      <div className="flex flex-col gap-2">
+        <div className="items-top flex gap-2">
+          <p className="flex h-4 w-4 flex-none place-content-center rounded bg-slate-200">
+            {songKey}
+          </p>
+          <p className="text-slate-900">{name}</p>
+        </div>
+        {notes ? (
+          <p className="text-[10px]/[16px] font-normal text-slate-700">
+            {notes}
+          </p>
+        ) : null}
       </div>
     </div>
   );
