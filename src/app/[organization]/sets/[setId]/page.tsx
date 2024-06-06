@@ -53,7 +53,7 @@ export default async function SetListPage({
         <div className="flex flex-col gap-4 rounded border border-slate-200 p-4 shadow">
           <header className="flex flex-col gap-2">
             <div className="flex justify-between">
-              <h3 className="text-base font-semibold">Lord's Supper</h3>
+              <h3 className="text-base font-semibold">Lord&apos;s Supper</h3>
               <button className="flex h-6 w-6 place-content-center rounded border border-slate-300 p-[6px]">
                 ...
               </button>
