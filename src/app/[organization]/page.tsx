@@ -1,3 +1,4 @@
+import { PageTitle } from "@/components";
 import {
   SetListCard,
   SetListCardBody,
@@ -14,10 +15,7 @@ export default async function Dashboard({
 }) {
   return (
     <div className="flex min-w-full max-w-xs flex-col justify-center">
-      <header className="pb-2">
-        <h1 className="mb-1 text-2xl font-bold">Upcoming sets</h1>
-        <h2 className="text-xs text-slate-500">3 sets</h2>
-      </header>
+      <PageTitle title="Upcoming sets" details="3 sets" />
       <section className="flex justify-between py-2">
         <select>
           <option value="This week">This week</option>

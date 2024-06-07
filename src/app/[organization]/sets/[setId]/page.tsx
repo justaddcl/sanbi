@@ -1,18 +1,19 @@
+import { PageTitle } from "@/components";
 import { SetListCardBody, SongItem } from "@/modules/SetlistCard";
 import { DotsThree } from "@phosphor-icons/react/dist/ssr";
 
 export default async function SetListPage({
-  params,
+  params: _params,
 }: {
   params: { setId: string };
 }) {
   return (
     <div className="flex min-w-full max-w-xs flex-col justify-center gap-6">
-      <header className="flex flex-col gap-1 pb-2">
-        <h1 className="text-2xl font-bold">August 07</h1>
-        <h2 className="text-base text-slate-700">Discipleship Community</h2>
-        <p className="text-xs text-slate-500">8 songs</p>
-      </header>
+      <PageTitle
+        title="August 07"
+        subtitle="Discipleship Community"
+        details="8 songs"
+      />
       <section className="flex justify-between gap-2">
         <button className="w-full rounded border border-slate-300 px-3 text-xs font-semibold text-slate-700">
           Add notes
