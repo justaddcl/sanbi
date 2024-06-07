@@ -1,4 +1,5 @@
 import { startCase } from "@/lib/string";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 
 const ORGANIZATION_WHITELIST = ["demo", "stoneway"];
@@ -21,7 +22,8 @@ export default function DashboardLayout({
   return (
     <main className="container px-4 pb-16">
       <nav className="flex h-[60px] items-center text-slate-700">
-        Sanbi // {organizationName}
+        Sanbi //{" "}
+        <Link href={`/${params.organization}`}>{organizationName}</Link>
       </nav>
       {children}
     </main>
