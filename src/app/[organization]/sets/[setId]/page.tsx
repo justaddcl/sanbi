@@ -1,4 +1,5 @@
 import { SetListCardBody, SongItem } from "@/modules/SetlistCard";
+import { DotsThree } from "@phosphor-icons/react/dist/ssr";
 
 export default async function SetListPage({
   params,
@@ -17,7 +18,7 @@ export default async function SetListPage({
           Add notes
         </button>
         <button className="flex h-6 w-6 place-content-center rounded border border-slate-300 p-[6px]">
-          ...
+          <DotsThree className="text-slate-900" size={12} />
         </button>
       </section>
       <div className="flex flex-col gap-4">
@@ -26,7 +27,7 @@ export default async function SetListPage({
             <div className="flex justify-between">
               <h3 className="text-base font-semibold">Worship</h3>
               <button className="flex h-6 w-6 place-content-center rounded border border-slate-300 p-[6px]">
-                ...
+                <DotsThree className="text-slate-900" size={12} />
               </button>
             </div>
             <hr className="bg-slate-100" />
@@ -55,7 +56,7 @@ export default async function SetListPage({
             <div className="flex justify-between">
               <h3 className="text-base font-semibold">Lord&apos;s Supper</h3>
               <button className="flex h-6 w-6 place-content-center rounded border border-slate-300 p-[6px]">
-                ...
+                <DotsThree className="text-slate-900" size={12} />
               </button>
             </div>
             <hr className="bg-slate-100" />
@@ -71,7 +72,7 @@ export default async function SetListPage({
             <div className="flex justify-between">
               <h3 className="text-base font-semibold">Prayer</h3>
               <button className="flex h-6 w-6 place-content-center rounded border border-slate-300 p-[6px]">
-                ...
+                <DotsThree className="text-slate-900" size={12} />
               </button>
             </div>
             <hr className="bg-slate-100" />
