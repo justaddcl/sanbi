@@ -1,3 +1,5 @@
+import { formatDate } from "@/lib/date/";
+
 export type SetListCardHeaderProps = {
   /** date of set */
   date: string;
@@ -12,16 +14,7 @@ export type SetListCardHeaderProps = {
 export const SetListCardHeader: React.FC<
   React.PropsWithChildren<SetListCardHeaderProps>
 > = ({ date, type, numberOfSongs }) => {
-  // TODO: move this to a util
-  const formatOptions: Intl.DateTimeFormatOptions = {
-    month: "short",
-    day: "2-digit",
-  };
-
-  const formattedDate = new Intl.DateTimeFormat("en-US", formatOptions).format(
-    new Date(date),
-  );
-
+  const formattedDate = formatDate(date);
   const [month, day] = formattedDate.split(" ");
 
   return (
