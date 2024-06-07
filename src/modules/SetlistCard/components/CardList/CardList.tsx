@@ -1,4 +1,5 @@
 export type CardListProps = {
+  /** spacing between cards - uses TailwindCSS values - https://tailwindcss.com/docs/gap  */
   gap?: string;
 };
 

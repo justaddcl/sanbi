@@ -18,8 +18,6 @@ export const SongItem: React.FC<SongItemProps> = ({
   name,
   notes,
 }) => {
-  // something
-
   return (
     <div className="flex gap-3 text-xs font-semibold">
       <p className="h-[18px] w-[18px] flex-none text-right text-xs/[18px] text-slate-400">
