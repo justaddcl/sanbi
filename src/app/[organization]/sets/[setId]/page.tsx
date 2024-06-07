@@ -1,5 +1,6 @@
 import { PageTitle } from "@/components";
 import { SetListCardBody, SongItem } from "@/modules/SetlistCard";
+import { CardList } from "@/modules/SetlistCard/components/CardList";
 import { DotsThree } from "@phosphor-icons/react/dist/ssr";
 
 export default async function SetListPage({
@@ -22,7 +23,7 @@ export default async function SetListPage({
           <DotsThree className="text-slate-900" size={12} />
         </button>
       </section>
-      <div className="flex flex-col gap-4">
+      <CardList gap="gap-8">
         <div className="flex flex-col gap-4 rounded border border-slate-200 p-4 shadow">
           <header className="flex flex-col gap-2">
             <div className="flex justify-between">
@@ -91,7 +92,7 @@ export default async function SetListPage({
             </div>
           </SetListCardBody>
         </div>
-      </div>
+      </CardList>
     </div>
   );
 }

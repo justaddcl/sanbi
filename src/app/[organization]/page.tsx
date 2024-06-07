@@ -6,6 +6,7 @@ import {
   SetListCardSection,
   SongItem,
 } from "@/modules/SetlistCard";
+import { CardList } from "@/modules/SetlistCard/components/CardList";
 import Link from "next/link";
 
 export default async function Dashboard({
@@ -22,7 +23,7 @@ export default async function Dashboard({
         </select>
         <a className="text-xs text-slate-900">See all</a>
       </section>
-      <div className="flex flex-col gap-4">
+      <CardList>
         <Link href={`/${params.organization}/sets/demo`}>
           <SetListCard>
             <SetListCardHeader
@@ -96,7 +97,7 @@ export default async function Dashboard({
             </SetListCardSection>
           </SetListCardBody>
         </SetListCard>
-      </div>
+      </CardList>
     </div>
   );
 }
