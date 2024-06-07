@@ -1,9 +1,11 @@
+import { SongKey, type SongKeyProps } from "@/components";
+
 export type SongItemProps = {
   /** index of song in the set list */
   index: number;
 
   /** what key the song will be played in */
-  songKey: string;
+  songKey: SongKeyProps["songKey"];
 
   /** name of song */
   name: string;
@@ -25,9 +27,7 @@ export const SongItem: React.FC<SongItemProps> = ({
       </p>
       <div className="flex flex-col gap-2">
         <div className="items-top flex gap-2">
-          <p className="flex h-4 w-4 flex-none place-content-center rounded bg-slate-200">
-            {songKey}
-          </p>
+          <SongKey songKey={songKey} />
           <p className="text-slate-900">{name}</p>
         </div>
         {notes ? (
