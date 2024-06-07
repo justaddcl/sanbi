@@ -9,7 +9,7 @@ type SongKeyGeneralProps = {
   size?: "small" | "medium";
 };
 
-type SongKeySharpProps = {
+export type SongKeySharpProps = {
   /** is the key sharp? */
   sharp?: true;
 
@@ -17,7 +17,7 @@ type SongKeySharpProps = {
   flat?: never;
 };
 
-type SongKeyFlatProps = {
+export type SongKeyFlatProps = {
   /** is the key flat? */
   flat?: true;
 
@@ -33,12 +33,12 @@ export const SongKey: React.FC<SongKeyProps> = ({
 }) => {
   const badgeSize = size === "small" ? "h-4 w-4" : "h-5 w-5";
   return (
-    <p
-      className={`flex ${badgeSize} flex-none items-center justify-center rounded bg-slate-200 text-xs/3 font-medium`}
+    <span
+      className={`flex ${badgeSize} flex-none items-center justify-center rounded bg-slate-200 text-xs/3 font-medium text-slate-900`}
     >
       <span>{songKey}</span>
       {flat && <span className="relative bottom-[2px] text-[10px]">♭</span>}
       {sharp && <span className="relative bottom-[2px] text-[8px]">♯</span>}
-    </p>
+    </span>
   );
 };

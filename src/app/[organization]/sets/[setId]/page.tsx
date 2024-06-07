@@ -22,7 +22,7 @@ export default async function SetListPage({
           <DotsThree className="text-slate-900" size={12} />
         </button>
       </section>
-      <CardList gap="gap-8">
+      <CardList gap="gap-6">
         <div className="flex flex-col gap-4 rounded border border-slate-200 p-4 shadow">
           <header className="flex flex-col gap-2">
             <div className="flex justify-between">
