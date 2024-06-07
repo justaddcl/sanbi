@@ -105,7 +105,6 @@ export const PlayHistoryItem: React.FC<PlayHistoryItemProps> = ({
   const mappedStyles = bulletLineBaseStyles
     .map((style) => `[&:not(:last-child)]:before:${style}`)
     .join(" ");
-  console.log("🚀 ~ ms:", mappedStyles);
 
   if (!eventType || !songKey || !setSection) {
     return (

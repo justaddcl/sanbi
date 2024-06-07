@@ -1,6 +1,7 @@
 import { PageTitle } from "@/components";
 import { CardList, SetListCardBody, SongItem } from "@/modules/SetListCard";
 import { DotsThree } from "@phosphor-icons/react/dist/ssr";
+import Link from "next/link";
 
 export default async function SetListPage({
   params: _params,
@@ -35,12 +36,14 @@ export default async function SetListPage({
           </header>
           <SetListCardBody>
             <div className="flex flex-col gap-3">
-              <SongItem
-                index={1}
-                songKey="B"
-                name="In My Place"
-                notes="Play in the key of B to make it easier for the backup vocalist to harmonize with."
-              />
+              <Link href={`../songs/demo`}>
+                <SongItem
+                  index={1}
+                  songKey="B"
+                  name="In My Place"
+                  notes="Play in the key of B to make it easier for the backup vocalist to harmonize with."
+                />
+              </Link>
               <SongItem index={2} songKey="A" name="Such An Awesome God" />
               <SongItem
                 index={3}
