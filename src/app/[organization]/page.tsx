@@ -1,12 +1,12 @@
 import { PageTitle } from "@/components";
 import {
+  CardList,
   SetListCard,
   SetListCardBody,
   SetListCardHeader,
   SetListCardSection,
   SongItem,
-} from "@/modules/SetlistCard";
-import { CardList } from "@/modules/SetlistCard/components/CardList";
+} from "@/modules/SetListCard";
 import Link from "next/link";
 
 export default async function Dashboard({

@@ -1,6 +1,5 @@
 import { PageTitle } from "@/components";
-import { SetListCardBody, SongItem } from "@/modules/SetlistCard";
-import { CardList } from "@/modules/SetlistCard/components/CardList";
+import { CardList, SetListCardBody, SongItem } from "@/modules/SetListCard";
 import { DotsThree } from "@phosphor-icons/react/dist/ssr";
 
 export default async function SetListPage({
