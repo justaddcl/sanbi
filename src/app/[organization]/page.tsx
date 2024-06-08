@@ -1,12 +1,12 @@
 import { PageTitle } from "@/components";
 import {
+  CardList,
   SetListCard,
   SetListCardBody,
   SetListCardHeader,
   SetListCardSection,
   SongItem,
-} from "@/modules/SetlistCard";
-import { CardList } from "@/modules/SetlistCard/components/CardList";
+} from "@/modules/SetListCard";
 import Link from "next/link";
 
 export default async function Dashboard({
@@ -33,7 +33,9 @@ export default async function Dashboard({
             />
             <SetListCardBody>
               <SetListCardSection title="Worship">
-                <SongItem index={1} songKey="B" name="In My Place" />
+                <Link href={`/${params.organization}/songs/demo`}>
+                  <SongItem index={1} songKey="B" name="In My Place" />
+                </Link>
                 <SongItem index={2} songKey="A" name="Such An Awesome God" />
                 <SongItem
                   index={3}
@@ -56,7 +58,9 @@ export default async function Dashboard({
           />
           <SetListCardBody>
             <SetListCardSection title="Worship">
-              <SongItem index={1} songKey="B" name="In My Place" />
+              <Link href={`/${params.organization}/songs/demo`}>
+                <SongItem index={1} songKey="B" name="In My Place" />
+              </Link>
               <SongItem index={2} songKey="A" name="Such An Awesome God" />
               <SongItem
                 index={3}
@@ -83,7 +87,9 @@ export default async function Dashboard({
           />
           <SetListCardBody>
             <SetListCardSection title="Worship">
-              <SongItem index={1} songKey="B" name="In My Place" />
+              <Link href={`/${params.organization}/songs/demo`}>
+                <SongItem index={1} songKey="B" name="In My Place" />
+              </Link>
               <SongItem index={2} songKey="A" name="Such An Awesome God" />
               <SongItem
                 index={3}
