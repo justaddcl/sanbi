@@ -64,48 +64,6 @@ export const PlayHistoryItem: React.FC<PlayHistoryItemProps> = ({
     };
   }
 
-  /**
-   * FIXME: this variable can be used when the `-left` value can be computed as expected
-   * See not above `-left`
-   */
-  const bulletGridColumnWidth = "16px";
-  const bulletWidth = "8px";
-  const bulletOffsetTop = "4px";
-  const bulletOffsetBottom = "4px";
-
-  const bulletLineBaseStyles = [
-    "absolute",
-    "w-[1px]",
-    "bg-slate-200",
-    `content-['']`,
-    /**
-     * the line needs to line up with the middle of the bullet so
-     * it needs to be shifted the width of the first column (16px) minus half
-     * the width of the bullet (8px)
-     * the current solution is hard-coded since using the calc function won't work
-     */
-    // `left-[calc(${bulletGridColumnWidth}-(calc((${bulletWidth}/2))))]`,
-    "-left-[12px]",
-
-    /**
-     * the starting y position of the line must account for the top offset (which
-     * should be half of the text line height of the corresponding row) and
-     * height of the bullet (8px) as well as and margin below the bullet (4px)
-     */
-    `top-[calc(${bulletOffsetTop}+${bulletWidth}+${bulletOffsetBottom})]`,
-
-    /**
-     * the height of the line should be the height of the element + grid gap (16px)
-     * minus the top offset so the line ends right when the next item below begins
-     * however, 100% seems to work so keeping this for now
-     */
-    `h-[calc(100%)]`,
-  ];
-
-  const mappedStyles = bulletLineBaseStyles
-    .map((style) => `[&:not(:last-child)]:before:${style}`)
-    .join(" ");
-
   if (!eventType || !songKey || !setSection) {
     return (
       <>
@@ -123,8 +81,12 @@ export const PlayHistoryItem: React.FC<PlayHistoryItemProps> = ({
   return (
     <>
       <PlayHistoryBullet />
+      {/**
+       * NOTE: the styles for the play history item's `::before` pseudo element is in `styles/globals.css`
+       * as Tailwind wouldn't properly apply the styles
+       */}
       <div
-        className={`relative flex flex-col gap-1 text-[10px] ${mappedStyles}`}
+        className={`play-history-item relative flex flex-col gap-1 text-[10px]`}
       >
         <p>
           <span className="font-semibold">{formattedDate}</span>
