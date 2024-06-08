@@ -19,7 +19,7 @@ export default async function SetListPage({
     <div className="flex min-w-full max-w-xs flex-col justify-center gap-6">
       <PageTitle title="In My Place" />
       <section>
-        {/* FIXME: refactor definition list into re-usable component */}
+        {/* FIXME: refactor definition list into reusable components */}
         <dl className="text-xs text-slate-700">
           <dt className="mb-[2px] flex items-center gap-1 text-[8px]/[12px] uppercase text-slate-500">
             <MusicNotesSimple className="text-slate-400" size={8} />
@@ -72,6 +72,7 @@ export default async function SetListPage({
         </button>
       </section>
       <CardList gap="gap-8">
+        {/* FIXME: refactor this markup to be reusable components */}
         <div className="flex flex-col gap-4 rounded border border-slate-200 p-4 shadow">
           <header className="flex flex-col gap-2">
             <div className="flex justify-between">
