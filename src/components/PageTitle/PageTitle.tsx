@@ -1,3 +1,5 @@
+import { Text } from "@components/Text";
+
 export type PageTitleProps = {
   /** title */
   title: string;
@@ -16,11 +18,20 @@ export const PageTitle: React.FC<PageTitleProps> = ({
 }) => {
   return (
     <header className="flex flex-col gap-1 pb-2">
-      <h1 className="text-2xl font-bold">{title}</h1>
+      {/* <h1 className="text-2xl font-bold">{title}</h1> */}
+      <Text asElement="h1" style="header-large">
+        {title}
+      </Text>
       {subtitle ? (
-        <h2 className="text-base text-slate-700">{subtitle}</h2>
+        <Text asElement="h2" style="header-medium" className="leading-tight">
+          {subtitle}
+        </Text>
       ) : null}
-      {details ? <p className="text-xs text-slate-500">{details}</p> : null}
+      {details ? (
+        <Text asElement="h3" style="header-small">
+          {details}
+        </Text>
+      ) : null}
     </header>
   );
 };

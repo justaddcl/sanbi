@@ -1,13 +1,16 @@
-import { Badge, PageTitle, SongKey } from "@/components";
-import { CardList, PlayHistoryItem, ResourceCard } from "@/modules/SetListCard";
+import { Badge } from "@components/Badge";
+import { PageTitle } from "@components/PageTitle";
+import { SongKey } from "@components/SongKey";
+import { Text } from "@components/Text";
+import { CardList, PlayHistoryItem, ResourceCard } from "@modules/SetListCard";
 import {
+  ClockCounterClockwise,
   DotsThree,
   Heart,
   ListPlus,
-  MusicNotesSimple,
-  ClockCounterClockwise,
-  TagSimple,
   Metronome,
+  MusicNotesSimple,
+  TagSimple,
 } from "@phosphor-icons/react/dist/ssr";
 
 export default async function SetListPage({
@@ -20,7 +23,7 @@ export default async function SetListPage({
       <PageTitle title="In My Place" />
       <section>
         {/* FIXME: refactor definition list into reusable components */}
-        <dl className="text-xs text-slate-700">
+        <dl>
           <dt className="mb-[2px] flex items-center gap-1 text-[8px]/[12px] uppercase text-slate-500">
             <MusicNotesSimple className="text-slate-400" size={8} />
             <span>Preferred Key</span>
@@ -33,9 +36,16 @@ export default async function SetListPage({
             <span>Last Played</span>
           </dt>
           <dd className="[&:not(:last-child)]:mb-2">
-            <span className="">One week ago</span>
-            <span className="text-slate-500"> for </span>
-            <span className="">Sunday service</span>
+            <Text asElement="span" style="body-small" color="slate-700">
+              One week ago
+            </Text>
+            <Text asElement="span" style="body-small" color="slate-500">
+              {" "}
+              for{" "}
+            </Text>
+            <Text asElement="span" style="body-small" color="slate-700">
+              Sunday service
+            </Text>
           </dd>
           <dt className="flex items-center gap-1 text-[8px]/[12px] uppercase text-slate-500">
             <TagSimple className="text-slate-400" size={8} />
@@ -49,20 +59,32 @@ export default async function SetListPage({
             <Metronome className="text-slate-400" size={8} />
             <span>Tempo</span>
           </dt>
-          <dd className="[&:not(:last-child)]:mb-2">Slow</dd>
+          <dd className="[&:not(:last-child)]:mb-2">
+            <Text asElement="span" style="body-small" color="slate-700">
+              Slow
+            </Text>
+          </dd>
         </dl>
       </section>
       <section className="flex flex-col gap-4 text-xs">
-        <h3 className="font-semibold text-slate-500">Notes</h3>
-        <p className="text-slate-900">
+        <Text asElement="h3" style="header-small-semibold">
+          Notes
+        </Text>
+        <Text style="body-small">
           Play in the key of B to make it easier for the backup vocalist to
           harmonize with.
-        </p>
+        </Text>
       </section>
       <section className="flex justify-between gap-2">
-        <button className="flex w-full items-center justify-center gap-2 rounded border border-slate-300 px-3 text-xs font-semibold text-slate-700">
+        <button className="flex w-full items-center justify-center gap-2 rounded border border-slate-300 px-3 text-slate-700">
           <ListPlus size={12} />
-          Add to set
+          <Text
+            asElement="span"
+            style="header-small-semibold"
+            color="slate-700"
+          >
+            Add to set
+          </Text>
         </button>
         <button className="flex h-6 w-6 place-content-center rounded border border-slate-300 p-[6px]">
           <Heart className="text-slate-900" size={12} />
@@ -76,7 +98,9 @@ export default async function SetListPage({
         <div className="flex flex-col gap-4 rounded border border-slate-200 p-4 shadow">
           <header className="flex flex-col gap-2">
             <div className="flex justify-between">
-              <h3 className="text-base font-semibold">Resources</h3>
+              <Text asElement="h3" style="header-medium-semibold">
+                Resources
+              </Text>
               <button className="flex h-6 w-6 place-content-center rounded border border-slate-300 p-[6px]">
                 <DotsThree className="text-slate-900" size={12} />
               </button>
