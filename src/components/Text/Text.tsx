@@ -94,7 +94,6 @@ export const Text: React.FC<React.PropsWithChildren<TextProps>> = ({
   children,
 }) => {
   const HtmlElement = asElement;
-  console.log(HtmlElement);
 
   const propertyValues: Record<MappedTwProperties, string | undefined> = {
     fontWeight,
