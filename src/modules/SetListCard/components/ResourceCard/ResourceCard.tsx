@@ -8,7 +8,7 @@ export type ResourceCardProps = {
 
 export const ResourceCard: React.FC<ResourceCardProps> = ({ title, url }) => {
   return (
-    <div className="flex h-[92px] w-[124px] flex-col rounded bg-slate-200">
+    <div className="flex flex-col rounded bg-slate-200">
       <div className="flex h-full flex-[6] items-center justify-center rounded-t bg-slate-300">
         <Link className="text-slate-400" size={24} />
       </div>

@@ -107,7 +107,7 @@ export default async function SetListPage({
             </div>
             <hr className="bg-slate-100" />
           </header>
-          <div className="flex flex-wrap gap-2">
+          <div className="grid grid-cols-[repeat(auto-fill,_124px)] grid-rows-[repeat(auto-fill,_92px)] gap-2">
             <ResourceCard title="In My Place" url="theworshipinitiative.com" />
             <ResourceCard title="In My Place" url="open.spotify.com" />
           </div>
