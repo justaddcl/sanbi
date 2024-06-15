@@ -93,6 +93,7 @@ export const PlayHistoryItem: React.FC<PlayHistoryItemProps> = ({
           <Text asElement="span" style="small-semibold">
             {formattedDate}
           </Text>
+          {/* FIXME: come up with better solution to hard-coding the space around "for" */}
           <Text asElement="span" style="small">
             {" "}
             for{" "}

@@ -18,20 +18,19 @@ export const PageTitle: React.FC<PageTitleProps> = ({
 }) => {
   return (
     <header className="flex flex-col gap-1 pb-2">
-      {/* <h1 className="text-2xl font-bold">{title}</h1> */}
       <Text asElement="h1" style="header-large">
         {title}
       </Text>
-      {subtitle ? (
+      {subtitle && (
         <Text asElement="h2" style="header-medium" className="leading-tight">
           {subtitle}
         </Text>
-      ) : null}
-      {details ? (
+      )}
+      {details && (
         <Text asElement="h3" style="header-small">
           {details}
         </Text>
-      ) : null}
+      )}
     </header>
   );
 };
