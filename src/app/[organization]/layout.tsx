@@ -1,4 +1,4 @@
-import { startCase } from "@/lib/string";
+import { startCase } from "@lib/string";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 

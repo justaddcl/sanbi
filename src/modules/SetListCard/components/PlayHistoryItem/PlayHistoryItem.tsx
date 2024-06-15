@@ -1,12 +1,13 @@
 import {
   SongKey,
   type SongKeyFlatProps,
-  type SongKeySharpProps,
   type SongKeyProps,
-} from "@/components";
-import { type SetListCardHeaderProps } from "../SetListCardHeader";
-import { formatDate } from "@/lib/date";
-import { type None } from "@/lib/types";
+  type SongKeySharpProps,
+} from "@components/SongKey";
+import { Text } from "@components/Text";
+import { formatDate } from "@lib/date";
+import { type None } from "@lib/types";
+import { type SetListCardHeaderProps } from "@modules/SetListCard/components/SetListCardHeader";
 import { PlayHistoryBullet } from "../PlayHistoryBullet/PlayHistoryBullet";
 
 /**
@@ -68,11 +69,13 @@ export const PlayHistoryItem: React.FC<PlayHistoryItemProps> = ({
     return (
       <>
         <PlayHistoryBullet />
-        <div
-          className={`relative flex flex-col gap-1 text-[10px] font-semibold`}
-        >
-          <p>Song added to library</p>
-          <p className="font-normal text-slate-500">{formattedDate}</p>
+        <div className={`relative flex flex-col gap-1`}>
+          <Text fontWeight="semibold" fontSize="[10px]">
+            Song added to library
+          </Text>
+          <Text fontSize="[10px]" color="slate-500">
+            {formattedDate}
+          </Text>
         </div>
       </>
     );
@@ -85,20 +88,32 @@ export const PlayHistoryItem: React.FC<PlayHistoryItemProps> = ({
        * NOTE: the styles for the play history item's `::before` pseudo element is in `styles/globals.css`
        * as Tailwind wouldn't properly apply the styles
        */}
-      <div
-        className={`play-history-item relative flex flex-col gap-1 text-[10px]`}
-      >
-        <p>
-          <span className="font-semibold">{formattedDate}</span>
-          <span> for </span>
-          <span className="font-semibold">{eventType}</span>
-        </p>
-        <p className="flex gap-1 text-slate-500">
-          <span className="">Played in</span>
+      <div className={`play-history-item relative flex flex-col gap-1`}>
+        <div>
+          <Text asElement="span" style="small-semibold">
+            {formattedDate}
+          </Text>
+          {/* FIXME: come up with better solution to hard-coding the space around "for" */}
+          <Text asElement="span" style="small">
+            {" "}
+            for{" "}
+          </Text>
+          <Text asElement="span" style="small-semibold">
+            {eventType}
+          </Text>
+        </div>
+        <div className="flex gap-1">
+          <Text asElement="span" style="small" color="slate-500">
+            Played in
+          </Text>
           <SongKey songKey={songKey} {...accidentalsProps} />
-          <span className="">during </span>
-          <span className="lowercase text-slate-700">{setSection}</span>
-        </p>
+          <Text asElement="span" style="small" color="slate-500">
+            during{" "}
+          </Text>
+          <Text asElement="span" style="small" className="lowercase">
+            {setSection}
+          </Text>
+        </div>
       </div>
     </>
   );

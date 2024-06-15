@@ -1,5 +1,6 @@
-import { PageTitle } from "@/components";
 import { CardList, SetListCardBody, SongItem } from "@/modules/SetListCard";
+import { PageTitle } from "@components/PageTitle";
+import { Text } from "@components/Text";
 import { DotsThree } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 
@@ -27,7 +28,9 @@ export default async function SetListPage({
         <div className="flex flex-col gap-4 rounded border border-slate-200 p-4 shadow">
           <header className="flex flex-col gap-2">
             <div className="flex justify-between">
-              <h3 className="text-base font-semibold">Worship</h3>
+              <Text asElement="h3" style="header-medium-semibold">
+                Worship
+              </Text>
               <button className="flex h-6 w-6 place-content-center rounded border border-slate-300 p-[6px]">
                 <DotsThree className="text-slate-900" size={12} />
               </button>
@@ -58,7 +61,9 @@ export default async function SetListPage({
         <div className="flex flex-col gap-4 rounded border border-slate-200 p-4 shadow">
           <header className="flex flex-col gap-2">
             <div className="flex justify-between">
-              <h3 className="text-base font-semibold">Lord&apos;s Supper</h3>
+              <Text asElement="h3" style="header-medium-semibold">
+                Lord&apos;s Supper
+              </Text>
               <button className="flex h-6 w-6 place-content-center rounded border border-slate-300 p-[6px]">
                 <DotsThree className="text-slate-900" size={12} />
               </button>
@@ -74,7 +79,9 @@ export default async function SetListPage({
         <div className="flex flex-col gap-4 rounded border border-slate-200 p-4 shadow">
           <header className="flex flex-col gap-2">
             <div className="flex justify-between">
-              <h3 className="text-base font-semibold">Prayer</h3>
+              <Text asElement="h3" style="header-medium-semibold">
+                Prayer
+              </Text>
               <button className="flex h-6 w-6 place-content-center rounded border border-slate-300 p-[6px]">
                 <DotsThree className="text-slate-900" size={12} />
               </button>
