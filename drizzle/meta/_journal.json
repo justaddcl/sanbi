@@ -15,6 +15,27 @@
       "when": 1718573167976,
       "tag": "0001_brown_madelyne_pryor",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1718744672506,
+      "tag": "0002_fair_crusher_hogan",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1718744744536,
+      "tag": "0003_eager_johnny_storm",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1718745967910,
+      "tag": "0004_cloudy_lilith",
+      "breakpoints": true
     }
   ]
 }
