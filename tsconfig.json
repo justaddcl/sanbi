@@ -29,7 +29,8 @@
       "@/*": ["./*"],
       "@components/*": ["components/*"],
       "@modules/*": ["modules/*"],
-      "@lib/*": ["lib/*"]
+      "@lib/*": ["lib/*"],
+      "@server/*": ["server/*"]
     }
   },
   "include": [
