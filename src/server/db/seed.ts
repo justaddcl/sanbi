@@ -2,14 +2,9 @@ import {
   drizzle as LocalDrizzle,
   type PostgresJsDatabase,
 } from "drizzle-orm/postgres-js";
-import {
-  drizzle as VercelDrizzle,
-  type VercelPgDatabase,
-} from "drizzle-orm/vercel-postgres";
 import postgres from "postgres";
 
 import { env } from "@/env";
-import { sql as vercelSql } from "@vercel/postgres";
 import {
   eventTypes,
   organizationMembers,
@@ -49,18 +44,14 @@ const globalForDb = globalThis as unknown as {
   conn: postgres.Sql | undefined;
 };
 
-let db:
-  | PostgresJsDatabase<Record<string, never>>
-  | VercelPgDatabase<Record<string, never>>;
+let db: PostgresJsDatabase<Record<string, never>>;
 
 const conn = globalForDb.conn ?? postgres(env.DATABASE_URL);
 
 if (env.NODE_ENV !== "production") {
   globalForDb.conn = conn;
-  const queryClient = postgres(env.LOCAL_DATABASE_URL);
+  const queryClient = postgres(env.DATABASE_URL);
   db = LocalDrizzle(queryClient);
-} else {
-  db = VercelDrizzle(vercelSql);
 }
 
 const TAGS_PER_SONG_SEED_COUNT = 3;
