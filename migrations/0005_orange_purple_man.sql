@@ -1,0 +1,1 @@
+ALTER TABLE "sanbi_sets" ALTER COLUMN "event_type_id" SET NOT NULL;
