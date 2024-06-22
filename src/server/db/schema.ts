@@ -1,7 +1,7 @@
 // Example model schema from the Drizzle docs
 // https://orm.drizzle.team/docs/sql-schema-declaration
 
-import { sql } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 import {
   date,
   index,
@@ -196,3 +196,98 @@ export const setSectionSongs = createTable(
     };
   },
 );
+
+/** drizzle relationships */
+export const organizationsRelations = relations(organizations, ({ many }) => ({
+  members: many(organizationMembers),
+  songs: many(songs),
+}));
+
+export const organizationMembersRelations = relations(
+  organizationMembers,
+  ({ one }) => ({
+    member: one(users, {
+      fields: [organizationMembers.userId],
+      references: [users.id],
+    }),
+    organization: one(organizations, {
+      fields: [organizationMembers.organizationId],
+      references: [organizations.id],
+    }),
+  }),
+);
+
+export const usersRelations = relations(users, ({ many }) => ({
+  memberships: many(organizationMembers),
+  songs: many(songs),
+}));
+
+export const songsRelations = relations(songs, ({ one, many }) => ({
+  creator: one(users, {
+    fields: [songs.createdBy],
+    references: [users.id],
+  }),
+  organization: one(organizations, {
+    fields: [songs.organizationId],
+    references: [organizations.id],
+  }),
+  tags: many(songTags),
+  sets: many(setSectionSongs),
+}));
+
+export const songTagsRelations = relations(songTags, ({ one }) => ({
+  song: one(songs, {
+    fields: [songTags.songId],
+    references: [songs.id],
+  }),
+  tag: one(tags, {
+    fields: [songTags.tagId],
+    references: [tags.id],
+  }),
+}));
+
+export const tagsRelations = relations(tags, ({ many }) => ({
+  songTags: many(songTags),
+}));
+
+export const setSectionSongsRelations = relations(
+  setSectionSongs,
+  ({ one }) => ({
+    song: one(songs, {
+      fields: [setSectionSongs.songId],
+      references: [songs.id],
+    }),
+    setSection: one(setSections, {
+      fields: [setSectionSongs.setSectionId],
+      references: [setSections.id],
+    }),
+  }),
+);
+
+export const setSectionsRelations = relations(setSections, ({ one, many }) => ({
+  songs: many(setSectionSongs),
+  set: one(sets, {
+    fields: [setSections.setId],
+    references: [sets.id],
+  }),
+  type: one(setSectionTypes, {
+    fields: [setSections.sectionTypeId],
+    references: [setSectionTypes.id],
+  }),
+}));
+
+export const sectionTypesRelations = relations(setSectionTypes, ({ many }) => ({
+  setSections: many(setSections),
+}));
+
+export const setsRelations = relations(sets, ({ one, many }) => ({
+  eventType: one(eventTypes, {
+    fields: [sets.eventTypeId],
+    references: [eventTypes.id],
+  }),
+  sections: many(setSections),
+}));
+
+export const eventTypesRelations = relations(eventTypes, ({ many }) => ({
+  sets: many(sets),
+}));
