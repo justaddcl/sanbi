@@ -147,7 +147,9 @@ export const eventTypes = createTable("event_types", {
 
 export const sets = createTable("sets", {
   id: serial("id").primaryKey(),
-  eventTypeId: integer("event_type_id").references(() => eventTypes.id),
+  eventTypeId: integer("event_type_id")
+    .references(() => eventTypes.id)
+    .notNull(),
   date: date("date").notNull(),
   notes: text("notes"),
 });
