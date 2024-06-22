@@ -30,8 +30,8 @@ let db:
 const conn = globalForDb.conn ?? postgres(env.DATABASE_URL);
 if (env.NODE_ENV !== "production") {
   globalForDb.conn = conn;
-  const migrationClient = postgres(env.LOCAL_DATABASE_URL, { max: 1 });
-  const queryClient = postgres(env.LOCAL_DATABASE_URL);
+  const migrationClient = postgres(env.DATABASE_URL, { max: 1 });
+  const queryClient = postgres(env.DATABASE_URL);
   db = LocalDrizzle(queryClient);
   await LocalMigrate(db, { migrationsFolder: MIGRATIONS_DIR });
   await migrationClient.end();
