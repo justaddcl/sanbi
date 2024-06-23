@@ -174,7 +174,7 @@ const seed = async () => {
       organizationId: organization!.id,
     },
     {
-      name: "I Love YouLord/What A Beautiful Name (mash up)",
+      name: "I Love You Lord/What A Beautiful Name (mash up)",
       key: "g",
       notes:
         "Song is best with only vocals, guitar, and keys. Feels powerful with only vocals on the last chorus.",
