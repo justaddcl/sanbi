@@ -1,10 +1,9 @@
-import { startCase } from "@lib/string";
+import { db } from "@/server/db";
+import { organizations } from "@/server/db/schema";
+import { eq } from "drizzle-orm";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 
-const ORGANIZATION_WHITELIST = ["demo", "stoneway"];
-
-export default function DashboardLayout({
+export default async function DashboardLayout({
   params,
   children,
 }: {
@@ -13,17 +12,20 @@ export default function DashboardLayout({
     organization: string;
   };
 }) {
-  /** FIXME: primitive redirect while waiting for authentication */
-  if (!ORGANIZATION_WHITELIST.includes(params.organization)) {
-    redirect("/");
+  const [organization] = await db
+    .select()
+    .from(organizations)
+    .where(eq(organizations.id, params.organization));
+
+  if (!organization) {
+    throw new Error("Invalid Organization ID");
   }
 
-  const organizationName = startCase(params.organization);
   return (
     <main className="container px-4 pb-16">
       <nav className="flex h-[60px] items-center text-slate-700">
-        Sanbi //{" "}
-        <Link href={`/${params.organization}`}>{organizationName}</Link>
+        <Link href="/">Sanbi</Link> <span>&nbsp;//&nbsp;</span>
+        <Link href={`/${params.organization}`}>{organization.name}</Link>
       </nav>
       {children}
     </main>
