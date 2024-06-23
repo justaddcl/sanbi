@@ -9,7 +9,7 @@ import {
   pgEnum,
   pgTableCreator,
   primaryKey,
-  serial,
+  uuid,
   text,
   timestamp,
   uniqueIndex,
@@ -47,7 +47,7 @@ export const songKeyEnum = pgEnum("song_keys", [
 export const users = createTable(
   "users",
   {
-    id: serial("id").primaryKey(),
+    id: uuid("id").primaryKey().defaultRandom(),
     firstName: varchar("firstName", { length: 256 }).notNull(),
     lastName: varchar("lastName", { length: 256 }),
     email: varchar("email", { length: 256 }).notNull().unique(),
@@ -62,7 +62,7 @@ export const users = createTable(
 export const organizations = createTable(
   "organizations",
   {
-    id: serial("id").primaryKey(),
+    id: uuid("id").primaryKey().defaultRandom(),
     name: varchar("name").notNull().unique(),
     slug: varchar("slug").unique(),
   },
@@ -78,10 +78,8 @@ export const organizations = createTable(
 export const organizationMembers = createTable(
   "organization_memberships",
   {
-    organizationId: integer("organization_id").references(
-      () => organizations.id,
-    ),
-    userId: integer("user_id").references(() => users.id),
+    organizationId: uuid("organization_id").references(() => organizations.id),
+    userId: uuid("user_id").references(() => users.id),
 
     permissionType: memberPermissionTypeEnum(
       "membership_permission_type",
@@ -95,15 +93,15 @@ export const organizationMembers = createTable(
 );
 
 export const tags = createTable("tags", {
-  id: serial("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   tag: varchar("tag", { length: 256 }).notNull().unique(),
 });
 
 export const songTags = createTable(
   "song_tags",
   {
-    songId: integer("song_id").references(() => songs.id),
-    tagId: integer("tag_id").references(() => tags.id),
+    songId: uuid("song_id").references(() => songs.id),
+    tagId: uuid("tag_id").references(() => tags.id),
   },
   (songTagsTable) => {
     return {
@@ -115,7 +113,7 @@ export const songTags = createTable(
 export const songs = createTable(
   "songs",
   {
-    id: serial("id").primaryKey(),
+    id: uuid("id").primaryKey().defaultRandom(),
     name: varchar("name", { length: 256 }).notNull().unique(),
     key: songKeyEnum("song_key"),
     notes: text("notes"),
@@ -123,12 +121,10 @@ export const songs = createTable(
     createdAt: timestamp("created_at", { withTimezone: true })
       .default(sql`CURRENT_TIMESTAMP`)
       .notNull(),
-    createdBy: integer("user_id")
+    createdBy: uuid("user_id")
       .references(() => users.id)
       .notNull(),
-    organizationId: integer("organization_id").references(
-      () => organizations.id,
-    ),
+    organizationId: uuid("organization_id").references(() => organizations.id),
     updatedAt: timestamp("updatedAt", { withTimezone: true }),
   },
   (songsTable) => {
@@ -141,33 +137,36 @@ export const songs = createTable(
 );
 
 export const eventTypes = createTable("event_types", {
-  id: serial("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   event: varchar("event").unique().notNull(),
 });
 
 export const sets = createTable("sets", {
-  id: serial("id").primaryKey(),
-  eventTypeId: integer("event_type_id")
+  id: uuid("id").primaryKey().defaultRandom(),
+  eventTypeId: uuid("event_type_id")
     .references(() => eventTypes.id)
     .notNull(),
   date: date("date").notNull(),
   notes: text("notes"),
+  organizationId: uuid("organization_id")
+    .references(() => organizations.id)
+    .notNull(),
 });
 
 export const setSectionTypes = createTable("set_section_types", {
-  id: serial("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   section: varchar("section").unique().notNull(),
 });
 
 export const setSections = createTable(
   "set_sections",
   {
-    id: serial("id").primaryKey(),
-    setId: integer("set_id")
+    id: uuid("id").primaryKey().defaultRandom(),
+    setId: uuid("set_id")
       .references(() => sets.id)
       .notNull(),
     position: integer("position").notNull(),
-    sectionTypeId: integer("section_type_id")
+    sectionTypeId: uuid("section_type_id")
       .references(() => setSectionTypes.id)
       .notNull(),
   },
@@ -181,8 +180,8 @@ export const setSections = createTable(
 export const setSectionSongs = createTable(
   "set_section_songs",
   {
-    setSectionId: integer("set_section_id").references(() => setSections.id),
-    songId: integer("song_id").references(() => songs.id),
+    setSectionId: uuid("set_section_id").references(() => setSections.id),
+    songId: uuid("song_id").references(() => songs.id),
     position: integer("position").notNull(),
   },
   (setSectionSongsTable) => {
@@ -201,6 +200,7 @@ export const setSectionSongs = createTable(
 export const organizationsRelations = relations(organizations, ({ many }) => ({
   members: many(organizationMembers),
   songs: many(songs),
+  sets: many(sets),
 }));
 
 export const organizationMembersRelations = relations(
@@ -286,6 +286,10 @@ export const setsRelations = relations(sets, ({ one, many }) => ({
     references: [eventTypes.id],
   }),
   sections: many(setSections),
+  organization: one(organizations, {
+    fields: [sets.organizationId],
+    references: [organizations.id],
+  }),
 }));
 
 export const eventTypesRelations = relations(eventTypes, ({ many }) => ({

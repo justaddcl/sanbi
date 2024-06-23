@@ -107,9 +107,6 @@ const seed = async () => {
 
   /** seed the organization table */
   await db.execute(sql`TRUNCATE TABLE sanbi_organizations CASCADE`);
-  await db.execute(
-    sql`ALTER SEQUENCE public.sanbi_organizations_id_seq RESTART WITH 1;`,
-  );
   const [organization] = await db
     .insert(organizations)
     .values(seedOrganization)
@@ -119,9 +116,6 @@ const seed = async () => {
 
   /** seed the users table */
   await db.execute(sql`TRUNCATE TABLE sanbi_users CASCADE`);
-  await db.execute(
-    sql`ALTER SEQUENCE public.sanbi_user_id_seq RESTART WITH 1;`,
-  );
   const [user] = await db.insert(users).values(seedUser).returning();
   console.log("🚀 ~ seed ~ user:", user);
 
@@ -141,9 +135,6 @@ const seed = async () => {
 
   /** seed the event types table */
   await db.execute(sql`TRUNCATE TABLE sanbi_event_types CASCADE`);
-  await db.execute(
-    sql`ALTER SEQUENCE public.sanbi_event_types_id_seq RESTART WITH 1;`,
-  );
   const seededEventTypes = await db
     .insert(eventTypes)
     .values(seedEventTypes)
@@ -153,9 +144,6 @@ const seed = async () => {
 
   /** seed the section types table */
   await db.execute(sql`TRUNCATE TABLE sanbi_set_section_types CASCADE`);
-  await db.execute(
-    sql`ALTER SEQUENCE public.sanbi_set_section_types_id_seq RESTART WITH 1;`,
-  );
   const seededSectionTypes = await db
     .insert(setSectionTypes)
     .values(seedSetSectionTypes)
@@ -165,17 +153,11 @@ const seed = async () => {
 
   /** seed the tags table */
   await db.execute(sql`TRUNCATE TABLE sanbi_tags CASCADE`);
-  await db.execute(
-    sql`ALTER SEQUENCE public.sanbi_tags_id_seq RESTART WITH 1;`,
-  );
   const seededTags = await db.insert(tags).values(seedTags).returning();
   console.log("🚀 ~ seed ~ seededTags:", seededTags);
 
   /** seed the songs table */
   await db.execute(sql`TRUNCATE TABLE sanbi_songs CASCADE`);
-  await db.execute(
-    sql`ALTER SEQUENCE public.sanbi_song_id_seq RESTART WITH 1;`,
-  );
   const seedSongs: NewSong[] = [
     {
       name: "In My Place",
@@ -264,21 +246,21 @@ const seed = async () => {
 
   /** seed the sets table */
   await db.execute(sql`TRUNCATE TABLE sanbi_sets CASCADE`);
-  await db.execute(
-    sql`ALTER SEQUENCE public.sanbi_sets_id_seq RESTART WITH 1;`,
-  );
   const seedSets: NewSet[] = [
     {
       eventTypeId: seededEventTypes[0]!.id,
       date: "2024-09-30",
+      organizationId: organization!.id,
     },
     {
       eventTypeId: seededEventTypes[1]!.id,
       date: "2024-08-17",
+      organizationId: organization!.id,
     },
     {
       eventTypeId: seededEventTypes[2]!.id,
       date: "2024-08-14",
+      organizationId: organization!.id,
     },
   ];
 
@@ -291,9 +273,6 @@ const seed = async () => {
 
   /** seed the set sections table */
   await db.execute(sql`TRUNCATE TABLE sanbi_set_sections CASCADE`);
-  await db.execute(
-    sql`ALTER SEQUENCE public.sanbi_set_sections_id_seq RESTART WITH 1;`,
-  );
   const insertSetSectionsPromises = seededSets.map(async (set) => {
     const seedSetSections = seededSectionTypes.map<NewSetSection>(
       (sectionType, index) => ({

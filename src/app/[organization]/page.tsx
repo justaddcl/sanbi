@@ -7,6 +7,9 @@ import {
   SetListCardSection,
   SongItem,
 } from "@/modules/SetListCard";
+import { db } from "@/server/db";
+import { organizations } from "@/server/db/schema";
+import { eq, or } from "drizzle-orm";
 import Link from "next/link";
 
 export default async function Dashboard({
@@ -14,6 +17,17 @@ export default async function Dashboard({
 }: {
   params: { organization: string };
 }) {
+  const organization = await db
+    .select()
+    .from(organizations)
+    .where(
+      or(
+        // eq(organizations.id, params.organization),
+        eq(organizations.slug, params.organization),
+      ),
+    );
+  console.log("🚀 ~ organization:", organization);
+
   return (
     <div className="flex min-w-full max-w-xs flex-col justify-center">
       <PageTitle title="Upcoming sets" details="3 sets" />
