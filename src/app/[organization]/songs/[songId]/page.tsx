@@ -150,19 +150,19 @@ export default async function SetListPage({
             <PlayHistoryItem
               date="2022-08-14"
               eventType="Sunday Service"
-              songKey="G"
+              songKey="g"
               setSection="Worship"
             />
             <PlayHistoryItem
               date="2022-08-07"
               eventType="Team Stoneway"
-              songKey="B"
+              songKey="b"
               setSection="Lord's Supper"
             />
             <PlayHistoryItem
               date="2024-08-07"
               eventType="Sunday Service"
-              songKey="B"
+              songKey="b"
               setSection="Prayer"
             />
             <PlayHistoryItem date="2022-07-31" />
