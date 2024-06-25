@@ -1,3 +1,5 @@
+import { db } from "@/server/db";
+import { songs } from "@/server/db/schema";
 import { Badge } from "@components/Badge";
 import { PageTitle } from "@components/PageTitle";
 import { SongKey } from "@components/SongKey";
@@ -12,15 +14,29 @@ import {
   MusicNotesSimple,
   TagSimple,
 } from "@phosphor-icons/react/dist/ssr";
+import { eq } from "drizzle-orm";
 
 export default async function SetListPage({
-  params: _params,
+  params,
 }: {
-  params: { setId: string };
+  params: { songId: string };
 }) {
+  // FIXME: move query to db/queries
+  const songData = await db.query.songs.findFirst({
+    where: eq(songs.id, params.songId),
+    with: {
+      tags: {
+        with: {
+          tag: true,
+        },
+      },
+    },
+  });
+  console.log("🚀 ~ songData:", songData);
+
   return (
     <div className="flex min-w-full max-w-xs flex-col justify-center gap-6">
-      <PageTitle title="In My Place" />
+      <PageTitle title={songData!.name} />
       <section>
         {/* FIXME: refactor definition list into reusable components */}
         <dl>
@@ -29,7 +45,7 @@ export default async function SetListPage({
             <span>Preferred Key</span>
           </dt>
           <dd className="[&:not(:last-child)]:mb-2">
-            <SongKey songKey="B" size="medium" />
+            <SongKey songKey={songData!.key} size="medium" />
           </dd>
           <dt className="mt-2 flex items-center gap-1 text-[8px]/[12px] uppercase text-slate-500">
             <ClockCounterClockwise className="text-slate-400" size={8} />
@@ -47,34 +63,42 @@ export default async function SetListPage({
               Sunday service
             </Text>
           </dd>
-          <dt className="flex items-center gap-1 text-[8px]/[12px] uppercase text-slate-500">
-            <TagSimple className="text-slate-400" size={8} />
-            <span>Tags</span>
-          </dt>
-          <dd className="flex gap-2 [&:not(:last-child)]:mb-2">
-            <Badge label="The cross" />
-            <Badge label="Easter" />
-          </dd>
-          <dt className="flex items-center gap-1 text-[8px]/[12px] uppercase text-slate-500">
-            <Metronome className="text-slate-400" size={8} />
-            <span>Tempo</span>
-          </dt>
-          <dd className="[&:not(:last-child)]:mb-2">
-            <Text asElement="span" style="body-small" color="slate-700">
-              Slow
-            </Text>
-          </dd>
+          {songData?.tags && (
+            <>
+              <dt className="flex items-center gap-1 text-[8px]/[12px] uppercase text-slate-500">
+                <TagSimple className="text-slate-400" size={8} />
+                <span>Tags</span>
+              </dt>
+              <dd className="flex gap-2 [&:not(:last-child)]:mb-2">
+                {songData?.tags.map((tag) => (
+                  <Badge key={tag.tagId} label={tag.tag!.tag} />
+                ))}
+              </dd>
+            </>
+          )}
+          {songData?.tempo && (
+            <>
+              <dt className="flex items-center gap-1 text-[8px]/[12px] uppercase text-slate-500">
+                <Metronome className="text-slate-400" size={8} />
+                <span>Tempo</span>
+              </dt>
+              <dd className="[&:not(:last-child)]:mb-2">
+                <Text asElement="span" style="body-small" color="slate-700">
+                  {songData.tempo}
+                </Text>
+              </dd>
+            </>
+          )}
         </dl>
       </section>
-      <section className="flex flex-col gap-4 text-xs">
-        <Text asElement="h3" style="header-small-semibold">
-          Notes
-        </Text>
-        <Text style="body-small">
-          Play in the key of B to make it easier for the backup vocalist to
-          harmonize with.
-        </Text>
-      </section>
+      {songData?.notes && (
+        <section className="flex flex-col gap-4 text-xs">
+          <Text asElement="h3" style="header-small-semibold">
+            Notes
+          </Text>
+          <Text style="body-small">{songData.notes}</Text>
+        </section>
+      )}
       <section className="flex justify-between gap-2">
         <button className="flex w-full items-center justify-center gap-2 rounded border border-slate-300 px-3 text-slate-700">
           <ListPlus size={12} />
