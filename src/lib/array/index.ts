@@ -1,1 +1,1 @@
-export * from "./getRandomValue";
+export * from "./getRandomValues";

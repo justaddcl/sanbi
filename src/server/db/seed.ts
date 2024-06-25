@@ -55,6 +55,9 @@ if (env.NODE_ENV !== "production") {
 }
 
 const TAGS_PER_SONG_SEED_COUNT = 3;
+const NUMBER_OF_SETS = 10;
+const SET_DATE_FROM_BOUNDARY = "2023-01-01";
+const SET_DATE_TO_BOUNDARY = "2024-12-31";
 const MIN_AMOUNT_OF_SONGS_PER_SECTION = 1;
 const MAX_AMOUNT_OF_SONGS_PER_SECTION = 4;
 
@@ -247,23 +250,20 @@ const seed = async () => {
 
   /** seed the sets table */
   await db.execute(sql`TRUNCATE TABLE sanbi_sets CASCADE`);
-  const seedSets: NewSet[] = [
-    {
-      eventTypeId: seededEventTypes[0]!.id,
-      date: "2024-09-30",
+
+  const seedSets: NewSet[] = Array.from({ length: NUMBER_OF_SETS }, () => {
+    const [randomEventType] = getRandomValues(seededEventTypes, 1);
+    const fakeDate = faker.date.between({
+      from: SET_DATE_FROM_BOUNDARY,
+      to: SET_DATE_TO_BOUNDARY,
+    });
+    const formattedFakeDate = fakeDate.toLocaleDateString("en-CA"); // en-CA is a locale that uses the 'YYYY-MM-DD' format
+    return {
+      eventTypeId: randomEventType!.id,
+      date: formattedFakeDate,
       organizationId: organization!.id,
-    },
-    {
-      eventTypeId: seededEventTypes[1]!.id,
-      date: "2024-08-17",
-      organizationId: organization!.id,
-    },
-    {
-      eventTypeId: seededEventTypes[2]!.id,
-      date: "2024-08-14",
-      organizationId: organization!.id,
-    },
-  ];
+    };
+  });
 
   const seededSets = await db
     .insert(sets)

@@ -1,4 +1,5 @@
 import { PageTitle } from "@/components";
+import { pluralize } from "@/lib/string";
 import {
   CardList,
   SetListCard,
@@ -35,11 +36,15 @@ export default async function Dashboard({
       },
       eventType: true,
     },
+    orderBy: (sets, { desc }) => [desc(sets.date)],
   });
 
   return (
     <div className="flex min-w-full max-w-xs flex-col justify-center">
-      <PageTitle title="Upcoming sets" details="3 sets" />
+      <PageTitle
+        title="Upcoming sets"
+        details={`${organizationSets.length} ${pluralize(organizationSets.length, { singular: "set", plural: "sets" })}`}
+      />
       <section className="flex justify-between py-2">
         <select>
           <option value="This week">This week</option>
