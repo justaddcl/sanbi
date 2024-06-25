@@ -55,7 +55,8 @@ if (env.NODE_ENV !== "production") {
 }
 
 const TAGS_PER_SONG_SEED_COUNT = 3;
-const SONGS_PER_SET_SECTION_COUNT = 3;
+const MIN_AMOUNT_OF_SONGS_PER_SECTION = 1;
+const MAX_AMOUNT_OF_SONGS_PER_SECTION = 4;
 
 const seedOrganization: NewOrganization = {
   name: "Stoneway",
@@ -298,10 +299,10 @@ const seed = async () => {
   const createSeedForSetSection = async (
     setSection: SetSection,
   ): Promise<NewSetSectionSong[]> => {
-    const randomSongs = getRandomValues(
-      seededSongs,
-      SONGS_PER_SET_SECTION_COUNT,
-    );
+    const randomAmountOfSongs =
+      Math.floor(Math.random() * MAX_AMOUNT_OF_SONGS_PER_SECTION) +
+      MIN_AMOUNT_OF_SONGS_PER_SECTION;
+    const randomSongs = getRandomValues(seededSongs, randomAmountOfSongs);
 
     const setSectionSongValues = randomSongs.map<NewSetSectionSong>(
       (song, index) => ({
