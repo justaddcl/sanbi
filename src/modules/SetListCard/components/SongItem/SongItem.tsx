@@ -1,4 +1,5 @@
-import { SongKey, type SongKeyProps } from "@components/SongKey";
+import { type Song } from "@/lib/types";
+import { SongKey } from "@components/SongKey";
 import { Text } from "@components/Text";
 
 export type SongItemProps = {
@@ -6,13 +7,13 @@ export type SongItemProps = {
   index: number;
 
   /** what key the song will be played in */
-  songKey: SongKeyProps["songKey"];
+  songKey: Song["key"];
 
   /** name of song */
   name: string;
 
   /** song notes */
-  notes?: string;
+  notes?: string | null;
 };
 
 export const SongItem: React.FC<SongItemProps> = ({

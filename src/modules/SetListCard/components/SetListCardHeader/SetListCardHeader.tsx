@@ -1,3 +1,5 @@
+import { pluralize } from "@/lib/string";
+import { type EventType } from "@/lib/types";
 import { Text } from "@components/Text";
 import { formatDate } from "@lib/date/";
 
@@ -6,7 +8,7 @@ export type SetListCardHeaderProps = {
   date: string;
 
   /** type of event the set will be played at */
-  type: "Sunday Service" | "Team Stoneway";
+  type: EventType["event"];
 
   /** total number of songs in the set */
   numberOfSongs: number;
@@ -36,7 +38,8 @@ export const SetListCardHeader: React.FC<
           {type}
         </Text>
         <Text style="small" color="slate-500">
-          {numberOfSongs} songs
+          {numberOfSongs}{" "}
+          {pluralize(numberOfSongs, { singular: "song", plural: "songs" })}
         </Text>
       </div>
     </header>
