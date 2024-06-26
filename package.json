@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "next build",
-    "build:vercel": "drizzle-kit generate && drizzle-kit migrate && build",
+    "build:vercel": "drizzle-kit generate && drizzle-kit push && build",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
