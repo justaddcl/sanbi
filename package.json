@@ -5,10 +5,11 @@
   "type": "module",
   "scripts": {
     "build": "next build",
-    "build:vercel": "drizzle-kit generate && drizzle-kit push && build",
+    "build:vercel": "drizzle-kit generate && drizzle-kit migrate && build",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
+    "db:push:prod": "NODE_ENV=production drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "db:seed": "dotenvx run -- npx tsx ./src/server/db/seed.ts",
     "db:clear": "dotenvx run -- npx tsx ./src/server/db/clear.ts",
