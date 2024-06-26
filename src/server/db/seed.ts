@@ -5,6 +5,7 @@ import {
 import postgres from "postgres";
 
 import { env } from "@/env";
+import * as schema from "./schema";
 import {
   eventTypes,
   organizationMembers,
@@ -35,6 +36,11 @@ import {
 import { faker } from "@faker-js/faker";
 import { sql } from "drizzle-orm";
 import { getRandomValues } from "@/lib/array";
+import {
+  type VercelPgDatabase,
+  drizzle as VercelDrizzle,
+} from "drizzle-orm/vercel-postgres";
+import { sql as vercelSql } from "@vercel/postgres";
 
 /**
  * Cache the database connection in development. This avoids creating a new connection on every HMR
@@ -44,14 +50,16 @@ const globalForDb = globalThis as unknown as {
   conn: postgres.Sql | undefined;
 };
 
-let db: PostgresJsDatabase<Record<string, never>>;
+let db: PostgresJsDatabase<typeof schema> | VercelPgDatabase<typeof schema>;
 
 const conn = globalForDb.conn ?? postgres(env.DATABASE_URL);
 
-if (env.NODE_ENV !== "production") {
+if (env.NODE_ENV === "development") {
   globalForDb.conn = conn;
   const queryClient = postgres(env.DATABASE_URL);
   db = LocalDrizzle(queryClient);
+} else {
+  db = VercelDrizzle(vercelSql, { schema });
 }
 
 const TAGS_PER_SONG_SEED_COUNT = 3;
