@@ -35,7 +35,7 @@ if (env.NODE_ENV !== "production") {
   await LocalMigrate(db, { migrationsFolder: MIGRATIONS_DIR });
   await migrationClient.end();
 } else {
-  db = VercelDrizzle(sql);
+  db = VercelDrizzle(sql, { schema });
   await VercelMigrate(db, { migrationsFolder: MIGRATIONS_DIR });
 }
 
