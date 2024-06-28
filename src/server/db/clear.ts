@@ -3,9 +3,14 @@ import {
   type PostgresJsDatabase,
 } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-
+import {
+  drizzle as VercelDrizzle,
+  type VercelPgDatabase,
+} from "drizzle-orm/vercel-postgres";
+import type * as schema from "@server/db/schema";
 import { env } from "@/env";
 import { sql } from "drizzle-orm";
+import { sql as vercelSql } from "@vercel/postgres";
 
 /**
  * Cache the database connection in development. This avoids creating a new connection on every HMR
@@ -15,14 +20,16 @@ const globalForDb = globalThis as unknown as {
   conn: postgres.Sql | undefined;
 };
 
-let db: PostgresJsDatabase<Record<string, never>>;
+let db: PostgresJsDatabase<typeof schema> | VercelPgDatabase<typeof schema>;
 
 const conn = globalForDb.conn ?? postgres(env.DATABASE_URL);
 
-if (env.NODE_ENV !== "production") {
+if (env.NODE_ENV === "development") {
   globalForDb.conn = conn;
   const queryClient = postgres(env.DATABASE_URL);
   db = LocalDrizzle(queryClient);
+} else {
+  db = VercelDrizzle(vercelSql);
 }
 
 const clear = async () => {

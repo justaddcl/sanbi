@@ -14,6 +14,7 @@
     "db:seed": "dotenvx run -- npx tsx ./src/server/db/seed.ts",
     "db:seed:prod": "NODE_ENV=production dotenvx run -- npx tsx ./src/server/db/seed.ts",
     "db:clear": "dotenvx run -- npx tsx ./src/server/db/clear.ts",
+    "db:clear:prod": "NODE_ENV=production dotenvx run -- npx tsx ./src/server/db/clear.ts",
     "dev": "next dev --turbo",
     "lint": "next lint",
     "start": "next start",
