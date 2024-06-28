@@ -1,5 +1,5 @@
 import { db } from "@/server/db";
-import { songs } from "@/server/db/schema";
+import { setSectionSongs, songs } from "@/server/db/schema";
 import { Badge } from "@components/Badge";
 import { PageTitle } from "@components/PageTitle";
 import { SongKey } from "@components/SongKey";
@@ -34,9 +34,34 @@ export default async function SetListPage({
   });
   console.log("🚀 ~ songData:", songData);
 
+  // FIXME: the results are not sorted by date
+  const playHistory = await db.query.setSectionSongs.findMany({
+    where: eq(setSectionSongs.songId, params.songId),
+    with: {
+      setSection: {
+        with: {
+          type: true,
+          set: {
+            with: {
+              eventType: true,
+            },
+          },
+        },
+      },
+    },
+  });
+  console.log("🚀 ~ playHistory:", playHistory);
+
+  const dateFormatter = new Intl.DateTimeFormat("en-US");
+
+  if (!songData) {
+    // FIXME: need better error handling
+    return null;
+  }
+
   return (
     <div className="flex min-w-full max-w-xs flex-col justify-center gap-6">
-      <PageTitle title={songData!.name} />
+      <PageTitle title={songData.name} />
       <section>
         {/* FIXME: refactor definition list into reusable components */}
         <dl>
@@ -45,7 +70,7 @@ export default async function SetListPage({
             <span>Preferred Key</span>
           </dt>
           <dd className="[&:not(:last-child)]:mb-2">
-            <SongKey songKey={songData!.key} size="medium" />
+            <SongKey songKey={songData.key} size="medium" />
           </dd>
           <dt className="mt-2 flex items-center gap-1 text-[8px]/[12px] uppercase text-slate-500">
             <ClockCounterClockwise className="text-slate-400" size={8} />
@@ -147,25 +172,19 @@ export default async function SetListPage({
             <hr className="bg-slate-100" />
           </header>
           <div className="grid grid-cols-[16px_1fr] gap-y-4">
-            <PlayHistoryItem
-              date="2022-08-14"
-              eventType="Sunday Service"
-              songKey="g"
-              setSection="Worship"
-            />
-            <PlayHistoryItem
-              date="2022-08-07"
-              eventType="Team Stoneway"
-              songKey="b"
-              setSection="Lord's Supper"
-            />
-            <PlayHistoryItem
-              date="2024-08-07"
-              eventType="Sunday Service"
-              songKey="b"
-              setSection="Prayer"
-            />
-            <PlayHistoryItem date="2022-07-31" />
+            {playHistory.length > 0 &&
+              playHistory.map((playInstance) => (
+                <PlayHistoryItem
+                  key={`${playInstance.setSection?.set.id}-${playInstance.setSection?.position}`}
+                  date={dateFormatter.format(
+                    new Date(playInstance.setSection!.set.date),
+                  )}
+                  eventType={playInstance.setSection!.set.eventType.event}
+                  songKey={songData.key}
+                  setSection={playInstance.setSection!.type.section}
+                />
+              ))}
+            <PlayHistoryItem date={dateFormatter.format(songData?.createdAt)} />
           </div>
         </div>
       </CardList>

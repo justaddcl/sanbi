@@ -6,8 +6,7 @@ import {
 } from "@components/SongKey";
 import { Text } from "@components/Text";
 import { formatDate } from "@lib/date";
-import { type None } from "@lib/types";
-import { type SetListCardHeaderProps } from "@modules/SetListCard/components/SetListCardHeader";
+import { type EventType, type None } from "@lib/types";
 import { PlayHistoryBullet } from "../PlayHistoryBullet/PlayHistoryBullet";
 
 /**
@@ -25,7 +24,7 @@ type PlayHistoryItemBaseProps = {
 
 type PlayHistoryItemExtendedProps = (SongKeyFlatProps | SongKeySharpProps) & {
   /** What type of event the song was played at? */
-  eventType: SetListCardHeaderProps["type"];
+  eventType: EventType["event"];
 
   /** What key the song was played in? */
   songKey: SongKeyProps["songKey"];
