@@ -7,7 +7,6 @@ import {
   drizzle as VercelDrizzle,
   type VercelPgDatabase,
 } from "drizzle-orm/vercel-postgres";
-import { migrate as VercelMigrate } from "drizzle-orm/vercel-postgres/migrator";
 import postgres from "postgres";
 
 import { env } from "@/env";
@@ -22,7 +21,7 @@ const globalForDb = globalThis as unknown as {
   conn: postgres.Sql | undefined;
 };
 
-const MIGRATIONS_DIR = "./drizzle";
+const MIGRATIONS_DIR = "./src/server/db/migrations";
 
 let db: PostgresJsDatabase<typeof schema> | VercelPgDatabase<typeof schema>;
 
@@ -36,7 +35,6 @@ if (env.NODE_ENV !== "production") {
   await migrationClient.end();
 } else {
   db = VercelDrizzle(sql, { schema });
-  await VercelMigrate(db, { migrationsFolder: MIGRATIONS_DIR });
 }
 
 export { db };
