@@ -71,6 +71,7 @@ export const organizations = createTable(
       nameIndex: uniqueIndex("organizations_name_idx").on(
         organizationsTable.name,
       ),
+      slug: uniqueIndex("organizations_slug_idx").on(organizationsTable.slug),
     };
   },
 );
@@ -183,6 +184,7 @@ export const setSectionSongs = createTable(
     setSectionId: uuid("set_section_id").references(() => setSections.id),
     songId: uuid("song_id").references(() => songs.id),
     position: integer("position").notNull(),
+    // TODO: add key played in
   },
   (setSectionSongsTable) => {
     return {
