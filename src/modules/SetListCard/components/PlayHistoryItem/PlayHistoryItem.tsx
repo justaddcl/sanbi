@@ -88,18 +88,10 @@ export const PlayHistoryItem: React.FC<PlayHistoryItemProps> = ({
        * as Tailwind wouldn't properly apply the styles
        */}
       <div className={`play-history-item relative flex flex-col gap-1`}>
-        <div>
-          <Text asElement="span" style="small-semibold">
-            {formattedDate}
-          </Text>
-          {/* FIXME: come up with better solution to hard-coding the space around "for" */}
-          <Text asElement="span" style="small">
-            {" "}
-            for{" "}
-          </Text>
-          <Text asElement="span" style="small-semibold">
-            {eventType}
-          </Text>
+        <div className="flex gap-[3px] leading-[16px]">
+          <Text style="small-semibold">{formattedDate}</Text>
+          <Text style="small">for</Text>
+          <Text style="small-semibold">{eventType}</Text>
         </div>
         <div className="flex gap-1">
           <Text asElement="span" style="small" color="slate-500">
