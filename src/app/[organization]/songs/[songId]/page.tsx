@@ -116,7 +116,7 @@ export default async function SetListPage({
               </dt>
               <dd className="flex gap-2 [&:not(:last-child)]:mb-2">
                 {songData?.tags.map((tag) => (
-                  <Badge key={tag.tagId} label={tag.tag!.tag} />
+                  <Badge key={tag.tagId} label={tag.tag.tag} />
                 ))}
               </dd>
             </>
@@ -201,6 +201,7 @@ export default async function SetListPage({
                   eventType={playInstance.event_types!.event}
                   songKey={playInstance.set_section_songs.key}
                   setSection={playInstance.set_section_types!.section}
+                  setId={playInstance.sets!.id}
                 />
               ))}
             <PlayHistoryItem date={dateFormatter.format(songData?.createdAt)} />
