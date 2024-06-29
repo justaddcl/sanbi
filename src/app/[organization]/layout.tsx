@@ -2,6 +2,7 @@ import { db } from "@/server/db";
 import { organizations } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 export default async function DashboardLayout({
   params,
@@ -18,7 +19,8 @@ export default async function DashboardLayout({
     .where(eq(organizations.id, params.organization));
 
   if (!organization) {
-    throw new Error("Invalid Organization ID");
+    console.error(`Invalid Organization ID: ${params.organization}`);
+    redirect("/");
   }
 
   return (
