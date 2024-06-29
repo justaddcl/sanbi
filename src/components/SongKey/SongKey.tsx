@@ -42,7 +42,7 @@ export const SongKey: React.FC<SongKeyProps> = ({
 
   return (
     <span
-      className={`flex ${badgeSize} flex-none items-center justify-center rounded bg-slate-200 text-xs/3 font-medium text-slate-900`}
+      className={`flex ${badgeSize} flex-none items-center justify-center rounded bg-slate-200 text-xs/3 font-medium not-italic text-slate-900`}
     >
       <span>{songKeyLetter?.toUpperCase()}</span>
       {flat && <span className="relative bottom-[2px] text-[10px]">♭</span>}
