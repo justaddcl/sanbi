@@ -184,7 +184,7 @@ const seed = async () => {
   const seedSongs: NewSong[] = [
     {
       name: "In My Place",
-      key: "b",
+      preferredKey: "b",
       notes:
         "Play in the key of B to make it easier for the backup vocalist to harmonize with.",
       createdBy: user!.id,
@@ -192,13 +192,13 @@ const seed = async () => {
     },
     {
       name: "Such An Awesome God",
-      key: "a",
+      preferredKey: "a",
       createdBy: user!.id,
       organizationId: organization!.id,
     },
     {
       name: "I Love You Lord/What A Beautiful Name (mash up)",
-      key: "g",
+      preferredKey: "g",
       notes:
         "Song is best with only vocals, guitar, and keys. Feels powerful with only vocals on the last chorus.",
       createdBy: user!.id,
@@ -206,39 +206,39 @@ const seed = async () => {
     },
     {
       name: "Refuge",
-      key: "g",
+      preferredKey: "g",
       createdBy: user!.id,
       organizationId: organization!.id,
     },
     {
       name: "Son Of Suffering",
-      key: "g",
+      preferredKey: "g",
       notes: "Don't play the second chorus or chorus 2.",
       createdBy: user!.id,
       organizationId: organization!.id,
     },
     {
       name: "Draw Me Close To You",
-      key: "c",
+      preferredKey: "c",
       createdBy: user!.id,
       organizationId: organization!.id,
     },
     {
       name: "Romans 2:4",
-      key: "g",
+      preferredKey: "g",
       createdBy: user!.id,
       organizationId: organization!.id,
     },
     {
       name: "Only Jesus",
-      key: "g",
+      preferredKey: "g",
       notes: "Skip the tag if not playing with full band.",
       createdBy: user!.id,
       organizationId: organization!.id,
     },
     {
       name: "God Over Everything",
-      key: "g",
+      preferredKey: "g",
       createdBy: user!.id,
       organizationId: organization!.id,
     },

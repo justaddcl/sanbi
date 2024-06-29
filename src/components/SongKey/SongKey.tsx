@@ -6,7 +6,7 @@ export type SongKeyProps = SongKeyGeneralProps &
 type SongKeyGeneralProps = {
   /** key song will be played in */
   // songKey: "A" | "B" | "C" | "D" | "E" | "F" | "G";
-  songKey: Song["key"];
+  songKey: Song["preferredKey"];
 
   /** size variant */
   size?: "small" | "medium";

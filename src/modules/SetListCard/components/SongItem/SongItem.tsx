@@ -1,5 +1,4 @@
-import { type Song } from "@/lib/types";
-import { SongKey } from "@components/SongKey";
+import { SongKey, type SongKeyProps } from "@components/SongKey";
 import { Text } from "@components/Text";
 
 export type SongItemProps = {
@@ -7,7 +6,7 @@ export type SongItemProps = {
   index: number;
 
   /** what key the song will be played in */
-  songKey: Song["key"];
+  songKey: SongKeyProps["songKey"];
 
   /** name of song */
   name: string;

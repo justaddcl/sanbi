@@ -77,7 +77,7 @@ export default async function SetListPage({
             <span>Preferred Key</span>
           </dt>
           <dd className="[&:not(:last-child)]:mb-2">
-            <SongKey songKey={songData.key} size="medium" />
+            <SongKey songKey={songData.preferredKey} size="medium" />
           </dd>
           <dt className="mt-2 flex items-center gap-1 text-[8px]/[12px] uppercase text-slate-500">
             <ClockCounterClockwise className="text-slate-400" size={8} />
