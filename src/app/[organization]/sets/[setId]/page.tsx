@@ -93,7 +93,7 @@ export default async function SetListPage({
                           <SongItem
                             index={indexStart + setSectionSong.position}
                             songKey={setSectionSong.key}
-                            name={setSectionSong.song!.name}
+                            name={setSectionSong.song.name}
                             {...(setSectionSong.notes && {
                               notes: setSectionSong.notes,
                             })}

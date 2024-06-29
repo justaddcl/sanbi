@@ -145,8 +145,8 @@ const seed = async () => {
   /** seed the organisation members table */
   await db.execute(sql`TRUNCATE TABLE sanbi_organization_memberships CASCADE`);
   const newOrgMembership: NewOrganizationMembership = {
-    userId: user?.id,
-    organizationId: organization?.id,
+    userId: user!.id,
+    organizationId: organization!.id,
     permissionType: "admin",
   };
   const orgMembership = await db
