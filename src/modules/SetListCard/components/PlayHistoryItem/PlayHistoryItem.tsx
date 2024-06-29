@@ -100,6 +100,7 @@ export const PlayHistoryItem: React.FC<PlayHistoryItemProps> = ({
           <div className="flex gap-[3px] leading-[16px]">
             <Text
               style="small-semibold"
+              // TODO: figure out a better way of changing the text color as this is repeated
               {...(isFuture(date) && { color: "slate-500" })}
             >
               {formattedDate}

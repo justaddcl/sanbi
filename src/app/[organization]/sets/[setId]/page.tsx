@@ -9,7 +9,7 @@ import { eq } from "drizzle-orm";
 import Link from "next/link";
 
 export default async function SetListPage({
-  params: params,
+  params,
 }: {
   params: { setId: string };
 }) {
@@ -30,7 +30,6 @@ export default async function SetListPage({
       },
     },
   });
-  console.log("🚀 ~ setData:", setData);
   const songCount =
     setData?.sections.reduce(
       (total, section) => total + section.songs.length,
