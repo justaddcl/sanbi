@@ -79,8 +79,12 @@ export const organizations = createTable(
 export const organizationMembers = createTable(
   "organization_memberships",
   {
-    organizationId: uuid("organization_id").references(() => organizations.id),
-    userId: uuid("user_id").references(() => users.id),
+    organizationId: uuid("organization_id")
+      .references(() => organizations.id)
+      .notNull(),
+    userId: uuid("user_id")
+      .references(() => users.id)
+      .notNull(),
 
     permissionType: memberPermissionTypeEnum(
       "membership_permission_type",
@@ -101,8 +105,12 @@ export const tags = createTable("tags", {
 export const songTags = createTable(
   "song_tags",
   {
-    songId: uuid("song_id").references(() => songs.id),
-    tagId: uuid("tag_id").references(() => tags.id),
+    songId: uuid("song_id")
+      .references(() => songs.id)
+      .notNull(),
+    tagId: uuid("tag_id")
+      .references(() => tags.id)
+      .notNull(),
   },
   (songTagsTable) => {
     return {
@@ -125,7 +133,9 @@ export const songs = createTable(
     createdBy: uuid("user_id")
       .references(() => users.id)
       .notNull(),
-    organizationId: uuid("organization_id").references(() => organizations.id),
+    organizationId: uuid("organization_id")
+      .references(() => organizations.id)
+      .notNull(),
     updatedAt: timestamp("updatedAt", { withTimezone: true }),
   },
   (songsTable) => {
@@ -181,8 +191,12 @@ export const setSections = createTable(
 export const setSectionSongs = createTable(
   "set_section_songs",
   {
-    setSectionId: uuid("set_section_id").references(() => setSections.id),
-    songId: uuid("song_id").references(() => songs.id),
+    setSectionId: uuid("set_section_id")
+      .references(() => setSections.id)
+      .notNull(),
+    songId: uuid("song_id")
+      .references(() => songs.id)
+      .notNull(),
     position: integer("position").notNull(),
     key: songKeyEnum("song_key"),
     notes: text("notes"),
