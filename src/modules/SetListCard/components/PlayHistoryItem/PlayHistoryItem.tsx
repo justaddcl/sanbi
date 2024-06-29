@@ -6,9 +6,10 @@ import {
 } from "@components/SongKey";
 import { Text } from "@components/Text";
 import { formatDate } from "@lib/date";
-import { type None } from "@lib/types";
-import { type SetListCardHeaderProps } from "@modules/SetListCard/components/SetListCardHeader";
+import { type EventType, type None } from "@lib/types";
 import { PlayHistoryBullet } from "../PlayHistoryBullet/PlayHistoryBullet";
+import { isFuture } from "date-fns";
+import Link from "next/link";
 
 /**
  * A PlayHistoryItem can include just the date or include extended properties
@@ -25,13 +26,16 @@ type PlayHistoryItemBaseProps = {
 
 type PlayHistoryItemExtendedProps = (SongKeyFlatProps | SongKeySharpProps) & {
   /** What type of event the song was played at? */
-  eventType: SetListCardHeaderProps["type"];
+  eventType: EventType["event"];
 
   /** What key the song was played in? */
   songKey: SongKeyProps["songKey"];
 
   /** What section of the set was the song played in? */
   setSection: string;
+
+  /** What is the set ID tied to the play history item? */
+  setId: string;
 };
 
 /** PlayHistoryItemExtendedProps, but force everything to be undefined */
@@ -42,6 +46,7 @@ export const PlayHistoryItem: React.FC<PlayHistoryItemProps> = ({
   eventType,
   songKey,
   setSection,
+  setId,
   flat,
   sharp,
 }) => {
@@ -88,33 +93,47 @@ export const PlayHistoryItem: React.FC<PlayHistoryItemProps> = ({
        * NOTE: the styles for the play history item's `::before` pseudo element is in `styles/globals.css`
        * as Tailwind wouldn't properly apply the styles
        */}
-      <div className={`play-history-item relative flex flex-col gap-1`}>
-        <div>
-          <Text asElement="span" style="small-semibold">
-            {formattedDate}
-          </Text>
-          {/* FIXME: come up with better solution to hard-coding the space around "for" */}
-          <Text asElement="span" style="small">
-            {" "}
-            for{" "}
-          </Text>
-          <Text asElement="span" style="small-semibold">
-            {eventType}
-          </Text>
+      <Link href={`../sets/${setId}`}>
+        <div
+          className={`play-history-item relative flex flex-col gap-1 ${isFuture(date) ? "italic" : "not-italic"}`}
+        >
+          <div className="flex gap-[3px] leading-[16px]">
+            <Text
+              style="small-semibold"
+              // TODO: figure out a better way of changing the text color as this is repeated
+              {...(isFuture(date) && { color: "slate-500" })}
+            >
+              {formattedDate}
+            </Text>
+            <Text style="small" {...(isFuture(date) && { color: "slate-500" })}>
+              for
+            </Text>
+            <Text
+              style="small-semibold"
+              {...(isFuture(date) && { color: "slate-500" })}
+            >
+              {eventType}
+            </Text>
+          </div>
+          <div className="flex gap-1">
+            <Text asElement="span" style="small" color="slate-500">
+              {isFuture(date) ? "Will play" : "Played"} in
+            </Text>
+            <SongKey songKey={songKey} {...accidentalsProps} />
+            <Text asElement="span" style="small" color="slate-500">
+              during{" "}
+            </Text>
+            <Text
+              asElement="span"
+              style="small"
+              className="lowercase"
+              {...(isFuture(date) && { color: "slate-500" })}
+            >
+              {setSection}
+            </Text>
+          </div>
         </div>
-        <div className="flex gap-1">
-          <Text asElement="span" style="small" color="slate-500">
-            Played in
-          </Text>
-          <SongKey songKey={songKey} {...accidentalsProps} />
-          <Text asElement="span" style="small" color="slate-500">
-            during{" "}
-          </Text>
-          <Text asElement="span" style="small" className="lowercase">
-            {setSection}
-          </Text>
-        </div>
-      </div>
+      </Link>
     </>
   );
 };

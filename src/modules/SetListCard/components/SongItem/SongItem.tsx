@@ -12,7 +12,7 @@ export type SongItemProps = {
   name: string;
 
   /** song notes */
-  notes?: string;
+  notes?: string | null;
 };
 
 export const SongItem: React.FC<SongItemProps> = ({

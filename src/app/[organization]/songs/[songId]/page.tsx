@@ -1,3 +1,12 @@
+import { db } from "@/server/db";
+import {
+  eventTypes,
+  setSectionSongs,
+  setSectionTypes,
+  setSections,
+  sets,
+  songs,
+} from "@/server/db/schema";
 import { Badge } from "@components/Badge";
 import { PageTitle } from "@components/PageTitle";
 import { SongKey } from "@components/SongKey";
@@ -12,15 +21,57 @@ import {
   MusicNotesSimple,
   TagSimple,
 } from "@phosphor-icons/react/dist/ssr";
+import { asc, desc, eq } from "drizzle-orm";
+import { formatDistanceToNow, isPast } from "date-fns";
 
 export default async function SetListPage({
-  params: _params,
+  params,
 }: {
-  params: { setId: string };
+  params: { songId: string };
 }) {
+  // FIXME: move query to db/queries
+  const songData = await db.query.songs.findFirst({
+    where: eq(songs.id, params.songId),
+    with: {
+      tags: {
+        with: {
+          tag: true,
+        },
+      },
+    },
+  });
+
+  /**
+   * We have to use the sql-like API since we can't properly use the `orderBy`
+   * sorting when using `findMany`
+   */
+  const playHistory = await db
+    .select()
+    .from(setSectionSongs)
+    .leftJoin(setSections, eq(setSectionSongs.setSectionId, setSections.id))
+    .leftJoin(
+      setSectionTypes,
+      eq(setSections.sectionTypeId, setSectionTypes.id),
+    )
+    .leftJoin(sets, eq(sets.id, setSections.setId))
+    .leftJoin(eventTypes, eq(eventTypes.id, sets.eventTypeId))
+    .orderBy(desc(sets.date), asc(setSections.position))
+    .where(eq(setSectionSongs.songId, params.songId));
+  const dateFormatter = new Intl.DateTimeFormat("en-US");
+
+  const lastPlayed =
+    playHistory.length > 0
+      ? playHistory.find((playInstance) => isPast(playInstance.sets!.date))
+      : null;
+
+  if (!songData) {
+    // FIXME: need better error handling
+    return null;
+  }
+
   return (
     <div className="flex min-w-full max-w-xs flex-col justify-center gap-6">
-      <PageTitle title="In My Place" />
+      <PageTitle title={songData.name} />
       <section>
         {/* FIXME: refactor definition list into reusable components */}
         <dl>
@@ -29,52 +80,70 @@ export default async function SetListPage({
             <span>Preferred Key</span>
           </dt>
           <dd className="[&:not(:last-child)]:mb-2">
-            <SongKey songKey="B" size="medium" />
+            <SongKey songKey={songData.preferredKey} size="medium" />
           </dd>
           <dt className="mt-2 flex items-center gap-1 text-[8px]/[12px] uppercase text-slate-500">
             <ClockCounterClockwise className="text-slate-400" size={8} />
             <span>Last Played</span>
           </dt>
           <dd className="[&:not(:last-child)]:mb-2">
-            <Text asElement="span" style="body-small" color="slate-700">
-              One week ago
-            </Text>
-            <Text asElement="span" style="body-small" color="slate-500">
-              {" "}
-              for{" "}
-            </Text>
-            <Text asElement="span" style="body-small" color="slate-700">
-              Sunday service
-            </Text>
+            {lastPlayed ? (
+              <div className="flex gap-[3px] leading-4">
+                <Text asElement="span" style="body-small" color="slate-700">
+                  {formatDistanceToNow(lastPlayed.sets!.date, {
+                    addSuffix: true,
+                    includeSeconds: false,
+                  })}
+                </Text>
+                <Text asElement="span" style="body-small" color="slate-500">
+                  for
+                </Text>
+                <Text asElement="span" style="body-small" color="slate-700">
+                  {lastPlayed.event_types?.event}
+                </Text>
+              </div>
+            ) : (
+              <Text color="slate-700" style="body-small">
+                Hasn&apos;t been played in a set yet
+              </Text>
+            )}
           </dd>
-          <dt className="flex items-center gap-1 text-[8px]/[12px] uppercase text-slate-500">
-            <TagSimple className="text-slate-400" size={8} />
-            <span>Tags</span>
-          </dt>
-          <dd className="flex gap-2 [&:not(:last-child)]:mb-2">
-            <Badge label="The cross" />
-            <Badge label="Easter" />
-          </dd>
-          <dt className="flex items-center gap-1 text-[8px]/[12px] uppercase text-slate-500">
-            <Metronome className="text-slate-400" size={8} />
-            <span>Tempo</span>
-          </dt>
-          <dd className="[&:not(:last-child)]:mb-2">
-            <Text asElement="span" style="body-small" color="slate-700">
-              Slow
-            </Text>
-          </dd>
+          {songData?.tags && (
+            <>
+              <dt className="flex items-center gap-1 text-[8px]/[12px] uppercase text-slate-500">
+                <TagSimple className="text-slate-400" size={8} />
+                <span>Tags</span>
+              </dt>
+              <dd className="flex gap-2 [&:not(:last-child)]:mb-2">
+                {songData?.tags.map((tag) => (
+                  <Badge key={tag.tagId} label={tag.tag.tag} />
+                ))}
+              </dd>
+            </>
+          )}
+          {songData?.tempo && (
+            <>
+              <dt className="flex items-center gap-1 text-[8px]/[12px] uppercase text-slate-500">
+                <Metronome className="text-slate-400" size={8} />
+                <span>Tempo</span>
+              </dt>
+              <dd className="[&:not(:last-child)]:mb-2">
+                <Text asElement="span" style="body-small" color="slate-700">
+                  {songData.tempo}
+                </Text>
+              </dd>
+            </>
+          )}
         </dl>
       </section>
-      <section className="flex flex-col gap-4 text-xs">
-        <Text asElement="h3" style="header-small-semibold">
-          Notes
-        </Text>
-        <Text style="body-small">
-          Play in the key of B to make it easier for the backup vocalist to
-          harmonize with.
-        </Text>
-      </section>
+      {songData?.notes && (
+        <section className="flex flex-col gap-4 text-xs">
+          <Text asElement="h3" style="header-small-semibold">
+            Notes
+          </Text>
+          <Text style="body-small">{songData.notes}</Text>
+        </section>
+      )}
       <section className="flex justify-between gap-2">
         <button className="flex w-full items-center justify-center gap-2 rounded border border-slate-300 px-3 text-slate-700">
           <ListPlus size={12} />
@@ -107,6 +176,7 @@ export default async function SetListPage({
             </div>
             <hr className="bg-slate-100" />
           </header>
+          {/* TODO: add resources db set up and data */}
           <div className="grid grid-cols-[repeat(auto-fill,_124px)] grid-rows-[repeat(auto-fill,_92px)] gap-2">
             <ResourceCard title="In My Place" url="theworshipinitiative.com" />
             <ResourceCard title="In My Place" url="open.spotify.com" />
@@ -123,25 +193,18 @@ export default async function SetListPage({
             <hr className="bg-slate-100" />
           </header>
           <div className="grid grid-cols-[16px_1fr] gap-y-4">
-            <PlayHistoryItem
-              date="2022-08-14"
-              eventType="Sunday Service"
-              songKey="G"
-              setSection="Worship"
-            />
-            <PlayHistoryItem
-              date="2022-08-07"
-              eventType="Team Stoneway"
-              songKey="B"
-              setSection="Lord's Supper"
-            />
-            <PlayHistoryItem
-              date="2024-08-07"
-              eventType="Sunday Service"
-              songKey="B"
-              setSection="Prayer"
-            />
-            <PlayHistoryItem date="2022-07-31" />
+            {playHistory.length > 0 &&
+              playHistory.map((playInstance) => (
+                <PlayHistoryItem
+                  key={`${playInstance.sets?.id}-${playInstance.set_sections?.position}`}
+                  date={dateFormatter.format(new Date(playInstance.sets!.date))}
+                  eventType={playInstance.event_types!.event}
+                  songKey={playInstance.set_section_songs.key}
+                  setSection={playInstance.set_section_types!.section}
+                  setId={playInstance.sets!.id}
+                />
+              ))}
+            <PlayHistoryItem date={dateFormatter.format(songData?.createdAt)} />
           </div>
         </div>
       </CardList>

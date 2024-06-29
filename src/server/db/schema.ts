@@ -1,7 +1,7 @@
 // Example model schema from the Drizzle docs
 // https://orm.drizzle.team/docs/sql-schema-declaration
 
-import { sql } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 import {
   date,
   index,
@@ -9,7 +9,7 @@ import {
   pgEnum,
   pgTableCreator,
   primaryKey,
-  serial,
+  uuid,
   text,
   timestamp,
   uniqueIndex,
@@ -47,7 +47,7 @@ export const songKeyEnum = pgEnum("song_keys", [
 export const users = createTable(
   "users",
   {
-    id: serial("id").primaryKey(),
+    id: uuid("id").primaryKey().defaultRandom(),
     firstName: varchar("firstName", { length: 256 }).notNull(),
     lastName: varchar("lastName", { length: 256 }),
     email: varchar("email", { length: 256 }).notNull().unique(),
@@ -62,7 +62,7 @@ export const users = createTable(
 export const organizations = createTable(
   "organizations",
   {
-    id: serial("id").primaryKey(),
+    id: uuid("id").primaryKey().defaultRandom(),
     name: varchar("name").notNull().unique(),
     slug: varchar("slug").unique(),
   },
@@ -71,6 +71,7 @@ export const organizations = createTable(
       nameIndex: uniqueIndex("organizations_name_idx").on(
         organizationsTable.name,
       ),
+      slug: uniqueIndex("organizations_slug_idx").on(organizationsTable.slug),
     };
   },
 );
@@ -78,10 +79,12 @@ export const organizations = createTable(
 export const organizationMembers = createTable(
   "organization_memberships",
   {
-    organizationId: integer("organization_id").references(
-      () => organizations.id,
-    ),
-    userId: integer("user_id").references(() => users.id),
+    organizationId: uuid("organization_id")
+      .references(() => organizations.id)
+      .notNull(),
+    userId: uuid("user_id")
+      .references(() => users.id)
+      .notNull(),
 
     permissionType: memberPermissionTypeEnum(
       "membership_permission_type",
@@ -95,15 +98,19 @@ export const organizationMembers = createTable(
 );
 
 export const tags = createTable("tags", {
-  id: serial("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   tag: varchar("tag", { length: 256 }).notNull().unique(),
 });
 
 export const songTags = createTable(
   "song_tags",
   {
-    songId: integer("song_id").references(() => songs.id),
-    tagId: integer("tag_id").references(() => tags.id),
+    songId: uuid("song_id")
+      .references(() => songs.id)
+      .notNull(),
+    tagId: uuid("tag_id")
+      .references(() => tags.id)
+      .notNull(),
   },
   (songTagsTable) => {
     return {
@@ -115,20 +122,20 @@ export const songTags = createTable(
 export const songs = createTable(
   "songs",
   {
-    id: serial("id").primaryKey(),
+    id: uuid("id").primaryKey().defaultRandom(),
     name: varchar("name", { length: 256 }).notNull().unique(),
-    key: songKeyEnum("song_key"),
+    preferredKey: songKeyEnum("preferred_song_key"),
     notes: text("notes"),
     tempo: varchar("tempo", { length: 256 }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .default(sql`CURRENT_TIMESTAMP`)
       .notNull(),
-    createdBy: integer("user_id")
+    createdBy: uuid("user_id")
       .references(() => users.id)
       .notNull(),
-    organizationId: integer("organization_id").references(
-      () => organizations.id,
-    ),
+    organizationId: uuid("organization_id")
+      .references(() => organizations.id)
+      .notNull(),
     updatedAt: timestamp("updatedAt", { withTimezone: true }),
   },
   (songsTable) => {
@@ -141,33 +148,36 @@ export const songs = createTable(
 );
 
 export const eventTypes = createTable("event_types", {
-  id: serial("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   event: varchar("event").unique().notNull(),
 });
 
 export const sets = createTable("sets", {
-  id: serial("id").primaryKey(),
-  eventTypeId: integer("event_type_id")
+  id: uuid("id").primaryKey().defaultRandom(),
+  eventTypeId: uuid("event_type_id")
     .references(() => eventTypes.id)
     .notNull(),
   date: date("date").notNull(),
   notes: text("notes"),
+  organizationId: uuid("organization_id")
+    .references(() => organizations.id)
+    .notNull(),
 });
 
 export const setSectionTypes = createTable("set_section_types", {
-  id: serial("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   section: varchar("section").unique().notNull(),
 });
 
 export const setSections = createTable(
   "set_sections",
   {
-    id: serial("id").primaryKey(),
-    setId: integer("set_id")
+    id: uuid("id").primaryKey().defaultRandom(),
+    setId: uuid("set_id")
       .references(() => sets.id)
       .notNull(),
     position: integer("position").notNull(),
-    sectionTypeId: integer("section_type_id")
+    sectionTypeId: uuid("section_type_id")
       .references(() => setSectionTypes.id)
       .notNull(),
   },
@@ -181,9 +191,15 @@ export const setSections = createTable(
 export const setSectionSongs = createTable(
   "set_section_songs",
   {
-    setSectionId: integer("set_section_id").references(() => setSections.id),
-    songId: integer("song_id").references(() => songs.id),
+    setSectionId: uuid("set_section_id")
+      .references(() => setSections.id)
+      .notNull(),
+    songId: uuid("song_id")
+      .references(() => songs.id)
+      .notNull(),
     position: integer("position").notNull(),
+    key: songKeyEnum("song_key"),
+    notes: text("notes"),
   },
   (setSectionSongsTable) => {
     return {
@@ -196,3 +212,103 @@ export const setSectionSongs = createTable(
     };
   },
 );
+
+/** drizzle relationships */
+export const organizationsRelations = relations(organizations, ({ many }) => ({
+  members: many(organizationMembers),
+  songs: many(songs),
+  sets: many(sets),
+}));
+
+export const organizationMembersRelations = relations(
+  organizationMembers,
+  ({ one }) => ({
+    member: one(users, {
+      fields: [organizationMembers.userId],
+      references: [users.id],
+    }),
+    organization: one(organizations, {
+      fields: [organizationMembers.organizationId],
+      references: [organizations.id],
+    }),
+  }),
+);
+
+export const usersRelations = relations(users, ({ many }) => ({
+  memberships: many(organizationMembers),
+  songs: many(songs),
+}));
+
+export const songsRelations = relations(songs, ({ one, many }) => ({
+  creator: one(users, {
+    fields: [songs.createdBy],
+    references: [users.id],
+  }),
+  organization: one(organizations, {
+    fields: [songs.organizationId],
+    references: [organizations.id],
+  }),
+  tags: many(songTags),
+  sets: many(setSectionSongs),
+}));
+
+export const songTagsRelations = relations(songTags, ({ one }) => ({
+  song: one(songs, {
+    fields: [songTags.songId],
+    references: [songs.id],
+  }),
+  tag: one(tags, {
+    fields: [songTags.tagId],
+    references: [tags.id],
+  }),
+}));
+
+export const tagsRelations = relations(tags, ({ many }) => ({
+  songTags: many(songTags),
+}));
+
+export const setSectionSongsRelations = relations(
+  setSectionSongs,
+  ({ one }) => ({
+    song: one(songs, {
+      fields: [setSectionSongs.songId],
+      references: [songs.id],
+    }),
+    setSection: one(setSections, {
+      fields: [setSectionSongs.setSectionId],
+      references: [setSections.id],
+    }),
+  }),
+);
+
+export const setSectionsRelations = relations(setSections, ({ one, many }) => ({
+  songs: many(setSectionSongs),
+  set: one(sets, {
+    fields: [setSections.setId],
+    references: [sets.id],
+  }),
+  type: one(setSectionTypes, {
+    fields: [setSections.sectionTypeId],
+    references: [setSectionTypes.id],
+  }),
+}));
+
+export const sectionTypesRelations = relations(setSectionTypes, ({ many }) => ({
+  setSections: many(setSections),
+}));
+
+export const setsRelations = relations(sets, ({ one, many }) => ({
+  eventType: one(eventTypes, {
+    fields: [sets.eventTypeId],
+    references: [eventTypes.id],
+  }),
+  sections: many(setSections),
+  organization: one(organizations, {
+    fields: [sets.organizationId],
+    references: [organizations.id],
+  }),
+}));
+
+export const eventTypesRelations = relations(eventTypes, ({ many }) => ({
+  sets: many(sets),
+}));

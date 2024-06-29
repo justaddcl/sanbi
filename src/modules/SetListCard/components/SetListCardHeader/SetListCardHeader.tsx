@@ -1,3 +1,5 @@
+import { pluralize } from "@/lib/string";
+import { type EventType } from "@/lib/types";
 import { Text } from "@components/Text";
 import { formatDate } from "@lib/date/";
 
@@ -6,7 +8,7 @@ export type SetListCardHeaderProps = {
   date: string;
 
   /** type of event the set will be played at */
-  type: "Sunday Service" | "Team Stoneway";
+  type: EventType["event"];
 
   /** total number of songs in the set */
   numberOfSongs: number;
@@ -22,11 +24,16 @@ export const SetListCardHeader: React.FC<
     <header className="mb-4 flex items-center gap-2">
       <div className="flex flex-col items-center gap-[2px] rounded bg-slate-100 p-2">
         {/* FIXME: should this use an existing text style or a new style be defined? */}
-        <Text asElement="span" fontSize="[8px]/[8px]" className="uppercase">
+        <Text asElement="span" fontSize="[8px]" className="uppercase">
           {month}
         </Text>
         {/* FIXME: should this use an existing text style or a new style be defined? */}
-        <Text asElement="span" fontWeight="medium" fontSize="base/4">
+        <Text
+          asElement="span"
+          fontWeight="medium"
+          fontSize="base"
+          lineHeight="4"
+        >
           {day}
         </Text>
       </div>
@@ -36,7 +43,8 @@ export const SetListCardHeader: React.FC<
           {type}
         </Text>
         <Text style="small" color="slate-500">
-          {numberOfSongs} songs
+          {numberOfSongs}{" "}
+          {pluralize(numberOfSongs, { singular: "song", plural: "songs" })}
         </Text>
       </div>
     </header>

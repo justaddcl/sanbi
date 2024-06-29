@@ -6,7 +6,7 @@ export default {
   schema: "./src/server/db/schema.ts",
   dialect: "postgresql",
   dbCredentials: {
-    url: env.DATABASE_URL,
+    url: env.NODE_ENV === "production" ? env.POSTGRES_URL : env.DATABASE_URL,
   },
   tablesFilter: ["sanbi_*"],
 } satisfies Config;

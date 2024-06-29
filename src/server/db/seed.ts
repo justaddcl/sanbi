@@ -5,6 +5,7 @@ import {
 import postgres from "postgres";
 
 import { env } from "@/env";
+import * as schema from "./schema";
 import {
   eventTypes,
   organizationMembers,
@@ -35,6 +36,12 @@ import {
 import { faker } from "@faker-js/faker";
 import { sql } from "drizzle-orm";
 import { getRandomValues } from "@/lib/array";
+import {
+  type VercelPgDatabase,
+  drizzle as VercelDrizzle,
+} from "drizzle-orm/vercel-postgres";
+import { sql as vercelSql } from "@vercel/postgres";
+import { addWeeks, subMonths } from "date-fns";
 
 /**
  * Cache the database connection in development. This avoids creating a new connection on every HMR
@@ -44,18 +51,34 @@ const globalForDb = globalThis as unknown as {
   conn: postgres.Sql | undefined;
 };
 
-let db: PostgresJsDatabase<Record<string, never>>;
+let db: PostgresJsDatabase<typeof schema> | VercelPgDatabase<typeof schema>;
 
 const conn = globalForDb.conn ?? postgres(env.DATABASE_URL);
 
-if (env.NODE_ENV !== "production") {
+if (env.NODE_ENV === "development") {
   globalForDb.conn = conn;
   const queryClient = postgres(env.DATABASE_URL);
   db = LocalDrizzle(queryClient);
+} else {
+  db = VercelDrizzle(vercelSql, { schema });
 }
 
 const TAGS_PER_SONG_SEED_COUNT = 3;
-const SONGS_PER_SET_SECTION_COUNT = 3;
+const NUMBER_OF_SETS = 10;
+
+const SET_DATE_MONTHS_IN_THE_PAST_BOUNDARY = 3;
+const SET_DATE_WEEKS_IN_THE_FUTURE_BOUNDARY = 2;
+const SET_DATE_FROM_BOUNDARY = subMonths(
+  new Date(),
+  SET_DATE_MONTHS_IN_THE_PAST_BOUNDARY,
+);
+const SET_DATE_TO_BOUNDARY = addWeeks(
+  new Date(),
+  SET_DATE_WEEKS_IN_THE_FUTURE_BOUNDARY,
+);
+
+const MIN_AMOUNT_OF_SONGS_PER_SECTION = 1;
+const MAX_AMOUNT_OF_SONGS_PER_SECTION = 4;
 
 const seedOrganization: NewOrganization = {
   name: "Stoneway",
@@ -107,9 +130,6 @@ const seed = async () => {
 
   /** seed the organization table */
   await db.execute(sql`TRUNCATE TABLE sanbi_organizations CASCADE`);
-  await db.execute(
-    sql`ALTER SEQUENCE public.sanbi_organizations_id_seq RESTART WITH 1;`,
-  );
   const [organization] = await db
     .insert(organizations)
     .values(seedOrganization)
@@ -119,17 +139,14 @@ const seed = async () => {
 
   /** seed the users table */
   await db.execute(sql`TRUNCATE TABLE sanbi_users CASCADE`);
-  await db.execute(
-    sql`ALTER SEQUENCE public.sanbi_user_id_seq RESTART WITH 1;`,
-  );
   const [user] = await db.insert(users).values(seedUser).returning();
   console.log("🚀 ~ seed ~ user:", user);
 
   /** seed the organisation members table */
   await db.execute(sql`TRUNCATE TABLE sanbi_organization_memberships CASCADE`);
   const newOrgMembership: NewOrganizationMembership = {
-    userId: user?.id,
-    organizationId: organization?.id,
+    userId: user!.id,
+    organizationId: organization!.id,
     permissionType: "admin",
   };
   const orgMembership = await db
@@ -141,9 +158,6 @@ const seed = async () => {
 
   /** seed the event types table */
   await db.execute(sql`TRUNCATE TABLE sanbi_event_types CASCADE`);
-  await db.execute(
-    sql`ALTER SEQUENCE public.sanbi_event_types_id_seq RESTART WITH 1;`,
-  );
   const seededEventTypes = await db
     .insert(eventTypes)
     .values(seedEventTypes)
@@ -153,9 +167,6 @@ const seed = async () => {
 
   /** seed the section types table */
   await db.execute(sql`TRUNCATE TABLE sanbi_set_section_types CASCADE`);
-  await db.execute(
-    sql`ALTER SEQUENCE public.sanbi_set_section_types_id_seq RESTART WITH 1;`,
-  );
   const seededSectionTypes = await db
     .insert(setSectionTypes)
     .values(seedSetSectionTypes)
@@ -165,21 +176,15 @@ const seed = async () => {
 
   /** seed the tags table */
   await db.execute(sql`TRUNCATE TABLE sanbi_tags CASCADE`);
-  await db.execute(
-    sql`ALTER SEQUENCE public.sanbi_tags_id_seq RESTART WITH 1;`,
-  );
   const seededTags = await db.insert(tags).values(seedTags).returning();
   console.log("🚀 ~ seed ~ seededTags:", seededTags);
 
   /** seed the songs table */
   await db.execute(sql`TRUNCATE TABLE sanbi_songs CASCADE`);
-  await db.execute(
-    sql`ALTER SEQUENCE public.sanbi_song_id_seq RESTART WITH 1;`,
-  );
   const seedSongs: NewSong[] = [
     {
       name: "In My Place",
-      key: "b",
+      preferredKey: "b",
       notes:
         "Play in the key of B to make it easier for the backup vocalist to harmonize with.",
       createdBy: user!.id,
@@ -187,13 +192,13 @@ const seed = async () => {
     },
     {
       name: "Such An Awesome God",
-      key: "a",
+      preferredKey: "a",
       createdBy: user!.id,
       organizationId: organization!.id,
     },
     {
-      name: "I Love YouLord/What A Beautiful Name (mash up)",
-      key: "g",
+      name: "I Love You Lord/What A Beautiful Name (mash up)",
+      preferredKey: "g",
       notes:
         "Song is best with only vocals, guitar, and keys. Feels powerful with only vocals on the last chorus.",
       createdBy: user!.id,
@@ -201,39 +206,39 @@ const seed = async () => {
     },
     {
       name: "Refuge",
-      key: "g",
+      preferredKey: "g",
       createdBy: user!.id,
       organizationId: organization!.id,
     },
     {
       name: "Son Of Suffering",
-      key: "g",
+      preferredKey: "g",
       notes: "Don't play the second chorus or chorus 2.",
       createdBy: user!.id,
       organizationId: organization!.id,
     },
     {
       name: "Draw Me Close To You",
-      key: "c",
+      preferredKey: "c",
       createdBy: user!.id,
       organizationId: organization!.id,
     },
     {
       name: "Romans 2:4",
-      key: "g",
+      preferredKey: "g",
       createdBy: user!.id,
       organizationId: organization!.id,
     },
     {
       name: "Only Jesus",
-      key: "g",
+      preferredKey: "g",
       notes: "Skip the tag if not playing with full band.",
       createdBy: user!.id,
       organizationId: organization!.id,
     },
     {
       name: "God Over Everything",
-      key: "g",
+      preferredKey: "g",
       createdBy: user!.id,
       organizationId: organization!.id,
     },
@@ -264,23 +269,20 @@ const seed = async () => {
 
   /** seed the sets table */
   await db.execute(sql`TRUNCATE TABLE sanbi_sets CASCADE`);
-  await db.execute(
-    sql`ALTER SEQUENCE public.sanbi_sets_id_seq RESTART WITH 1;`,
-  );
-  const seedSets: NewSet[] = [
-    {
-      eventTypeId: seededEventTypes[0]!.id,
-      date: "2024-09-30",
-    },
-    {
-      eventTypeId: seededEventTypes[1]!.id,
-      date: "2024-08-17",
-    },
-    {
-      eventTypeId: seededEventTypes[2]!.id,
-      date: "2024-08-14",
-    },
-  ];
+
+  const seedSets: NewSet[] = Array.from({ length: NUMBER_OF_SETS }, () => {
+    const [randomEventType] = getRandomValues(seededEventTypes, 1);
+    const fakeDate = faker.date.between({
+      from: SET_DATE_FROM_BOUNDARY,
+      to: SET_DATE_TO_BOUNDARY,
+    });
+    const formattedFakeDate = fakeDate.toLocaleDateString("en-CA"); // en-CA is a locale that uses the 'YYYY-MM-DD' format
+    return {
+      eventTypeId: randomEventType!.id,
+      date: formattedFakeDate,
+      organizationId: organization!.id,
+    };
+  });
 
   const seededSets = await db
     .insert(sets)
@@ -291,9 +293,6 @@ const seed = async () => {
 
   /** seed the set sections table */
   await db.execute(sql`TRUNCATE TABLE sanbi_set_sections CASCADE`);
-  await db.execute(
-    sql`ALTER SEQUENCE public.sanbi_set_sections_id_seq RESTART WITH 1;`,
-  );
   const insertSetSectionsPromises = seededSets.map(async (set) => {
     const seedSetSections = seededSectionTypes.map<NewSetSection>(
       (sectionType, index) => ({
@@ -319,17 +318,23 @@ const seed = async () => {
   const createSeedForSetSection = async (
     setSection: SetSection,
   ): Promise<NewSetSectionSong[]> => {
-    const randomSongs = getRandomValues(
-      seededSongs,
-      SONGS_PER_SET_SECTION_COUNT,
-    );
+    const randomAmountOfSongs =
+      Math.floor(Math.random() * MAX_AMOUNT_OF_SONGS_PER_SECTION) +
+      MIN_AMOUNT_OF_SONGS_PER_SECTION;
+    const randomSongs = getRandomValues(seededSongs, randomAmountOfSongs);
 
     const setSectionSongValues = randomSongs.map<NewSetSectionSong>(
-      (song, index) => ({
-        setSectionId: setSection.id,
-        songId: song.id,
-        position: index,
-      }),
+      (song, index) => {
+        const songKeysCount = schema.songKeyEnum.enumValues.length;
+        const randomIndex = Math.floor(Math.random() * songKeysCount);
+        const randomKey = schema.songKeyEnum.enumValues[randomIndex];
+        return {
+          setSectionId: setSection.id,
+          songId: song.id,
+          position: index,
+          key: randomKey,
+        };
+      },
     );
 
     return db
