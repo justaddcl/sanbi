@@ -72,8 +72,7 @@ export default async function Dashboard({
                     key={section.id}
                     title={section.type.section}
                   >
-                    {section.songs.map((song) => {
-                      console.log("🚀 ~ {section.songs.map ~ song:", song);
+                    {section.songs.map((setSectionSong) => {
                       let indexStart = 1;
 
                       for (
@@ -86,13 +85,13 @@ export default async function Dashboard({
                       }
                       return (
                         <Link
-                          key={song.songId}
-                          href={`/${params.organization}/songs/${song.songId}`}
+                          key={setSectionSong.songId}
+                          href={`/${params.organization}/songs/${setSectionSong.songId}`}
                         >
                           <SongItem
-                            index={indexStart + song.position}
-                            songKey={song.key}
-                            name={song.song!.name}
+                            index={indexStart + setSectionSong.position}
+                            songKey={setSectionSong.key}
+                            name={setSectionSong.song!.name}
                           />
                         </Link>
                       );
