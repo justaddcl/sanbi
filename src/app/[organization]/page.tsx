@@ -92,6 +92,9 @@ export default async function Dashboard({
                             index={indexStart + setSectionSong.position}
                             songKey={setSectionSong.key}
                             name={setSectionSong.song!.name}
+                            {...(setSectionSong.notes && {
+                              notes: setSectionSong.notes,
+                            })}
                           />
                         </Link>
                       );

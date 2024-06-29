@@ -94,7 +94,9 @@ export default async function SetListPage({
                             index={indexStart + setSectionSong.position}
                             songKey={setSectionSong.key}
                             name={setSectionSong.song!.name}
-                            notes={setSectionSong.song!.notes}
+                            {...(setSectionSong.notes && {
+                              notes: setSectionSong.notes,
+                            })}
                           />
                         </Link>
                       );

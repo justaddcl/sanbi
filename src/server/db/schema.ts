@@ -185,6 +185,7 @@ export const setSectionSongs = createTable(
     songId: uuid("song_id").references(() => songs.id),
     position: integer("position").notNull(),
     key: songKeyEnum("song_key"),
+    notes: text("notes"),
   },
   (setSectionSongsTable) => {
     return {
