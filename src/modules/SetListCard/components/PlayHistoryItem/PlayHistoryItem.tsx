@@ -8,6 +8,7 @@ import { Text } from "@components/Text";
 import { formatDate } from "@lib/date";
 import { type EventType, type None } from "@lib/types";
 import { PlayHistoryBullet } from "../PlayHistoryBullet/PlayHistoryBullet";
+import { isFuture } from "date-fns";
 
 /**
  * A PlayHistoryItem can include just the date or include extended properties
@@ -87,21 +88,40 @@ export const PlayHistoryItem: React.FC<PlayHistoryItemProps> = ({
        * NOTE: the styles for the play history item's `::before` pseudo element is in `styles/globals.css`
        * as Tailwind wouldn't properly apply the styles
        */}
-      <div className={`play-history-item relative flex flex-col gap-1`}>
+      <div
+        className={`play-history-item relative flex flex-col gap-1 ${isFuture(date) ? "italic" : "not-italic"}`}
+      >
         <div className="flex gap-[3px] leading-[16px]">
-          <Text style="small-semibold">{formattedDate}</Text>
-          <Text style="small">for</Text>
-          <Text style="small-semibold">{eventType}</Text>
+          <Text
+            style="small-semibold"
+            {...(isFuture(date) && { color: "slate-500" })}
+          >
+            {formattedDate}
+          </Text>
+          <Text style="small" {...(isFuture(date) && { color: "slate-500" })}>
+            for
+          </Text>
+          <Text
+            style="small-semibold"
+            {...(isFuture(date) && { color: "slate-500" })}
+          >
+            {eventType}
+          </Text>
         </div>
         <div className="flex gap-1">
           <Text asElement="span" style="small" color="slate-500">
-            Played in
+            {isFuture(date) ? "Will play" : "Played"} in
           </Text>
           <SongKey songKey={songKey} {...accidentalsProps} />
           <Text asElement="span" style="small" color="slate-500">
             during{" "}
           </Text>
-          <Text asElement="span" style="small" className="lowercase">
+          <Text
+            asElement="span"
+            style="small"
+            className="lowercase"
+            {...(isFuture(date) && { color: "slate-500" })}
+          >
             {setSection}
           </Text>
         </div>
