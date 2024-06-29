@@ -41,6 +41,7 @@ import {
   drizzle as VercelDrizzle,
 } from "drizzle-orm/vercel-postgres";
 import { sql as vercelSql } from "@vercel/postgres";
+import { addWeeks, subMonths } from "date-fns";
 
 /**
  * Cache the database connection in development. This avoids creating a new connection on every HMR
@@ -64,8 +65,18 @@ if (env.NODE_ENV === "development") {
 
 const TAGS_PER_SONG_SEED_COUNT = 3;
 const NUMBER_OF_SETS = 10;
-const SET_DATE_FROM_BOUNDARY = "2023-01-01";
-const SET_DATE_TO_BOUNDARY = "2024-12-31";
+
+const SET_DATE_MONTHS_IN_THE_PAST_BOUNDARY = 3;
+const SET_DATE_WEEKS_IN_THE_FUTURE_BOUNDARY = 2;
+const SET_DATE_FROM_BOUNDARY = subMonths(
+  new Date(),
+  SET_DATE_MONTHS_IN_THE_PAST_BOUNDARY,
+);
+const SET_DATE_TO_BOUNDARY = addWeeks(
+  new Date(),
+  SET_DATE_WEEKS_IN_THE_FUTURE_BOUNDARY,
+);
+
 const MIN_AMOUNT_OF_SONGS_PER_SECTION = 1;
 const MAX_AMOUNT_OF_SONGS_PER_SECTION = 4;
 

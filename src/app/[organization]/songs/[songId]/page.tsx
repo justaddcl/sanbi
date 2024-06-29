@@ -22,6 +22,7 @@ import {
   TagSimple,
 } from "@phosphor-icons/react/dist/ssr";
 import { asc, desc, eq } from "drizzle-orm";
+import { formatRelative } from "date-fns";
 
 export default async function SetListPage({
   params,
@@ -58,6 +59,8 @@ export default async function SetListPage({
     .where(eq(setSectionSongs.songId, params.songId));
   const dateFormatter = new Intl.DateTimeFormat("en-US");
 
+  const lastPlayed = playHistory.length > 0 ? playHistory[0] : null;
+
   if (!songData) {
     // FIXME: need better error handling
     return null;
@@ -81,16 +84,24 @@ export default async function SetListPage({
             <span>Last Played</span>
           </dt>
           <dd className="[&:not(:last-child)]:mb-2">
-            <Text asElement="span" style="body-small" color="slate-700">
-              One week ago
-            </Text>
-            <Text asElement="span" style="body-small" color="slate-500">
-              {" "}
-              for{" "}
-            </Text>
-            <Text asElement="span" style="body-small" color="slate-700">
-              Sunday service
-            </Text>
+            {lastPlayed ? (
+              <div className="flex gap-[3px] leading-4">
+                <Text asElement="span" style="body-small" color="slate-700">
+                  {/* TODO: write a customer formatter  */}
+                  {formatRelative(lastPlayed.sets!.date, new Date())}
+                </Text>
+                <Text asElement="span" style="body-small" color="slate-500">
+                  for
+                </Text>
+                <Text asElement="span" style="body-small" color="slate-700">
+                  {lastPlayed.event_types?.event}
+                </Text>
+              </div>
+            ) : (
+              <Text color="slate-700" style="body-small">
+                Hasn&apos;t been played in a set yet
+              </Text>
+            )}
           </dd>
           {songData?.tags && (
             <>
