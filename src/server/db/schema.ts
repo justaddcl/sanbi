@@ -184,7 +184,7 @@ export const setSectionSongs = createTable(
     setSectionId: uuid("set_section_id").references(() => setSections.id),
     songId: uuid("song_id").references(() => songs.id),
     position: integer("position").notNull(),
-    // TODO: add key played in
+    key: songKeyEnum("song_key"),
   },
   (setSectionSongsTable) => {
     return {

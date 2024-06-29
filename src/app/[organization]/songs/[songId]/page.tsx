@@ -186,7 +186,7 @@ export default async function SetListPage({
                   key={`${playInstance.sets?.id}-${playInstance.set_sections?.position}`}
                   date={dateFormatter.format(new Date(playInstance.sets!.date))}
                   eventType={playInstance.event_types!.event}
-                  songKey={songData.key}
+                  songKey={playInstance.set_section_songs.key}
                   setSection={playInstance.set_section_types!.section}
                 />
               ))}

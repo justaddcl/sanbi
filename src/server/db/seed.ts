@@ -313,11 +313,17 @@ const seed = async () => {
     const randomSongs = getRandomValues(seededSongs, randomAmountOfSongs);
 
     const setSectionSongValues = randomSongs.map<NewSetSectionSong>(
-      (song, index) => ({
-        setSectionId: setSection.id,
-        songId: song.id,
-        position: index,
-      }),
+      (song, index) => {
+        const songKeysCount = schema.songKeyEnum.enumValues.length;
+        const randomIndex = Math.floor(Math.random() * songKeysCount);
+        const randomKey = schema.songKeyEnum.enumValues[randomIndex];
+        return {
+          setSectionId: setSection.id,
+          songId: song.id,
+          position: index,
+          key: randomKey,
+        };
+      },
     );
 
     return db

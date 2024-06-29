@@ -9,8 +9,8 @@ import {
   SongItem,
 } from "@/modules/SetListCard";
 import { db } from "@/server/db";
-import { organizations, sets } from "@/server/db/schema";
-import { eq, or } from "drizzle-orm";
+import { sets } from "@/server/db/schema";
+import { eq } from "drizzle-orm";
 import Link from "next/link";
 
 export default async function Dashboard({
@@ -91,7 +91,7 @@ export default async function Dashboard({
                         >
                           <SongItem
                             index={indexStart + song.position}
-                            songKey={song.song!.key}
+                            songKey={song.key}
                             name={song.song!.name}
                           />
                         </Link>
