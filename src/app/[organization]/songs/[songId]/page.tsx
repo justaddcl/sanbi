@@ -1,5 +1,12 @@
 import { db } from "@/server/db";
-import { setSectionSongs, songs } from "@/server/db/schema";
+import {
+  eventTypes,
+  setSectionSongs,
+  setSectionTypes,
+  setSections,
+  sets,
+  songs,
+} from "@/server/db/schema";
 import { Badge } from "@components/Badge";
 import { PageTitle } from "@components/PageTitle";
 import { SongKey } from "@components/SongKey";
@@ -14,7 +21,7 @@ import {
   MusicNotesSimple,
   TagSimple,
 } from "@phosphor-icons/react/dist/ssr";
-import { eq } from "drizzle-orm";
+import { asc, desc, eq } from "drizzle-orm";
 
 export default async function SetListPage({
   params,
@@ -34,22 +41,22 @@ export default async function SetListPage({
   });
   console.log("🚀 ~ songData:", songData);
 
-  // FIXME: the results are not sorted by date
-  const playHistory = await db.query.setSectionSongs.findMany({
-    where: eq(setSectionSongs.songId, params.songId),
-    with: {
-      setSection: {
-        with: {
-          type: true,
-          set: {
-            with: {
-              eventType: true,
-            },
-          },
-        },
-      },
-    },
-  });
+  /**
+   * We have to use the sql-like API since we can't properly use the `orderBy`
+   * sorting when using `findMany`
+   */
+  const playHistory = await db
+    .select()
+    .from(setSectionSongs)
+    .leftJoin(setSections, eq(setSectionSongs.setSectionId, setSections.id))
+    .leftJoin(
+      setSectionTypes,
+      eq(setSections.sectionTypeId, setSectionTypes.id),
+    )
+    .leftJoin(sets, eq(sets.id, setSections.setId))
+    .leftJoin(eventTypes, eq(eventTypes.id, sets.eventTypeId))
+    .orderBy(desc(sets.date), asc(setSections.position))
+    .where(eq(setSectionSongs.songId, params.songId));
   console.log("🚀 ~ playHistory:", playHistory);
 
   const dateFormatter = new Intl.DateTimeFormat("en-US");
@@ -156,6 +163,7 @@ export default async function SetListPage({
             </div>
             <hr className="bg-slate-100" />
           </header>
+          {/* TODO: add resources db set up and data */}
           <div className="grid grid-cols-[repeat(auto-fill,_124px)] grid-rows-[repeat(auto-fill,_92px)] gap-2">
             <ResourceCard title="In My Place" url="theworshipinitiative.com" />
             <ResourceCard title="In My Place" url="open.spotify.com" />
@@ -175,13 +183,11 @@ export default async function SetListPage({
             {playHistory.length > 0 &&
               playHistory.map((playInstance) => (
                 <PlayHistoryItem
-                  key={`${playInstance.setSection?.set.id}-${playInstance.setSection?.position}`}
-                  date={dateFormatter.format(
-                    new Date(playInstance.setSection!.set.date),
-                  )}
-                  eventType={playInstance.setSection!.set.eventType.event}
+                  key={`${playInstance.sets?.id}-${playInstance.set_sections?.position}`}
+                  date={dateFormatter.format(new Date(playInstance.sets!.date))}
+                  eventType={playInstance.event_types!.event}
                   songKey={songData.key}
-                  setSection={playInstance.setSection!.type.section}
+                  setSection={playInstance.set_section_types!.section}
                 />
               ))}
             <PlayHistoryItem date={dateFormatter.format(songData?.createdAt)} />
