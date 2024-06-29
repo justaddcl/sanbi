@@ -22,7 +22,7 @@ import {
   TagSimple,
 } from "@phosphor-icons/react/dist/ssr";
 import { asc, desc, eq } from "drizzle-orm";
-import { formatRelative } from "date-fns";
+import { formatDistanceToNow, isPast } from "date-fns";
 
 export default async function SetListPage({
   params,
@@ -59,7 +59,10 @@ export default async function SetListPage({
     .where(eq(setSectionSongs.songId, params.songId));
   const dateFormatter = new Intl.DateTimeFormat("en-US");
 
-  const lastPlayed = playHistory.length > 0 ? playHistory[0] : null;
+  const lastPlayed =
+    playHistory.length > 0
+      ? playHistory.find((playInstance) => isPast(playInstance.sets!.date))
+      : null;
 
   if (!songData) {
     // FIXME: need better error handling
@@ -87,8 +90,10 @@ export default async function SetListPage({
             {lastPlayed ? (
               <div className="flex gap-[3px] leading-4">
                 <Text asElement="span" style="body-small" color="slate-700">
-                  {/* TODO: write a customer formatter  */}
-                  {formatRelative(lastPlayed.sets!.date, new Date())}
+                  {formatDistanceToNow(lastPlayed.sets!.date, {
+                    addSuffix: true,
+                    includeSeconds: false,
+                  })}
                 </Text>
                 <Text asElement="span" style="body-small" color="slate-500">
                   for
