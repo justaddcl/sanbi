@@ -39,7 +39,6 @@ export default async function SetListPage({
       },
     },
   });
-  console.log("🚀 ~ songData:", songData);
 
   /**
    * We have to use the sql-like API since we can't properly use the `orderBy`
@@ -57,8 +56,6 @@ export default async function SetListPage({
     .leftJoin(eventTypes, eq(eventTypes.id, sets.eventTypeId))
     .orderBy(desc(sets.date), asc(setSections.position))
     .where(eq(setSectionSongs.songId, params.songId));
-  console.log("🚀 ~ playHistory:", playHistory);
-
   const dateFormatter = new Intl.DateTimeFormat("en-US");
 
   if (!songData) {
