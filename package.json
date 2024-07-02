@@ -21,6 +21,7 @@
     "test:watch": "jest --watch"
   },
   "dependencies": {
+    "@clerk/nextjs": "^5.1.6",
     "@faker-js/faker": "^8.4.1",
     "@phosphor-icons/react": "^2.1.5",
     "@t3-oss/env-nextjs": "^0.10.1",
