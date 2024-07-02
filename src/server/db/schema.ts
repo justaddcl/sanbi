@@ -47,7 +47,7 @@ export const songKeyEnum = pgEnum("song_keys", [
 export const users = createTable(
   "users",
   {
-    id: uuid("id").primaryKey().defaultRandom(),
+    id: varchar("id", { length: 48 }).primaryKey(),
     firstName: varchar("firstName", { length: 256 }).notNull(),
     lastName: varchar("lastName", { length: 256 }),
     email: varchar("email", { length: 256 }).notNull().unique(),
@@ -82,7 +82,7 @@ export const organizationMembers = createTable(
     organizationId: uuid("organization_id")
       .references(() => organizations.id)
       .notNull(),
-    userId: uuid("user_id")
+    userId: varchar("user_id", { length: 48 })
       .references(() => users.id)
       .notNull(),
 
@@ -130,7 +130,7 @@ export const songs = createTable(
     createdAt: timestamp("created_at", { withTimezone: true })
       .default(sql`CURRENT_TIMESTAMP`)
       .notNull(),
-    createdBy: uuid("user_id")
+    createdBy: varchar("created_by", { length: 48 })
       .references(() => users.id)
       .notNull(),
     organizationId: uuid("organization_id")
