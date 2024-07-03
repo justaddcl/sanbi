@@ -5,6 +5,8 @@ const isPublicRoute = createRouteMatcher([
   "/sign-in(.*)",
   "/sign-up(.*)",
   "/monitoring(.*)",
+  "/sentry-example-page(.*)",
+  "/api/sentry-example-api(.*)",
 ]);
 
 export default clerkMiddleware((auth, req) => {
