@@ -1,8 +1,9 @@
 import { db } from "@/server/db";
-import { organizations } from "@/server/db/schema";
+import { organizationMembers, organizations, users } from "@/server/db/schema";
+import { auth } from "@clerk/nextjs/server";
 import { eq } from "drizzle-orm";
 import Link from "next/link";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 export default async function DashboardLayout({
   params,
@@ -13,6 +14,31 @@ export default async function DashboardLayout({
     organization: string;
   };
 }) {
+  const { userId, protect, redirectToSignIn } = auth();
+  protect();
+
+  if (!userId) {
+    redirectToSignIn();
+  }
+
+  // FIXME: this should be moved to an auth api route
+  const sanbiUser = await db.query.users.findFirst({
+    where: eq(users.id, userId!),
+    with: {
+      memberships: {
+        where: eq(organizationMembers.organizationId, params.organization),
+      },
+    },
+  });
+
+  const isUserPartOfOrg = sanbiUser?.memberships.find(
+    (membership) => membership.organizationId === params.organization,
+  );
+
+  if (!isUserPartOfOrg) {
+    notFound();
+  }
+
   const [organization] = await db
     .select()
     .from(organizations)

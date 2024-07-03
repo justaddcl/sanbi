@@ -86,6 +86,7 @@ const seedOrganization: NewOrganization = {
 };
 
 const seedUser: NewUser = {
+  id: "user_2iZRWtt4jgzikyZHMTzzYDna3Wq",
   email: faker.internet.email(),
   firstName: faker.person.firstName(),
   lastName: faker.person.lastName(),
