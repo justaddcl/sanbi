@@ -5,20 +5,19 @@
 await import("./src/env.js");
 
 /** @type {import("next").NextConfig} */
-const config = {};
-
-export default config;
+const coreConfig = {};
 
 // Injected content via Sentry wizard below
+import { withSentryConfig } from "@sentry/nextjs";
 
-const { withSentryConfig } = require("@sentry/nextjs");
-
-module.exports = withSentryConfig(module.exports, {
+const config = withSentryConfig(coreConfig, {
   // For all available options, see:
   // https://github.com/getsentry/sentry-webpack-plugin#options
 
-  org: "sanbi-s0",
-  project: "javascript-nextjs",
+  org: "sanbi-swy",
+  project: "sanbi",
+
+  authToken: process.env.SENTRY_AUTH_TOKEN,
 
   // Only print logs for uploading source maps in CI
   silent: !process.env.CI,
@@ -47,3 +46,5 @@ module.exports = withSentryConfig(module.exports, {
   // https://vercel.com/docs/cron-jobs
   automaticVercelMonitors: true,
 });
+
+export default config;
