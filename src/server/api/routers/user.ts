@@ -1,16 +1,18 @@
 import { z } from "zod";
 
-import { createTRPCRouter, publicProcedure } from "@server/api/trpc";
+import {
+  authedProcedure,
+  createTRPCRouter,
+  publicProcedure,
+} from "@server/api/trpc";
 import { users } from "@server/db/schema";
 
 export const userRouter = createTRPCRouter({
-  hello: publicProcedure
-    .input(z.object({ text: z.string() }))
-    .query(({ input }) => {
-      return {
-        greeting: `Hello ${input.text}`,
-      };
-    }),
+  hello: authedProcedure.query(({ ctx }) => {
+    return {
+      greeting: `Hello ${ctx.auth.userId}`,
+    };
+  }),
   getAll: publicProcedure.query(({ ctx }) => {
     return ctx.db.query.users.findMany();
   }),

@@ -5,8 +5,7 @@ const isPublicRoute = createRouteMatcher([
   "/sign-in(.*)",
   "/sign-up(.*)",
   "/monitoring(.*)",
-  "/sentry-example-page(.*)",
-  "/api/sentry-example-api(.*)",
+  "/api/(.*)", // "allowing" api routes since we want the API to return errors rather than redirecting to sign-in
 ]);
 
 export default clerkMiddleware((auth, req) => {
