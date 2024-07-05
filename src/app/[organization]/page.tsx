@@ -12,6 +12,8 @@ import { db } from "@/server/db";
 import { sets } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
 import Link from "next/link";
+import { notFound } from "next/navigation";
+import { validate as uuidValidate } from "uuid";
 
 export default async function Dashboard({
   params,
@@ -19,6 +21,11 @@ export default async function Dashboard({
   params: { organization: string };
 }) {
   // TODO: solve how to handle slugs vs. org IDs
+
+  const isOrgIdValidUuid = uuidValidate(params.organization);
+  if (!isOrgIdValidUuid) {
+    notFound();
+  }
 
   // FIXME: move query to db/queries
   const organizationSets = await db.query.sets.findMany({
