@@ -12,15 +12,20 @@ export default async function CreateTeamPage({
   );
 
   if (shouldCreateNewUser) {
+    console.log("🖥 - Should create a new user - create-team page");
     try {
       const newUser = await api.user.createMe();
-      console.log("User created:", newUser);
+      console.log("🖥 - User created - create-team page", newUser);
     } catch (createUserError) {
+      console.log(
+        "🖥 - Something has gone wrong while creating a user - create-team page",
+      );
       if (createUserError instanceof TRPCError) {
         if (createUserError.code === "CONFLICT") {
           console.info(createUserError.message);
         }
       }
+      console.error(createUserError);
     }
   }
 

@@ -21,9 +21,11 @@ export const userRouter = createTRPCRouter({
     return ctx.db.query.users.findMany();
   }),
   createMe: authedProcedure.mutation(async ({ ctx }) => {
+    console.log("🤖 - Creating a user based on authed user - createMe");
     const { userId } = ctx.auth;
 
     if (!userId) {
+      console.log("🤖 - No user is currently signed in - createMe");
       throw new TRPCError({ code: "UNAUTHORIZED" });
     }
 
@@ -32,6 +34,7 @@ export const userRouter = createTRPCRouter({
     });
 
     if (matchingUser) {
+      console.log("🤖 - Matching sanbi user found - createMe", userId);
       throw new TRPCError({
         code: "CONFLICT",
         message: `User ${userId} already exists`,
@@ -41,6 +44,7 @@ export const userRouter = createTRPCRouter({
     const user = await currentUser();
 
     if (!user) {
+      console.log("🤖 - Clerk user not found - createMe", userId);
       throw new TRPCError({
         code: "NOT_FOUND",
         message: `User not found`,
@@ -49,6 +53,9 @@ export const userRouter = createTRPCRouter({
 
     const userEmail = user.primaryEmailAddress?.emailAddress;
     if (!userEmail) {
+      console.log(
+        `🤖 - Clerk user ${user.id} does not have primary email address - createMe`,
+      );
       throw new TRPCError({
         code: "BAD_REQUEST",
         message: "User must have a primary email address",
@@ -56,6 +63,9 @@ export const userRouter = createTRPCRouter({
     }
 
     if (!user.firstName) {
+      console.log(
+        `🤖 - Clerk user ${user.id} does not have a first name - createMe`,
+      );
       throw new TRPCError({
         code: "BAD_REQUEST",
         message: "User must have a first name",
@@ -63,6 +73,9 @@ export const userRouter = createTRPCRouter({
     }
 
     if (!user.lastName) {
+      console.log(
+        `🤖 - Clerk user ${user.id} does not have a last name - createMe`,
+      );
       throw new TRPCError({
         code: "BAD_REQUEST",
         message: "User must have a last name",
@@ -75,6 +88,7 @@ export const userRouter = createTRPCRouter({
       firstName: user.firstName,
       lastName: user.lastName,
     };
+    console.log(`🤖 - New sanbi user - createMe`, newUser);
 
     return ctx.db
       .insert(users)
