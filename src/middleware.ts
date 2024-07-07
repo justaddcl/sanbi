@@ -10,6 +10,8 @@ const isPublicRoute = createRouteMatcher([
 ]);
 
 export default clerkMiddleware((auth, req) => {
+  console.log("🚀 ~ clerkMiddleware ~ req.nextUrl:", req.nextUrl);
+  console.log("🚀 ~ clerkMiddleware ~ req.nextUrl:", req.nextUrl.searchParams);
   if (!isPublicRoute(req)) {
     auth().protect();
   }
