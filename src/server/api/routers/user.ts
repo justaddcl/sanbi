@@ -17,11 +17,6 @@ export const userRouter = createTRPCRouter({
       greeting: `Hello ${ctx.auth.userId}`,
     };
   }),
-  test: publicProcedure.input(z.string().min(1)).query(({ ctx, input }) => {
-    console.log("🤖 - user/test called - test");
-    console.log(`🤖 - text query input: ${input} - test`);
-    return "Beep bloop this is a returned test message.";
-  }),
   getAll: publicProcedure.query(({ ctx }) => {
     return ctx.db.query.users.findMany();
   }),

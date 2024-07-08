@@ -7,15 +7,12 @@ export default async function CreateTeamPage({
 }: {
   searchParams: Record<string, string | string[] | undefined>;
 }) {
-  console.log("🖥 - create-team page rendered - create-team page");
+
+
   const shouldCreateNewUser = Object.keys(searchParams).includes(
     NEW_USER_SIGN_UP_KEY as string, // type assertion here since ESLint removes `string` typing on the const
   );
 
-  console.log(
-    `🖥️ - Create team page searchParams - create-team page`,
-    searchParams,
-  );
   if (shouldCreateNewUser) {
     console.log("🖥 - Should create a new user - create-team page");
     try {
