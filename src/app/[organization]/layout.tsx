@@ -4,6 +4,7 @@ import { auth } from "@clerk/nextjs/server";
 import { eq } from "drizzle-orm";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import { validate as uuidValidate } from "uuid";
 
 export default async function DashboardLayout({
   params,
@@ -19,6 +20,11 @@ export default async function DashboardLayout({
 
   if (!userId) {
     redirectToSignIn();
+  }
+
+  const isOrgIdValidUuid = uuidValidate(params.organization);
+  if (!isOrgIdValidUuid) {
+    notFound();
   }
 
   // FIXME: this should be moved to an auth api route
