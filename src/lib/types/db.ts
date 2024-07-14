@@ -1,8 +1,8 @@
 import {
+  type organizations,
   type setSectionTypes,
   type eventTypes,
   type organizationMembers,
-  type organizations,
   type users,
   type tags,
   type songs,

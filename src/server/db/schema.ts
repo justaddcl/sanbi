@@ -64,7 +64,7 @@ export const organizations = createTable(
   {
     id: uuid("id").primaryKey().defaultRandom(),
     name: varchar("name").notNull().unique(),
-    slug: varchar("slug").unique(),
+    slug: varchar("slug").unique().notNull(),
   },
   (organizationsTable) => {
     return {
