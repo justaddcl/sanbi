@@ -1,5 +1,9 @@
 import { db } from "@/server/db";
-import { organizationMembers, organizations, users } from "@/server/db/schema";
+import {
+  organizationMemberships,
+  organizations,
+  users,
+} from "@/server/db/schema";
 import { auth } from "@clerk/nextjs/server";
 import { eq } from "drizzle-orm";
 import Link from "next/link";
@@ -32,7 +36,7 @@ export default async function DashboardLayout({
     where: eq(users.id, userId!),
     with: {
       memberships: {
-        where: eq(organizationMembers.organizationId, params.organization),
+        where: eq(organizationMemberships.organizationId, params.organization),
       },
     },
   });

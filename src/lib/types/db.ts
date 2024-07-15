@@ -2,7 +2,7 @@ import {
   type organizations,
   type setSectionTypes,
   type eventTypes,
-  type organizationMembers,
+  type organizationMemberships,
   type users,
   type tags,
   type songs,
@@ -14,7 +14,8 @@ import {
 
 export type NewOrganization = typeof organizations.$inferInsert;
 
-export type NewOrganizationMembership = typeof organizationMembers.$inferInsert;
+export type NewOrganizationMembership =
+  typeof organizationMemberships.$inferInsert;
 
 export type NewUser = typeof users.$inferInsert;
 

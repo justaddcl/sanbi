@@ -8,7 +8,7 @@ import { env } from "@/env";
 import * as schema from "./schema";
 import {
   eventTypes,
-  organizationMembers,
+  organizationMemberships,
   organizations,
   setSectionSongs,
   setSectionTypes,
@@ -151,7 +151,7 @@ const seed = async () => {
     permissionType: "admin",
   };
   const orgMembership = await db
-    .insert(organizationMembers)
+    .insert(organizationMemberships)
     .values(newOrgMembership)
     .onConflictDoNothing()
     .returning();

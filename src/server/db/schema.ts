@@ -76,7 +76,7 @@ export const organizations = createTable(
   },
 );
 
-export const organizationMembers = createTable(
+export const organizationMemberships = createTable(
   "organization_memberships",
   {
     organizationId: uuid("organization_id")
@@ -215,27 +215,27 @@ export const setSectionSongs = createTable(
 
 /** drizzle relationships */
 export const organizationsRelations = relations(organizations, ({ many }) => ({
-  members: many(organizationMembers),
+  members: many(organizationMemberships),
   songs: many(songs),
   sets: many(sets),
 }));
 
 export const organizationMembersRelations = relations(
-  organizationMembers,
+  organizationMemberships,
   ({ one }) => ({
     member: one(users, {
-      fields: [organizationMembers.userId],
+      fields: [organizationMemberships.userId],
       references: [users.id],
     }),
     organization: one(organizations, {
-      fields: [organizationMembers.organizationId],
+      fields: [organizationMemberships.organizationId],
       references: [organizations.id],
     }),
   }),
 );
 
 export const usersRelations = relations(users, ({ many }) => ({
-  memberships: many(organizationMembers),
+  memberships: many(organizationMemberships),
   songs: many(songs),
 }));
 
