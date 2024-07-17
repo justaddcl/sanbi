@@ -3,6 +3,7 @@ import { TRPCError } from "@trpc/server";
 import { NEW_USER_SIGN_UP_KEY } from "@app/create-team/consts";
 import { createOrganizationAndAddUser } from "@/server/mutations";
 import { insertOrganizationSchema } from "@/lib/types/zod";
+import { redirect } from "next/navigation";
 
 export default async function CreateTeamPage({
   searchParams,
@@ -26,12 +27,20 @@ export default async function CreateTeamPage({
       };
     }
 
+    // FIXME: make this a bit more robust
+    let redirectUrl = "";
+
     try {
       const data = await createOrganizationAndAddUser(validatedFields.data);
       console.log("🚀 ~ createOrganizationMembership ~ data:", data);
+      redirectUrl = `/${data?.newOrganization!.id}`;
     } catch (createOrganizationAndAddUserError) {
       // TODO: add robust error handling
       // console.error(createOrganizationAndAddUserError);
+    }
+
+    if (redirectUrl !== "") {
+      redirect(redirectUrl);
     }
   }
 
