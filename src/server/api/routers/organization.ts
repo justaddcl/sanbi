@@ -31,7 +31,10 @@ export const organizationRouter = createTRPCRouter({
       // FIXME: the lowercasing of organizations.name should happen from the schema if possible
       const matchingOrganizationName =
         await ctx.db.query.organizations.findFirst({
-          where: eq(sql`lower(${organizations.name})`, input.name),
+          where: eq(
+            sql`lower(${organizations.name})`,
+            input.name.toLowerCase(),
+          ),
         });
 
       if (matchingOrganizationName) {
