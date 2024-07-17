@@ -4,12 +4,14 @@ import { type NewOrganization } from "@/lib/types";
 import { eq, sql } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { insertOrganizationSchema } from "@/lib/types/zod";
+import { isValidSlug } from "@/lib/string";
 
 export const organizationRouter = createTRPCRouter({
   create: authedProcedure
     .input(insertOrganizationSchema)
     .mutation(async ({ ctx, input }) => {
       console.log("🤖 - Creating a new organization");
+
       const { userId } = ctx.auth;
 
       if (!userId) {
@@ -17,6 +19,13 @@ export const organizationRouter = createTRPCRouter({
           "🤖 - No user is currently signed in - organization/create",
         );
         throw new TRPCError({ code: "UNAUTHORIZED" });
+      }
+
+      if (!isValidSlug(input.slug)) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "slug contains invalid characters",
+        });
       }
 
       // FIXME: the lowercasing of organizations.name should happen from the schema if possible
