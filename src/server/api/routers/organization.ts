@@ -1,7 +1,7 @@
 import { authedProcedure, createTRPCRouter } from "@server/api/trpc";
 import { organizations } from "@server/db/schema";
 import { type NewOrganization } from "@/lib/types";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { insertOrganizationSchema } from "@/lib/types/zod";
 
@@ -19,9 +19,10 @@ export const organizationRouter = createTRPCRouter({
         throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
+      // FIXME: the lowercasing of organizations.name should happen from the schema if possible
       const matchingOrganizationName =
         await ctx.db.query.organizations.findFirst({
-          where: eq(organizations.name, input.name),
+          where: eq(sql`lower(${organizations.name})`, input.name),
         });
 
       if (matchingOrganizationName) {
@@ -37,7 +38,10 @@ export const organizationRouter = createTRPCRouter({
 
       const matchingOrganizationSlug =
         await ctx.db.query.organizations.findFirst({
-          where: eq(organizations.slug, input.slug),
+          where: eq(
+            sql`lower(${organizations.slug})`,
+            input.slug.toLowerCase(),
+          ),
         });
 
       if (matchingOrganizationSlug) {

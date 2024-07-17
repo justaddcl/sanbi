@@ -68,6 +68,7 @@ export const organizations = createTable(
   },
   (organizationsTable) => {
     return {
+      // FIXME: update the index to be case insensitive
       nameIndex: uniqueIndex("organizations_name_idx").on(
         organizationsTable.name,
       ),
