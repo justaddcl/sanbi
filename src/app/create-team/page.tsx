@@ -1,13 +1,39 @@
 import { api } from "@/trpc/server";
 import { TRPCError } from "@trpc/server";
 import { NEW_USER_SIGN_UP_KEY } from "@app/create-team/consts";
+import { createOrganizationAndAddUser } from "@/server/mutations";
+import { insertOrganizationSchema } from "@/lib/types/zod";
 
 export default async function CreateTeamPage({
   searchParams,
 }: {
   searchParams: Record<string, string | string[] | undefined>;
 }) {
+  async function createOrganizationMembership(formData: FormData) {
+    "use server";
+    console.log("🚀 ~ createOrganizationMembership ~ formData:", formData);
 
+    // TODO: create rules that only allow for URL-safe characters in `slug`
+    const validatedFields = insertOrganizationSchema.safeParse({
+      name: formData.get("name"),
+      slug: formData.get("slug"),
+    });
+
+    // Return early if the form data is invalid
+    if (!validatedFields.success) {
+      return {
+        errors: validatedFields.error.flatten().fieldErrors,
+      };
+    }
+
+    try {
+      const data = await createOrganizationAndAddUser(validatedFields.data);
+      console.log("🚀 ~ createOrganizationMembership ~ data:", data);
+    } catch (createOrganizationAndAddUserError) {
+      // TODO: add robust error handling
+      // console.error(createOrganizationAndAddUserError);
+    }
+  }
 
   const shouldCreateNewUser = Object.keys(searchParams).includes(
     NEW_USER_SIGN_UP_KEY as string, // type assertion here since ESLint removes `string` typing on the const
@@ -31,5 +57,13 @@ export default async function CreateTeamPage({
     }
   }
 
-  return <p>Create a team</p>;
+  return (
+    <form action={createOrganizationMembership}>
+      <label htmlFor="name">Team name *</label>
+      <input id="name" type="text" name="name" />
+      <label htmlFor="slug">Team URL *</label>
+      <input id="slug" type="text" name="slug" />
+      <button type="submit">Create team</button>
+    </form>
+  );
 }

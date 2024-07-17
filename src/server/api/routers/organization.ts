@@ -24,7 +24,7 @@ export const organizationRouter = createTRPCRouter({
       if (!isValidSlug(input.slug)) {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: "slug contains invalid characters",
+          message: `Desired organization slug, ${input.slug}, contains invalid characters`,
         });
       }
 
