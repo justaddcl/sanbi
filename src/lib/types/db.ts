@@ -13,6 +13,7 @@ import {
 } from "@server/db/schema";
 
 export type NewOrganization = typeof organizations.$inferInsert;
+export type Organization = typeof organizations.$inferSelect;
 
 export type NewOrganizationMembership =
   typeof organizationMemberships.$inferInsert;
