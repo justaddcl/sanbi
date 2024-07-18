@@ -8,10 +8,12 @@
  */
 import { TRPCError, initTRPC } from "@trpc/server";
 import superjson from "superjson";
-import { ZodError } from "zod";
+import { z, ZodError } from "zod";
 
 import { db } from "@/server/db";
 import { auth } from "@clerk/nextjs/server";
+import { and, eq } from "drizzle-orm";
+import { organizationMemberships, users } from "../db/schema";
 
 /**
  * 1. CONTEXT
@@ -91,9 +93,58 @@ export const authedProcedure = t.procedure.use(async (opts) => {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 
+  const user = await db.query.users.findFirst({
+    where: eq(users.id, ctx.auth.userId),
+  });
+
+  if (!user) {
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: `Sanbi user, ${ctx.auth.userId}, not found`,
+    });
+  }
+
   return opts.next({
     ctx: {
       auth: auth(),
+      user,
     },
   });
 });
+
+export const organizationProcedure = authedProcedure
+  .input(
+    z.object({
+      organizationId: z.string().uuid(),
+    }),
+  )
+  .use(async (opts) => {
+    const { ctx, input } = opts;
+
+    const membership =
+      await opts.ctx.db.query.organizationMemberships.findFirst({
+        where: and(
+          eq(organizationMemberships.organizationId, input.organizationId),
+          eq(organizationMemberships.userId, ctx.user.id), // asserting that the user is not null since this is an authed procedure, which would have thrown an "unauthorized" error already
+        ),
+        with: {
+          organization: true,
+        },
+      });
+
+    if (!membership) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+      });
+    }
+
+    return opts.next({
+      ctx: {
+        user: {
+          ...ctx.user,
+          membership,
+        },
+        organization: membership.organization,
+      },
+    });
+  });

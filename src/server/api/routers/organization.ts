@@ -1,4 +1,8 @@
-import { authedProcedure, createTRPCRouter } from "@server/api/trpc";
+import {
+  authedProcedure,
+  createTRPCRouter,
+  organizationProcedure,
+} from "@server/api/trpc";
 import { organizations } from "@server/db/schema";
 import { type NewOrganization } from "@/lib/types";
 import { eq, sql } from "drizzle-orm";
@@ -7,6 +11,9 @@ import { insertOrganizationSchema } from "@/lib/types/zod";
 import { isValidSlug } from "@/lib/string";
 
 export const organizationRouter = createTRPCRouter({
+  organization: organizationProcedure.query(async ({ ctx }) => {
+    return ctx.organization;
+  }),
   create: authedProcedure
     .input(insertOrganizationSchema)
     .mutation(async ({ ctx, input }) => {
