@@ -8,6 +8,7 @@ import { type NewOrganizationMembership } from "@/lib/types";
 import { and, eq } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { insertOrganizationMembershipSchema } from "@/lib/types/zod";
+import { z } from "zod";
 
 export const organizationMembershipsRouter = createTRPCRouter({
   create: authedProcedure
@@ -85,5 +86,24 @@ export const organizationMembershipsRouter = createTRPCRouter({
         .values(newOrganizationMembership)
         .onConflictDoNothing()
         .returning();
+    }),
+  isMemberOfOrganization: authedProcedure
+    .input(
+      z.object({
+        organizationId: z.string().uuid(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const membership = await ctx.db.query.organizationMemberships.findFirst({
+        where: and(
+          eq(organizationMemberships.organizationId, input.organizationId),
+          eq(organizationMemberships.userId, ctx.user.id), // asserting that the user is not null since this is an authed procedure, which would have thrown an "unauthorized" error already
+        ),
+        with: {
+          organization: true,
+        },
+      });
+
+      return !!membership;
     }),
 });
