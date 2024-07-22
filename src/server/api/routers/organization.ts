@@ -29,9 +29,15 @@ export const organizationRouter = createTRPCRouter({
       }
 
       if (!isValidSlug(input.slug)) {
+        console.error(
+          `🤖 - URL slug, ${input.slug}, contains invalid characters - organization/create`,
+        );
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: `Desired organization slug, ${input.slug}, contains invalid characters`,
+          message: `URL contains invalid characters`,
+          cause: {
+            cause: "slug",
+          },
         });
       }
 
@@ -45,13 +51,16 @@ export const organizationRouter = createTRPCRouter({
         });
 
       if (matchingOrganizationName) {
-        console.log(
-          "🤖 - Organization name already in use - organization/create",
+        console.error(
+          `🤖 - Organization name, ${input.name}, already in use - organization/create`,
           matchingOrganizationName,
         );
         throw new TRPCError({
           code: "CONFLICT",
-          message: `Another team with the name, ${input.name}, already exists`,
+          message: `Another team is already using this name`,
+          cause: {
+            cause: "name",
+          },
         });
       }
 
@@ -64,13 +73,16 @@ export const organizationRouter = createTRPCRouter({
         });
 
       if (matchingOrganizationSlug) {
-        console.log(
-          "🤖 - Organization slug already in use - organization/create",
+        console.error(
+          `🤖 - Organization URL slug, ${input.slug}, already in use - organization/create`,
           matchingOrganizationSlug,
         );
         throw new TRPCError({
           code: "CONFLICT",
-          message: `The URL '/${input.slug}' is already taken by another team`,
+          message: `This URL is already taken by another team`,
+          cause: {
+            cause: "slug",
+          },
         });
       }
 

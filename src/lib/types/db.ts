@@ -17,6 +17,8 @@ export type Organization = typeof organizations.$inferSelect;
 
 export type NewOrganizationMembership =
   typeof organizationMemberships.$inferInsert;
+export type OrganizationMembership =
+  typeof organizationMemberships.$inferSelect;
 
 export type NewUser = typeof users.$inferInsert;
 
