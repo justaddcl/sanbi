@@ -23,7 +23,10 @@
   "dependencies": {
     "@clerk/nextjs": "^5.1.6",
     "@faker-js/faker": "^8.4.1",
+    "@hookform/resolvers": "^3.9.0",
     "@phosphor-icons/react": "^2.1.5",
+    "@radix-ui/react-label": "^2.1.0",
+    "@radix-ui/react-slot": "^1.1.0",
     "@sentry/nextjs": "^8.13.0",
     "@t3-oss/env-nextjs": "^0.10.1",
     "@tanstack/react-query": "^5.39.0",
@@ -42,12 +45,13 @@
     "postgres": "^3.4.4",
     "react": "^18.3.0",
     "react-dom": "^18.3.0",
+    "react-hook-form": "^7.52.1",
     "server-only": "^0.0.1",
     "superjson": "^2.2.1",
     "tailwind-merge": "^2.4.0",
     "tailwindcss-animate": "^1.0.7",
     "uuid": "^10.0.0",
-    "zod": "^3.23.3"
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@dotenvx/dotenvx": "^0.45.0",
