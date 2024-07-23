@@ -1,8 +1,8 @@
 import {
+  type organizations,
   type setSectionTypes,
   type eventTypes,
-  type organizationMembers,
-  type organizations,
+  type organizationMemberships,
   type users,
   type tags,
   type songs,
@@ -13,8 +13,12 @@ import {
 } from "@server/db/schema";
 
 export type NewOrganization = typeof organizations.$inferInsert;
+export type Organization = typeof organizations.$inferSelect;
 
-export type NewOrganizationMembership = typeof organizationMembers.$inferInsert;
+export type NewOrganizationMembership =
+  typeof organizationMemberships.$inferInsert;
+export type OrganizationMembership =
+  typeof organizationMemberships.$inferSelect;
 
 export type NewUser = typeof users.$inferInsert;
 

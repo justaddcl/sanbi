@@ -1,14 +1,14 @@
 import { api } from "@/trpc/server";
 import { TRPCError } from "@trpc/server";
 import { NEW_USER_SIGN_UP_KEY } from "@app/create-team/consts";
+import { Text } from "@/components/Text";
+import { CreateTeamForm } from "@/modules/onboarding/createTeam";
 
 export default async function CreateTeamPage({
   searchParams,
 }: {
   searchParams: Record<string, string | string[] | undefined>;
 }) {
-
-
   const shouldCreateNewUser = Object.keys(searchParams).includes(
     NEW_USER_SIGN_UP_KEY as string, // type assertion here since ESLint removes `string` typing on the const
   );
@@ -31,5 +31,12 @@ export default async function CreateTeamPage({
     }
   }
 
-  return <p>Create a team</p>;
+  return (
+    <main>
+      <Text style="header-large" className="mb-4 text-center">
+        Create a team
+      </Text>
+      <CreateTeamForm />
+    </main>
+  );
 }

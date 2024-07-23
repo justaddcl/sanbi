@@ -1,9 +1,8 @@
-import { db } from "@/server/db";
-import { organizationMembers, organizations, users } from "@/server/db/schema";
+import { type Organization } from "@/lib/types";
+import { getOrganization } from "@/server/queries";
 import { auth } from "@clerk/nextjs/server";
-import { eq } from "drizzle-orm";
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { validate as uuidValidate } from "uuid";
 
 export default async function DashboardLayout({
@@ -24,36 +23,27 @@ export default async function DashboardLayout({
 
   const isOrgIdValidUuid = uuidValidate(params.organization);
   if (!isOrgIdValidUuid) {
-    notFound();
-  }
-
-  // FIXME: this should be moved to an auth api route
-  const sanbiUser = await db.query.users.findFirst({
-    where: eq(users.id, userId!),
-    with: {
-      memberships: {
-        where: eq(organizationMembers.organizationId, params.organization),
-      },
-    },
-  });
-
-  const isUserPartOfOrg = sanbiUser?.memberships.find(
-    (membership) => membership.organizationId === params.organization,
-  );
-
-  if (!isUserPartOfOrg) {
-    notFound();
-  }
-
-  const [organization] = await db
-    .select()
-    .from(organizations)
-    .where(eq(organizations.id, params.organization));
-
-  if (!organization) {
     console.error(`Invalid Organization ID: ${params.organization}`);
-    redirect("/");
+    notFound();
   }
+
+  // const isUserPartOfOrg =
+  //   await api.organizationMemberships.isMemberOfOrganization({
+  //     organizationId: params.organization,
+  //   });
+
+  // if (!isUserPartOfOrg) {
+  //   redirect("/");
+  // }
+
+  const organization: Organization = (await getOrganization(
+    params.organization,
+  )) as Organization;
+
+  // if (!organization) {
+  //   console.error(`Invalid Organization ID: ${params.organization}`);
+  //   redirect("/");
+  // }
 
   return (
     <main className="container px-4 pb-16">
