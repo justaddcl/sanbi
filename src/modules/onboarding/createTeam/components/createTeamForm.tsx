@@ -29,6 +29,12 @@ export const CreateTeamForm: React.FC = () => {
     mode: "onBlur",
   });
 
+  const {
+    formState: { isDirty, isSubmitting, isValid },
+  } = createTeamForm;
+
+  const shouldSubmitBeDisabled = !isDirty || !isValid || isSubmitting;
+
   const router = useRouter();
 
   const handleCreateOrganizationMembershipSubmit = async (
@@ -86,7 +92,13 @@ export const CreateTeamForm: React.FC = () => {
             </FormItem>
           )}
         />
-        <Button type="submit">Create team</Button>
+        <Button
+          isLoading={isSubmitting}
+          disabled={shouldSubmitBeDisabled}
+          type="submit"
+        >
+          Create team
+        </Button>
       </form>
     </Form>
   );
