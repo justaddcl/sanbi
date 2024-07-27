@@ -88,7 +88,7 @@ export const userRouter = createTRPCRouter({
     };
     console.log(`🤖 - New sanbi user - createMe`, newUser);
 
-    return ctx.db
+    return await ctx.db
       .insert(users)
       .values(newUser)
       .onConflictDoNothing({ target: users.id })
