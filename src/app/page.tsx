@@ -28,8 +28,13 @@ export default async function Home() {
     const userMembership = await api.organizationMemberships.forUser({
       userId,
     });
-    console.log("🚀 ~ [[sign-in]] page ~ userMembership:", userMembership);
 
-    redirect(`/${userMembership?.organizationId}`);
+    if (!userMembership) {
+      redirect("/create-team");
+    } else {
+      console.log("🚀 ~ [[sign-in]] page ~ userMembership:", userMembership);
+
+      redirect(`/${userMembership?.organizationId}`);
+    }
   }
 }
