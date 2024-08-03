@@ -24,6 +24,9 @@ export default async function Dashboard({
 
   const isOrgIdValidUuid = uuidValidate(params.organization);
   if (!isOrgIdValidUuid) {
+    console.error(
+      `🤖 - ${params.organization} is not a valid UUID - queries/getOrganization`,
+    );
     notFound();
   }
 

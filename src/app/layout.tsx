@@ -37,7 +37,7 @@ export default function RootLayout({
           <header className="flex justify-between px-4 py-2">
             <Link href="/">Sanbi</Link>
             <SignedOut>
-              <SignInButton />
+              <SignInButton fallbackRedirectUrl="sign-in" />
             </SignedOut>
             <SignedIn>
               <UserButton />

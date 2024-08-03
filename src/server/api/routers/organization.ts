@@ -6,9 +6,29 @@ import {
 import { organizations } from "@server/db/schema";
 import { type NewOrganization } from "@/lib/types";
 import { eq, sql } from "drizzle-orm";
-import { TRPCError } from "@trpc/server";
 import { insertOrganizationSchema } from "@/lib/types/zod";
 import { isValidSlug } from "@/lib/string";
+import { SanbiError } from "@/lib/types/error";
+import { type CreateTeamFormFields } from "@/modules/onboarding/createTeam";
+import { type TRPCError } from "@trpc/server";
+
+export class CreateOrganizationError extends SanbiError {
+  constructor({
+    message,
+    code,
+    path,
+  }: {
+    message?: string;
+    code: TRPCError["code"];
+    path?: keyof Omit<CreateTeamFormFields, "id">;
+  }) {
+    super({
+      message,
+      code,
+      cause: new Error(path),
+    });
+  }
+}
 
 export const organizationRouter = createTRPCRouter({
   organization: organizationProcedure.query(async ({ ctx }) => {
@@ -25,19 +45,17 @@ export const organizationRouter = createTRPCRouter({
         console.log(
           "🤖 - No user is currently signed in - organization/create",
         );
-        throw new TRPCError({ code: "UNAUTHORIZED" });
+        throw new CreateOrganizationError({ code: "UNAUTHORIZED" });
       }
 
       if (!isValidSlug(input.slug)) {
         console.error(
           `🤖 - URL slug, ${input.slug}, contains invalid characters - organization/create`,
         );
-        throw new TRPCError({
+        throw new CreateOrganizationError({
           code: "BAD_REQUEST",
           message: `URL contains invalid characters`,
-          cause: {
-            cause: "slug",
-          },
+          path: "slug",
         });
       }
 
@@ -55,12 +73,10 @@ export const organizationRouter = createTRPCRouter({
           `🤖 - Organization name, ${input.name}, already in use - organization/create`,
           matchingOrganizationName,
         );
-        throw new TRPCError({
+        throw new CreateOrganizationError({
           code: "CONFLICT",
           message: `Another team is already using this name`,
-          cause: {
-            cause: "name",
-          },
+          path: "name",
         });
       }
 
@@ -77,12 +93,10 @@ export const organizationRouter = createTRPCRouter({
           `🤖 - Organization URL slug, ${input.slug}, already in use - organization/create`,
           matchingOrganizationSlug,
         );
-        throw new TRPCError({
+        throw new CreateOrganizationError({
           code: "CONFLICT",
           message: `This URL is already taken by another team`,
-          cause: {
-            cause: "slug",
-          },
+          path: "slug",
         });
       }
 

@@ -45,9 +45,11 @@ export const CreateTeamForm: React.FC = () => {
     if (!result?.data) {
       result?.errors.forEach((error) => {
         console.log("🚀 ~ error:", error);
-        createTeamForm.setError(error.path, {
-          message: error.message,
-        });
+        if (error.path) {
+          createTeamForm.setError(error.path, {
+            message: error.message,
+          });
+        }
       });
     }
 

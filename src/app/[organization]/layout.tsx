@@ -18,6 +18,9 @@ export default async function DashboardLayout({
   protect();
 
   if (!userId) {
+    console.log(
+      "🤖 - userID was not found. Redirecting to sign-in page - organization/layout",
+    );
     redirectToSignIn();
   }
 
@@ -27,23 +30,9 @@ export default async function DashboardLayout({
     notFound();
   }
 
-  // const isUserPartOfOrg =
-  //   await api.organizationMemberships.isMemberOfOrganization({
-  //     organizationId: params.organization,
-  //   });
-
-  // if (!isUserPartOfOrg) {
-  //   redirect("/");
-  // }
-
   const organization: Organization = (await getOrganization(
     params.organization,
   )) as Organization;
-
-  // if (!organization) {
-  //   console.error(`Invalid Organization ID: ${params.organization}`);
-  //   redirect("/");
-  // }
 
   return (
     <main className="container px-4 pb-16">

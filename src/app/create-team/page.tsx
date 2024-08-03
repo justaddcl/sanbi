@@ -26,8 +26,9 @@ export default async function CreateTeamPage({
         if (createUserError.code === "CONFLICT") {
           console.info(createUserError.message);
         }
+      } else {
+        console.error(createUserError);
       }
-      console.error(createUserError);
     }
   }
 

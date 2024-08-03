@@ -93,21 +93,22 @@ export const authedProcedure = t.procedure.use(async (opts) => {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 
-  const user = await db.query.users.findFirst({
-    where: eq(users.id, ctx.auth.userId),
-  });
+  // FIXME: this will always fail if a user signs up and has a Clerk user, but not a Sanbi user
+  // const user = await db.query.users.findFirst({
+  //   where: eq(users.id, ctx.auth.userId),
+  // });
 
-  if (!user) {
-    throw new TRPCError({
-      code: "NOT_FOUND",
-      message: `Sanbi user, ${ctx.auth.userId}, not found`,
-    });
-  }
+  // if (!user) {
+  //   throw new TRPCError({
+  //     code: "NOT_FOUND",
+  //     message: `Sanbi user, ${ctx.auth.userId}, not found`,
+  //   });
+  // }
 
   return opts.next({
     ctx: {
       auth: auth(),
-      user,
+      // user,
     },
   });
 });
@@ -120,12 +121,11 @@ export const organizationProcedure = authedProcedure
   )
   .use(async (opts) => {
     const { ctx, input } = opts;
-
     const membership =
       await opts.ctx.db.query.organizationMemberships.findFirst({
         where: and(
           eq(organizationMemberships.organizationId, input.organizationId),
-          eq(organizationMemberships.userId, ctx.user.id), // asserting that the user is not null since this is an authed procedure, which would have thrown an "unauthorized" error already
+          eq(organizationMemberships.userId, ctx.auth.userId!), // asserting that the user is not null since this is an authed procedure, which would have thrown an "unauthorized" error already
         ),
         with: {
           organization: true,
@@ -141,7 +141,6 @@ export const organizationProcedure = authedProcedure
     return opts.next({
       ctx: {
         user: {
-          ...ctx.user,
           membership,
         },
         organization: membership.organization,
