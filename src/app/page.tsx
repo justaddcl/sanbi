@@ -24,17 +24,17 @@ export default async function Home() {
         <Link href={`${stonewayOrg.id}/`}>賛美 // Sanbi</Link>
       </main>
     );
-  } else {
-    const userMembership = await api.organizationMemberships.forUser({
-      userId,
-    });
-
-    if (!userMembership) {
-      redirect("/create-team");
-    } else {
-      console.log("🚀 ~ [[sign-in]] page ~ userMembership:", userMembership);
-
-      redirect(`/${userMembership?.organizationId}`);
-    }
   }
+
+  const userMembership = await api.organizationMemberships.forUser({
+    userId,
+  });
+
+  if (!userMembership) {
+    redirect("/create-team");
+  }
+
+  console.log("🚀 ~ [[sign-in]] page ~ userMembership:", userMembership);
+
+  redirect(`/${userMembership?.organizationId}`);
 }
