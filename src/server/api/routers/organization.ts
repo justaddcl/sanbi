@@ -116,4 +116,26 @@ export const organizationRouter = createTRPCRouter({
         .onConflictDoNothing()
         .returning();
     }),
+  delete: authedProcedure
+    .input(deleteOrganizationSchema)
+    .mutation(async ({ ctx, input }) => {
+      console.log(
+        `🤖 - [organization/delete] - attempting to delete organization ${input.organizationId}`,
+      );
+
+      const [deletedOrganization] = await ctx.db
+        .delete(organizations)
+        .where(eq(organizations.id, input.organizationId))
+        .returning();
+
+      if (deletedOrganization) {
+        console.info(
+          `🤖 - [organization/delete] - Organization, ${deletedOrganization.name} (ID: ${deletedOrganization.id}), has been deleted`,
+        );
+      } else {
+        console.error(
+          `🤖 - [organization/delete] - Organization ID ${input.organizationId} could not be deleted`,
+        );
+      }
+    }),
 });
