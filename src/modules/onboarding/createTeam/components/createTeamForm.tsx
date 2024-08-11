@@ -15,11 +15,19 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { type z } from "zod";
 import { useRouter } from "next/navigation";
-import { createOrganizationAndAddUser } from "@/server/mutations";
+import { api } from "@/trpc/react";
+import { useAuth } from "@clerk/nextjs";
 
 export type CreateTeamFormFields = z.infer<typeof insertOrganizationSchema>;
 
 export const CreateTeamForm: React.FC = () => {
+  const { isSignedIn, userId } = useAuth();
+
+  const router = useRouter();
+  if (!isSignedIn) {
+    router.push("/sign-in");
+  }
+
   const createTeamForm = useForm<CreateTeamFormFields>({
     resolver: zodResolver(insertOrganizationSchema),
     defaultValues: {
@@ -29,34 +37,63 @@ export const CreateTeamForm: React.FC = () => {
     mode: "onBlur",
   });
 
+  const createOrganizationMutation = api.organization.create.useMutation();
+  const deleteOrganizationMutation = api.organization.delete.useMutation();
+
+  const createOrganizationMembershipMutation =
+    api.organizationMemberships.create.useMutation({
+      onError(error, variables) {
+        deleteOrganizationMutation.mutate({
+          organizationId: variables.organizationId,
+        });
+      },
+    });
   const {
     formState: { isDirty, isSubmitting, isValid },
+    setError,
   } = createTeamForm;
 
   const shouldSubmitBeDisabled = !isDirty || !isValid || isSubmitting;
 
-  const router = useRouter();
-
   const handleCreateOrganizationMembershipSubmit = async (
     formValues: CreateTeamFormFields,
   ) => {
-    const result = await createOrganizationAndAddUser(formValues);
+    createOrganizationMutation.mutate(formValues, {
+      onSuccess(data) {
+        const [newOrganization] = data;
 
-    if (!result?.data) {
-      result?.errors.forEach((error) => {
-        console.log("🚀 ~ error:", error);
-        if (error.path) {
-          createTeamForm.setError(error.path, {
-            message: error.message,
-          });
+        createOrganizationMembershipMutation.mutate(
+          {
+            organizationId: newOrganization!.id,
+            userId: userId!, // asserting userId can't be null since user would have been redirected to sign in if not already signed in
+            permissionType: "owner",
+          },
+          {
+            onSuccess(data) {
+              const [newOrganizationMembership] = data;
+              router.push(`/${newOrganizationMembership?.organizationId}`);
+            },
+          },
+        );
+      },
+      onError(error) {
+        if (error.data?.zodError?.fieldErrors) {
+          const {
+            zodError: { fieldErrors },
+          } = error.data;
+
+          const fieldNames = Object.keys(
+            fieldErrors,
+          ) as (keyof CreateTeamFormFields)[]; // since TypeScript can't be more specific than type string for Object.keys() we assert that the field error keys match the create team form field names
+          if (fieldNames && fieldNames.length > 0) {
+            const fieldName = fieldNames[0]!;
+
+            const [fieldError] = fieldErrors[fieldName]!;
+            setError(fieldName, { type: "manual", message: fieldError });
+          }
         }
-      });
-    }
-
-    if (result?.data?.organization) {
-      const redirectRoute = `/${result.data.organization?.id}`;
-      router.push(redirectRoute);
-    }
+      },
+    });
   };
 
   return (
