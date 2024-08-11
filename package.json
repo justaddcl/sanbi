@@ -55,6 +55,7 @@
   },
   "devDependencies": {
     "@dotenvx/dotenvx": "^0.45.0",
+    "@tanstack/react-query-devtools": "^5.51.21",
     "@testing-library/jest-dom": "^6.4.5",
     "@testing-library/react": "^16.0.0",
     "@types/eslint": "^8.56.2",

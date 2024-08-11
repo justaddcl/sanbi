@@ -6,28 +6,9 @@ import {
 } from "@server/db/schema";
 import { type NewOrganizationMembership } from "@/lib/types";
 import { and, eq } from "drizzle-orm";
-import { type TRPCError } from "@trpc/server";
+import { TRPCError } from "@trpc/server";
 import { insertOrganizationMembershipSchema } from "@/lib/types/zod";
 import { z } from "zod";
-import { SanbiError } from "@/lib/types/error";
-
-export class CreateOrganizationMembershipError extends SanbiError {
-  constructor({
-    message,
-    code,
-    cause,
-  }: {
-    message?: string;
-    code: TRPCError["code"];
-    cause?: string;
-  }) {
-    super({
-      message,
-      code,
-      cause: new Error(cause),
-    });
-  }
-}
 
 export const organizationMembershipsRouter = createTRPCRouter({
   create: authedProcedure
@@ -40,7 +21,7 @@ export const organizationMembershipsRouter = createTRPCRouter({
         console.log(
           "🤖 - No user is currently signed in - organization/create",
         );
-        throw new CreateOrganizationMembershipError({ code: "UNAUTHORIZED" });
+        throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
       const matchingUser = await ctx.db.query.users.findFirst({
@@ -55,10 +36,9 @@ export const organizationMembershipsRouter = createTRPCRouter({
         console.error(
           `🤖 - User ${input.userId} does not exist - organizationMembership/create`,
         );
-        throw new CreateOrganizationMembershipError({
+        throw new TRPCError({
           code: "BAD_REQUEST",
           message: "User does not exist",
-          cause: "organizationMemberships",
         });
       }
 
@@ -66,10 +46,9 @@ export const organizationMembershipsRouter = createTRPCRouter({
         console.error(
           `🤖 - Organization ${input.organizationId} does not exist - organizationMembership/create`,
         );
-        throw new CreateOrganizationMembershipError({
+        throw new TRPCError({
           code: "BAD_REQUEST",
           message: "Organization does not exist",
-          cause: "organizationMemberships",
         });
       }
 
@@ -85,10 +64,9 @@ export const organizationMembershipsRouter = createTRPCRouter({
         console.error(
           `🤖 - User ${input.userId} is already a member of ${input.organizationId} - organizationMembership/create`,
         );
-        throw new CreateOrganizationMembershipError({
+        throw new TRPCError({
           code: "CONFLICT",
           message: `Membership already exists`,
-          cause: "organizationMemberships",
         });
       }
 
