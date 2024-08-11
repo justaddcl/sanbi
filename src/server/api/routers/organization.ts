@@ -6,29 +6,13 @@ import {
 import { organizations } from "@server/db/schema";
 import { type NewOrganization } from "@/lib/types";
 import { eq, sql } from "drizzle-orm";
-import { insertOrganizationSchema } from "@/lib/types/zod";
+import {
+  deleteOrganizationSchema,
+  insertOrganizationSchema,
+} from "@/lib/types/zod";
 import { isValidSlug } from "@/lib/string";
-import { SanbiError } from "@/lib/types/error";
-import { type CreateTeamFormFields } from "@/modules/onboarding/createTeam";
-import { type TRPCError } from "@trpc/server";
-
-export class CreateOrganizationError extends SanbiError {
-  constructor({
-    message,
-    code,
-    path,
-  }: {
-    message?: string;
-    code: TRPCError["code"];
-    path?: keyof Omit<CreateTeamFormFields, "id">;
-  }) {
-    super({
-      message,
-      code,
-      cause: new Error(path),
-    });
-  }
-}
+import { TRPCError } from "@trpc/server";
+import { z } from "zod";
 
 export const organizationRouter = createTRPCRouter({
   organization: organizationProcedure.query(async ({ ctx }) => {
@@ -45,17 +29,27 @@ export const organizationRouter = createTRPCRouter({
         console.log(
           "🤖 - No user is currently signed in - organization/create",
         );
-        throw new CreateOrganizationError({ code: "UNAUTHORIZED" });
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "User must be signed in to create an organization",
+        });
       }
 
       if (!isValidSlug(input.slug)) {
         console.error(
           `🤖 - URL slug, ${input.slug}, contains invalid characters - organization/create`,
         );
-        throw new CreateOrganizationError({
+        throw new TRPCError({
           code: "BAD_REQUEST",
-          message: `URL contains invalid characters`,
-          path: "slug",
+          message: "URL contains invalid characters",
+          cause: new z.ZodError([
+            {
+              code: "invalid_string",
+              path: ["slug"],
+              message: "URL contains invalid characters",
+              validation: "url",
+            },
+          ]),
         });
       }
 
@@ -73,10 +67,16 @@ export const organizationRouter = createTRPCRouter({
           `🤖 - Organization name, ${input.name}, already in use - organization/create`,
           matchingOrganizationName,
         );
-        throw new CreateOrganizationError({
-          code: "CONFLICT",
+        throw new TRPCError({
+          code: "BAD_REQUEST",
           message: `Another team is already using this name`,
-          path: "name",
+          cause: new z.ZodError([
+            {
+              code: "custom",
+              path: ["name"],
+              message: "Another team is already using this name",
+            },
+          ]),
         });
       }
 
@@ -93,10 +93,16 @@ export const organizationRouter = createTRPCRouter({
           `🤖 - Organization URL slug, ${input.slug}, already in use - organization/create`,
           matchingOrganizationSlug,
         );
-        throw new CreateOrganizationError({
-          code: "CONFLICT",
-          message: `This URL is already taken by another team`,
-          path: "slug",
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `Another team is already using this URL`,
+          cause: new z.ZodError([
+            {
+              code: "custom",
+              path: ["slug"],
+              message: "Another team is already using this URL",
+            },
+          ]),
         });
       }
 
