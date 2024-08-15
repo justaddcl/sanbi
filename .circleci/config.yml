@@ -1,10 +1,13 @@
 version: 2.1
 
-jobs:
-  build:
+executors:
+  node-executor:
     docker:
-      - image: node:22.2.0
+      - image: cimg/node:22.2.0-browsers
 
+commands:
+  setup:
+    description: Set up common system expectations
     steps:
       - checkout
       - restore_cache:
@@ -27,19 +30,20 @@ jobs:
           paths:
             - .pnpm-store
 
+jobs:
   lint:
-    docker:
-      - image: node:22.2.0
+    executor: node-executor
     steps:
+      - setup
       - run:
           name: Lint
           command: |
             pnpm lint
 
   unit_test:
-    docker:
-      - image: node:22.2.0
+    executor: node-executor
     steps:
+      - setup
       - run:
           name: Test
           command: |
@@ -48,10 +52,5 @@ jobs:
 workflows:
   validation:
     jobs:
-      - build
-      - lint:
-          requires:
-            - build
-      - unit_test:
-          requires:
-            - build
+      - lint
+      - unit_test
