@@ -43,5 +43,9 @@ workflows:
   validation:
     jobs:
       - build
-      - lint
-      - unit_test
+      - lint:
+          requires:
+            - build
+      - unit_test:
+          requires:
+            - build
