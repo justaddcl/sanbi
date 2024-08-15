@@ -31,13 +31,19 @@ jobs:
     docker:
       - image: node:22.2.0
     steps:
-      - run: pnpm lint
+      - run:
+          name: Lint
+          command: |
+            pnpm lint
 
   unit_test:
     docker:
       - image: node:22.2.0
     steps:
-      - run: pnpm test
+      - run:
+          name: Test
+          command: |
+            pnpm test
 
 workflows:
   validation:
