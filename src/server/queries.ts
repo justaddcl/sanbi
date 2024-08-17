@@ -1,4 +1,5 @@
 import { api } from "@/trpc/server";
+import { auth } from "@clerk/nextjs/server";
 import { TRPCError } from "@trpc/server";
 import { redirect } from "next/navigation";
 import { validate as uuidValidate } from "uuid";
@@ -24,6 +25,8 @@ export async function getOrganization(organizationId: string) {
           console.error(
             `queries/getOrganization/${organizationId}: ${fetchOrganizationError.message}`,
           );
+          const { redirectToSignIn } = auth();
+          redirectToSignIn();
           break;
         default:
           console.error(
