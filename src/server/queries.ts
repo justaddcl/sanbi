@@ -23,14 +23,14 @@ export async function getOrganization(organizationId: string) {
         case "FORBIDDEN":
           // TODO: capture Sentry error?
           console.error(
-            `queries/getOrganization/${organizationId}: ${fetchOrganizationError.message}`,
+            `🤖 - [queries/getOrganization/${organizationId}]: ${fetchOrganizationError.message}`,
           );
           const { redirectToSignIn } = auth();
           redirectToSignIn();
           break;
         default:
           console.error(
-            `queries/getOrganization/${organizationId}: ${fetchOrganizationError.message}`,
+            `🤖 - [queries/getOrganization/${organizationId}]: ${fetchOrganizationError.message}`,
           );
           redirect("/");
       }
