@@ -20,14 +20,9 @@ export async function getOrganization(organizationId: string) {
     if (fetchOrganizationError instanceof TRPCError) {
       switch (fetchOrganizationError.code) {
         case "FORBIDDEN":
-          // TODO: capture Sentry error?
-          console.error(
-            `queries/getOrganization/${organizationId}: ${fetchOrganizationError.message}`,
-          );
-          break;
         default:
           console.error(
-            `queries/getOrganization/${organizationId}: ${fetchOrganizationError.message}`,
+            `🤖 - [queries/getOrganization/${organizationId}]: ${fetchOrganizationError.message}`,
           );
           redirect("/");
       }
