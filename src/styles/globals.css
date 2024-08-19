@@ -68,42 +68,45 @@
   }
 }
 
-/* FIXME: this no longer renders correctly after ShadCN was installed */
-.play-history-item:not(:last-child)::before {
-  --bullet-offset: 4px;
-  --bullet-width: 8px;
-  --bullet-grid-column-width: 16px;
-  --bullet-grid-row-gap: 16px;
+@layer components {
+  .play-history-item:not(:last-child)::before {
+    --bullet-offset: 4px;
+    --bullet-width: 8px;
+    --bullet-grid-column-width: 16px;
+    --bullet-grid-row-gap: 16px;
 
-  /**
+    /**
      * the starting y position of the line must account for the top offset (which
      * should be half of the text line height of the corresponding row) and
      * height of the bullet (8px) as well as and margin below the bullet (4px)
      */
-  --line-top-offset: calc(calc(var(--bullet-offset) * 2) + var(--bullet-width));
+    --line-top-offset: calc(
+      calc(var(--bullet-offset) * 2) + var(--bullet-width)
+    );
 
-  position: absolute;
-  width: 1px;
-  background-color: rgb(
-    203 213 225
-  ); /* should be the same value as slate-300 */
-  content: "";
+    position: absolute;
+    width: 1px;
+    background-color: rgb(
+      203 213 225
+    ); /* should be the same value as slate-300 */
+    content: "";
 
-  /**
+    /**
      * the line needs to line up with the middle of the bullet so
      * it needs to be shifted the width of the first column (16px) minus half
      * the width of the bullet (8px)
      * the current solution is hard-coded since using the calc function won't work
      */
-  left: calc(
-    -1 * calc(var(--bullet-grid-column-width) - calc(var(--bullet-width) / 2))
-  );
+    left: calc(
+      -1 * calc(var(--bullet-grid-column-width) - calc(var(--bullet-width) / 2))
+    );
 
-  top: var(--line-top-offset);
+    top: var(--line-top-offset);
 
-  /**
+    /**
      * the height of the line should be the height of the element + grid gap (16px)
      * minus the top offset so the line ends right when the next item below begins
      */
-  height: calc(100% + var(--bullet-grid-row-gap) - var(--line-top-offset));
+    height: calc(100% + var(--bullet-grid-row-gap) - var(--line-top-offset));
+  }
 }
