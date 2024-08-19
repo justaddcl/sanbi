@@ -93,45 +93,44 @@ export const PlayHistoryItem: React.FC<PlayHistoryItemProps> = ({
        * NOTE: the styles for the play history item's `::before` pseudo element is in `styles/globals.css`
        * as Tailwind wouldn't properly apply the styles
        */}
-      <Link href={`../sets/${setId}`}>
-        <div
-          className={`play-history-item relative flex flex-col gap-1 ${isFuture(date) ? "italic" : "not-italic"}`}
-        >
-          <div className="flex gap-[3px] leading-[16px]">
-            <Text
-              style="small-semibold"
-              // TODO: figure out a better way of changing the text color as this is repeated
-              {...(isFuture(date) && { color: "slate-500" })}
-            >
-              {formattedDate}
-            </Text>
-            <Text style="small" {...(isFuture(date) && { color: "slate-500" })}>
-              for
-            </Text>
-            <Text
-              style="small-semibold"
-              {...(isFuture(date) && { color: "slate-500" })}
-            >
-              {eventType}
-            </Text>
-          </div>
-          <div className="flex gap-1">
-            <Text asElement="span" style="small" color="slate-500">
-              {isFuture(date) ? "Will play" : "Played"} in
-            </Text>
-            <SongKey songKey={songKey} {...accidentalsProps} />
-            <Text asElement="span" style="small" color="slate-500">
-              during{" "}
-            </Text>
-            <Text
-              asElement="span"
-              style="small"
-              className="lowercase"
-              {...(isFuture(date) && { color: "slate-500" })}
-            >
-              {setSection}
-            </Text>
-          </div>
+      <Link
+        href={`../sets/${setId}`}
+        className={`play-history-item relative flex flex-col gap-1 ${isFuture(date) ? "italic" : "not-italic"}`}
+      >
+        <div className="flex gap-[3px] leading-[16px]">
+          <Text
+            style="small-semibold"
+            // TODO: figure out a better way of changing the text color as this is repeated
+            {...(isFuture(date) && { color: "slate-500" })}
+          >
+            {formattedDate}
+          </Text>
+          <Text style="small" {...(isFuture(date) && { color: "slate-500" })}>
+            for
+          </Text>
+          <Text
+            style="small-semibold"
+            {...(isFuture(date) && { color: "slate-500" })}
+          >
+            {eventType}
+          </Text>
+        </div>
+        <div className="flex gap-1">
+          <Text asElement="span" style="small" color="slate-500">
+            {isFuture(date) ? "Will play" : "Played"} in
+          </Text>
+          <SongKey songKey={songKey} {...accidentalsProps} />
+          <Text asElement="span" style="small" color="slate-500">
+            during{" "}
+          </Text>
+          <Text
+            asElement="span"
+            style="small"
+            className="lowercase"
+            {...(isFuture(date) && { color: "slate-500" })}
+          >
+            {setSection}
+          </Text>
         </div>
       </Link>
     </>
