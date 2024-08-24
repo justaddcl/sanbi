@@ -3,14 +3,8 @@ import "@/styles/globals.css";
 import { Poppins } from "next/font/google";
 
 import { TRPCReactProvider } from "@/trpc/react";
-import {
-  ClerkProvider,
-  SignInButton,
-  SignedIn,
-  SignedOut,
-  UserButton,
-} from "@clerk/nextjs";
-import Link from "next/link";
+import { ClerkProvider } from "@clerk/nextjs";
+import { Navbar } from "@/components/Navbar";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -34,15 +28,7 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="en" className={`${poppins.variable}`}>
         <body>
-          <header className="flex justify-between px-4 py-2">
-            <Link href="/">Sanbi</Link>
-            <SignedOut>
-              <SignInButton fallbackRedirectUrl="sign-in" />
-            </SignedOut>
-            <SignedIn>
-              <UserButton />
-            </SignedIn>
-          </header>
+          <Navbar />
           <TRPCReactProvider>{children}</TRPCReactProvider>
         </body>
       </html>
