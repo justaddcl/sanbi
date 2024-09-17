@@ -30,5 +30,9 @@ export default async function DashboardLayout({
     notFound();
   }
 
-  return <main className="container px-4 pb-16 pt-8">{children}</main>;
+  return (
+    <main className="container px-4 pb-16 pt-8 lg:px-9 lg:py-6">
+      {children}
+    </main>
+  );
 }

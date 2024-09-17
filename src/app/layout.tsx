@@ -3,8 +3,11 @@ import "@/styles/globals.css";
 import { Poppins } from "next/font/google";
 
 import { TRPCReactProvider } from "@/trpc/react";
-import { ClerkProvider } from "@clerk/nextjs";
-import { Navbar } from "@/components/Navbar";
+import { ClerkProvider, SignedIn } from "@clerk/nextjs";
+import { Navbar } from "@components/Navbar";
+import { GlobalNav } from "@components/GlobalNav";
+import { OrganizationHeader } from "@/components/OrganizationHeader";
+import { auth } from "@clerk/nextjs/server";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -24,12 +27,28 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const { userId } = auth();
+
+  const gridColumns = userId ? "lg:grid-cols-[300px_1fr]" : "";
+
   return (
     <ClerkProvider>
       <html lang="en" className={`${poppins.variable}`}>
         <body>
-          <Navbar />
-          <TRPCReactProvider>{children}</TRPCReactProvider>
+          <TRPCReactProvider>
+            <div className={`lg:grid ${gridColumns} min-h-screen`}>
+              <SignedIn>
+                <nav className="hidden rounded-b border border-t-0 border-slate-100 bg-slate-50 lg:block lg:px-8 lg:py-6">
+                  <OrganizationHeader />
+                  <GlobalNav />
+                </nav>
+              </SignedIn>
+              <div>
+                <Navbar />
+                {children}
+              </div>
+            </div>
+          </TRPCReactProvider>
         </body>
       </html>
     </ClerkProvider>
