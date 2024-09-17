@@ -1,3 +1,4 @@
+import { type RouterOutputs } from "@/trpc/react";
 import {
   type organizations,
   type setSectionTypes,
@@ -21,6 +22,8 @@ export type OrganizationMembership =
   typeof organizationMemberships.$inferSelect;
 
 export type NewUser = typeof users.$inferInsert;
+export type User = typeof users.$inferSelect;
+export type UserWithMemberships = RouterOutputs["user"]["getUser"];
 
 export type NewEventType = typeof eventTypes.$inferInsert;
 export type EventType = typeof eventTypes.$inferSelect;
