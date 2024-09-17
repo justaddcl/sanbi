@@ -14,7 +14,7 @@ export const OrganizationHeader: React.FC = () => {
   const {
     isPending,
     isError,
-    // @ts-expect-error: even though `data` exists at runtime, TS doesn't recognize `data` as part of the object the query returns
+    // @ts-ignore: even though `data` exists at runtime, TS doesn't recognize `data` as part of the object the query returns
     data: userData,
   } = api.user.getUser.useQuery(userId ? { userId } : skipToken);
   const user: UserWithMemberships = userData as UserWithMemberships;
