@@ -21,7 +21,7 @@ export const GlobalNav = () => {
     // @ts-ignore: even though `data` exists at runtime, TS doesn't recognize `data` as part of the object the query returns
     data: userData,
   } = api.user.getUser.useQuery(userId ? { userId } : skipToken);
-  const user: UserWithMemberships = userData as UserWithMemberships;
+  const user = userData as UserWithMemberships;
 
   if (isPending) {
     return (
