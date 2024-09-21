@@ -46,7 +46,7 @@ export const Navbar: React.FC = () => {
         </header>
       </SignedIn>
       <SignedOut>
-        <header className="flex h-14 justify-between gap-x-4 rounded-t border border-solid border-slate-100 bg-slate-50 px-4 py-2 min-[1025px]:h-16">
+        <header className="sticky top-0 flex h-14 justify-between gap-x-4 rounded-t border border-solid border-slate-100 bg-slate-50 px-4 py-2 min-[1025px]:h-16">
           <Link href="/" className="self-center">
             Sanbi
           </Link>
