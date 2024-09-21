@@ -30,7 +30,7 @@ export const OrganizationHeaderLink: React.ForwardRefRenderFunction<
 
   return (
     <a
-      className="mb-8 flex items-center gap-3 lg:mb-10"
+      className="mb-8 flex items-center gap-3 lg:fixed lg:top-6"
       href={href}
       onClick={(clickEvent: React.MouseEvent<HTMLAnchorElement, MouseEvent>) =>
         onClickHandler(clickEvent)

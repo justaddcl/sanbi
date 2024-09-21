@@ -56,10 +56,11 @@ export const GlobalNav = () => {
 
   const { organizationId } = organizationMembership;
   return (
-    <nav className="grid gap-2">
+    <nav className="grid gap-2 lg:fixed lg:top-24 lg:w-[234px]">
       <NavLink
         href={`/${organizationId}`}
         icon={<HouseLine weight={true ? "bold" : "regular"} />}
+        // TODO: dynamically set which menu item is active
         active
       >
         Home
