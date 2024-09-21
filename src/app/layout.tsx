@@ -30,7 +30,7 @@ export default function RootLayout({
 }) {
   const { userId } = auth();
 
-  const gridColumns = userId ? "lg:grid-cols-[300px_1fr]" : "";
+  const gridColumns = userId ? "min-[1025px]:grid-cols-[300px_1fr]" : "";
 
   return (
     <ClerkProvider>
@@ -38,9 +38,9 @@ export default function RootLayout({
         <body>
           <TRPCReactProvider>
             <SanbiStoreProvider>
-              <div className={`lg:grid ${gridColumns} min-h-screen`}>
+              <div className={`min-[1025px]:grid ${gridColumns} min-h-screen`}>
                 <SignedIn>
-                  <nav className="hidden rounded-b border border-t-0 border-slate-100 bg-slate-50 lg:block lg:px-8 lg:py-6">
+                  <nav className="hidden rounded-b border border-t-0 border-slate-100 bg-slate-50 min-[1025px]:sticky min-[1025px]:top-0 min-[1025px]:block min-[1025px]:px-8 min-[1025px]:py-6">
                     <OrganizationHeader />
                     <GlobalNav />
                   </nav>
