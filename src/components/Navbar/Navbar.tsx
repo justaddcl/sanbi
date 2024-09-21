@@ -1,3 +1,4 @@
+"use client";
 import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
 import { Button } from "@components/ui/button";
 import { MagnifyingGlass, Sidebar } from "@phosphor-icons/react/dist/ssr";
@@ -6,14 +7,19 @@ import { Sheet, SheetContent, SheetTrigger } from "@components/ui/sheet";
 import Link from "next/link";
 import { GlobalNav } from "@components/GlobalNav";
 import { OrganizationHeader } from "@components/OrganizationHeader";
+import { useSanbiStore } from "@/providers/sanbi-store-provider";
 
 export const Navbar: React.FC = () => {
+  const { isMobileNavOpen, setIsMobileNavOpen } = useSanbiStore(
+    (state) => state,
+  );
+
   return (
     <>
       <SignedIn>
         <header className="grid h-14 grid-cols-[40px_1fr_40px] content-center items-center gap-x-4 rounded-t border border-l-0 border-solid border-slate-100 bg-slate-50 px-4 lg:h-16 lg:grid-cols-[1fr_28px] lg:bg-inherit lg:px-9">
           <div className="lg:hidden">
-            <Sheet>
+            <Sheet open={isMobileNavOpen} onOpenChange={setIsMobileNavOpen}>
               <SheetTrigger asChild>
                 <Button
                   variant="outline"

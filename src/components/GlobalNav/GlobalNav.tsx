@@ -10,7 +10,6 @@ import { NavLink } from "@components/NavLink";
 import { useAuth } from "@clerk/nextjs";
 import { api } from "@/trpc/react";
 import { Skeleton } from "@components/ui/skeleton";
-import { type UserWithMemberships } from "@/lib/types";
 import { skipToken } from "@tanstack/react-query";
 
 export const GlobalNav = () => {

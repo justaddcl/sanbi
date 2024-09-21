@@ -1,12 +1,12 @@
 "use client";
 
-import { type UserWithMemberships } from "@/lib/types";
 import { api } from "@/trpc/react";
 import { useAuth } from "@clerk/nextjs";
-import { Text } from "@components/Text";
 import { Skeleton } from "@components/ui/skeleton";
 import { skipToken } from "@tanstack/react-query";
 import Link from "next/link";
+import React from "react";
+import { OrganizationHeaderLink } from "@components/OrganizationHeader/OrganizationHeaderLink";
 
 export const OrganizationHeader: React.FC = () => {
   const { userId, isSignedIn } = useAuth();
@@ -38,29 +38,17 @@ export const OrganizationHeader: React.FC = () => {
   }
 
   const organizationName = organizationMembership?.organization.name;
-  const organizationInitials = organizationName
-    ?.split(" ")
-    .map((word: string) => word[0])
-    .join("");
 
+  const ForwardedOrganizationHeaderLink = React.forwardRef(
+    OrganizationHeaderLink,
+  );
   return (
-    <Link href={`/${organizationMembership.organizationId}`}>
-      <div className="mb-8 flex items-center gap-3 lg:mb-10">
-        <div className="flex size-8 place-content-center rounded bg-slate-200 py-1">
-          {/* TODO: determine how to style if more than two letter initials */}
-          <Text
-            style="header-medium-semibold"
-            color="slate-700"
-            className="inline-block"
-            lineHeight="normal"
-          >
-            {organizationInitials}
-          </Text>
-        </div>
-        <Text style="header-medium-semibold" color="slate-700">
-          {organizationName}
-        </Text>
-      </div>
+    <Link
+      href={`/${organizationMembership.organizationId}`}
+      passHref
+      legacyBehavior
+    >
+      <ForwardedOrganizationHeaderLink organizationName={organizationName} />
     </Link>
   );
 };
