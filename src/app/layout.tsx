@@ -8,6 +8,7 @@ import { Navbar } from "@components/Navbar";
 import { GlobalNav } from "@components/GlobalNav";
 import { OrganizationHeader } from "@/components/OrganizationHeader";
 import { auth } from "@clerk/nextjs/server";
+import { SanbiStoreProvider } from "@/providers/sanbi-store-provider";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -36,18 +37,20 @@ export default function RootLayout({
       <html lang="en" className={`${poppins.variable}`}>
         <body>
           <TRPCReactProvider>
-            <div className={`lg:grid ${gridColumns} min-h-screen`}>
-              <SignedIn>
-                <nav className="hidden rounded-b border border-t-0 border-slate-100 bg-slate-50 lg:block lg:px-8 lg:py-6">
-                  <OrganizationHeader />
-                  <GlobalNav />
-                </nav>
-              </SignedIn>
-              <div>
-                <Navbar />
-                {children}
+            <SanbiStoreProvider>
+              <div className={`lg:grid ${gridColumns} min-h-screen`}>
+                <SignedIn>
+                  <nav className="hidden rounded-b border border-t-0 border-slate-100 bg-slate-50 lg:block lg:px-8 lg:py-6">
+                    <OrganizationHeader />
+                    <GlobalNav />
+                  </nav>
+                </SignedIn>
+                <div>
+                  <Navbar />
+                  {children}
+                </div>
               </div>
-            </div>
+            </SanbiStoreProvider>
           </TRPCReactProvider>
         </body>
       </html>
