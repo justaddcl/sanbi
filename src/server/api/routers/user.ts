@@ -8,6 +8,7 @@ import { currentUser } from "@clerk/nextjs/server";
 import { type NewUser } from "@/lib/types";
 import { eq } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
+import { z } from "zod";
 
 export const userRouter = createTRPCRouter({
   hello: authedProcedure.query(({ ctx }) => {
@@ -15,6 +16,20 @@ export const userRouter = createTRPCRouter({
       greeting: `Hello ${ctx.auth.userId}`,
     };
   }),
+  getUser: authedProcedure
+    .input(z.object({ userId: z.string() }))
+    .query(({ ctx, input }) => {
+      return ctx.db.query.users.findFirst({
+        where: eq(users.id, input.userId),
+        with: {
+          memberships: {
+            with: {
+              organization: true,
+            },
+          },
+        },
+      });
+    }),
   getAll: publicProcedure.query(({ ctx }) => {
     return ctx.db.query.users.findMany();
   }),
@@ -94,21 +109,4 @@ export const userRouter = createTRPCRouter({
       .onConflictDoNothing({ target: users.id })
       .returning();
   }),
-
-  // create: publicProcedure
-  //   .input(z.object({ name: z.string().min(1) }))
-  //   .mutation(async ({ ctx, input }) => {
-  //     // simulate a slow db call
-  //     await new Promise((resolve) => setTimeout(resolve, 1000));
-
-  //     await ctx.db.insert(posts).values({
-  //       name: input.name,
-  //     });
-  //   }),
-
-  // getLatest: publicProcedure.query(({ ctx }) => {
-  //   return ctx.db.query.posts.findFirst({
-  //     orderBy: (posts, { desc }) => [desc(posts.createdAt)],
-  //   });
-  // }),
 });
