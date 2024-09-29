@@ -3,11 +3,18 @@ import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
 import { Button } from "@components/ui/button";
 import { MagnifyingGlass, Sidebar } from "@phosphor-icons/react/dist/ssr";
 import { Input } from "@components/ui/input";
-import { Sheet, SheetContent, SheetTrigger } from "@components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetTitle,
+  SheetTrigger,
+} from "@components/ui/sheet";
 import Link from "next/link";
 import { GlobalNav } from "@components/GlobalNav";
 import { OrganizationHeader } from "@components/OrganizationHeader";
 import { useSanbiStore } from "@/providers/sanbi-store-provider";
+import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 
 export const Navbar: React.FC = () => {
   const { isMobileNavOpen, setIsMobileNavOpen } = useSanbiStore(
@@ -29,6 +36,12 @@ export const Navbar: React.FC = () => {
                   <Sidebar size={16} />
                 </Button>
               </SheetTrigger>
+              <VisuallyHidden.Root>
+                <SheetTitle>Mobile side nav</SheetTitle>
+                <SheetDescription>
+                  Sanbi mobile side navigation
+                </SheetDescription>
+              </VisuallyHidden.Root>
               <SheetContent side="left">
                 <OrganizationHeader />
                 <GlobalNav />

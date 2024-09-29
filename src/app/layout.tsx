@@ -40,10 +40,10 @@ export default function RootLayout({
             <SanbiStoreProvider>
               <div className={`min-[1025px]:grid ${gridColumns} min-h-screen`}>
                 <SignedIn>
-                  <nav className="hidden rounded-b border border-t-0 border-slate-100 bg-slate-50 min-[1025px]:sticky min-[1025px]:top-0 min-[1025px]:block min-[1025px]:px-8 min-[1025px]:py-6">
+                  <div className="hidden rounded-b border border-t-0 border-slate-100 bg-slate-50 min-[1025px]:sticky min-[1025px]:top-0 min-[1025px]:block min-[1025px]:px-8 min-[1025px]:py-6">
                     <OrganizationHeader />
                     <GlobalNav />
-                  </nav>
+                  </div>
                 </SignedIn>
                 <div>
                   <Navbar />
