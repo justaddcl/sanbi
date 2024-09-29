@@ -1,6 +1,7 @@
 // Example model schema from the Drizzle docs
 // https://orm.drizzle.team/docs/sql-schema-declaration
 
+import { songKeys } from "@lib/constants";
 import { relations, sql } from "drizzle-orm";
 import {
   date,
@@ -24,25 +25,7 @@ export const memberPermissionTypeEnum = pgEnum("member_permission_types", [
   "member",
 ]);
 
-export const songKeyEnum = pgEnum("song_keys", [
-  "c",
-  "c_sharp",
-  "d_flat",
-  "d",
-  "d_sharp",
-  "e_flat",
-  "e",
-  "f",
-  "f_sharp",
-  "g_flat",
-  "g",
-  "g_sharp",
-  "a_flat",
-  "a",
-  "a_sharp",
-  "b_flat",
-  "b",
-]);
+export const songKeyEnum = pgEnum("song_keys", songKeys);
 
 export const users = createTable(
   "users",

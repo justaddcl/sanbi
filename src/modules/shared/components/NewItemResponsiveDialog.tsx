@@ -1,12 +1,11 @@
 "use client";
 
+import { CreateSongForm } from "@modules/sets/components/CreateSongForm/CreateSongForm";
 import { useSanbiStore } from "@/providers/sanbi-store-provider";
 import {
   ResponsiveDialog,
-  ResponsiveDialogClose,
   ResponsiveDialogContent,
   ResponsiveDialogDescription,
-  ResponsiveDialogFooter,
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
   ResponsiveDialogTrigger,
@@ -66,7 +65,9 @@ export const NewItemResponsiveDialog: React.FC<
           <TabsContent value="newSet" className="w-full">
             <CreateSetForm onSubmit={() => closeCreateItemDialog()} />
           </TabsContent>
-          <TabsContent value="newSong"></TabsContent>
+          <TabsContent value="newSong" className="w-full">
+            <CreateSongForm onSubmit={() => closeCreateItemDialog()} />
+          </TabsContent>
         </Tabs>
       </ResponsiveDialogContent>
     </ResponsiveDialog>

@@ -57,7 +57,7 @@ export const CreateSetForm: React.FC<CreateSetFormProps> = ({ onSubmit }) => {
 
     // handle any errors
 
-    // use toast to show communicate success/error
+    // use toast to communicate success/error
 
     // close the dialog
     onSubmit?.();

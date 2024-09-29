@@ -2,6 +2,7 @@ import {
   organizationMemberships,
   organizations,
   sets,
+  songs,
 } from "@server/db/schema";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -26,3 +27,5 @@ export const insertOrganizationMembershipSchema = createInsertSchema(
 );
 
 export const insertSetSchema = createInsertSchema(sets);
+
+export const insertSongSchema = createInsertSchema(songs);
