@@ -16,11 +16,7 @@ import { CreateSetForm } from "@modules/sets/components/CreateSetForm";
 import { MusicNoteSimple, Playlist } from "@phosphor-icons/react/dist/ssr";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 
-type NewItemResponsiveDialogProps = {};
-
-export const NewItemResponsiveDialog: React.FC<
-  NewItemResponsiveDialogProps
-> = ({}) => {
+export const NewItemResponsiveDialog: React.FC = ({}) => {
   const {
     isCreateItemDialogOpen,
     setIsCreateItemDialogOpen,
