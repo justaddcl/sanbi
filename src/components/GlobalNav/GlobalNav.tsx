@@ -11,6 +11,7 @@ import { useAuth } from "@clerk/nextjs";
 import { api } from "@/trpc/react";
 import { Skeleton } from "@components/ui/skeleton";
 import { skipToken } from "@tanstack/react-query";
+import { NewItemResponsiveDialog } from "@/modules/shared/components";
 
 export const GlobalNav = () => {
   const { userId, isSignedIn } = useAuth();
@@ -56,24 +57,27 @@ export const GlobalNav = () => {
 
   const { organizationId } = organizationMembership;
   return (
-    <nav className="grid gap-2 lg:fixed lg:top-24 lg:w-[234px]">
-      <NavLink
-        href={`/${organizationId}`}
-        icon={<HouseLine weight={true ? "bold" : "regular"} />}
-        // TODO: dynamically set which menu item is active
-        active
-      >
-        Home
-      </NavLink>
-      <NavLink href="#" icon={<MagnifyingGlass />}>
-        Search
-      </NavLink>
-      <NavLink href="#" icon={<Playlist />}>
-        Sets
-      </NavLink>
-      <NavLink href="#" icon={<MusicNoteSimple />}>
-        Songs
-      </NavLink>
-    </nav>
+    <div className="flex h-[calc(100%_-_64px)] flex-col justify-between lg:fixed lg:top-24 lg:w-[234px] lg:justify-normal lg:gap-6">
+      <nav className="grid gap-2">
+        <NavLink
+          href={`/${organizationId}`}
+          icon={<HouseLine weight={true ? "bold" : "regular"} />}
+          // TODO: dynamically set which menu item is active
+          active
+        >
+          Home
+        </NavLink>
+        <NavLink href="#" icon={<MagnifyingGlass />}>
+          Search
+        </NavLink>
+        <NavLink href="#" icon={<Playlist />}>
+          Sets
+        </NavLink>
+        <NavLink href="#" icon={<MusicNoteSimple />}>
+          Songs
+        </NavLink>
+      </nav>
+      <NewItemResponsiveDialog />
+    </div>
   );
 };
