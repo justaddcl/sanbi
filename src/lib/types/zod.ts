@@ -1,4 +1,8 @@
-import { organizationMemberships, organizations } from "@/server/db/schema";
+import {
+  organizationMemberships,
+  organizations,
+  sets,
+} from "@server/db/schema";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -20,3 +24,5 @@ export const deleteOrganizationSchema = z.object({
 export const insertOrganizationMembershipSchema = createInsertSchema(
   organizationMemberships,
 );
+
+export const insertSetSchema = createInsertSchema(sets);

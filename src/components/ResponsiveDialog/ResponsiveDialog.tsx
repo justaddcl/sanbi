@@ -36,11 +36,12 @@ import {
   DrawerTrigger,
   type DrawerTriggerProps,
 } from "@components/ui/drawer";
-import { useState } from "react";
 
 const DESKTOP_MEDIA_QUERY_STRING = "(min-width: 1025px)";
 
 type ResponsiveDialogProps = React.PropsWithChildren & {
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
   drawerProps?: DrawerProps;
   dialogProps?: DialogProps;
 };
@@ -49,17 +50,16 @@ export const ResponsiveDialog: React.FC<ResponsiveDialogProps> = ({
   drawerProps,
   dialogProps,
   children,
+  ...sharedProps
 }) => {
   const isDesktop = useMediaQuery(DESKTOP_MEDIA_QUERY_STRING);
 
-  const [open, setOpen] = useState<boolean>(false);
-
   return isDesktop ? (
-    <Dialog open={open} onOpenChange={setOpen} {...dialogProps}>
+    <Dialog {...sharedProps} {...dialogProps}>
       {children}
     </Dialog>
   ) : (
-    <Drawer open={open} onOpenChange={setOpen} {...drawerProps}>
+    <Drawer {...sharedProps} {...drawerProps}>
       {children}
     </Drawer>
   );
