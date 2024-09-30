@@ -21,6 +21,8 @@ export const NewItemResponsiveDialog: React.FC = ({}) => {
     isCreateItemDialogOpen,
     setIsCreateItemDialogOpen,
     closeCreateItemDialog,
+    isMobileNavOpen,
+    closeMobileNav,
   } = useSanbiStore((state) => state);
 
   return (
@@ -29,7 +31,15 @@ export const NewItemResponsiveDialog: React.FC = ({}) => {
       onOpenChange={setIsCreateItemDialogOpen}
     >
       <ResponsiveDialogTrigger asChild>
-        <Button className="">New</Button>
+        <Button
+          onClick={() => {
+            if (isMobileNavOpen) {
+              closeMobileNav();
+            }
+          }}
+        >
+          New
+        </Button>
       </ResponsiveDialogTrigger>
       <ResponsiveDialogContent className="flex justify-center">
         <ResponsiveDialogHeader>
