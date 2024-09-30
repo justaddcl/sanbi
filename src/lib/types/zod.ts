@@ -28,6 +28,10 @@ export const insertOrganizationMembershipSchema = createInsertSchema(
 
 export const insertSetSchema = createInsertSchema(sets);
 
+export const archiveSetSchema = z.object({
+  setId: z.string().uuid(),
+});
+
 export const deleteSetSchema = z.object({
   setId: z.string().uuid(),
 });

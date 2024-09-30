@@ -1,12 +1,16 @@
-import { pluralize } from "@/lib/string";
-import { CardList, SetListCardBody, SongItem } from "@/modules/SetListCard";
-import { db } from "@/server/db";
-import { sets } from "@/server/db/schema";
+import { pluralize } from "@lib/string";
+import { CardList, SetListCardBody, SongItem } from "@modules/SetListCard";
+import { db } from "@server/db";
+import { sets } from "@server/db/schema";
 import { PageTitle } from "@components/PageTitle";
 import { Text } from "@components/Text";
 import { DotsThree } from "@phosphor-icons/react/dist/ssr";
 import { eq } from "drizzle-orm";
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { auth } from "@clerk/nextjs/server";
+import { api } from "@/trpc/server";
+import { SetActionsMenu } from "@/modules/sets/components/SetActionsMenu";
 
 export default async function SetListPage({
   params,
@@ -30,6 +34,21 @@ export default async function SetListPage({
       },
     },
   });
+
+  const { userId } = auth();
+
+  // FIXME: redirect to dashboard if no sets are found
+  if (!userId || !setData) {
+    redirect(`/`);
+  }
+
+  const userData = await api.user.getUser({ userId });
+  const userMembership = userData?.memberships[0];
+
+  if (!userMembership) {
+    redirect(`/`);
+  }
+
   const songCount =
     setData?.sections.reduce(
       (total, section) => total + section.songs.length,
@@ -38,17 +57,18 @@ export default async function SetListPage({
   return (
     <div className="flex min-w-full max-w-xs flex-col justify-center gap-6">
       <PageTitle
-        title={setData!.date}
-        subtitle={setData!.eventType.event}
+        title={setData.date}
+        subtitle={setData.eventType.event}
         details={`${songCount} ${pluralize(songCount, { singular: "song", plural: "songs" })}`}
       />
       <section className="flex justify-between gap-2">
         <button className="w-full rounded border border-slate-300 px-3 text-xs font-semibold text-slate-700">
           Add notes
         </button>
-        <button className="flex h-6 w-6 place-content-center rounded border border-slate-300 p-[6px]">
-          <DotsThree className="text-slate-900" size={12} />
-        </button>
+        <SetActionsMenu
+          setId={params.setId}
+          organizationId={userMembership.organizationId}
+        />
       </section>
       {setData?.sections && setData.sections.length > 0 && (
         <CardList gap="gap-6">

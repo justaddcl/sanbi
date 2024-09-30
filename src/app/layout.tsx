@@ -9,6 +9,7 @@ import { GlobalNav } from "@components/GlobalNav";
 import { OrganizationHeader } from "@/components/OrganizationHeader";
 import { auth } from "@clerk/nextjs/server";
 import { SanbiStoreProvider } from "@/providers/sanbi-store-provider";
+import { Toaster } from "@components/ui/sonner";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -44,6 +45,7 @@ export default function RootLayout({
         <body>
           <TRPCReactProvider>
             <SanbiStoreProvider>
+              <Toaster position="bottom-center" richColors />
               <div className={`min-[1025px]:grid ${gridColumns} min-h-screen`}>
                 <SignedIn>
                   <div className="hidden rounded-b border border-t-0 border-slate-100 bg-slate-50 min-[1025px]:sticky min-[1025px]:top-0 min-[1025px]:block min-[1025px]:px-8 min-[1025px]:py-6">
