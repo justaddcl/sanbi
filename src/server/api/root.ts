@@ -2,6 +2,7 @@ import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
 import {
   organizationMembershipsRouter,
   organizationRouter,
+  setRouter,
   userRouter,
 } from "@server/api/routers";
 
@@ -14,6 +15,7 @@ export const appRouter = createTRPCRouter({
   user: userRouter,
   organization: organizationRouter,
   organizationMemberships: organizationMembershipsRouter,
+  set: setRouter,
 });
 
 // export type definition of API
