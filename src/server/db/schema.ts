@@ -15,6 +15,7 @@ import {
   timestamp,
   uniqueIndex,
   varchar,
+  boolean,
 } from "drizzle-orm/pg-core";
 
 export const createTable = pgTableCreator((name) => `sanbi_${name}`);
@@ -183,6 +184,7 @@ export const sets = createTable("sets", {
   organizationId: uuid("organization_id")
     .references(() => organizations.id)
     .notNull(),
+  isArchived: boolean("is_archived"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),

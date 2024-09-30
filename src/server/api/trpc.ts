@@ -147,3 +147,19 @@ export const organizationProcedure = authedProcedure
       },
     });
   });
+
+export const adminProcedure = organizationProcedure.use(async (opts) => {
+  const { ctx } = opts;
+
+  const organizationMembership = ctx.user.membership;
+
+  if (organizationMembership.permissionType !== "admin") {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+    });
+  }
+
+  return opts.next({
+    ctx,
+  });
+});
