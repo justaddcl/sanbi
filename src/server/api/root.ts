@@ -1,5 +1,6 @@
 import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
 import {
+  eventTypeRouter,
   organizationMembershipsRouter,
   organizationRouter,
   setRouter,
@@ -16,6 +17,7 @@ export const appRouter = createTRPCRouter({
   organization: organizationRouter,
   organizationMemberships: organizationMembershipsRouter,
   set: setRouter,
+  eventType: eventTypeRouter,
 });
 
 // export type definition of API

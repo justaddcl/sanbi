@@ -33,6 +33,7 @@ import { api } from "@/trpc/react";
 import { useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { skipToken } from "@tanstack/react-query";
 
 const createSetFormSchema = insertSetSchema.pick({
   date: true,
@@ -65,6 +66,17 @@ export const CreateSetForm: React.FC<CreateSetFormProps> = ({ onSubmit }) => {
 
   const { data: userData, isError } = api.user.getUser.useQuery({ userId });
 
+  const {
+    data: eventTypeData,
+    isError: eventTypeQueryError,
+    isFetching: isEventTypeQueryFetching,
+    isFetched: isEventTypeQueryFetched,
+  } = api.eventType.getEventTypes.useQuery(
+    userData?.memberships[0]
+      ? { organizationId: userData.memberships[0].organizationId }
+      : skipToken,
+  );
+
   const handleCreateSetSubmit = (formValues: CreateSetFormFields) => {
     const { date, eventTypeId } = formValues;
 
@@ -87,14 +99,14 @@ export const CreateSetForm: React.FC<CreateSetFormProps> = ({ onSubmit }) => {
             console.log("🤖 [createSetMutation/onSuccess] ~ data:", data);
             const [newSet] = data;
 
+            toast.success("Set was created");
             router.push(
               `/${organizationMembership.organizationId}/sets/${newSet?.id}`,
             );
-
-            toast.success("Set was created");
           },
-          onError() {
-            toast.error("Could not create set");
+          onError(error) {
+            console.log("🤖 [createSetMutation/onError] ~ error:", error);
+            toast.error(`Could not create set: ${error.message}`);
           },
         },
       );
@@ -143,27 +155,31 @@ export const CreateSetForm: React.FC<CreateSetFormProps> = ({ onSubmit }) => {
             <FormItem className="flex flex-col gap-2">
               <FormLabel>Event type *</FormLabel>
               <FormControl>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {/* TODO: populate with event types from database */}
-                    {/* FIXME: need to add organization ID to event types table */}
-                    <SelectItem value="2ba39984-bde0-4f5e-918a-900cf2e3c961">
-                      Sunday service
-                    </SelectItem>
-                    <SelectItem value="5bce3a94-a8c9-41d7-bd9e-85f4d1f37215">
-                      Team meeting
-                    </SelectItem>
-                    <SelectItem value="e6a2307f-6ba8-4a3f-836e-ee2ee98a3537">
-                      Discipleship Community
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
+                <>
+                  {/* TODO: add skeleton when still fetching event types */}
+                  {isEventTypeQueryFetching && (
+                    <Text>Loading event types...</Text>
+                  )}
+                  {isEventTypeQueryFetched && (
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {/* FIXME: need to add organization ID to event types table */}
+                        {!eventTypeQueryError &&
+                          eventTypeData?.map((eventType) => (
+                            <SelectItem key={eventType.id} value={eventType.id}>
+                              {eventType.event}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                </>
               </FormControl>
             </FormItem>
           )}
