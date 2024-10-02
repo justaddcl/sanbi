@@ -282,6 +282,7 @@ const seed = async () => {
       eventTypeId: randomEventType!.id,
       date: formattedFakeDate,
       organizationId: organization!.id,
+      isArchived: false,
     };
   });
 
