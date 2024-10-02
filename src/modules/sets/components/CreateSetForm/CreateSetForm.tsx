@@ -29,6 +29,10 @@ import {
   FormItem,
   FormLabel,
 } from "@components/ui/form";
+import { api } from "@/trpc/react";
+import { useAuth } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 const createSetFormSchema = insertSetSchema.pick({
   date: true,
@@ -41,6 +45,9 @@ type CreateSetFormProps = {
 };
 
 export const CreateSetForm: React.FC<CreateSetFormProps> = ({ onSubmit }) => {
+  const router = useRouter();
+  const { userId } = useAuth();
+
   const createSetForm = useForm<CreateSetFormFields>({
     resolver: zodResolver(createSetFormSchema),
     defaultValues: {
@@ -50,27 +57,58 @@ export const CreateSetForm: React.FC<CreateSetFormProps> = ({ onSubmit }) => {
     mode: "onChange",
   });
 
+  const createSetMutation = api.set.create.useMutation();
+
+  if (!userId) {
+    return null;
+  }
+
+  const { data: userData, isError } = api.user.getUser.useQuery({ userId });
+
   const handleCreateSetSubmit = (formValues: CreateSetFormFields) => {
-    console.log("🚀 ~ handleCreateSetSubmit ~ formValues:", formValues);
+    const { date, eventTypeId } = formValues;
 
-    // attempt to create set
+    if (!isError && userData) {
+      const organizationMembership = userData.memberships[0];
 
-    // handle any errors
+      if (!organizationMembership) {
+        return;
+      }
 
-    // use toast to communicate success/error
+      createSetMutation.mutate(
+        {
+          date,
+          eventTypeId,
+          organizationId: organizationMembership.organizationId,
+          isArchived: false,
+        },
+        {
+          onSuccess(data) {
+            console.log("🤖 [createSetMutation/onSuccess] ~ data:", data);
+            const [newSet] = data;
 
-    // close the dialog
-    onSubmit?.();
+            router.push(
+              `/${organizationMembership.organizationId}/sets/${newSet?.id}`,
+            );
+
+            toast.success("Set was created");
+          },
+          onError() {
+            toast.error("Could not create set");
+          },
+        },
+      );
+      onSubmit?.();
+    }
   };
 
   const {
     formState: { isDirty, isSubmitting, isValid },
-    setError,
   } = createSetForm;
 
   const shouldSubmitBeDisabled = !isDirty || !isValid || isSubmitting;
 
-  // TODO: finalise what the presets should be
+  // TODO: finalize what the presets should be
   // upcoming Sunday?
   const datePresets: DatePickerPreset[] = [
     {
