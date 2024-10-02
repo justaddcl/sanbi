@@ -5,11 +5,12 @@ import {
 } from "@server/api/trpc";
 import { sets } from "@server/db/schema";
 import { type NewSet } from "@lib/types";
-import { eq, sql } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import {
   archiveSetSchema,
   deleteSetSchema,
   insertSetSchema,
+  unarchiveSetSchema,
 } from "@lib/types/zod";
 import { TRPCError } from "@trpc/server";
 
@@ -49,12 +50,12 @@ export const setRouter = createTRPCRouter({
     .input(archiveSetSchema)
     .mutation(async ({ ctx, input }) => {
       console.log(
-        `🤖 - [set/delete] - attempting to archive set ${input.setId}`,
+        `🤖 - [set/archive] - attempting to archive set ${input.setId}`,
       );
 
       const [archivedSet] = await ctx.db
         .update(sets)
-        .set({ isArchived: true, updatedAt: sql`NOW()` })
+        .set({ isArchived: true })
         .where(eq(sets.id, input.setId))
         .returning();
 
@@ -65,6 +66,30 @@ export const setRouter = createTRPCRouter({
       } else {
         console.error(
           `🤖 - [set/archive] - Set ID ${input.setId} could not be archived`,
+        );
+      }
+    }),
+
+  unarchive: adminProcedure
+    .input(unarchiveSetSchema)
+    .mutation(async ({ ctx, input }) => {
+      console.log(
+        `🤖 - [set/unarchive] - attempting to to unarchive set ${input.setId}`,
+      );
+
+      const [unarchivedSet] = await ctx.db
+        .update(sets)
+        .set({ isArchived: false })
+        .where(eq(sets.id, input.setId))
+        .returning();
+
+      if (unarchivedSet) {
+        console.info(
+          `🤖 - [set/unarchived] - Set ID ${unarchivedSet.id} has been unarchived`,
+        );
+      } else {
+        console.error(
+          `🤖 - [set/unarchived] - Set ID ${input.setId} could not be unarchived`,
         );
       }
     }),

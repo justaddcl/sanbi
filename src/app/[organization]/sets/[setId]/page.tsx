@@ -4,7 +4,7 @@ import { db } from "@server/db";
 import { sets } from "@server/db/schema";
 import { PageTitle } from "@components/PageTitle";
 import { Text } from "@components/Text";
-import { DotsThree } from "@phosphor-icons/react/dist/ssr";
+import { Archive, DotsThree } from "@phosphor-icons/react/dist/ssr";
 import { eq } from "drizzle-orm";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -17,7 +17,7 @@ export default async function SetListPage({
 }: {
   params: { setId: string };
 }) {
-  // FIXME: move query to db/queries
+  // TODO: useQuery instead?
   const setData = await db.query.sets.findFirst({
     where: eq(sets.id, params.setId),
     with: {
@@ -61,6 +61,12 @@ export default async function SetListPage({
         subtitle={setData.eventType.event}
         details={`${songCount} ${pluralize(songCount, { singular: "song", plural: "songs" })}`}
       />
+      {setData.isArchived && (
+        <div className="flex items-center gap-1 uppercase text-slate-500">
+          <Archive />
+          <Text>Set is archived</Text>
+        </div>
+      )}
       <section className="flex justify-between gap-2">
         <button className="w-full rounded border border-slate-300 px-3 text-xs font-semibold text-slate-700">
           Add notes
@@ -68,6 +74,7 @@ export default async function SetListPage({
         <SetActionsMenu
           setId={params.setId}
           organizationId={userMembership.organizationId}
+          archived={setData.isArchived ?? false}
         />
       </section>
       {setData?.sections && setData.sections.length > 0 && (
