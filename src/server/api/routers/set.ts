@@ -19,9 +19,9 @@ export const setRouter = createTRPCRouter({
     .input(insertSetSchema)
     .mutation(async ({ ctx, input }) => {
       const { user } = ctx;
-      console.log("🤖 [set/create] ~ authed user:", user);
+      console.log("🤖 - [set/create] ~ authed user:", user);
 
-      const { date, eventTypeId, notes, organizationId } = input;
+      const { date, eventTypeId, notes, organizationId, isArchived } = input;
 
       if (organizationId !== user.membership.organizationId) {
         throw new TRPCError({
@@ -35,6 +35,7 @@ export const setRouter = createTRPCRouter({
         eventTypeId,
         organizationId,
         notes,
+        isArchived,
       };
 
       console.log(`🤖 - [set/create] - new set`, newSet);
