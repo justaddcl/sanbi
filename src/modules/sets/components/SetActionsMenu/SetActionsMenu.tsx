@@ -1,6 +1,5 @@
 "use client";
 
-import { deleteSet } from "@server/mutations";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,17 +10,36 @@ import {
 } from "@components/ui/dropdown-menu";
 import { Archive, DotsThree, Trash } from "@phosphor-icons/react/dist/ssr";
 import { Text } from "@components/Text";
+import { api } from "@/trpc/react";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 type SetActionsMenuProps = {
   setId: string;
   organizationId: string;
 };
 
-// FIXME: should use the delete Mutation hook instead of the server action
 export const SetActionsMenu: React.FC<SetActionsMenuProps> = ({
   setId,
   organizationId,
 }) => {
+  const deleteSetMutation = api.set.delete.useMutation();
+  const router = useRouter();
+
+  const deleteSet = (organizationId: string, setId: string) => {
+    deleteSetMutation.mutate(
+      { organizationId, setId },
+      {
+        onSuccess() {
+          toast.success("Set deleted");
+          router.push(`/${organizationId}`);
+        },
+        onError(error) {
+          toast.error(`Set could not be deleted: ${error.message}`);
+        },
+      },
+    );
+  };
   return (
     <DropdownMenu>
       <DropdownMenuTrigger>
@@ -30,20 +48,20 @@ export const SetActionsMenu: React.FC<SetActionsMenuProps> = ({
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
-        <DropdownMenuGroup>
+        <DropdownMenuGroup asChild>
           <DropdownMenuItem className="gap-1">
             <Archive />
             <Text>Archive set</Text>
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuGroup>
+        <DropdownMenuGroup asChild>
           <DropdownMenuItem
-            className="gap-1"
-            onSelect={() => deleteSet(setId, organizationId)}
+            className="gap-1 text-slate-400 hover:bg-red-100 hover:text-red-800 active:bg-red-200 active:text-red-900"
+            onSelect={() => deleteSet(organizationId, setId)}
           >
-            <Trash color="slate-300" />
-            <Text color="slate-400">Delete set</Text>
+            <Trash />
+            <Text>Delete set</Text>
           </DropdownMenuItem>
         </DropdownMenuGroup>
       </DropdownMenuContent>
