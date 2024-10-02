@@ -8,7 +8,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@components/ui/dropdown-menu";
-import { Archive, DotsThree, Trash } from "@phosphor-icons/react/dist/ssr";
+import {
+  Archive,
+  BoxArrowUp,
+  DotsThree,
+  Trash,
+} from "@phosphor-icons/react/dist/ssr";
 import { Text } from "@components/Text";
 import { api } from "@/trpc/react";
 import { toast } from "sonner";
@@ -17,15 +22,18 @@ import { useRouter } from "next/navigation";
 type SetActionsMenuProps = {
   setId: string;
   organizationId: string;
+  archived: boolean;
 };
 
 export const SetActionsMenu: React.FC<SetActionsMenuProps> = ({
   setId,
   organizationId,
+  archived,
 }) => {
-  const deleteSetMutation = api.set.delete.useMutation();
   const router = useRouter();
 
+  // TODO: move to mutations
+  const deleteSetMutation = api.set.delete.useMutation();
   const deleteSet = (organizationId: string, setId: string) => {
     deleteSetMutation.mutate(
       { organizationId, setId },
@@ -40,6 +48,41 @@ export const SetActionsMenu: React.FC<SetActionsMenuProps> = ({
       },
     );
   };
+
+  // TODO: move to mutations
+  const archiveSetMutation = api.set.archive.useMutation();
+  const archiveSet = (organizationId: string, setId: string) => {
+    archiveSetMutation.mutate(
+      { organizationId, setId },
+      {
+        onSuccess() {
+          toast.success("Set has been archived");
+          router.refresh();
+        },
+        onError(error) {
+          toast.error(`Set could not be archived: ${error.message}`);
+        },
+      },
+    );
+  };
+
+  // TODO: move to mutations
+  const unarchiveSetMutation = api.set.unarchive.useMutation();
+  const unarchiveSet = (organizationId: string, setId: string) => {
+    unarchiveSetMutation.mutate(
+      { organizationId, setId },
+      {
+        onSuccess() {
+          toast.success("Set has been unarchived");
+          router.refresh();
+        },
+        onError(error) {
+          toast.error(`Set could not be unarchived: ${error.message}`);
+        },
+      },
+    );
+  };
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger>
@@ -49,9 +92,16 @@ export const SetActionsMenu: React.FC<SetActionsMenuProps> = ({
       </DropdownMenuTrigger>
       <DropdownMenuContent>
         <DropdownMenuGroup asChild>
-          <DropdownMenuItem className="gap-1">
-            <Archive />
-            <Text>Archive set</Text>
+          <DropdownMenuItem
+            className="gap-1"
+            onSelect={() =>
+              archived
+                ? unarchiveSet(organizationId, setId)
+                : archiveSet(organizationId, setId)
+            }
+          >
+            {archived ? <BoxArrowUp /> : <Archive />}
+            <Text>{archived ? "Unarchive" : "Archive"} set</Text>
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />

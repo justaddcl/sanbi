@@ -18,6 +18,11 @@ import {
   boolean,
 } from "drizzle-orm/pg-core";
 
+const updatedAt = timestamp("updatedAt")
+  .defaultNow()
+  .notNull()
+  .$onUpdate(() => new Date());
+
 export const createTable = pgTableCreator((name) => `sanbi_${name}`);
 
 export const memberPermissionTypeEnum = pgEnum("member_permission_types", [
@@ -188,9 +193,7 @@ export const sets = createTable("sets", {
   createdAt: timestamp("created_at", { withTimezone: true })
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),
-  updatedAt: timestamp("updatedAt", { withTimezone: true })
-    .default(sql`CURRENT_TIMESTAMP`)
-    .notNull(),
+  updatedAt,
 });
 
 export const setSectionTypes = createTable("set_section_types", {
