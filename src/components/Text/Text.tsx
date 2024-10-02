@@ -62,6 +62,7 @@ type TextProps = {
   lineHeight?: string;
 
   /**
+   * @deprecated - Use className instead to specify text colors
    * Specifies the color of text using to Tailwind CSS colors.
    *
    * - - -
@@ -100,7 +101,6 @@ export const Text: React.FC<React.PropsWithChildren<TextProps>> = ({
     fontSize,
     lineHeight,
     letterSpacing,
-    color,
   };
 
   const fontStyleClasses = mappedTwProperties
