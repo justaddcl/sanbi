@@ -3,7 +3,6 @@
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
@@ -18,6 +17,17 @@ import { Text } from "@components/Text";
 import { api } from "@/trpc/react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@components/ui/alert-dialog";
+import { AlertDialogDescription } from "@radix-ui/react-alert-dialog";
+import { useState } from "react";
+import { Button } from "@components/ui/button";
 
 type SetActionsMenuProps = {
   setId: string;
@@ -32,9 +42,16 @@ export const SetActionsMenu: React.FC<SetActionsMenuProps> = ({
 }) => {
   const router = useRouter();
 
+  const [isSetActionsMenuOpen, setIsSetActionsMenuOpen] =
+    useState<boolean>(false);
+  const [isConfirmationDialogOpen, setIsConfirmationDialogOpen] =
+    useState<boolean>(false);
+
   // TODO: move to mutations
   const deleteSetMutation = api.set.delete.useMutation();
   const deleteSet = (organizationId: string, setId: string) => {
+    setIsConfirmationDialogOpen(false);
+
     deleteSetMutation.mutate(
       { organizationId, setId },
       {
@@ -84,14 +101,17 @@ export const SetActionsMenu: React.FC<SetActionsMenuProps> = ({
   };
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger>
-        <button className="flex h-6 w-6 place-content-center rounded border border-slate-300 p-[6px]">
-          <DotsThree className="text-slate-900" size={12} />
-        </button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent>
-        <DropdownMenuGroup asChild>
+    <>
+      <DropdownMenu
+        open={isSetActionsMenuOpen}
+        onOpenChange={setIsSetActionsMenuOpen}
+      >
+        <DropdownMenuTrigger>
+          <button className="flex h-6 w-6 place-content-center rounded border border-slate-300 p-[6px]">
+            <DotsThree className="text-slate-900" size={12} />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
           <DropdownMenuItem
             className="gap-1"
             onSelect={() =>
@@ -103,18 +123,48 @@ export const SetActionsMenu: React.FC<SetActionsMenuProps> = ({
             {archived ? <BoxArrowUp /> : <Archive />}
             <Text>{archived ? "Unarchive" : "Archive"} set</Text>
           </DropdownMenuItem>
-        </DropdownMenuGroup>
-        <DropdownMenuSeparator />
-        <DropdownMenuGroup asChild>
+          <DropdownMenuSeparator />
           <DropdownMenuItem
             className="gap-1 text-slate-400 hover:bg-red-100 hover:text-red-800 active:bg-red-200 active:text-red-900"
-            onSelect={() => deleteSet(organizationId, setId)}
+            onSelect={() => {
+              setIsSetActionsMenuOpen(false);
+              setIsConfirmationDialogOpen(true);
+            }}
           >
             <Trash />
             <Text>Delete set</Text>
           </DropdownMenuItem>
-        </DropdownMenuGroup>
-      </DropdownMenuContent>
-    </DropdownMenu>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <AlertDialog
+        open={isConfirmationDialogOpen}
+        onOpenChange={setIsConfirmationDialogOpen}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-lg font-semibold">
+              Are you sure you want to delete this set?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-sm text-muted-foreground">
+              This can&apos;t be undone and will permanently delete this set. If
+              you&apos;re not sure, consider archiving it instead.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => setIsConfirmationDialogOpen(false)}
+            >
+              Cancel
+            </AlertDialogCancel>
+            <Button
+              variant="destructive"
+              onClick={() => deleteSet(organizationId, setId)}
+            >
+              Delete set
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 };
