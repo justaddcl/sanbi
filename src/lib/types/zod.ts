@@ -7,6 +7,9 @@ import {
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
+/**
+ * Organization schemas
+ */
 export const insertOrganizationSchema = createInsertSchema(organizations, {
   name: (schema) =>
     schema.name.min(1, {
@@ -26,6 +29,9 @@ export const insertOrganizationMembershipSchema = createInsertSchema(
   organizationMemberships,
 );
 
+/**
+ * Set schemas
+ */
 export const insertSetSchema = createInsertSchema(sets);
 
 const setIdSchema = z.object({
@@ -38,4 +44,7 @@ export const unarchiveSetSchema = setIdSchema;
 
 export const deleteSetSchema = setIdSchema;
 
+/**
+ * Song schemas
+ */
 export const insertSongSchema = createInsertSchema(songs);
