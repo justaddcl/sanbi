@@ -155,9 +155,8 @@ export const songs = createTable(
     organizationId: uuid("organization_id")
       .references(() => organizations.id)
       .notNull(),
-    updatedAt: timestamp("updatedAt", { withTimezone: true })
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),
+    isArchived: boolean("is_archived"),
+    updatedAt,
   },
   (songsTable) => {
     return {
