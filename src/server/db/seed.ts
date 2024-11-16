@@ -190,12 +190,14 @@ const seed = async () => {
         "Play in the key of B to make it easier for the backup vocalist to harmonize with.",
       createdBy: user!.id,
       organizationId: organization!.id,
+      isArchived: false,
     },
     {
       name: "Such An Awesome God",
       preferredKey: "a",
       createdBy: user!.id,
       organizationId: organization!.id,
+      isArchived: false,
     },
     {
       name: "I Love You Lord/What A Beautiful Name (mash up)",
@@ -204,12 +206,14 @@ const seed = async () => {
         "Song is best with only vocals, guitar, and keys. Feels powerful with only vocals on the last chorus.",
       createdBy: user!.id,
       organizationId: organization!.id,
+      isArchived: false,
     },
     {
       name: "Refuge",
       preferredKey: "g",
       createdBy: user!.id,
       organizationId: organization!.id,
+      isArchived: false,
     },
     {
       name: "Son Of Suffering",
@@ -217,18 +221,21 @@ const seed = async () => {
       notes: "Don't play the second chorus or chorus 2.",
       createdBy: user!.id,
       organizationId: organization!.id,
+      isArchived: false,
     },
     {
       name: "Draw Me Close To You",
       preferredKey: "c",
       createdBy: user!.id,
       organizationId: organization!.id,
+      isArchived: false,
     },
     {
       name: "Romans 2:4",
       preferredKey: "g",
       createdBy: user!.id,
       organizationId: organization!.id,
+      isArchived: false,
     },
     {
       name: "Only Jesus",
@@ -236,12 +243,14 @@ const seed = async () => {
       notes: "Skip the tag if not playing with full band.",
       createdBy: user!.id,
       organizationId: organization!.id,
+      isArchived: false,
     },
     {
       name: "God Over Everything",
       preferredKey: "g",
       createdBy: user!.id,
       organizationId: organization!.id,
+      isArchived: false,
     },
   ];
 
