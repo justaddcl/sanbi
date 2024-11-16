@@ -4,6 +4,7 @@ import {
   organizationMembershipsRouter,
   organizationRouter,
   setRouter,
+  songRouter,
   userRouter,
 } from "@server/api/routers";
 
@@ -17,6 +18,7 @@ export const appRouter = createTRPCRouter({
   organization: organizationRouter,
   organizationMemberships: organizationMembershipsRouter,
   set: setRouter,
+  song: songRouter,
   eventType: eventTypeRouter,
 });
 
