@@ -155,7 +155,7 @@ export const songs = createTable(
     organizationId: uuid("organization_id")
       .references(() => organizations.id)
       .notNull(),
-    isArchived: boolean("is_archived"),
+    isArchived: boolean("is_archived").notNull(),
     updatedAt,
   },
   (songsTable) => {
@@ -188,7 +188,7 @@ export const sets = createTable("sets", {
   organizationId: uuid("organization_id")
     .references(() => organizations.id)
     .notNull(),
-  isArchived: boolean("is_archived"),
+  isArchived: boolean("is_archived").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true })
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),
