@@ -3,3 +3,4 @@ export * from "./user";
 export * from "./organizationMemberships";
 export * from "./set";
 export * from "./eventType";
+export * from "./song";
