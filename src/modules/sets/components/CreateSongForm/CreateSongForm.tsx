@@ -20,6 +20,10 @@ import {
 } from "@components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { songKeys } from "@/lib/constants";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@clerk/nextjs";
+import { api } from "@/trpc/react";
+import { toast } from "sonner";
 
 const createSongFormSchema = insertSongSchema
   .pick({
@@ -28,8 +32,8 @@ const createSongFormSchema = insertSongSchema
   })
   .extend({
     /**
-     * by default, zod thinks preferred key and notes are nullable which causes type issues
-     * those fields have been manually re-defined to omit the nullable
+     * by default, zod thinks preferred key and notes are nullable which causes type issues.
+     * these fields have been manually re-defined to omit the nullable
      */
     preferredKey: z.enum(songKeys).optional(),
     notes: z.string().optional(),
@@ -42,6 +46,9 @@ type CreateSongFormProps = {
 };
 
 export const CreateSongForm: React.FC<CreateSongFormProps> = ({ onSubmit }) => {
+  const router = useRouter();
+  const { userId } = useAuth();
+
   const createSongForm = useForm<CreateSongFormFields>({
     resolver: zodResolver(createSongFormSchema),
     defaultValues: {
@@ -52,14 +59,54 @@ export const CreateSongForm: React.FC<CreateSongFormProps> = ({ onSubmit }) => {
     mode: "onChange",
   });
 
+  const createSongMutation = api.song.create.useMutation();
+
+  if (!userId) {
+    return null;
+  }
+
+  const { data: userData, isError: isGetUserQueryError } =
+    api.user.getUser.useQuery({
+      userId,
+    });
+
   const handleCreateSongSubmit = (formValues: CreateSongFormFields) => {
     console.log("🚀 ~ handleCreateSongSubmit ~ formValues:", formValues);
+    const { name, preferredKey, notes } = formValues;
 
     // attempt to create song
+    if (!isGetUserQueryError && userData) {
+      const organizationMembership = userData.memberships[0];
+      if (!organizationMembership) {
+        return;
+      }
 
-    // handle any errors
+      createSongMutation.mutate(
+        {
+          name,
+          preferredKey,
+          notes,
+          organizationId: organizationMembership.organizationId,
+          createdBy: userData.id,
+          isArchived: false,
+        },
+        {
+          onSuccess(data) {
+            console.log("🤖 [createSongMutation/onSuccess] ~ data:", data);
+            const [newSong] = data;
 
-    // user toast to communicate success/error
+            toast.success("Song was created");
+            router.push(
+              `/${organizationMembership.organizationId}/songs/${newSong?.id}`,
+            );
+          },
+          onError(error) {
+            console.log("🤖 [createSongMutation/onError] ~ error:", error);
+            toast.error(`Could not create song: ${error.message}`);
+          },
+        },
+      );
+    }
 
     // close the dialog
     onSubmit?.();
