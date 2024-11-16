@@ -121,11 +121,23 @@ export const organizationProcedure = authedProcedure
   )
   .use(async (opts) => {
     const { ctx, input } = opts;
+
+    const user = await db.query.users.findFirst({
+      where: eq(users.id, ctx.auth.userId!), // asserting that the user is not null since this is an authed procedure, which would have thrown an "unauthorized" error already
+    });
+
+    if (!user) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: `Sanbi user, ${ctx.auth.userId}, not found`,
+      });
+    }
+
     const membership =
       await opts.ctx.db.query.organizationMemberships.findFirst({
         where: and(
           eq(organizationMemberships.organizationId, input.organizationId),
-          eq(organizationMemberships.userId, ctx.auth.userId!), // asserting that the user is not null since this is an authed procedure, which would have thrown an "unauthorized" error already
+          eq(organizationMemberships.userId, user.id),
         ),
         with: {
           organization: true,
@@ -141,6 +153,7 @@ export const organizationProcedure = authedProcedure
     return opts.next({
       ctx: {
         user: {
+          ...user,
           membership,
         },
         organization: membership.organization,
