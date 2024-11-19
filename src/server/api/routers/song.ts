@@ -1,6 +1,7 @@
 import { type NewSong } from "@/lib/types";
 import {
   archiveSongSchema,
+  deleteSongSchema,
   insertSongSchema,
   unarchiveSongSchema,
 } from "@/lib/types/zod";
@@ -93,6 +94,30 @@ export const songRouter = createTRPCRouter({
       } else {
         console.error(
           `🤖 - [song/unarchived] - Song ID ${input.songId} could not be unarchived`,
+        );
+      }
+    }),
+
+  delete: adminProcedure
+    .input(deleteSongSchema)
+    .mutation(async ({ ctx, input }) => {
+      console.log(
+        `🤖 - [song/delete] - attempting to delete song ${input.songId}`,
+      );
+
+      const [deletedSong] = await ctx.db
+        .delete(songs)
+        .where(eq(songs.id, input.songId))
+        .returning();
+
+      if (deletedSong) {
+        console.info(
+          `🤖 - [song/delete] - Song ID ${deletedSong.id} was successfully deleted`,
+        );
+        return deletedSong;
+      } else {
+        console.error(
+          `🤖 - [song/delete] - Song ID ${input.songId} could not be deleted`,
         );
       }
     }),

@@ -48,23 +48,23 @@ export const SongActionsMenu: React.FC<SongActionsMenuProps> = ({
     useState<boolean>(false);
 
   // TODO: move to mutations
-  // const deleteSongMutation = api.song.delete.useMutation();
-  // const deleteSong = (organizationId: string, setId: string) => {
-  //   setIsConfirmationDialogOpen(false);
+  const deleteSongMutation = api.song.delete.useMutation();
+  const deleteSong = (organizationId: string, songId: string) => {
+    setIsConfirmationDialogOpen(false);
 
-  //   deleteSongMutation.mutate(
-  //     { organizationId, setId },
-  //     {
-  //       onSuccess() {
-  //         toast.success("Song deleted");
-  //         router.push(`/${organizationId}`);
-  //       },
-  //       onError(error) {
-  //         toast.error(`Song could not be deleted: ${error.message}`);
-  //       },
-  //     },
-  //   );
-  // };
+    deleteSongMutation.mutate(
+      { organizationId, songId },
+      {
+        onSuccess() {
+          toast.success("Song deleted");
+          router.push(`/${organizationId}`);
+        },
+        onError(error) {
+          toast.error(`Song could not be deleted: ${error.message}`);
+        },
+      },
+    );
+  };
 
   // TODO: move to mutations
   const archiveSongMutation = api.song.archive.useMutation();
@@ -158,8 +158,7 @@ export const SongActionsMenu: React.FC<SongActionsMenuProps> = ({
             </AlertDialogCancel>
             <Button
               variant="destructive"
-              // onClick={() => deleteSong(organizationId, songId)}
-              onClick={() => console.log("Deleted!")}
+              onClick={() => deleteSong(organizationId, songId)}
             >
               Delete song
             </Button>

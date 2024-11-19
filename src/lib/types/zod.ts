@@ -56,3 +56,5 @@ export const songIdSchema = z.object({
 export const archiveSongSchema = songIdSchema;
 
 export const unarchiveSongSchema = songIdSchema;
+
+export const deleteSongSchema = songIdSchema;
