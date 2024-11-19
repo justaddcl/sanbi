@@ -48,3 +48,11 @@ export const deleteSetSchema = setIdSchema;
  * Song schemas
  */
 export const insertSongSchema = createInsertSchema(songs);
+
+export const songIdSchema = z.object({
+  songId: z.string().uuid(),
+});
+
+export const archiveSongSchema = songIdSchema;
+
+export const unarchiveSongSchema = songIdSchema;
