@@ -13,6 +13,7 @@ import { SongKey } from "@components/SongKey";
 import { Text } from "@components/Text";
 import { CardList, PlayHistoryItem, ResourceCard } from "@modules/SetListCard";
 import {
+  Archive,
   ClockCounterClockwise,
   DotsThree,
   Heart,
@@ -23,6 +24,10 @@ import {
 } from "@phosphor-icons/react/dist/ssr";
 import { asc, desc, eq } from "drizzle-orm";
 import { formatDistanceToNow, isPast } from "date-fns";
+import { SongActionsMenu } from "@/modules/songs/components/SongActionsMenu";
+import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
+import { api } from "@/trpc/server";
 
 export default async function SetListPage({
   params,
@@ -64,9 +69,17 @@ export default async function SetListPage({
       ? playHistory.find((playInstance) => isPast(playInstance.sets!.date))
       : null;
 
-  if (!songData) {
-    // FIXME: need better error handling
-    return null;
+  const { userId } = auth();
+
+  if (!userId || !songData) {
+    redirect(`/`);
+  }
+
+  const userData = await api.user.getUser({ userId });
+  const userMembership = userData?.memberships[0];
+
+  if (!userMembership) {
+    redirect(`/`);
   }
 
   return (
@@ -136,6 +149,12 @@ export default async function SetListPage({
           )}
         </dl>
       </section>
+      {songData.isArchived && (
+        <div className="flex items-center gap-1 uppercase text-slate-500">
+          <Archive />
+          <Text>Song is archived</Text>
+        </div>
+      )}
       {songData?.notes && (
         <section className="flex flex-col gap-4 text-xs">
           <Text asElement="h3" style="header-small-semibold">
@@ -158,9 +177,11 @@ export default async function SetListPage({
         <button className="flex h-6 w-6 place-content-center rounded border border-slate-300 p-[6px]">
           <Heart className="text-slate-900" size={12} />
         </button>
-        <button className="flex h-6 w-6 place-content-center rounded border border-slate-300 p-[6px]">
-          <DotsThree className="text-slate-900" size={12} />
-        </button>
+        <SongActionsMenu
+          songId={params.songId}
+          organizationId={userMembership.organizationId}
+          archived={songData.isArchived ?? false}
+        />
       </section>
       <CardList gap="gap-8">
         {/* FIXME: refactor this markup to be reusable components */}
