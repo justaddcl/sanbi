@@ -24,6 +24,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
 import { api } from "@/trpc/react";
 import { toast } from "sonner";
+import { formatSongKey } from "@/lib/string/formatSongKey";
 
 const createSongFormSchema = insertSongSchema
   .pick({
@@ -151,8 +152,11 @@ export const CreateSongForm: React.FC<CreateSongFormProps> = ({ onSubmit }) => {
                     <SelectValue placeholder="Select preferred key..." />
                   </SelectTrigger>
                   <SelectContent>
-                    {/* TODO: populate select with key values from database */}
-                    <SelectItem value="c">C</SelectItem>
+                    {songKeys.map((key) => (
+                      <SelectItem key={key} value={key}>
+                        {formatSongKey(key)}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </FormControl>
