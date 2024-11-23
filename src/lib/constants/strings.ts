@@ -17,3 +17,5 @@ export const songKeys = [
   "b_flat",
   "b",
 ] as const;
+
+export type SongKey = (typeof songKeys)[number];
