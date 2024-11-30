@@ -31,7 +31,7 @@ export default async function DashboardLayout({
   }
 
   return (
-    <main className="container px-4 pb-16 pt-8 lg:px-9 lg:py-6">
+    <main className="grow-1 container flex h-full flex-col px-4 pb-16 pt-8 max-[1025px]:flex-1 lg:px-9 lg:py-6">
       {children}
     </main>
   );

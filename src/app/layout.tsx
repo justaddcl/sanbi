@@ -53,7 +53,7 @@ export default function RootLayout({
                     <GlobalNav />
                   </div>
                 </SignedIn>
-                <div>
+                <div className="flex min-h-screen flex-col">
                   <Navbar />
                   {children}
                 </div>
