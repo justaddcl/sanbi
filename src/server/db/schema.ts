@@ -1,6 +1,7 @@
 // Example model schema from the Drizzle docs
 // https://orm.drizzle.team/docs/sql-schema-declaration
 
+import { songKeys } from "@lib/constants";
 import { relations, sql } from "drizzle-orm";
 import {
   date,
@@ -14,7 +15,13 @@ import {
   timestamp,
   uniqueIndex,
   varchar,
+  boolean,
 } from "drizzle-orm/pg-core";
+
+const updatedAt = timestamp("updatedAt")
+  .defaultNow()
+  .notNull()
+  .$onUpdate(() => new Date());
 
 export const createTable = pgTableCreator((name) => `sanbi_${name}`);
 
@@ -24,25 +31,7 @@ export const memberPermissionTypeEnum = pgEnum("member_permission_types", [
   "member",
 ]);
 
-export const songKeyEnum = pgEnum("song_keys", [
-  "c",
-  "c_sharp",
-  "d_flat",
-  "d",
-  "d_sharp",
-  "e_flat",
-  "e",
-  "f",
-  "f_sharp",
-  "g_flat",
-  "g",
-  "g_sharp",
-  "a_flat",
-  "a",
-  "a_sharp",
-  "b_flat",
-  "b",
-]);
+export const songKeyEnum = pgEnum("song_keys", songKeys);
 
 export const users = createTable(
   "users",
@@ -166,9 +155,8 @@ export const songs = createTable(
     organizationId: uuid("organization_id")
       .references(() => organizations.id)
       .notNull(),
-    updatedAt: timestamp("updatedAt", { withTimezone: true })
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),
+    isArchived: boolean("is_archived").notNull(),
+    updatedAt,
   },
   (songsTable) => {
     return {
@@ -200,12 +188,11 @@ export const sets = createTable("sets", {
   organizationId: uuid("organization_id")
     .references(() => organizations.id)
     .notNull(),
+  isArchived: boolean("is_archived").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true })
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),
-  updatedAt: timestamp("updatedAt", { withTimezone: true })
-    .default(sql`CURRENT_TIMESTAMP`)
-    .notNull(),
+  updatedAt,
 });
 
 export const setSectionTypes = createTable("set_section_types", {
