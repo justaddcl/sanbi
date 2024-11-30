@@ -77,7 +77,7 @@ export const CreateSetForm: React.FC<CreateSetFormProps> = ({ onSubmit }) => {
       : skipToken,
   );
 
-  const handleCreateSetSubmit = (formValues: CreateSetFormFields) => {
+  const handleCreateSetSubmit = async (formValues: CreateSetFormFields) => {
     const { date, eventTypeId } = formValues;
 
     if (!isError && userData) {
@@ -87,7 +87,7 @@ export const CreateSetForm: React.FC<CreateSetFormProps> = ({ onSubmit }) => {
         return;
       }
 
-      createSetMutation.mutate(
+      await createSetMutation.mutateAsync(
         {
           date,
           eventTypeId,
