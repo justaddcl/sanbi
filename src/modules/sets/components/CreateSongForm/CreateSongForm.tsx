@@ -71,7 +71,7 @@ export const CreateSongForm: React.FC<CreateSongFormProps> = ({ onSubmit }) => {
       userId,
     });
 
-  const handleCreateSongSubmit = (formValues: CreateSongFormFields) => {
+  const handleCreateSongSubmit = async (formValues: CreateSongFormFields) => {
     console.log("🚀 ~ handleCreateSongSubmit ~ formValues:", formValues);
     const { name, preferredKey, notes } = formValues;
 
@@ -82,7 +82,7 @@ export const CreateSongForm: React.FC<CreateSongFormProps> = ({ onSubmit }) => {
         return;
       }
 
-      createSongMutation.mutate(
+      await createSongMutation.mutateAsync(
         {
           name,
           preferredKey,
