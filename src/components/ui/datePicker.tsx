@@ -26,6 +26,7 @@ export type DatePickerPreset = {
   label: string;
 };
 
+// TODO: add closeAfterSelect boolean prop
 type DatePickerProps = ControllerRenderProps<
   {
     date: string;
@@ -47,6 +48,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
     const formattedDate = selectedDate?.toLocaleDateString("en-CA");
     setDate(selectedDate);
     props.onChange?.(formattedDate);
+    // TODO: if closeAfterSelect, close the popover after date is selected
   };
 
   return (

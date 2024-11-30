@@ -36,7 +36,7 @@ const createSongFormSchema = insertSongSchema
      * by default, zod thinks preferred key and notes are nullable which causes type issues.
      * these fields have been manually re-defined to omit the nullable
      */
-    preferredKey: z.enum(songKeys).optional(),
+    preferredKey: z.enum(songKeys).optional(), // TODO: confirm if this should be optional
     notes: z.string().optional(),
   });
 
