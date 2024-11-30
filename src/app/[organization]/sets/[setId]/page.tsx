@@ -10,7 +10,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
 import { api } from "@/trpc/server";
-import { SetActionsMenu } from "@/modules/sets/components/SetActionsMenu";
+import { SetActionsMenu } from "@modules/sets/components/SetActionsMenu";
+import { SetEmptyState } from "@modules/sets/components/SetEmptyState";
 
 export default async function SetListPage({
   params,
@@ -55,7 +56,7 @@ export default async function SetListPage({
       0,
     ) ?? 0;
   return (
-    <div className="flex min-w-full max-w-xs flex-col justify-center gap-6">
+    <div className="flex h-full min-w-full max-w-xs flex-1 flex-col justify-center gap-6">
       <PageTitle
         title={setData.date}
         subtitle={setData.eventType.event}
@@ -74,9 +75,12 @@ export default async function SetListPage({
         <SetActionsMenu
           setId={params.setId}
           organizationId={userMembership.organizationId}
-          archived={setData.isArchived ?? false}
+          archived={(setData.isArchived as boolean) ?? false} // FIXME: fix this type assertion - most likely with using TRPC query
         />
       </section>
+      {(!setData?.sections || setData.sections.length === 0) && (
+        <SetEmptyState />
+      )}
       {setData?.sections && setData.sections.length > 0 && (
         <CardList gap="gap-6">
           {setData.sections.map((section) => (
