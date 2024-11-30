@@ -16,6 +16,7 @@ import { CreateSetForm } from "@modules/sets/components/CreateSetForm";
 import { MusicNoteSimple, Playlist } from "@phosphor-icons/react/dist/ssr";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 
+// TODO: add prop to configure which tab is default, with "net set" as fallback (SWY-40)
 export const NewItemResponsiveDialog: React.FC = ({}) => {
   const {
     isCreateItemDialogOpen,
@@ -54,6 +55,7 @@ export const NewItemResponsiveDialog: React.FC = ({}) => {
             </>
           </VisuallyHidden.Root>
         </ResponsiveDialogHeader>
+        {/* TODO: use prop to determine which tab should be default (SWY-40) */}
         <Tabs
           defaultValue="newSet"
           className="flex w-full flex-col items-center gap-8"
