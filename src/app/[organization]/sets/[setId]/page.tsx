@@ -75,7 +75,7 @@ export default async function SetListPage({
         <SetActionsMenu
           setId={params.setId}
           organizationId={userMembership.organizationId}
-          archived={(setData.isArchived as boolean) ?? false} // FIXME: fix this type assertion - most likely with using TRPC query
+          archived={setData.isArchived ?? false}
         />
       </section>
       {(!setData?.sections || setData.sections.length === 0) && (
