@@ -65,7 +65,7 @@ export const songRouter = createTRPCRouter({
 
       if (archivedSong) {
         console.info(
-          `🤖 - [song/archive] - Song ID ${archivedSong.id} has been archived`,
+          `🤖 - [song/archive] - Song ID ${archivedSong.id} ("${archivedSong.name}") has been archived`,
         );
       } else {
         console.error(
@@ -89,11 +89,11 @@ export const songRouter = createTRPCRouter({
 
       if (unarchivedSong) {
         console.info(
-          `🤖 - [song/unarchived] - Song ID ${unarchivedSong.id} has been unarchived`,
+          `🤖 - [song/unarchive] - Song ID ${unarchivedSong.id} ("${unarchivedSong.name}") has been unarchived`,
         );
       } else {
         console.error(
-          `🤖 - [song/unarchived] - Song ID ${input.songId} could not be unarchived`,
+          `🤖 - [song/unarchive] - Song ID ${input.songId} could not be unarchived`,
         );
       }
     }),
@@ -112,7 +112,7 @@ export const songRouter = createTRPCRouter({
 
       if (deletedSong) {
         console.info(
-          `🤖 - [song/delete] - Song ID ${deletedSong.id} was successfully deleted`,
+          `🤖 - [song/delete] - Song ID ${deletedSong.id} ("${deletedSong.name}") was successfully deleted`,
         );
         return deletedSong;
       } else {
