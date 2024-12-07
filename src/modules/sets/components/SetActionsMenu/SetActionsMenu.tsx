@@ -107,9 +107,9 @@ export const SetActionsMenu: React.FC<SetActionsMenuProps> = ({
         onOpenChange={setIsSetActionsMenuOpen}
       >
         <DropdownMenuTrigger>
-          <button className="flex h-6 w-6 place-content-center rounded border border-slate-300 p-[6px]">
+          <Button variant="outline" size="sm">
             <DotsThree className="text-slate-900" size={12} />
-          </button>
+          </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent>
           <DropdownMenuItem

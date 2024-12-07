@@ -23,12 +23,16 @@ export const PageTitle: React.FC<PageTitleProps> = ({
         {title}
       </Text>
       {subtitle && (
-        <Text asElement="h2" style="header-medium" className="leading-tight">
+        <Text
+          asElement="h2"
+          style="header-medium"
+          className="leading-tight text-slate-700"
+        >
           {subtitle}
         </Text>
       )}
       {details && (
-        <Text asElement="h3" style="header-small">
+        <Text asElement="h3" style="header-small" className="text-slate-500">
           {details}
         </Text>
       )}

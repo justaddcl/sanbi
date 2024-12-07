@@ -4,7 +4,7 @@ import { db } from "@server/db";
 import { sets } from "@server/db/schema";
 import { PageTitle } from "@components/PageTitle";
 import { Text } from "@components/Text";
-import { Archive, DotsThree } from "@phosphor-icons/react/dist/ssr";
+import { Archive, DotsThree, Note } from "@phosphor-icons/react/dist/ssr";
 import { eq } from "drizzle-orm";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -12,6 +12,8 @@ import { auth } from "@clerk/nextjs/server";
 import { api } from "@/trpc/server";
 import { SetActionsMenu } from "@modules/sets/components/SetActionsMenu";
 import { SetEmptyState } from "@modules/sets/components/SetEmptyState";
+import { Button } from "@components/ui/button";
+import { formatDate } from "@lib/date";
 
 export default async function SetListPage({
   params,
@@ -56,9 +58,9 @@ export default async function SetListPage({
       0,
     ) ?? 0;
   return (
-    <div className="flex h-full min-w-full max-w-xs flex-1 flex-col justify-center gap-6">
+    <div className="flex h-full min-w-full max-w-xs flex-1 flex-col gap-6">
       <PageTitle
-        title={setData.date}
+        title={formatDate(setData.date, { month: "long" })}
         subtitle={setData.eventType.event}
         details={`${songCount} ${pluralize(songCount, { singular: "song", plural: "songs" })}`}
       />
@@ -68,10 +70,11 @@ export default async function SetListPage({
           <Text>Set is archived</Text>
         </div>
       )}
-      <section className="flex justify-between gap-2">
-        <button className="w-full rounded border border-slate-300 px-3 text-xs font-semibold text-slate-700">
-          Add notes
-        </button>
+      <section className="flex gap-2">
+        <Button variant="outline" size="sm">
+          <Note />
+          Add set notes
+        </Button>
         <SetActionsMenu
           setId={params.setId}
           organizationId={userMembership.organizationId}
