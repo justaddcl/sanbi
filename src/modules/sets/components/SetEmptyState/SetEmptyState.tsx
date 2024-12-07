@@ -4,7 +4,7 @@ import { MusicNoteSimple } from "@phosphor-icons/react/dist/ssr";
 
 export const SetEmptyState: React.FC = () => {
   return (
-    <div className="flex grow flex-col items-center justify-center gap-4">
+    <div className="flex grow flex-col items-center justify-center gap-4 min-[1025px]:mt-32 min-[1025px]:grow-0">
       <Text style="header-medium-semibold">No songs... yet</Text>
       <Text style="body-small" className="text-slate-700">
         Add a song or section to start putting your set together
