@@ -58,7 +58,7 @@ export default async function SetListPage({
       0,
     ) ?? 0;
   return (
-    <div className="flex h-full min-w-full max-w-xs flex-1 flex-col justify-center gap-6">
+    <div className="flex h-full min-w-full max-w-xs flex-1 flex-col gap-6">
       <PageTitle
         title={formatDate(setData.date, { month: "long" })}
         subtitle={setData.eventType.event}
