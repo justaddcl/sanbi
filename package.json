@@ -46,6 +46,7 @@
     "@vercel/postgres": "^0.8.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
+    "cmdk": "1.0.0",
     "date-fns": "^3.6.0",
     "drizzle-orm": "^0.30.10",
     "drizzle-zod": "^0.5.1",
