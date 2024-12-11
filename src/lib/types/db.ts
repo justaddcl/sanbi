@@ -29,6 +29,7 @@ export type NewEventType = typeof eventTypes.$inferInsert;
 export type EventType = typeof eventTypes.$inferSelect;
 
 export type NewSetSectionType = typeof setSectionTypes.$inferInsert;
+export type SetSectionTypeType = typeof setSectionTypes.$inferSelect;
 
 export type NewTag = typeof tags.$inferInsert;
 export type Tag = typeof tags.$inferSelect;
@@ -41,6 +42,21 @@ export type NewSongTag = typeof songTags.$inferInsert;
 export type NewSet = typeof sets.$inferInsert;
 
 export type NewSetSection = typeof setSections.$inferInsert;
-export type SetSection = typeof setSections.$inferSelect;
+export type SetSectionType = typeof setSections.$inferSelect;
 
 export type NewSetSectionSong = typeof setSectionSongs.$inferInsert;
+export type SetSectionSongType = typeof setSectionSongs.$inferSelect;
+
+export type SetSectionSongWithSongData = SetSectionSongType & {
+  song: Song;
+};
+
+export type SetSectionWithSongs = SetSectionType & {
+  type: SetSectionTypeType;
+  songs: SetSectionSongWithSongData[];
+};
+
+export type SetSectionProps = {
+  section: SetSectionWithSongs;
+  sectionStartIndex: number;
+};
