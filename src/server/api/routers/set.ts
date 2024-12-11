@@ -9,12 +9,53 @@ import { eq } from "drizzle-orm";
 import {
   archiveSetSchema,
   deleteSetSchema,
+  getSetSchema,
   insertSetSchema,
   unarchiveSetSchema,
 } from "@lib/types/zod";
 import { TRPCError } from "@trpc/server";
 
 export const setRouter = createTRPCRouter({
+  get: organizationProcedure
+    .input(getSetSchema)
+    .query(async ({ ctx, input }) => {
+      const { user } = ctx;
+      console.log("🤖 - [set/get] ~ authed user:", user);
+
+      const { setId } = input;
+      console.log(`🤖 ~ [set/get] ~ attempting to retrieve ${setId}`);
+
+      const setData = await ctx.db.query.sets.findFirst({
+        where: eq(sets.id, setId),
+        with: {
+          eventType: true,
+          sections: {
+            with: {
+              type: true,
+              songs: {
+                with: {
+                  song: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      console.log("🤖 ~ [set/get] ~ setData:", setData);
+
+      if (user.membership.organizationId !== setData?.organizationId) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `Organization ID does not match authenticated user's team ID`,
+        });
+      }
+
+      // TODO: calculate song count here instead of front-end?
+
+      return setData;
+    }),
+
   create: organizationProcedure
     .input(insertSetSchema)
     .mutation(async ({ ctx, input }) => {

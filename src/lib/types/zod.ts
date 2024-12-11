@@ -32,6 +32,7 @@ export const insertOrganizationMembershipSchema = createInsertSchema(
 /**
  * Set schemas
  */
+export const getSetSchema = z.object({ setId: z.string().uuid() });
 export const insertSetSchema = createInsertSchema(sets);
 
 const setIdSchema = z.object({
