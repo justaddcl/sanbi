@@ -10,21 +10,15 @@ import { SetEmptyState } from "@modules/sets/components/SetEmptyState";
 import { Button } from "@components/ui/button";
 import { formatDate } from "@lib/date";
 import { SongSearchDialog } from "@modules/songs/components/SongSearchDialog";
-import { useState, useCallback, type FC } from "react";
+import { useState, useCallback } from "react";
 import { api } from "@/trpc/react";
 import { validate as uuidValidate } from "uuid";
 import { useAuth } from "@clerk/nextjs";
 import { SetSectionCard } from "@modules/sets/components/SetSectionCard";
 import { type SetSectionWithSongs } from "@lib/types";
 import { useSetQuery } from "@modules/sets/api";
-
-const SetPageLoadingState: FC = () => {
-  return <Text>Loading...</Text>;
-};
-
-const SetPageErrorState: FC = () => {
-  return <Text>Uh oh. Something went wrong.</Text>;
-};
+import { SetPageLoadingState } from "@modules/sets/components/SetLoadingState";
+import { SetPageErrorState } from "@modules/sets/components/SetErrorState";
 
 type SetListPageProps = { params: { organization: string; setId: string } };
 
