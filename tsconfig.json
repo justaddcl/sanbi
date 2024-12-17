@@ -26,12 +26,12 @@
     /* Path Aliases */
     "baseUrl": "src",
     "paths": {
-      "@/*": ["./*"],
       "@components/*": ["components/*"],
       "@modules/*": ["modules/*"],
       "@lib/*": ["lib/*"],
       "@server/*": ["server/*"],
-      "@app/*": ["app/*"]
+      "@app/*": ["app/*"],
+      "@/*": ["./*"]
     }
   },
   "include": [
