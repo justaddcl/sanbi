@@ -40,7 +40,7 @@ const CommandDialog: React.FC<CommandDialogProps> = ({
       <DialogContent
         className={cn(
           "overflow-hidden rounded-lg p-0 shadow-lg",
-          // fixedClassnames,
+          "max-w-3xl pb-3",
           {
             "translate-y-0": fixed,
             "w-[calc(100%_-_24px)]": fixed,
