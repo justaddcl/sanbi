@@ -59,3 +59,7 @@ export const archiveSongSchema = songIdSchema;
 export const unarchiveSongSchema = songIdSchema;
 
 export const deleteSongSchema = songIdSchema;
+
+export const searchSongSchema = z.object({
+  searchInput: z.string().min(2),
+});
