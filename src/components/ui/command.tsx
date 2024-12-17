@@ -5,7 +5,7 @@ import { type DialogProps } from "@radix-ui/react-dialog";
 import { Command as CommandPrimitive } from "cmdk";
 import { Search } from "lucide-react";
 
-import { cn } from "@/lib/utils";
+import { cn } from "@lib/utils";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 const Command = React.forwardRef<
@@ -23,11 +23,40 @@ const Command = React.forwardRef<
 ));
 Command.displayName = CommandPrimitive.displayName;
 
-const CommandDialog = ({ children, ...props }: DialogProps) => {
+type CommandDialogProps = DialogProps & {
+  fixed?: boolean;
+  loop?: boolean;
+  shouldFilter?: boolean;
+};
+const CommandDialog: React.FC<CommandDialogProps> = ({
+  children,
+  fixed = false,
+  loop = true,
+  shouldFilter,
+  ...props
+}) => {
   return (
     <Dialog {...props}>
-      <DialogContent className="overflow-hidden rounded-lg p-0 shadow-lg">
-        <Command className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-group]]:px-2 [&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5 [&_[cmdk-input]]:h-12 [&_[cmdk-item]]:px-2 [&_[cmdk-item]]:py-3 [&_[cmdk-item]_svg]:h-5 [&_[cmdk-item]_svg]:w-5">
+      <DialogContent
+        className={cn(
+          "overflow-hidden rounded-lg p-0 shadow-lg",
+          "max-w-3xl pb-3",
+          {
+            "translate-y-0": fixed,
+            "w-[calc(100%_-_24px)]": fixed,
+            "mt-3": fixed,
+            "top-0": fixed,
+            "md:mt-0": fixed,
+            "md:top-[12%]": fixed,
+            "lg:top-[25%]": fixed,
+          },
+        )}
+      >
+        <Command
+          loop={loop}
+          shouldFilter={shouldFilter}
+          className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-group]]:px-2 [&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5 [&_[cmdk-input]]:h-12 [&_[cmdk-item]]:px-2 [&_[cmdk-item]]:py-3 [&_[cmdk-item]_svg]:h-5 [&_[cmdk-item]_svg]:w-5"
+        >
           {children}
         </Command>
       </DialogContent>

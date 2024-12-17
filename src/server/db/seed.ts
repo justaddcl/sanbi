@@ -129,6 +129,10 @@ const seedTags: NewTag[] = [
 const seed = async () => {
   console.log("🌱 Seeding database...");
 
+  /** enable the pg_trgm extension if needed */
+  await db.execute(sql`CREATE EXTENSION IF NOT EXISTS pg_trgm`);
+  console.log("🚀 ~ seed ~ enable trigram extension (if necessary)");
+
   /** seed the organization table */
   await db.execute(sql`TRUNCATE TABLE sanbi_organizations CASCADE`);
   const [organization] = await db
