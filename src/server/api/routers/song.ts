@@ -1,18 +1,21 @@
-import { type NewSong } from "@/lib/types";
+import { type NewSong } from "@lib/types/db";
 import {
   archiveSongSchema,
   deleteSongSchema,
   insertSongSchema,
+  searchSongSchema,
   unarchiveSongSchema,
-} from "@/lib/types/zod";
-import { songs } from "@/server/db/schema";
+} from "@lib/types/zod";
+import { songs } from "@server/db/schema";
 import {
   adminProcedure,
   createTRPCRouter,
   organizationProcedure,
 } from "@server/api/trpc";
 import { TRPCError } from "@trpc/server";
-import { eq } from "drizzle-orm";
+import { eq, sql, or, getTableColumns } from "drizzle-orm";
+
+const TRIGRAM_SIMILARITY_THRESHOLD = 0.1;
 
 export const songRouter = createTRPCRouter({
   create: organizationProcedure
@@ -120,5 +123,32 @@ export const songRouter = createTRPCRouter({
           `🤖 - [song/delete] - Song ID ${input.songId} could not be deleted`,
         );
       }
+    }),
+
+  search: organizationProcedure
+    .input(searchSongSchema)
+    .query(async ({ ctx, input }) => {
+      console.log(`🤖 - [song/search] - searching for ${input.searchInput}`);
+
+      /**
+       * NOTE: using similarity requires the pg_trgm extension to be enabled
+       * CREATE EXTENSION IF NOT EXISTS pg_trgm;
+       */
+      const searchResults = await ctx.db
+        .select({
+          ...getTableColumns(songs),
+          similarityScore: sql<number>`similarity(${songs.name}, ${input.searchInput})`,
+        })
+        .from(songs)
+        .where(
+          sql`similarity(${songs.name}, ${input.searchInput}) > ${TRIGRAM_SIMILARITY_THRESHOLD}`,
+        );
+
+      console.log(
+        `🤖 - [song/search] - result for ${input.searchInput}:`,
+        searchResults,
+      );
+
+      return searchResults;
     }),
 });
