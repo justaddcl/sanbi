@@ -172,7 +172,10 @@ export const songRouter = createTRPCRouter({
         .where(
           sql`similarity(${songs.name}, ${input.searchInput}) > ${TRIGRAM_SIMILARITY_THRESHOLD}`,
         )
-        .groupBy(songs.id);
+        .groupBy(songs.id)
+        .orderBy(
+          desc(sql<number>`similarity(${songs.name}, ${input.searchInput})`),
+        );
 
       console.log(
         `🤖 - [song/search] - result for ${input.searchInput}:`,
