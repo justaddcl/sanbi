@@ -16,6 +16,8 @@ import { CommandLoading } from "cmdk";
 import { redirect } from "next/navigation";
 import { useState } from "react";
 import { useDebounceValue } from "usehooks-ts";
+import { SongListItem } from "../SongListItem";
+import { CaretRight } from "@phosphor-icons/react/dist/ssr";
 
 type SongSearchDialogProps = {
   open: boolean;
@@ -109,13 +111,25 @@ export const SongSearchDialog: React.FC<SongSearchDialogProps> = ({
             </CommandEmpty>
           )}
         <CommandGroup heading="Songs">
-          {songSearchData?.map((searchResult) => {
-            return (
-              <CommandItem key={searchResult.id} value={searchResult.name}>
-                {searchResult.name}
-              </CommandItem>
-            );
-          })}
+          <div className="flex flex-col gap-2">
+            {songSearchData?.map((searchResult) => {
+              const { lastPlayedDate, tags, ...songData } = searchResult;
+              return (
+                <CommandItem
+                  key={searchResult.songId}
+                  value={searchResult.name}
+                  className="flex items-center justify-between"
+                >
+                  <SongListItem
+                    song={{ id: songData.songId, ...songData }}
+                    lastPlayed={lastPlayedDate}
+                    tags={tags}
+                  />
+                  <CaretRight size="12px" className="text-slate-500" />
+                </CommandItem>
+              );
+            })}
+          </div>
         </CommandGroup>
       </CommandList>
     </CommandDialog>
