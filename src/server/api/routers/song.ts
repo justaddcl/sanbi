@@ -6,14 +6,24 @@ import {
   searchSongSchema,
   unarchiveSongSchema,
 } from "@lib/types/zod";
-import { songs } from "@server/db/schema";
+import {
+  eventTypes,
+  sets,
+  setSections,
+  setSectionSongs,
+  setSectionTypes,
+  songs,
+  songTags,
+  songTags as songTagsTable,
+  tags,
+} from "@server/db/schema";
 import {
   adminProcedure,
   createTRPCRouter,
   organizationProcedure,
 } from "@server/api/trpc";
 import { TRPCError } from "@trpc/server";
-import { eq, sql, or, getTableColumns } from "drizzle-orm";
+import { eq, sql, or, getTableColumns, desc, asc } from "drizzle-orm";
 
 const TRIGRAM_SIMILARITY_THRESHOLD = 0.1;
 
@@ -53,6 +63,7 @@ export const songRouter = createTRPCRouter({
 
       return ctx.db.insert(songs).values(newSong).returning();
     }),
+
   archive: adminProcedure
     .input(archiveSongSchema)
     .mutation(async ({ ctx, input }) => {
@@ -136,12 +147,34 @@ export const songRouter = createTRPCRouter({
        */
       const searchResults = await ctx.db
         .select({
-          ...getTableColumns(songs),
+          songId: songs.id,
+          name: songs.name,
+          preferredKey: songs.preferredKey,
+          isArchived: songs.isArchived,
           similarityScore: sql<number>`similarity(${songs.name}, ${input.searchInput})`,
+          tags: sql<
+            string[]
+          >`array_agg(DISTINCT ${tags.tag} ORDER BY ${tags.tag})`,
+          lastPlayedDate: sql<Date | null>`
+            MAX(
+              CASE WHEN ${sets.date} <= NOW()
+              THEN ${sets.date}
+              END
+            )
+          `,
         })
         .from(songs)
+        .leftJoin(setSectionSongs, eq(setSectionSongs.songId, songs.id))
+        .leftJoin(setSections, eq(setSections.id, setSectionSongs.setSectionId))
+        .leftJoin(sets, eq(sets.id, setSections.setId))
+        .leftJoin(songTags, eq(songTags.songId, songs.id))
+        .leftJoin(tags, eq(tags.id, songTags.tagId))
         .where(
           sql`similarity(${songs.name}, ${input.searchInput}) > ${TRIGRAM_SIMILARITY_THRESHOLD}`,
+        )
+        .groupBy(songs.id)
+        .orderBy(
+          desc(sql<number>`similarity(${songs.name}, ${input.searchInput})`),
         );
 
       console.log(
