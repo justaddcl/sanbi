@@ -1,30 +1,17 @@
 import { type FC } from "react";
 import { Text } from "@components/Text";
-import {
-  type SongTagType,
-  type Song,
-  type SetSectionSongsType,
-  Tag,
-  SetType,
-} from "@lib/types";
+import { type Song, type Tag } from "@lib/types";
 import { SongKey } from "@components/SongKey";
 import { ClockCounterClockwise } from "@phosphor-icons/react/dist/ssr";
-import {
-  differenceInCalendarDays,
-  differenceInCalendarMonths,
-  differenceInCalendarWeeks,
-  formatDistanceToNow,
-  intervalToDuration,
-  intlFormatDistance,
-} from "date-fns";
+import { differenceInCalendarDays, differenceInCalendarWeeks } from "date-fns";
 import { Badge } from "@components/Badge";
 
-type SongListItemSongData = Pick<
+export type SongListItemSongData = Pick<
   Song,
   "id" | "name" | "preferredKey" | "isArchived"
 >;
 
-type SongListItemProps = {
+export type SongListItemProps = {
   song: SongListItemSongData;
   lastPlayed: Date | null;
   tags?: Tag["tag"][];

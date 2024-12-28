@@ -7,14 +7,11 @@ import {
   unarchiveSongSchema,
 } from "@lib/types/zod";
 import {
-  eventTypes,
   sets,
   setSections,
   setSectionSongs,
-  setSectionTypes,
   songs,
   songTags,
-  songTags as songTagsTable,
   tags,
 } from "@server/db/schema";
 import {
@@ -23,7 +20,7 @@ import {
   organizationProcedure,
 } from "@server/api/trpc";
 import { TRPCError } from "@trpc/server";
-import { eq, sql, or, getTableColumns, desc, asc } from "drizzle-orm";
+import { eq, sql, desc } from "drizzle-orm";
 
 const TRIGRAM_SIMILARITY_THRESHOLD = 0.1;
 
