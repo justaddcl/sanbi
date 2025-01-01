@@ -1,6 +1,6 @@
 "use client";
 
-import { CommandDialog } from "@components/ui/command";
+import { CommandDialog, CommandGroup } from "@components/ui/command";
 import { useAuth } from "@clerk/nextjs";
 import { Text } from "@components/Text";
 import { redirect } from "next/navigation";
@@ -20,6 +20,7 @@ import {
   CaretLeft,
   ClockCounterClockwise,
   Heart,
+  Plus,
 } from "@phosphor-icons/react/dist/ssr";
 import {
   Select,
@@ -30,9 +31,12 @@ import {
 } from "@components/ui/select";
 import { songKeys } from "@lib/constants";
 import { formatSongKey } from "@lib/string/formatSongKey";
-import { SongListItem } from "../SongListItem";
+import { SongListItem } from "@modules/songs/components/SongListItem";
 import { Label } from "@components/ui/label";
 import { Switch } from "@components/ui/switch";
+import { Combobox } from "@components/ui/combobox";
+import { Input } from "@components/ui/input";
+import { cn } from "@lib/utils";
 
 type SongSearchDialogProps = {
   open: boolean;
@@ -72,6 +76,26 @@ export const SongSearchDialog: React.FC<SongSearchDialogProps> = ({
 
   // TODO: temp mock variable - to be deleted
   const currentSetSections = [];
+
+  // TODO: replace with DB set section types
+  const setSectionTypes = [
+    {
+      value: "fullband",
+      label: "Full band",
+    },
+    {
+      value: "offering",
+      label: "Offering",
+    },
+    {
+      value: "prayer",
+      label: "Prayer",
+    },
+    {
+      value: "theLordsPrayer",
+      label: "The Lord's Prayer",
+    },
+  ];
 
   return (
     <CommandDialog
@@ -150,7 +174,7 @@ export const SongSearchDialog: React.FC<SongSearchDialogProps> = ({
                   </div>
                 </div>
               </section>
-              <section className="flex flex-col items-center">
+              <section className="flex flex-col ">
                 <Text style="header-small-semibold" className="mb-4 self-start">
                   Which part of the set?
                 </Text>
@@ -171,6 +195,35 @@ export const SongSearchDialog: React.FC<SongSearchDialogProps> = ({
                     </Text>
                   </div>
                 )}
+                <Combobox
+                  placeholder="Add a set section"
+                  options={setSectionTypes}
+                >
+                  <CommandGroup heading="Create new section type">
+                    <div
+                      className={cn(
+                        "flex gap-2",
+                        "relative cursor-default select-none items-center gap-2 rounded-sm px-2 py-2 text-sm outline-none data-[disabled=true]:pointer-events-none data-[selected='true']:bg-accent data-[selected=true]:text-accent-foreground data-[disabled=true]:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+                      )}
+                    >
+                      <Input size="small" className="flex-1" />
+                      <Button variant="ghost" size="sm" className="flex-grow-0">
+                        <Plus />
+                        Create
+                      </Button>
+                    </div>
+                  </CommandGroup>
+                </Combobox>
+                <div className="mt-2 flex justify-end gap-2">
+                  {currentSetSections.length > 0 && (
+                    <Button variant="ghost" size="sm">
+                      Cancel
+                    </Button>
+                  )}
+                  <Button variant="secondary" size="sm">
+                    Add
+                  </Button>
+                </div>
               </section>
             </DialogDescription>
           </DialogHeader>
