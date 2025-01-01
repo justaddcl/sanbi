@@ -15,12 +15,14 @@ export type SongListItemProps = {
   song: SongListItemSongData;
   lastPlayed: Date | null;
   tags?: Tag["tag"][];
+  hidePreferredKey?: boolean;
 };
 
 export const SongListItem: FC<SongListItemProps> = ({
   song,
   lastPlayed,
   tags,
+  hidePreferredKey,
 }) => {
   const distanceFromLastPlayedInDays = differenceInCalendarDays(
     new Date(),
@@ -36,12 +38,14 @@ export const SongListItem: FC<SongListItemProps> = ({
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-2">
         <Text style="header-medium-semibold">{song.name}</Text>
-        <SongKey size="medium" songKey={song.preferredKey} />
+        {!hidePreferredKey && (
+          <SongKey size="medium" songKey={song.preferredKey} />
+        )}
       </div>
       <div className="flex gap-3">
         {lastPlayed ? (
           <div className="flex items-center gap-1">
-            <ClockCounterClockwise className="text-slate-400" size="8px" />
+            <ClockCounterClockwise className="text-slate-400" size="16px" />
             <Text style="body-small" className="text-slate-500">
               {distanceFromLastPlayedInWeeks > 0
                 ? `${distanceFromLastPlayedInWeeks}w`
