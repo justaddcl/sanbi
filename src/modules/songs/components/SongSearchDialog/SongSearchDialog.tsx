@@ -21,6 +21,7 @@ import {
   ClockCounterClockwise,
   Heart,
   Plus,
+  X,
 } from "@phosphor-icons/react/dist/ssr";
 import {
   Select,
@@ -40,12 +41,28 @@ import { cn } from "@lib/utils";
 import { RadioGroup, RadioGroupItem } from "@components/ui/radio-group";
 import { type SetSectionWithSongs } from "@lib/types";
 
+type NewSetSectionListItem = {
+  id: string;
+  type: {
+    section: string;
+  };
+  clearable: boolean;
+};
+
+type SetSectionListItem = SetSectionWithSongs | NewSetSectionListItem;
+
 type SongSearchDialogProps = {
   open: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
   onSongSelect?: (selectedSong?: SongSearchResult) => void;
   existingSetSections: SetSectionWithSongs[];
 };
+
+// type guard to type-safely determine what kind of SetSectionListItem the object is
+const isClearable = (
+  setSectionListItem: SetSectionListItem,
+): setSectionListItem is NewSetSectionListItem =>
+  (setSectionListItem as NewSetSectionListItem).clearable !== undefined;
 
 export const SongSearchDialog: React.FC<SongSearchDialogProps> = ({
   open,
@@ -64,19 +81,19 @@ export const SongSearchDialog: React.FC<SongSearchDialogProps> = ({
   // TODO: replace with DB set section types
   const setSectionTypes: ComboboxOption[] = [
     {
-      value: "fullband",
+      value: "Full band",
       label: "Full band",
     },
     {
-      value: "offering",
+      value: "Offering",
       label: "Offering",
     },
     {
-      value: "prayer",
+      value: "Prayer",
       label: "Prayer",
     },
     {
-      value: "theLordsPrayer",
+      value: "The Lord's Prayer",
       label: "The Lord's Prayer",
     },
   ];
@@ -85,7 +102,14 @@ export const SongSearchDialog: React.FC<SongSearchDialogProps> = ({
     useState<ComboboxOption[]>(setSectionTypes);
 
   const [setSectionsList, setSetSectionsList] =
-    useState<SongSearchDialogProps["existingSetSections"]>(existingSetSections);
+    useState<SetSectionListItem[]>(existingSetSections);
+
+  const [isAddingSection, setIsAddingSection] = useState<boolean>(false);
+
+  const [setSectionTypeToAdd, setSetSectionTypeToAdd] = useState<string>("");
+
+  const [isAddSectionComboboxOpen, setIsAddSectionComboboxOpen] =
+    useState<boolean>(false);
 
   const [newSetSectionInputValue, setNewSetSectionInputValue] =
     useState<string>("");
@@ -105,20 +129,50 @@ export const SongSearchDialog: React.FC<SongSearchDialogProps> = ({
     }
   };
 
-  const handleNewSetSectionOptionCreate = () => {
-    console.log(
-      "🤖 - SongSearchDialog - handleNewSetSectionOptionCreate - newSetSectionInputValue",
-      newSetSectionInputValue,
+  const handleAddSetSection = () => {
+    const newSetSectionItem: NewSetSectionListItem = {
+      id: setSectionTypeToAdd,
+      type: {
+        section: setSectionTypeToAdd,
+      },
+      clearable: true,
+    };
+
+    // TODO: add some UI indicator that this section already exists
+    if (
+      !setSectionsList.some(
+        (setSection) => setSection.id === setSectionTypeToAdd,
+      )
+    ) {
+      setSetSectionsList((currentSectionsList) => [
+        ...currentSectionsList,
+        newSetSectionItem,
+      ]);
+      setSetSectionTypeToAdd("");
+    }
+  };
+
+  const handleRemoveTempSetSection = (setSectionIdToRemove: string) => {
+    const modifiedSetSectionsList = setSectionsList.filter(
+      (setSection) => setSection.id !== setSectionIdToRemove,
     );
+
+    setSetSectionsList(modifiedSetSectionsList);
+  };
+
+  const handleNewSetSectionOptionCreate = () => {
+    const trimmedInput = newSetSectionInputValue.trim();
 
     setSetSectionTypesOptions((currentOptions) => [
       ...currentOptions,
       {
-        value: newSetSectionInputValue,
-        label: newSetSectionInputValue,
+        value: trimmedInput,
+        label: trimmedInput,
       },
     ]);
 
+    setSetSectionTypeToAdd(trimmedInput);
+    setIsAddSectionComboboxOpen(false);
     setNewSetSectionInputValue("");
   };
 
@@ -209,17 +263,33 @@ export const SongSearchDialog: React.FC<SongSearchDialogProps> = ({
                 {setSectionsList.length > 0 && (
                   <RadioGroup className="mb-2">
                     {setSectionsList.map((setSection) => (
-                      <Label
-                        htmlFor={setSection.id}
-                        className="flex items-center gap-2 rounded border border-slate-200 px-4 py-3"
+                      <div
                         key={setSection.id}
+                        className="flex items-center gap-2 rounded border border-slate-200"
                       >
-                        <RadioGroupItem
-                          value={setSection.id}
-                          id={setSection.id}
-                        />
-                        <Text>{setSection.type.section}</Text>
-                      </Label>
+                        <Label
+                          htmlFor={setSection.id}
+                          className="flex w-full items-center gap-2 px-4 py-3"
+                        >
+                          <RadioGroupItem
+                            value={setSection.id}
+                            id={setSection.id}
+                          />
+                          <Text>{setSection.type.section}</Text>
+                        </Label>
+                        {isClearable(setSection) && setSection.clearable && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="mr-2"
+                            onClick={() =>
+                              handleRemoveTempSetSection(setSection.id)
+                            }
+                          >
+                            <X />
+                          </Button>
+                        )}
+                      </div>
                     ))}
                   </RadioGroup>
                 )}
@@ -237,47 +307,85 @@ export const SongSearchDialog: React.FC<SongSearchDialogProps> = ({
                     </Text>
                   </div>
                 )}
-                <Combobox
-                  placeholder="Add a set section"
-                  options={setSectionTypesOptions}
-                >
-                  <CommandGroup heading="Create new section type">
-                    <div
-                      className={cn(
-                        "flex gap-2",
-                        "relative cursor-default select-none items-center gap-2 rounded-sm px-2 py-2 text-sm outline-none data-[disabled=true]:pointer-events-none data-[selected='true']:bg-accent data-[selected=true]:text-accent-foreground data-[disabled=true]:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
-                      )}
+                {!isAddingSection && (
+                  <Button
+                    variant="ghost"
+                    className="border border-dashed"
+                    onClick={() => setIsAddingSection(true)}
+                  >
+                    <Plus />
+                    <Text>Add another section</Text>
+                  </Button>
+                )}
+                {isAddingSection && (
+                  <>
+                    <Combobox
+                      placeholder="Add a set section"
+                      options={setSectionTypesOptions}
+                      value={setSectionTypeToAdd}
+                      onChange={(selectedValue) => {
+                        console.log(
+                          "🤖 - SongSearchDialog - Combobox - onChange selectedValue",
+                          selectedValue,
+                        );
+                        setSetSectionTypeToAdd(selectedValue);
+                      }}
+                      open={isAddSectionComboboxOpen}
+                      setOpen={setIsAddSectionComboboxOpen}
                     >
-                      <Input
-                        size="small"
-                        className="flex-1"
-                        value={newSetSectionInputValue}
-                        onChange={(changeEvent) =>
-                          setNewSetSectionInputValue(changeEvent.target.value)
-                        }
-                      />
+                      <CommandGroup heading="Create new section type">
+                        <div
+                          className={cn(
+                            "flex gap-2",
+                            "relative cursor-default select-none items-center gap-2 rounded-sm px-2 py-2 text-sm outline-none data-[disabled=true]:pointer-events-none data-[selected='true']:bg-accent data-[selected=true]:text-accent-foreground data-[disabled=true]:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+                          )}
+                        >
+                          <Input
+                            size="small"
+                            className="flex-1"
+                            value={newSetSectionInputValue}
+                            onChange={(changeEvent) =>
+                              setNewSetSectionInputValue(
+                                changeEvent.target.value,
+                              )
+                            }
+                          />
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="flex-grow-0"
+                            onClick={handleNewSetSectionOptionCreate}
+                          >
+                            <Plus />
+                            Create
+                          </Button>
+                        </div>
+                      </CommandGroup>
+                    </Combobox>
+                    <div className="mt-2 flex justify-end gap-2">
+                      {setSectionsList.length > 0 && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setIsAddingSection(false);
+                            setSetSectionTypeToAdd("");
+                          }}
+                        >
+                          Cancel
+                        </Button>
+                      )}
                       <Button
-                        variant="ghost"
+                        variant="secondary"
                         size="sm"
-                        className="flex-grow-0"
-                        onClick={handleNewSetSectionOptionCreate}
+                        onClick={handleAddSetSection}
+                        disabled={setSectionTypeToAdd === ""}
                       >
-                        <Plus />
-                        Create
+                        Add
                       </Button>
                     </div>
-                  </CommandGroup>
-                </Combobox>
-                <div className="mt-2 flex justify-end gap-2">
-                  {setSectionsList.length > 0 && (
-                    <Button variant="ghost" size="sm">
-                      Cancel
-                    </Button>
-                  )}
-                  <Button variant="secondary" size="sm">
-                    Add
-                  </Button>
-                </div>
+                  </>
+                )}
               </section>
             </DialogDescription>
           </DialogHeader>

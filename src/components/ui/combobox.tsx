@@ -18,6 +18,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@components/ui/popover";
+import { Text } from "@components/Text";
 import { CaretDown, CaretUp, Check } from "@phosphor-icons/react/dist/ssr";
 
 export type ComboboxOption = {
@@ -31,6 +32,10 @@ type ComboboxProps = {
   searchPlaceholder?: string;
   emptyState?: React.ReactNode;
   options: ComboboxOption[];
+  value: string;
+  onChange: (selectedValue: string) => void;
+  open: boolean;
+  setOpen: React.Dispatch<React.SetStateAction<ComboboxProps["open"]>>;
 };
 
 export const Combobox: React.FC<React.PropsWithChildren<ComboboxProps>> = ({
@@ -39,11 +44,12 @@ export const Combobox: React.FC<React.PropsWithChildren<ComboboxProps>> = ({
   searchPlaceholder = "Search...",
   emptyState,
   options,
+  value,
+  onChange,
+  open,
+  setOpen,
   children,
 }) => {
-  const [open, setOpen] = React.useState(false);
-  const [value, setValue] = React.useState("");
-
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -53,9 +59,11 @@ export const Combobox: React.FC<React.PropsWithChildren<ComboboxProps>> = ({
           aria-expanded={open}
           className="min-w-[300px] max-w-full justify-between"
         >
-          {value
-            ? options.find((option) => option.value === value)?.label
-            : placeholder}
+          <Text>
+            {value
+              ? options.find((option) => option.value === value)?.label
+              : placeholder}
+          </Text>
           {open ? (
             <CaretUp className="opacity-50" />
           ) : (
@@ -74,7 +82,7 @@ export const Combobox: React.FC<React.PropsWithChildren<ComboboxProps>> = ({
                   key={option.value}
                   value={option.value}
                   onSelect={(currentValue) => {
-                    setValue(currentValue === value ? "" : currentValue);
+                    onChange(currentValue === value ? "" : currentValue);
                     setOpen(false);
                   }}
                 >
