@@ -1,39 +1,28 @@
 import { type FC } from "react";
 import { Text } from "@components/Text";
-import {
-  type SongTagType,
-  type Song,
-  type SetSectionSongsType,
-  Tag,
-  SetType,
-} from "@lib/types";
+import { type Song, type Tag } from "@lib/types";
 import { SongKey } from "@components/SongKey";
 import { ClockCounterClockwise } from "@phosphor-icons/react/dist/ssr";
-import {
-  differenceInCalendarDays,
-  differenceInCalendarMonths,
-  differenceInCalendarWeeks,
-  formatDistanceToNow,
-  intervalToDuration,
-  intlFormatDistance,
-} from "date-fns";
+import { differenceInCalendarDays, differenceInCalendarWeeks } from "date-fns";
 import { Badge } from "@components/Badge";
 
-type SongListItemSongData = Pick<
+export type SongListItemSongData = Pick<
   Song,
   "id" | "name" | "preferredKey" | "isArchived"
 >;
 
-type SongListItemProps = {
+export type SongListItemProps = {
   song: SongListItemSongData;
   lastPlayed: Date | null;
   tags?: Tag["tag"][];
+  hidePreferredKey?: boolean;
 };
 
 export const SongListItem: FC<SongListItemProps> = ({
   song,
   lastPlayed,
   tags,
+  hidePreferredKey,
 }) => {
   const distanceFromLastPlayedInDays = differenceInCalendarDays(
     new Date(),
@@ -49,12 +38,14 @@ export const SongListItem: FC<SongListItemProps> = ({
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-2">
         <Text style="header-medium-semibold">{song.name}</Text>
-        <SongKey size="medium" songKey={song.preferredKey} />
+        {!hidePreferredKey && (
+          <SongKey size="medium" songKey={song.preferredKey} />
+        )}
       </div>
       <div className="flex gap-3">
         {lastPlayed ? (
           <div className="flex items-center gap-1">
-            <ClockCounterClockwise className="text-slate-400" size="8px" />
+            <ClockCounterClockwise className="text-slate-400" size="16px" />
             <Text style="body-small" className="text-slate-500">
               {distanceFromLastPlayedInWeeks > 0
                 ? `${distanceFromLastPlayedInWeeks}w`

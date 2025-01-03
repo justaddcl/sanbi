@@ -1,12 +1,16 @@
 "use client";
 
 import * as React from "react";
-import { type DialogProps } from "@radix-ui/react-dialog";
 import { Command as CommandPrimitive } from "cmdk";
 import { Search } from "lucide-react";
 
 import { cn } from "@lib/utils";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  type DialogContentProps,
+  type DialogProps,
+} from "@components/ui/dialog";
 
 const Command = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive>,
@@ -27,24 +31,34 @@ type CommandDialogProps = DialogProps & {
   fixed?: boolean;
   loop?: boolean;
   shouldFilter?: boolean;
+  hasDialogContentComponentStyling?: boolean;
+  animated?: DialogContentProps["animated"];
 };
 const CommandDialog: React.FC<CommandDialogProps> = ({
   children,
   fixed = false,
   loop = true,
   shouldFilter,
+  hasDialogContentComponentStyling,
+  animated,
   ...props
 }) => {
   return (
     <Dialog {...props}>
       <DialogContent
+        animated={animated}
         className={cn(
           "overflow-hidden rounded-lg p-0 shadow-lg",
           "max-w-3xl pb-3",
+          [
+            hasDialogContentComponentStyling &&
+              "fixed left-[50%] z-50 grid w-full translate-x-[-50%] gap-4 border bg-background p-6 shadow-lg sm:rounded-lg",
+          ],
           {
             "translate-y-0": fixed,
             "w-[calc(100%_-_24px)]": fixed,
-            "mt-3": fixed,
+            "mt-3": fixed && !hasDialogContentComponentStyling,
+            "mt-[44px]": fixed && hasDialogContentComponentStyling,
             "top-0": fixed,
             "md:mt-0": fixed,
             "md:top-[12%]": fixed,
