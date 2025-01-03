@@ -104,7 +104,9 @@ export const SongSearchDialog: React.FC<SongSearchDialogProps> = ({
   const [setSectionsList, setSetSectionsList] =
     useState<SetSectionListItem[]>(existingSetSections);
 
-  const [isAddingSection, setIsAddingSection] = useState<boolean>(false);
+  const [isAddingSection, setIsAddingSection] = useState<boolean>(
+    existingSetSections.length === 0,
+  );
 
   const [setSectionTypeToAdd, setSetSectionTypeToAdd] = useState<string>("");
 
