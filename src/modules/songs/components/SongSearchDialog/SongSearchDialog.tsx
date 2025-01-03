@@ -34,19 +34,23 @@ import { formatSongKey } from "@lib/string/formatSongKey";
 import { SongListItem } from "@modules/songs/components/SongListItem";
 import { Label } from "@components/ui/label";
 import { Switch } from "@components/ui/switch";
-import { Combobox } from "@components/ui/combobox";
+import { Combobox, type ComboboxOption } from "@components/ui/combobox";
 import { Input } from "@components/ui/input";
 import { cn } from "@lib/utils";
+import { RadioGroup, RadioGroupItem } from "@components/ui/radio-group";
+import { type SetSectionWithSongs } from "@lib/types";
 
 type SongSearchDialogProps = {
   open: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
   onSongSelect?: (selectedSong?: SongSearchResult) => void;
+  existingSetSections: SetSectionWithSongs[];
 };
 
 export const SongSearchDialog: React.FC<SongSearchDialogProps> = ({
   open,
   setOpen,
+  existingSetSections,
 }) => {
   const { userId, isLoaded } = useAuth();
 
@@ -57,28 +61,8 @@ export const SongSearchDialog: React.FC<SongSearchDialogProps> = ({
     null,
   );
 
-  if (!userId) {
-    redirect("/");
-  }
-
-  if (!isLoaded) {
-    return <Text>Loading auth...</Text>;
-  }
-
-  const handleSongSelect = (song?: SongSearchResult) => {
-    if (!!song) {
-      setSelectedSong(song);
-      setDialogStep("configure");
-    }
-  };
-
-  const goBackToSearch = () => setDialogStep("search");
-
-  // TODO: temp mock variable - to be deleted
-  const currentSetSections = [];
-
   // TODO: replace with DB set section types
-  const setSectionTypes = [
+  const setSectionTypes: ComboboxOption[] = [
     {
       value: "fullband",
       label: "Full band",
@@ -96,6 +80,49 @@ export const SongSearchDialog: React.FC<SongSearchDialogProps> = ({
       label: "The Lord's Prayer",
     },
   ];
+
+  const [setSectionTypesOptions, setSetSectionTypesOptions] =
+    useState<ComboboxOption[]>(setSectionTypes);
+
+  const [setSectionsList, setSetSectionsList] =
+    useState<SongSearchDialogProps["existingSetSections"]>(existingSetSections);
+
+  const [newSetSectionInputValue, setNewSetSectionInputValue] =
+    useState<string>("");
+
+  if (!userId) {
+    redirect("/");
+  }
+
+  if (!isLoaded) {
+    return <Text>Loading auth...</Text>;
+  }
+
+  const handleSongSelect = (song?: SongSearchResult) => {
+    if (!!song) {
+      setSelectedSong(song);
+      setDialogStep("configure");
+    }
+  };
+
+  const handleNewSetSectionOptionCreate = () => {
+    console.log(
+      "🤖 - SongSearchDialog - handleNewSetSectionOptionCreate - newSetSectionInputValue",
+      newSetSectionInputValue,
+    );
+
+    setSetSectionTypesOptions((currentOptions) => [
+      ...currentOptions,
+      {
+        value: newSetSectionInputValue,
+        label: newSetSectionInputValue,
+      },
+    ]);
+
+    setNewSetSectionInputValue("");
+  };
+
+  const goBackToSearch = () => setDialogStep("search");
 
   return (
     <CommandDialog
@@ -127,7 +154,7 @@ export const SongSearchDialog: React.FC<SongSearchDialogProps> = ({
               </Button>
               <DialogTitle>Add song to set</DialogTitle>
             </div>
-            <DialogDescription className="mt-6 flex flex-col gap-6">
+            <DialogDescription className="text-700 mt-6 flex flex-col gap-6">
               <div
                 className="cursor-pointer rounded-lg border p-4 text-slate-900 transition-colors hover:bg-accent"
                 onClick={goBackToSearch}
@@ -159,7 +186,7 @@ export const SongSearchDialog: React.FC<SongSearchDialogProps> = ({
                     ))}
                   </SelectContent>
                 </Select>
-                <div className="flex gap-2">
+                <div className="flex gap-2 text-slate-500">
                   <div className="flex items-center gap-1">
                     <Heart />
                     <Text style="small">
@@ -174,14 +201,29 @@ export const SongSearchDialog: React.FC<SongSearchDialogProps> = ({
                   </div>
                 </div>
               </section>
-              <section className="flex flex-col ">
+              <section className="flex flex-col text-slate-700">
                 <Text style="header-small-semibold" className="mb-4 self-start">
                   Which part of the set?
                 </Text>
                 {/* TODO: render list of current set sections */}
-                {/* {currentSetSections.length > 0 && (
-                )} */}
-                {currentSetSections.length === 0 && (
+                {setSectionsList.length > 0 && (
+                  <RadioGroup className="mb-2">
+                    {setSectionsList.map((setSection) => (
+                      <Label
+                        htmlFor={setSection.id}
+                        className="flex items-center gap-2 rounded border border-slate-200 px-4 py-3"
+                        key={setSection.id}
+                      >
+                        <RadioGroupItem
+                          value={setSection.id}
+                          id={setSection.id}
+                        />
+                        <Text>{setSection.type.section}</Text>
+                      </Label>
+                    ))}
+                  </RadioGroup>
+                )}
+                {setSectionsList.length === 0 && (
                   <div className="mb-4 flex w-full flex-col items-center rounded border border-dashed border-slate-200 py-3">
                     <Text
                       style="header-small-semibold"
@@ -197,7 +239,7 @@ export const SongSearchDialog: React.FC<SongSearchDialogProps> = ({
                 )}
                 <Combobox
                   placeholder="Add a set section"
-                  options={setSectionTypes}
+                  options={setSectionTypesOptions}
                 >
                   <CommandGroup heading="Create new section type">
                     <div
@@ -206,8 +248,20 @@ export const SongSearchDialog: React.FC<SongSearchDialogProps> = ({
                         "relative cursor-default select-none items-center gap-2 rounded-sm px-2 py-2 text-sm outline-none data-[disabled=true]:pointer-events-none data-[selected='true']:bg-accent data-[selected=true]:text-accent-foreground data-[disabled=true]:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
                       )}
                     >
-                      <Input size="small" className="flex-1" />
-                      <Button variant="ghost" size="sm" className="flex-grow-0">
+                      <Input
+                        size="small"
+                        className="flex-1"
+                        value={newSetSectionInputValue}
+                        onChange={(changeEvent) =>
+                          setNewSetSectionInputValue(changeEvent.target.value)
+                        }
+                      />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="flex-grow-0"
+                        onClick={handleNewSetSectionOptionCreate}
+                      >
                         <Plus />
                         Create
                       </Button>
@@ -215,7 +269,7 @@ export const SongSearchDialog: React.FC<SongSearchDialogProps> = ({
                   </CommandGroup>
                 </Combobox>
                 <div className="mt-2 flex justify-end gap-2">
-                  {currentSetSections.length > 0 && (
+                  {setSectionsList.length > 0 && (
                     <Button variant="ghost" size="sm">
                       Cancel
                     </Button>
