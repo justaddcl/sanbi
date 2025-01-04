@@ -112,7 +112,7 @@ export default async function SetListPage({
                   for
                 </Text>
                 <Text asElement="span" style="body-small" color="slate-700">
-                  {lastPlayed.event_types?.event}
+                  {lastPlayed.event_types?.name}
                 </Text>
               </div>
             ) : (
@@ -219,7 +219,7 @@ export default async function SetListPage({
                 <PlayHistoryItem
                   key={`${playInstance.sets?.id}-${playInstance.set_sections?.position}`}
                   date={dateFormatter.format(new Date(playInstance.sets!.date))}
-                  eventType={playInstance.event_types!.event}
+                  eventType={playInstance.event_types!.name}
                   songKey={playInstance.set_section_songs.key}
                   setSection={playInstance.set_section_types!.section}
                   setId={playInstance.sets!.id}

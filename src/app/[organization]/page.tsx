@@ -70,7 +70,7 @@ export default async function Dashboard({
             <SetListCard>
               <SetListCardHeader
                 date={orgSet.date}
-                type={orgSet.eventType.event}
+                type={orgSet.eventType.name}
                 numberOfSongs={orgSet.sections.reduce(
                   (total, section) => total + section.songs.length,
                   0,

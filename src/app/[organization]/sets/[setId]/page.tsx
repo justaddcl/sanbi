@@ -98,7 +98,7 @@ export default function SetListPage({ params }: SetListPageProps) {
         <>
           <PageTitle
             title={formatDate(setData.date, { month: "long" })}
-            subtitle={setData.eventType.event}
+            subtitle={setData.eventType.name}
             details={`${songCount} ${pluralize(songCount, { singular: "song", plural: "songs" })}`}
           />
           {setData.isArchived && (

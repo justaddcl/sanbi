@@ -173,7 +173,7 @@ export const CreateSetForm: React.FC<CreateSetFormProps> = ({ onSubmit }) => {
                         {!eventTypeQueryError &&
                           eventTypeData?.map((eventType) => (
                             <SelectItem key={eventType.id} value={eventType.id}>
-                              {eventType.event}
+                              {eventType.name}
                             </SelectItem>
                           ))}
                       </SelectContent>

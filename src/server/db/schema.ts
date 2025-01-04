@@ -169,7 +169,7 @@ export const songs = createTable(
 
 export const eventTypes = createTable("event_types", {
   id: uuid("id").primaryKey().defaultRandom(),
-  event: varchar("event").unique().notNull(),
+  name: varchar("event").unique().notNull(),
   createdAt: timestamp("created_at", { withTimezone: true })
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),

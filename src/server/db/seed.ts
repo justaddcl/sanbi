@@ -93,9 +93,9 @@ const seedUser: NewUser = {
 };
 
 const seedEventTypes: NewEventType[] = [
-  { event: "Sunday service" },
-  { event: "Team Stoneway" },
-  { event: "Discipleship Community" },
+  { name: "Sunday service" },
+  { name: "Team Stoneway" },
+  { name: "Discipleship Community" },
 ];
 
 const seedSetSectionTypes: NewSetSectionType[] = [

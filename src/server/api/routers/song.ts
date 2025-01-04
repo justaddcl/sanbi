@@ -198,7 +198,7 @@ export const songRouter = createTRPCRouter({
             id: sets.id,
             date: sets.date,
             eventTypeId: eventTypes.id,
-            eventType: eventTypes.event,
+            eventType: eventTypes.name,
           },
           section: {
             id: setSections.id,
