@@ -4,6 +4,7 @@ import {
   organizationMembershipsRouter,
   organizationRouter,
   setRouter,
+  setSectionTypeRouter,
   songRouter,
   userRouter,
 } from "@server/api/routers";
@@ -20,6 +21,7 @@ export const appRouter = createTRPCRouter({
   set: setRouter,
   song: songRouter,
   eventType: eventTypeRouter,
+  setSectionType: setSectionTypeRouter,
 });
 
 // export type definition of API
