@@ -207,6 +207,9 @@ export const setSectionTypes = createTable("set_section_types", {
   updatedAt: timestamp("updatedAt", { withTimezone: true })
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),
+  organizationId: uuid("organization_id")
+    .references(() => organizations.id)
+    .notNull(),
 });
 
 export const setSections = createTable(
