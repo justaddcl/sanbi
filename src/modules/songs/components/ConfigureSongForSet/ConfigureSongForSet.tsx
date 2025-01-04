@@ -10,6 +10,7 @@ import {
   Heart,
   X,
   Plus,
+  CircleNotch,
 } from "@phosphor-icons/react/dist/ssr";
 import { DialogTitle, DialogDescription } from "@components/ui/dialog";
 import { Label } from "@components/ui/label";
@@ -30,6 +31,10 @@ import { type Dispatch, type SetStateAction, useState } from "react";
 import { type SetSectionWithSongs } from "@lib/types";
 import { type SongSearchResult } from "@modules/songs/components/SongSearch";
 import { type SongSearchDialogSteps } from "@modules/songs/components/SongSearchDialog";
+import { useUserQuery } from "@modules/users/api/queries";
+import { redirect } from "next/navigation";
+import { api } from "@/trpc/react";
+import { HStack } from "@components/HStack";
 
 // type guard to type-safely determine what kind of SetSectionListItem the object is
 const isClearable = (
@@ -95,6 +100,32 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
 
   const [isAddSectionComboboxOpen, setIsAddSectionComboboxOpen] =
     useState<boolean>(false);
+
+  const {
+    data: userData,
+    isLoading: isUserQueryLoading,
+    isAuthLoaded,
+  } = useUserQuery();
+
+  if (isUserQueryLoading || !isAuthLoaded) {
+    return <Text>Loading user data...</Text>;
+  }
+
+  const userMembership = userData?.memberships[0];
+
+  if (!userMembership) {
+    redirect("/sign-in");
+  }
+
+  const {
+    data: lastPlayInstance,
+    isLoading: isLastPlayInstanceQueryLoading,
+    error: lastPlayInstanceQueryError,
+  } = api.song.getLastPlayInstance.useQuery({
+    organizationId: userMembership.organizationId,
+    songId: selectedSong.songId,
+  });
+  console.log("🚀 ~ lastPlayedInstance:", lastPlayInstance);
 
   const handleAddSetSection = () => {
     const newSetSectionItem: NewSetSectionListItem = {
@@ -179,12 +210,24 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
                 <SelectValue placeholder="Select song key" />
               </SelectTrigger>
               <SelectContent>
-                {songKeys.map((key) => (
-                  <SelectItem key={key} value={key}>
-                    {formatSongKey(key)}{" "}
-                    {key === selectedSong.preferredKey && "(preferred key)"}
-                  </SelectItem>
-                ))}
+                {songKeys.map((key) => {
+                  const appendedText = [];
+                  if (key === selectedSong.preferredKey) {
+                    appendedText.push("preferred key");
+                  }
+
+                  if (key === lastPlayInstance?.song.key) {
+                    appendedText.push("last played in");
+                  }
+
+                  return (
+                    <SelectItem key={key} value={key}>
+                      {formatSongKey(key)}
+                      {appendedText.length > 0 &&
+                        ` (${appendedText.join(", ")})`}
+                    </SelectItem>
+                  );
+                })}
               </SelectContent>
             </Select>
             <div className="flex gap-2 text-slate-500">
@@ -198,7 +241,26 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
               <div className="flex items-center gap-1">
                 <ClockCounterClockwise />
                 {/* TODO: get the key the song was last played in - this is a new query */}
-                <Text style="small">Last played:</Text>
+                <HStack className="items-center">
+                  <Text style="small">Last played:</Text>
+                  {isLastPlayInstanceQueryLoading && (
+                    <>
+                      <CircleNotch
+                        size={12}
+                        className="mr-2 h-4 w-4 animate-spin"
+                      />
+                      <Text>
+                        Looking up last time {selectedSong.name} was played...{" "}
+                      </Text>
+                    </>
+                  )}
+                  {!isLastPlayInstanceQueryLoading &&
+                    lastPlayInstance?.song.key && (
+                      <Text style="small" className="ml-1">
+                        {formatSongKey(lastPlayInstance.song.key)}
+                      </Text>
+                    )}
+                </HStack>
               </div>
             </div>
           </section>
