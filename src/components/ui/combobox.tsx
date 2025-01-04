@@ -19,7 +19,12 @@ import {
   PopoverTrigger,
 } from "@components/ui/popover";
 import { Text } from "@components/Text";
-import { CaretDown, CaretUp, Check } from "@phosphor-icons/react/dist/ssr";
+import {
+  CaretDown,
+  CaretUp,
+  Check,
+  CircleNotch,
+} from "@phosphor-icons/react/dist/ssr";
 
 export type ComboboxOption = {
   value: string;
@@ -36,6 +41,8 @@ type ComboboxProps = {
   onChange: (selectedValue: string) => void;
   open: boolean;
   setOpen: React.Dispatch<React.SetStateAction<ComboboxProps["open"]>>;
+  loading?: boolean;
+  disabled?: boolean;
 };
 
 export const Combobox: React.FC<React.PropsWithChildren<ComboboxProps>> = ({
@@ -48,6 +55,8 @@ export const Combobox: React.FC<React.PropsWithChildren<ComboboxProps>> = ({
   onChange,
   open,
   setOpen,
+  loading = false,
+  disabled = false,
   children,
 }) => {
   return (
@@ -58,23 +67,24 @@ export const Combobox: React.FC<React.PropsWithChildren<ComboboxProps>> = ({
           role="combobox"
           aria-expanded={open}
           className="min-w-[300px] max-w-full justify-between"
+          disabled={disabled}
         >
           <Text>
             {value
               ? options.find((option) => option.value === value)?.label
               : placeholder}
           </Text>
-          {open ? (
-            <CaretUp className="opacity-50" />
-          ) : (
-            <CaretDown className="opacity-50" />
+          {loading && (
+            <CircleNotch size={12} className="mr-2 h-4 w-4 animate-spin" />
           )}
+          {!loading && open && <CaretUp className="opacity-50" />}
+          {!loading && !open && <CaretDown className="opacity-50" />}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="min-w-[300px] p-0">
+      <PopoverContent className="min-w-[300px] overflow-y-scroll p-0">
         <Command>
           {hasSearch && <CommandInput placeholder={searchPlaceholder} />}
-          <CommandList>
+          <CommandList className="max-h-dvh">
             <CommandEmpty>{emptyState}</CommandEmpty>
             <CommandGroup>
               {options.map((option) => (

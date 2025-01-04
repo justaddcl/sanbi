@@ -1,5 +1,4 @@
 import { Combobox, type ComboboxOption } from "@components/ui/combobox";
-import { DialogHeader, DialogFooter } from "@components/ui/dialog";
 import { Input } from "@components/ui/input";
 import { songKeys } from "@lib/constants";
 import { formatSongKey } from "@lib/string/formatSongKey";
@@ -23,11 +22,10 @@ import {
   SelectItem,
 } from "@components/ui/select";
 import { Switch } from "@components/ui/switch";
-import { CommandGroup } from "cmdk";
 import { SongListItem } from "@modules/songs/components/SongListItem";
 import { Button } from "@components/ui/button";
 import { Text } from "@components/Text";
-import { type Dispatch, type SetStateAction, useState } from "react";
+import { type Dispatch, type SetStateAction, useEffect, useState } from "react";
 import { type SetSectionWithSongs } from "@lib/types";
 import { type SongSearchResult } from "@modules/songs/components/SongSearch";
 import { type SongSearchDialogSteps } from "@modules/songs/components/SongSearchDialog";
@@ -35,6 +33,7 @@ import { useUserQuery } from "@modules/users/api/queries";
 import { redirect } from "next/navigation";
 import { api } from "@/trpc/react";
 import { HStack } from "@components/HStack";
+import { CommandGroup, CommandList } from "@components/ui/command";
 
 // type guard to type-safely determine what kind of SetSectionListItem the object is
 const isClearable = (
@@ -66,28 +65,9 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
   const [newSetSectionInputValue, setNewSetSectionInputValue] =
     useState<string>("");
 
-  // TODO: replace with DB set section types
-  const setSectionTypes: ComboboxOption[] = [
-    {
-      value: "Full band",
-      label: "Full band",
-    },
-    {
-      value: "Offering",
-      label: "Offering",
-    },
-    {
-      value: "Prayer",
-      label: "Prayer",
-    },
-    {
-      value: "The Lord's Prayer",
-      label: "The Lord's Prayer",
-    },
-  ];
-
-  const [setSectionTypesOptions, setSetSectionTypesOptions] =
-    useState<ComboboxOption[]>(setSectionTypes);
+  const [setSectionTypesOptions, setSetSectionTypesOptions] = useState<
+    ComboboxOption[]
+  >([]);
 
   const [setSectionsList, setSetSectionsList] =
     useState<SetSectionListItem[]>(existingSetSections);
@@ -107,10 +87,6 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
     isAuthLoaded,
   } = useUserQuery();
 
-  if (isUserQueryLoading || !isAuthLoaded) {
-    return <Text>Loading user data...</Text>;
-  }
-
   const userMembership = userData?.memberships[0];
 
   if (!userMembership) {
@@ -125,7 +101,44 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
     organizationId: userMembership.organizationId,
     songId: selectedSong.songId,
   });
-  console.log("🚀 ~ lastPlayedInstance:", lastPlayInstance);
+
+  const {
+    data: setSectionTypesData,
+    error: setSectionTypesQueryError,
+    isLoading: isSetSectionTypesQueryLoading,
+  } = api.setSectionType.getTypes.useQuery(
+    { organizationId: userMembership.organizationId },
+    { enabled: !!userMembership },
+  );
+
+  useEffect(() => {
+    if (
+      !isSetSectionTypesQueryLoading &&
+      !setSectionTypesQueryError &&
+      setSectionTypesData
+    ) {
+      const setSectionTypes: ComboboxOption[] =
+        setSectionTypesData?.map((setSection) => ({
+          value: setSection.section,
+          label: setSection.section,
+        })) ?? [];
+
+      console.log(
+        "🚀 ~ ConfigureSongForSet ~ setSectionTypes:",
+        setSectionTypes,
+      );
+
+      setSetSectionTypesOptions(setSectionTypes);
+    }
+  }, [
+    isSetSectionTypesQueryLoading,
+    setSectionTypesData,
+    setSectionTypesQueryError,
+  ]);
+
+  if (isUserQueryLoading || !isAuthLoaded) {
+    return <Text>Loading user data...</Text>;
+  }
 
   const handleAddSetSection = () => {
     const newSetSectionItem: NewSetSectionListItem = {
@@ -177,8 +190,8 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
   const goBackToSearch = () => setDialogStep("search");
 
   return (
-    <>
-      <DialogHeader>
+    <CommandList className="max-h-[600px] lg:max-h-[900px]">
+      <CommandGroup>
         {/* FIXME: the title should be aligned center in the center of the dialog */}
         <div className="flex w-1/2 items-center justify-between">
           <Button size="icon" variant="ghost" onClick={goBackToSearch}>
@@ -274,11 +287,11 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
                 {setSectionsList.map((setSection) => (
                   <div
                     key={setSection.id}
-                    className="flex items-center gap-2 rounded border border-slate-200"
+                    className="flex items-center rounded border border-slate-200"
                   >
                     <Label
                       htmlFor={setSection.id}
-                      className="flex w-full items-center gap-2 px-4 py-3"
+                      className="flex w-full items-center gap-2 px-4 py-2"
                     >
                       <RadioGroupItem
                         value={setSection.id}
@@ -333,14 +346,12 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
                   options={setSectionTypesOptions}
                   value={setSectionTypeToAdd}
                   onChange={(selectedValue) => {
-                    console.log(
-                      "🤖 - SongSearchDialog - Combobox - onChange selectedValue",
-                      selectedValue,
-                    );
                     setSetSectionTypeToAdd(selectedValue);
                   }}
                   open={isAddSectionComboboxOpen}
                   setOpen={setIsAddSectionComboboxOpen}
+                  loading={isSetSectionTypesQueryLoading}
+                  disabled={isSetSectionTypesQueryLoading}
                 >
                   <CommandGroup heading="Create new section type">
                     <div
@@ -395,19 +406,21 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
             )}
           </section>
         </DialogDescription>
-      </DialogHeader>
-      <DialogFooter className="mt-6 flex flex-col gap-2">
-        <div className="flex items-center gap-1 self-end md:self-center">
-          <Switch id="start-with-last-set-toggle" />
-          <Label
-            htmlFor="start-with-last-set-toggle"
-            className="text-slate-500"
-          >
-            Add another song
-          </Label>
+      </CommandGroup>
+      <CommandGroup className="mt-6">
+        <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+          <div className="flex items-center gap-1 self-end md:self-center">
+            <Switch id="start-with-last-set-toggle" />
+            <Label
+              htmlFor="start-with-last-set-toggle"
+              className="text-slate-500"
+            >
+              Add another song
+            </Label>
+          </div>
+          <Button>Add song</Button>
         </div>
-        <Button>Add song</Button>
-      </DialogFooter>
-    </>
+      </CommandGroup>
+    </CommandList>
   );
 };

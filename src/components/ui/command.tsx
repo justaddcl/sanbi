@@ -33,6 +33,7 @@ type CommandDialogProps = DialogProps & {
   shouldFilter?: boolean;
   hasDialogContentComponentStyling?: boolean;
   animated?: DialogContentProps["animated"];
+  minimalPadding?: boolean;
 };
 const CommandDialog: React.FC<CommandDialogProps> = ({
   children,
@@ -41,6 +42,7 @@ const CommandDialog: React.FC<CommandDialogProps> = ({
   shouldFilter,
   hasDialogContentComponentStyling,
   animated,
+  minimalPadding,
   ...props
 }) => {
   return (
@@ -52,13 +54,13 @@ const CommandDialog: React.FC<CommandDialogProps> = ({
           "max-w-3xl pb-3",
           [
             hasDialogContentComponentStyling &&
-              "fixed left-[50%] z-50 grid w-full translate-x-[-50%] gap-4 border bg-background p-6 shadow-lg sm:rounded-lg",
+              "fixed left-[50%] z-50 grid w-full translate-x-[-50%] gap-4 border bg-background p-2 shadow-lg sm:rounded-lg",
           ],
+          [hasDialogContentComponentStyling && !minimalPadding && "p-6"],
           {
             "translate-y-0": fixed,
             "w-[calc(100%_-_24px)]": fixed,
-            "mt-3": fixed && !hasDialogContentComponentStyling,
-            "mt-[44px]": fixed && hasDialogContentComponentStyling,
+            "mt-3": fixed,
             "top-0": fixed,
             "md:mt-0": fixed,
             "md:top-[12%]": fixed,
@@ -69,7 +71,14 @@ const CommandDialog: React.FC<CommandDialogProps> = ({
         <Command
           loop={loop}
           shouldFilter={shouldFilter}
-          className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-group]]:px-2 [&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5 [&_[cmdk-input]]:h-12 [&_[cmdk-item]]:px-3 [&_[cmdk-item]]:py-3 [&_[cmdk-item]_svg]:h-4 [&_[cmdk-item]_svg]:w-4"
+          className={cn(
+            "[&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5 [&_[cmdk-input]]:h-12 [&_[cmdk-item]_svg]:h-4 [&_[cmdk-item]_svg]:w-4",
+            [
+              !minimalPadding &&
+                "[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-group]]:px-2 ",
+            ],
+            { "p-0": minimalPadding },
+          )}
         >
           {children}
         </Command>

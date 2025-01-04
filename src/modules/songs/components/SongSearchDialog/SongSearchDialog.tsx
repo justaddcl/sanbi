@@ -64,6 +64,7 @@ export const SongSearchDialog: React.FC<SongSearchDialogProps> = ({
       fixed
       hasDialogContentComponentStyling={dialogStep === "configure"}
       animated={dialogStep !== "configure"}
+      minimalPadding
     >
       {dialogStep === "search" && (
         <SongSearch onSongSelect={handleSongSelect} />
