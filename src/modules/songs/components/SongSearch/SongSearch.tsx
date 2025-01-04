@@ -38,8 +38,6 @@ type SongSearchProps = {
 const SEARCH_DEBOUNCE_DELAY = 350;
 
 export const SongSearch: React.FC<SongSearchProps> = ({ onSongSelect }) => {
-  const { userId, isLoaded } = useAuth();
-
   const defaultSearchQuery = "";
   const [searchInput, setSearchInput] = useState<string>(defaultSearchQuery);
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useDebounceValue(
@@ -47,15 +45,12 @@ export const SongSearch: React.FC<SongSearchProps> = ({ onSongSelect }) => {
     SEARCH_DEBOUNCE_DELAY,
   );
 
-  if (!userId) {
-    redirect("/");
-  }
-
   const {
     data: userData,
     error: userQueryError,
     isLoading: userQueryLoading,
-  } = useUserQuery({ userId });
+    isAuthLoaded,
+  } = useUserQuery();
   const userMembership = userData?.memberships[0];
 
   const {
@@ -75,7 +70,11 @@ export const SongSearch: React.FC<SongSearchProps> = ({ onSongSelect }) => {
     },
   );
 
-  if (!isLoaded) {
+  if (!userData?.id) {
+    redirect("/");
+  }
+
+  if (!isAuthLoaded) {
     return <Text>Loading auth...</Text>;
   }
 

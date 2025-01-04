@@ -26,7 +26,7 @@ type PlayHistoryItemBaseProps = {
 
 type PlayHistoryItemExtendedProps = (SongKeyFlatProps | SongKeySharpProps) & {
   /** What type of event the song was played at? */
-  eventType: EventType["event"];
+  eventType: EventType["name"];
 
   /** What key the song was played in? */
   songKey: SongKeyProps["songKey"];
