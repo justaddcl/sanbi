@@ -23,7 +23,7 @@ import {
   organizationProcedure,
 } from "@server/api/trpc";
 import { TRPCError } from "@trpc/server";
-import { eq, sql, desc, lte, and } from "drizzle-orm";
+import { eq, sql, desc, lte, and, asc } from "drizzle-orm";
 
 const TRIGRAM_SIMILARITY_THRESHOLD = 0.1;
 
@@ -175,6 +175,7 @@ export const songRouter = createTRPCRouter({
         .groupBy(songs.id)
         .orderBy(
           desc(sql<number>`similarity(${songs.name}, ${input.searchInput})`),
+          asc(songs.name),
         );
 
       console.log(
