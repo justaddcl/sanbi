@@ -2,14 +2,17 @@ import { type NewSong } from "@lib/types/db";
 import {
   archiveSongSchema,
   deleteSongSchema,
+  songGetLastPlayInstanceSchema,
   insertSongSchema,
   searchSongSchema,
   unarchiveSongSchema,
 } from "@lib/types/zod";
 import {
+  eventTypes,
   sets,
   setSections,
   setSectionSongs,
+  setSectionTypes,
   songs,
   songTags,
   tags,
@@ -20,7 +23,7 @@ import {
   organizationProcedure,
 } from "@server/api/trpc";
 import { TRPCError } from "@trpc/server";
-import { eq, sql, desc } from "drizzle-orm";
+import { eq, sql, desc, lte, and } from "drizzle-orm";
 
 const TRIGRAM_SIMILARITY_THRESHOLD = 0.1;
 
@@ -180,5 +183,63 @@ export const songRouter = createTRPCRouter({
       );
 
       return searchResults;
+    }),
+
+  getLastPlayInstance: organizationProcedure
+    .input(songGetLastPlayInstanceSchema)
+    .query(async ({ ctx, input }) => {
+      console.log(
+        `🤖 - [song/getLastPlayInstance] - getting last play instance for ${input.songId}`,
+      );
+
+      const [lastPlayInstance] = await ctx.db
+        .select({
+          set: {
+            id: sets.id,
+            date: sets.date,
+            eventTypeId: eventTypes.id,
+            eventType: eventTypes.event,
+          },
+          section: {
+            id: setSections.id,
+            type: setSectionTypes.section,
+            typeId: setSectionTypes.id,
+            position: setSections.position,
+          },
+          song: {
+            id: setSectionSongs.songId,
+            name: songs.name,
+            key: setSectionSongs.key,
+            position: setSectionSongs.position,
+            notes: setSectionSongs.notes,
+          },
+        })
+        .from(setSectionSongs)
+        .innerJoin(
+          setSections,
+          eq(setSectionSongs.setSectionId, setSections.id),
+        )
+        .innerJoin(sets, eq(setSections.setId, sets.id))
+        .innerJoin(
+          setSectionTypes,
+          eq(setSections.sectionTypeId, setSectionTypes.id),
+        )
+        .innerJoin(eventTypes, eq(sets.eventTypeId, eventTypes.id))
+        .innerJoin(songs, eq(setSectionSongs.songId, songs.id))
+        .where(
+          and(
+            eq(setSectionSongs.songId, input.songId),
+            lte(sets.date, new Date().toLocaleDateString("en-CA")), // en-CA is a locale that uses the 'YYYY-MM-DD' format
+          ),
+        )
+        .orderBy(desc(sets.date), desc(setSections.position))
+        .limit(1);
+
+      console.log(
+        `🤖 - [song/getLastPlayInstance] - last play instance for ${input.songId}`,
+        lastPlayInstance,
+      );
+
+      return lastPlayInstance;
     }),
 });

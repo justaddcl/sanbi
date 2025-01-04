@@ -63,3 +63,5 @@ export const deleteSongSchema = songIdSchema;
 export const searchSongSchema = z.object({
   searchInput: z.string().min(2),
 });
+
+export const songGetLastPlayInstanceSchema = songIdSchema;
