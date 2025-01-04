@@ -15,6 +15,8 @@
     "db:seed:prod": "NODE_ENV=production dotenvx run -- npx tsx ./src/server/db/seed.ts",
     "db:clear": "dotenvx run -- npx tsx ./src/server/db/clear.ts",
     "db:clear:prod": "NODE_ENV=production dotenvx run -- npx tsx ./src/server/db/clear.ts",
+    "db:update": "dotenvx run -- npx tsx ./src/server/db/clear.ts && drizzle-kit push && dotenvx run -- npx tsx ./src/server/db/seed.ts",
+    "db:update:prod": "NODE_ENV=production dotenvx run -- npx tsx ./src/server/db/clear.ts && NODE_ENV=production drizzle-kit push && NODE_ENV=production dotenvx run -- npx tsx ./src/server/db/seed.ts",
     "dev": "next dev",
     "lint": "next lint && npx tsc --noEmit --project tsconfig.json",
     "start": "next start",
