@@ -92,12 +92,6 @@ const seedUser: NewUser = {
   lastName: faker.person.lastName(),
 };
 
-const seedEventTypes: NewEventType[] = [
-  { name: "Sunday service" },
-  { name: "Team Stoneway" },
-  { name: "Discipleship Community" },
-];
-
 const seedSetSectionTypes: NewSetSectionType[] = [
   { section: "Full band" },
   { section: "Prayer" },
@@ -162,6 +156,12 @@ const seed = async () => {
   console.log("🚀 ~ seed ~ orgMembership:", orgMembership);
 
   /** seed the event types table */
+  const seedEventTypes: NewEventType[] = [
+    { name: "Sunday service", organizationId: organization!.id },
+    { name: "Team Stoneway", organizationId: organization!.id },
+    { name: "Discipleship Community", organizationId: organization!.id },
+  ];
+
   await db.execute(sql`TRUNCATE TABLE sanbi_event_types CASCADE`);
   const seededEventTypes = await db
     .insert(eventTypes)

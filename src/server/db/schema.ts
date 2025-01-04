@@ -176,6 +176,9 @@ export const eventTypes = createTable("event_types", {
   updatedAt: timestamp("updatedAt", { withTimezone: true })
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),
+  organizationId: uuid("organization_id")
+    .references(() => organizations.id)
+    .notNull(),
 });
 
 export const sets = createTable("sets", {
@@ -267,6 +270,7 @@ export const organizationsRelations = relations(organizations, ({ many }) => ({
   members: many(organizationMemberships),
   songs: many(songs),
   sets: many(sets),
+  eventTypes: many(eventTypes),
 }));
 
 export const organizationMembersRelations = relations(
@@ -358,6 +362,7 @@ export const setsRelations = relations(sets, ({ one, many }) => ({
   }),
 }));
 
-export const eventTypesRelations = relations(eventTypes, ({ many }) => ({
+export const eventTypesRelations = relations(eventTypes, ({ one, many }) => ({
   sets: many(sets),
+  organizations: one(organizations),
 }));
