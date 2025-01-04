@@ -1,8 +1,7 @@
 import { createTRPCRouter, organizationProcedure } from "@server/api/trpc";
-import { eq } from "drizzle-orm";
 
 export const setSectionTypeRouter = createTRPCRouter({
-  getSetSectionTypes: organizationProcedure.query(async ({ ctx, input }) => {
+  getTypes: organizationProcedure.query(async ({ ctx, input }) => {
     console.log(
       `🤖 - [setSectionType/getSetSectionTypes] - fetching event types for ${ctx.organization.id}`,
     );

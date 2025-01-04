@@ -1,5 +1,4 @@
 import { createTRPCRouter, organizationProcedure } from "@server/api/trpc";
-import { eq } from "drizzle-orm";
 
 export const eventTypeRouter = createTRPCRouter({
   getEventTypes: organizationProcedure.query(async ({ ctx, input }) => {
