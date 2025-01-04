@@ -169,7 +169,6 @@ export const CreateSetForm: React.FC<CreateSetFormProps> = ({ onSubmit }) => {
                         <SelectValue placeholder="Select..." />
                       </SelectTrigger>
                       <SelectContent>
-                        {/* FIXME: need to add organization ID to event types table */}
                         {!eventTypeQueryError &&
                           eventTypeData?.map((eventType) => (
                             <SelectItem key={eventType.id} value={eventType.id}>
