@@ -367,5 +367,8 @@ export const setsRelations = relations(sets, ({ one, many }) => ({
 
 export const eventTypesRelations = relations(eventTypes, ({ one, many }) => ({
   sets: many(sets),
-  organizations: one(organizations),
+  organizations: one(organizations, {
+    fields: [eventTypes.organizationId],
+    references: [organizations.id],
+  }),
 }));
