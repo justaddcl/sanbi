@@ -33,11 +33,15 @@ export type SongSearchResult =
 
 type SongSearchProps = {
   onSongSelect?: (selectedSong?: SongSearchResult) => void;
+  searchPlaceholder?: string;
 };
 
 const SEARCH_DEBOUNCE_DELAY = 350;
 
-export const SongSearch: React.FC<SongSearchProps> = ({ onSongSelect }) => {
+export const SongSearch: React.FC<SongSearchProps> = ({
+  onSongSelect,
+  searchPlaceholder = "Search for a song...",
+}) => {
   const defaultSearchQuery = "";
   const [searchInput, setSearchInput] = useState<string>(defaultSearchQuery);
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useDebounceValue(
@@ -101,7 +105,7 @@ export const SongSearch: React.FC<SongSearchProps> = ({ onSongSelect }) => {
   return (
     <>
       <CommandInput
-        placeholder="Search for a song..."
+        placeholder={searchPlaceholder}
         value={searchInput}
         onValueChange={(newValue) => handleSearchInputChange(newValue)}
       />

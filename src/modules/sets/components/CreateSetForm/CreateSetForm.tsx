@@ -19,7 +19,7 @@ import {
   AccordionTrigger,
 } from "@components/ui/accordion";
 import { useForm } from "react-hook-form";
-import { insertSetSchema } from "@/lib/types/zod";
+import { insertSetSchema } from "@lib/types/zod";
 import { type z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {

@@ -34,6 +34,17 @@ import { redirect } from "next/navigation";
 import { api } from "@/trpc/react";
 import { HStack } from "@components/HStack";
 import { CommandGroup, CommandList } from "@components/ui/command";
+import { useForm } from "react-hook-form";
+import { insertSetSectionSongSchema } from "@lib/types/zod";
+import { type z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+} from "@components/ui/form";
 
 // type guard to type-safely determine what kind of SetSectionListItem the object is
 const isClearable = (
@@ -50,6 +61,12 @@ type NewSetSectionListItem = {
 };
 
 type SetSectionListItem = SetSectionWithSongs | NewSetSectionListItem;
+
+const createSetSectionSongsSchema = insertSetSectionSongSchema;
+
+export type AddSongToSetFormFields = z.infer<
+  typeof createSetSectionSongsSchema
+>;
 
 type ConfigureSongForSetProps = {
   existingSetSections: SetSectionWithSongs[];
@@ -80,6 +97,33 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
 
   const [isAddSectionComboboxOpen, setIsAddSectionComboboxOpen] =
     useState<boolean>(false);
+
+  const addSongToSetForm = useForm<AddSongToSetFormFields>({
+    mode: "onBlur",
+    resolver: zodResolver(createSetSectionSongsSchema),
+    defaultValues: {
+      songId: selectedSong.songId,
+      setSectionId: undefined,
+      key: selectedSong.preferredKey,
+      position: 99,
+      notes: null,
+    },
+  });
+
+  const {
+    formState: { isDirty, isSubmitting, isValid, errors },
+    setValue,
+    getValues,
+    watch,
+  } = addSongToSetForm;
+  // console.log("🚀 ~ isDirty:", isDirty);
+  // console.log("🚀 ~ isSubmitting:", isSubmitting);
+  // console.log("🚀 ~ isValid:", isValid);
+  const watchKey = watch();
+  console.log("🚀 ~ watchFields:", watchKey);
+  console.log("🚀 ~ errors:", errors);
+
+  const shouldAddSongBeDisabled = !isDirty || !isValid || isSubmitting;
 
   const {
     data: userData,
@@ -119,14 +163,9 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
     ) {
       const setSectionTypes: ComboboxOption[] =
         setSectionTypesData?.map((setSection) => ({
-          value: setSection.section,
+          value: setSection.id,
           label: setSection.section,
         })) ?? [];
-
-      console.log(
-        "🚀 ~ ConfigureSongForSet ~ setSectionTypes:",
-        setSectionTypes,
-      );
 
       setSetSectionTypesOptions(setSectionTypes);
     }
@@ -159,6 +198,13 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
         ...currentSectionsList,
         newSetSectionItem,
       ]);
+
+      setValue("setSectionId", setSectionTypeToAdd, {
+        shouldValidate: false,
+        shouldDirty: true,
+        shouldTouch: true,
+      });
+
       setSetSectionTypeToAdd("");
     }
   };
@@ -169,6 +215,14 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
     );
 
     setSetSectionsList(modifiedSetSectionsList);
+
+    if (getValues("setSectionId") === setSectionIdToRemove) {
+      setValue("setSectionId", "", {
+        shouldValidate: false,
+        shouldDirty: true,
+        shouldTouch: true,
+      });
+    }
   };
 
   const handleNewSetSectionOptionCreate = () => {
@@ -185,6 +239,16 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
     setSetSectionTypeToAdd(trimmedInput);
     setIsAddSectionComboboxOpen(false);
     setNewSetSectionInputValue("");
+  };
+
+  const handleAddSongToSetSubmit = async (
+    formValues: AddSongToSetFormFields,
+  ) => {
+    console.log(
+      "🚀 ~ ConfigureSongForSet ~ handleAddSongToSetSubmit ~ formValues:",
+      formValues,
+    );
+    const { songId, key, setSectionId } = formValues;
   };
 
   const goBackToSearch = () => setDialogStep("search");
@@ -216,210 +280,247 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
               hidePreferredKey
             />
           </div>
-          <section className="flex flex-col gap-2">
-            <Text style="header-small-semibold">Key</Text>
-            <Select defaultValue={selectedSong.preferredKey as string}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select song key" />
-              </SelectTrigger>
-              <SelectContent>
-                {songKeys.map((key) => {
-                  const appendedText = [];
-                  if (key === selectedSong.preferredKey) {
-                    appendedText.push("preferred key");
-                  }
-
-                  if (key === lastPlayInstance?.song.key) {
-                    appendedText.push("last played in");
-                  }
-
-                  return (
-                    <SelectItem key={key} value={key}>
-                      {formatSongKey(key)}
-                      {appendedText.length > 0 &&
-                        ` (${appendedText.join(", ")})`}
-                    </SelectItem>
-                  );
-                })}
-              </SelectContent>
-            </Select>
-            <div className="flex gap-2 text-slate-500">
-              <div className="flex items-center gap-1">
-                <Heart />
-                <Text style="small">
-                  Preferred key: {formatSongKey(selectedSong.preferredKey!)}
-                  {/* used the non-null assertion since all songs should have a selected key */}
-                </Text>
-              </div>
-              <div className="flex items-center gap-1">
-                <ClockCounterClockwise />
-                {/* TODO: get the key the song was last played in - this is a new query */}
-                <HStack className="items-center">
-                  <Text style="small">Last played:</Text>
-                  {isLastPlayInstanceQueryLoading && (
-                    <>
-                      <CircleNotch
-                        size={12}
-                        className="mr-2 h-4 w-4 animate-spin"
-                      />
-                      <Text>
-                        Looking up last time {selectedSong.name} was played...{" "}
-                      </Text>
-                    </>
+          <Form {...addSongToSetForm}>
+            <form
+              onSubmit={addSongToSetForm.handleSubmit(handleAddSongToSetSubmit)}
+            >
+              <section className="flex flex-col gap-2">
+                <FormField
+                  control={addSongToSetForm.control}
+                  name="key"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Song key</FormLabel>
+                      <FormControl>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value as string}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select song key" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {songKeys.map((key) => {
+                              const appendedText = [];
+                              if (key === selectedSong.preferredKey) {
+                                appendedText.push("preferred key");
+                              }
+                              if (key === lastPlayInstance?.song.key) {
+                                appendedText.push("last played in");
+                              }
+                              return (
+                                <SelectItem key={key} value={key}>
+                                  {formatSongKey(key)}
+                                  {appendedText.length > 0 &&
+                                    ` (${appendedText.join(", ")})`}
+                                </SelectItem>
+                              );
+                            })}
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                    </FormItem>
                   )}
-                  {!isLastPlayInstanceQueryLoading &&
-                    lastPlayInstance?.song.key && (
-                      <Text style="small" className="ml-1">
-                        {formatSongKey(lastPlayInstance.song.key)}
-                      </Text>
-                    )}
-                </HStack>
-              </div>
-            </div>
-          </section>
-          <section className="flex flex-col text-slate-700">
-            <Text style="header-small-semibold" className="mb-4 self-start">
-              Which part of the set?
-            </Text>
-            {/* TODO: render list of current set sections */}
-            {setSectionsList.length > 0 && (
-              <RadioGroup className="mb-2">
-                {setSectionsList.map((setSection) => (
-                  <div
-                    key={setSection.id}
-                    className="flex items-center rounded border border-slate-200"
-                  >
-                    <Label
-                      htmlFor={setSection.id}
-                      className="flex w-full items-center gap-2 px-4 py-2"
-                    >
-                      <RadioGroupItem
-                        value={setSection.id}
-                        id={setSection.id}
-                      />
-                      <Text>{setSection.type.section}</Text>
-                    </Label>
-                    {isClearable(setSection) && setSection.clearable && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="mr-2"
-                        onClick={() =>
-                          handleRemoveTempSetSection(setSection.id)
-                        }
-                      >
-                        <X />
-                      </Button>
-                    )}
+                />
+                <div className="flex gap-2 text-slate-500">
+                  <div className="flex items-center gap-1">
+                    <Heart />
+                    <Text style="small">
+                      Preferred key: {formatSongKey(selectedSong.preferredKey!)}
+                      {/* used the non-null assertion since all songs should have a selected key */}
+                    </Text>
                   </div>
-                ))}
-              </RadioGroup>
-            )}
-            {setSectionsList.length === 0 && (
-              <div className="mb-4 flex w-full flex-col items-center rounded border border-dashed border-slate-200 py-3">
-                <Text
-                  style="header-small-semibold"
-                  align="center"
-                  className="text-slate-900"
-                >
-                  No sections yet
-                </Text>
-                <Text align="center" className="">
-                  Add one below to get started.
-                </Text>
-              </div>
-            )}
-            {!isAddingSection && (
-              <Button
-                variant="ghost"
-                className="border border-dashed"
-                onClick={() => setIsAddingSection(true)}
-              >
-                <Plus />
-                <Text>Add another section</Text>
-              </Button>
-            )}
-            {isAddingSection && (
-              <>
-                <Combobox
-                  placeholder="Add a set section"
-                  options={setSectionTypesOptions}
-                  value={setSectionTypeToAdd}
-                  onChange={(selectedValue) => {
-                    setSetSectionTypeToAdd(selectedValue);
-                  }}
-                  open={isAddSectionComboboxOpen}
-                  setOpen={setIsAddSectionComboboxOpen}
-                  loading={isSetSectionTypesQueryLoading}
-                  disabled={isSetSectionTypesQueryLoading}
-                >
-                  <CommandGroup heading="Create new section type">
-                    <div
-                      className={cn(
-                        "flex gap-2",
-                        "relative cursor-default select-none items-center gap-2 rounded-sm px-2 py-2 text-sm outline-none data-[disabled=true]:pointer-events-none data-[selected='true']:bg-accent data-[selected=true]:text-accent-foreground data-[disabled=true]:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+                  <div className="flex items-center gap-1">
+                    <ClockCounterClockwise />
+                    {/* TODO: get the key the song was last played in - this is a new query */}
+                    <HStack className="items-center">
+                      <Text style="small">Last played:</Text>
+                      {isLastPlayInstanceQueryLoading && (
+                        <>
+                          <CircleNotch
+                            size={12}
+                            className="mr-2 h-4 w-4 animate-spin"
+                          />
+                          <Text>
+                            Looking up last time {selectedSong.name} was
+                            played...{" "}
+                          </Text>
+                        </>
                       )}
+                      {!isLastPlayInstanceQueryLoading &&
+                        lastPlayInstance?.song.key && (
+                          <Text style="small" className="ml-1">
+                            {formatSongKey(lastPlayInstance.song.key)}
+                          </Text>
+                        )}
+                    </HStack>
+                  </div>
+                </div>
+              </section>
+              <section className="flex flex-col text-slate-700">
+                {setSectionsList.length > 0 && (
+                  <FormField
+                    control={addSongToSetForm.control}
+                    name="setSectionId"
+                    render={({ field }) => (
+                      <FormItem className="mb-2">
+                        <FormLabel>Which part of the set?</FormLabel>
+                        <FormControl>
+                          <RadioGroup
+                            {...field}
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
+                            {setSectionsList.map((setSection) => (
+                              <FormItem
+                                key={setSection.id}
+                                className="flex items-center space-y-0 rounded border border-slate-200"
+                              >
+                                <div className="flex w-full items-center gap-2 py-2 pl-4">
+                                  <FormControl>
+                                    <RadioGroupItem value={setSection.id} />
+                                  </FormControl>
+                                  <FormLabel className="flex-1 cursor-pointer">
+                                    <Text>{setSection.type.section}</Text>
+                                  </FormLabel>
+                                </div>
+                                {isClearable(setSection) &&
+                                  setSection.clearable && (
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className=""
+                                      onClick={() =>
+                                        handleRemoveTempSetSection(
+                                          setSection.id,
+                                        )
+                                      }
+                                    >
+                                      <X />
+                                    </Button>
+                                  )}
+                              </FormItem>
+                            ))}
+                          </RadioGroup>
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                )}
+                {setSectionsList.length === 0 && (
+                  <div className="mb-4 flex w-full flex-col items-center rounded border border-dashed border-slate-200 py-3">
+                    <Text
+                      style="header-small-semibold"
+                      align="center"
+                      className="text-slate-900"
                     >
-                      <Input
-                        size="small"
-                        className="flex-1"
-                        value={newSetSectionInputValue}
-                        onChange={(changeEvent) =>
-                          setNewSetSectionInputValue(changeEvent.target.value)
-                        }
-                      />
+                      No sections yet
+                    </Text>
+                    <Text align="center" className="">
+                      Add one below to get started.
+                    </Text>
+                  </div>
+                )}
+                {!isAddingSection && (
+                  <Button
+                    variant="ghost"
+                    className="border border-dashed"
+                    onClick={() => setIsAddingSection(true)}
+                  >
+                    <Plus />
+                    <Text>Add another section</Text>
+                  </Button>
+                )}
+                {isAddingSection && (
+                  <>
+                    {/* TODO: does the combobox value need to of combobox option or can the setValue be the work-around? */}
+                    <Combobox
+                      placeholder="Add a set section"
+                      options={setSectionTypesOptions}
+                      value={setSectionTypeToAdd}
+                      onChange={(selectedValue) => {
+                        setSetSectionTypeToAdd(selectedValue);
+                      }}
+                      open={isAddSectionComboboxOpen}
+                      setOpen={setIsAddSectionComboboxOpen}
+                      loading={isSetSectionTypesQueryLoading}
+                      disabled={isSetSectionTypesQueryLoading}
+                    >
+                      <CommandGroup heading="Create new section type">
+                        <div
+                          className={cn(
+                            "flex gap-2",
+                            "relative cursor-default select-none items-center gap-2 rounded-sm px-2 py-2 text-sm outline-none data-[disabled=true]:pointer-events-none data-[selected='true']:bg-accent data-[selected=true]:text-accent-foreground data-[disabled=true]:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+                          )}
+                        >
+                          <Input
+                            size="small"
+                            className="flex-1"
+                            value={newSetSectionInputValue}
+                            onChange={(changeEvent) =>
+                              setNewSetSectionInputValue(
+                                changeEvent.target.value,
+                              )
+                            }
+                          />
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="flex-grow-0"
+                            onClick={handleNewSetSectionOptionCreate}
+                          >
+                            <Plus />
+                            Create
+                          </Button>
+                        </div>
+                      </CommandGroup>
+                    </Combobox>
+                    <div className="mt-2 flex justify-end gap-2">
+                      {setSectionsList.length > 0 && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setIsAddingSection(false);
+                            setSetSectionTypeToAdd("");
+                          }}
+                        >
+                          Cancel
+                        </Button>
+                      )}
                       <Button
-                        variant="ghost"
+                        variant="secondary"
                         size="sm"
-                        className="flex-grow-0"
-                        onClick={handleNewSetSectionOptionCreate}
+                        onClick={handleAddSetSection}
+                        disabled={setSectionTypeToAdd === ""}
                       >
-                        <Plus />
-                        Create
+                        Add
                       </Button>
                     </div>
-                  </CommandGroup>
-                </Combobox>
-                <div className="mt-2 flex justify-end gap-2">
-                  {setSectionsList.length > 0 && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        setIsAddingSection(false);
-                        setSetSectionTypeToAdd("");
-                      }}
-                    >
-                      Cancel
-                    </Button>
-                  )}
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={handleAddSetSection}
-                    disabled={setSectionTypeToAdd === ""}
+                  </>
+                )}
+              </section>
+              <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-end">
+                <div className="flex items-center gap-1 self-end md:self-center">
+                  <Switch id="start-with-last-set-toggle" />
+                  <Label
+                    htmlFor="start-with-last-set-toggle"
+                    className="text-slate-500"
                   >
-                    Add
-                  </Button>
+                    Add another song
+                  </Label>
                 </div>
-              </>
-            )}
-          </section>
+                <Button
+                  type="submit"
+                  // disabled={shouldAddSongBeDisabled}
+                  isLoading={isSubmitting}
+                >
+                  Add song
+                </Button>
+              </div>
+            </form>
+          </Form>
         </DialogDescription>
-      </CommandGroup>
-      <CommandGroup className="mt-6">
-        <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
-          <div className="flex items-center gap-1 self-end md:self-center">
-            <Switch id="start-with-last-set-toggle" />
-            <Label
-              htmlFor="start-with-last-set-toggle"
-              className="text-slate-500"
-            >
-              Add another song
-            </Label>
-          </div>
-          <Button>Add song</Button>
-        </div>
       </CommandGroup>
     </CommandList>
   );

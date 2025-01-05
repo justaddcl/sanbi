@@ -2,6 +2,7 @@ import {
   organizationMemberships,
   organizations,
   sets,
+  setSectionSongs,
   songs,
 } from "@server/db/schema";
 import { createInsertSchema } from "drizzle-zod";
@@ -65,3 +66,8 @@ export const searchSongSchema = z.object({
 });
 
 export const songGetLastPlayInstanceSchema = songIdSchema;
+
+/**
+ * Set section songs schemas
+ */
+export const insertSetSectionSongSchema = createInsertSchema(setSectionSongs);
