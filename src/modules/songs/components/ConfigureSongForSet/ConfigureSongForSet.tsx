@@ -36,7 +36,7 @@ import { HStack } from "@components/HStack";
 import { CommandGroup, CommandList } from "@components/ui/command";
 import { useForm } from "react-hook-form";
 import { insertSetSectionSongSchema } from "@lib/types/zod";
-import { type z } from "zod";
+import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Form,
@@ -45,6 +45,7 @@ import {
   FormItem,
   FormLabel,
 } from "@components/ui/form";
+import { toast } from "sonner";
 
 // type guard to type-safely determine what kind of SetSectionListItem the object is
 const isClearable = (
@@ -62,7 +63,15 @@ type NewSetSectionListItem = {
 
 type SetSectionListItem = SetSectionWithSongs | NewSetSectionListItem;
 
-const createSetSectionSongsSchema = insertSetSectionSongSchema;
+const createSetSectionSongsSchema = insertSetSectionSongSchema
+  .pick({
+    songId: true,
+    setSectionId: true,
+    key: true,
+  })
+  .extend({
+    addAnotherSong: z.boolean(),
+  });
 
 export type AddSongToSetFormFields = z.infer<
   typeof createSetSectionSongsSchema
@@ -72,12 +81,16 @@ type ConfigureSongForSetProps = {
   existingSetSections: SetSectionWithSongs[];
   selectedSong: NonNullable<SongSearchResult>;
   setDialogStep: Dispatch<SetStateAction<SongSearchDialogSteps>>;
+  onSubmit?: () => void;
+  setId: string;
 };
 
 export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
   existingSetSections,
   selectedSong,
   setDialogStep,
+  onSubmit,
+  setId,
 }) => {
   const [newSetSectionInputValue, setNewSetSectionInputValue] =
     useState<string>("");
@@ -105,8 +118,7 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
       songId: selectedSong.songId,
       setSectionId: undefined,
       key: selectedSong.preferredKey,
-      position: 99,
-      notes: null,
+      addAnotherSong: false,
     },
   });
 
@@ -124,6 +136,9 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
   console.log("🚀 ~ errors:", errors);
 
   const shouldAddSongBeDisabled = !isDirty || !isValid || isSubmitting;
+
+  const addSetSectionSongMutation = api.setSectionSong.create.useMutation();
+  const apiUtils = api.useUtils();
 
   const {
     data: userData,
@@ -248,7 +263,43 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
       "🚀 ~ ConfigureSongForSet ~ handleAddSongToSetSubmit ~ formValues:",
       formValues,
     );
-    const { songId, key, setSectionId } = formValues;
+    const { songId, key, setSectionId, addAnotherSong } = formValues;
+
+    const setSectionToAddTo = existingSetSections.find(
+      (setSection) => setSection.id === setSectionId,
+    );
+    const setSectionSongPosition = setSectionToAddTo!.songs.length; // using non-null assertion since in the happiest path where we don't add any new set sections to the set, this set section already exists
+    console.log("🚀 ~ setSectionSongPosition:", setSectionSongPosition);
+
+    await addSetSectionSongMutation.mutateAsync(
+      {
+        organizationId: userMembership.organizationId,
+        songId,
+        setSectionId,
+        key: key!,
+        position: setSectionSongPosition,
+      },
+      {
+        async onSuccess(data) {
+          console.log(
+            "🤖 [createSetSectionSongMutation/onSuccess] ~ data:",
+            data,
+          );
+
+          await apiUtils.set.get.invalidate({
+            setId,
+          });
+
+          toast.success("Song added to the set!");
+
+          if (addAnotherSong) {
+            setDialogStep("search");
+          } else {
+            onSubmit?.();
+          }
+        },
+      },
+    );
   };
 
   const goBackToSearch = () => setDialogStep("search");
@@ -500,19 +551,25 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
                   </>
                 )}
               </section>
-              <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-end">
-                <div className="flex items-center gap-1 self-end md:self-center">
-                  <Switch id="start-with-last-set-toggle" />
-                  <Label
-                    htmlFor="start-with-last-set-toggle"
-                    className="text-slate-500"
-                  >
-                    Add another song
-                  </Label>
-                </div>
+              <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:justify-end">
+                <FormField
+                  control={addSongToSetForm.control}
+                  name="addAnotherSong"
+                  render={({ field }) => (
+                    <FormItem className="flex items-center gap-1 space-y-0 self-end md:self-center">
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <FormLabel>Add another song</FormLabel>
+                    </FormItem>
+                  )}
+                />
                 <Button
                   type="submit"
-                  // disabled={shouldAddSongBeDisabled}
+                  disabled={shouldAddSongBeDisabled}
                   isLoading={isSubmitting}
                 >
                   Add song

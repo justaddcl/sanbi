@@ -19,12 +19,14 @@ type SongSearchDialogProps = {
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
   onSongSelect?: (selectedSong?: SongSearchResult) => void;
   existingSetSections: SetSectionWithSongs[];
+  setId: string;
 };
 
 export const SongSearchDialog: React.FC<SongSearchDialogProps> = ({
   open,
   setOpen,
   existingSetSections,
+  setId,
 }) => {
   const { userId, isLoaded } = useAuth();
 
@@ -74,6 +76,10 @@ export const SongSearchDialog: React.FC<SongSearchDialogProps> = ({
           existingSetSections={existingSetSections}
           selectedSong={selectedSong}
           setDialogStep={setDialogStep}
+          onSubmit={() => {
+            setOpen(false);
+          }}
+          setId={setId}
         />
       )}
     </CommandDialog>

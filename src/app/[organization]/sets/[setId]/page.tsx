@@ -159,6 +159,7 @@ export default function SetListPage({ params }: SetListPageProps) {
             open={isSongSearchDialogOpen}
             setOpen={setIsSongSearchDialogOpen}
             existingSetSections={setData.sections}
+            setId={setData.id}
           />
         </>
       )}
