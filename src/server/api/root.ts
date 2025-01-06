@@ -7,6 +7,7 @@ import {
   setSectionTypeRouter,
   songRouter,
   userRouter,
+  setSectionSongRouter,
 } from "@server/api/routers";
 
 /**
@@ -22,6 +23,7 @@ export const appRouter = createTRPCRouter({
   song: songRouter,
   eventType: eventTypeRouter,
   setSectionType: setSectionTypeRouter,
+  setSectionSong: setSectionSongRouter,
 });
 
 // export type definition of API
