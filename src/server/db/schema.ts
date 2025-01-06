@@ -237,36 +237,24 @@ export const setSections = createTable(
   },
 );
 
-export const setSectionSongs = createTable(
-  "set_section_songs",
-  {
-    setSectionId: uuid("set_section_id")
-      .references(() => setSections.id)
-      .notNull(),
-    songId: uuid("song_id")
-      .references(() => songs.id)
-      .notNull(),
-    position: integer("position").notNull(),
-    key: songKeyEnum("song_key"),
-    notes: text("notes"),
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),
-    updatedAt: timestamp("updatedAt", { withTimezone: true })
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),
-  },
-  (setSectionSongsTable) => {
-    return {
-      pk: primaryKey({
-        columns: [
-          setSectionSongsTable.setSectionId,
-          setSectionSongsTable.songId,
-        ],
-      }),
-    };
-  },
-);
+export const setSectionSongs = createTable("set_section_songs", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  setSectionId: uuid("set_section_id")
+    .references(() => setSections.id)
+    .notNull(),
+  songId: uuid("song_id")
+    .references(() => songs.id)
+    .notNull(),
+  position: integer("position").notNull(),
+  key: songKeyEnum("song_key"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+  updatedAt: timestamp("updatedAt", { withTimezone: true })
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+});
 
 /** drizzle relationships */
 export const organizationsRelations = relations(organizations, ({ many }) => ({
