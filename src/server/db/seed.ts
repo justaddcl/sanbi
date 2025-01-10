@@ -31,7 +31,7 @@ import {
   type NewSet,
   type NewSetSection,
   type NewSetSectionSong,
-  type SetSectionType,
+  type SetSection,
 } from "@lib/types/db";
 import { faker } from "@faker-js/faker";
 import { sql } from "drizzle-orm";
@@ -330,7 +330,7 @@ const seed = async () => {
   await db.execute(sql`TRUNCATE TABLE sanbi_set_section_songs CASCADE`);
 
   const createSeedForSetSection = async (
-    setSection: SetSectionType,
+    setSection: SetSection,
   ): Promise<NewSetSectionSong[]> => {
     const randomAmountOfSongs =
       Math.floor(Math.random() * MAX_AMOUNT_OF_SONGS_PER_SECTION) +
@@ -359,7 +359,7 @@ const seed = async () => {
   };
 
   const createSeedForSet = (
-    setSections: SetSectionType[],
+    setSections: SetSection[],
   ): Promise<NewSetSectionSong[]>[] =>
     setSections.map((setSection) => createSeedForSetSection(setSection));
 
