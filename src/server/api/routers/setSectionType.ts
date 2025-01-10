@@ -1,4 +1,7 @@
+import { type NewSetSectionType } from "@lib/types";
+import { insertSetSectionTypeSchema } from "@lib/types/zod";
 import { createTRPCRouter, organizationProcedure } from "@server/api/trpc";
+import { setSectionTypes } from "@server/db/schema";
 
 export const setSectionTypeRouter = createTRPCRouter({
   getTypes: organizationProcedure.query(async ({ ctx, input }) => {
@@ -18,4 +21,22 @@ export const setSectionTypeRouter = createTRPCRouter({
 
     return setSectionTypes;
   }),
+
+  create: organizationProcedure
+    .input(insertSetSectionTypeSchema)
+    .mutation(async ({ ctx, input }) => {
+      console.log("🤖 - [setSectionType/create] - input:", input);
+
+      const { organizationId, name } = input;
+
+      const newSetSectionType: NewSetSectionType = {
+        name,
+        organizationId,
+      };
+
+      return ctx.db
+        .insert(setSectionTypes)
+        .values(newSetSectionType)
+        .returning();
+    }),
 });
