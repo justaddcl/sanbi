@@ -203,7 +203,7 @@ export const songRouter = createTRPCRouter({
           },
           section: {
             id: setSections.id,
-            type: setSectionTypes.section,
+            typeName: setSectionTypes.name,
             typeId: setSectionTypes.id,
             position: setSections.position,
           },

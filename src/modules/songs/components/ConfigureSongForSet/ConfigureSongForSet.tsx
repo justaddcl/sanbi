@@ -56,7 +56,7 @@ const isClearable = (
 type NewSetSectionListItem = {
   id: string;
   type: {
-    section: string;
+    name: string;
   };
   clearable: boolean;
 };
@@ -177,9 +177,9 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
       setSectionTypesData
     ) {
       const setSectionTypes: ComboboxOption[] =
-        setSectionTypesData?.map((setSection) => ({
-          value: setSection.id,
-          label: setSection.section,
+        setSectionTypesData?.map((setSectionType) => ({
+          value: setSectionType.id,
+          label: setSectionType.name,
         })) ?? [];
 
       setSetSectionTypesOptions(setSectionTypes);
@@ -198,7 +198,7 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
     const newSetSectionItem: NewSetSectionListItem = {
       id: setSectionTypeToAdd,
       type: {
-        section: setSectionTypeToAdd,
+        name: setSectionTypeToAdd,
       },
       clearable: true,
     };
@@ -432,7 +432,7 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
                                     <RadioGroupItem value={setSection.id} />
                                   </FormControl>
                                   <FormLabel className="flex-1 cursor-pointer">
-                                    <Text>{setSection.type.section}</Text>
+                                    <Text>{setSection.type.name}</Text>
                                   </FormLabel>
                                 </div>
                                 {isClearable(setSection) &&

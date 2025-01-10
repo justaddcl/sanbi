@@ -200,7 +200,7 @@ export const sets = createTable("sets", {
 
 export const setSectionTypes = createTable("set_section_types", {
   id: uuid("id").primaryKey().defaultRandom(),
-  section: varchar("section").unique().notNull(),
+  name: varchar("name").unique().notNull(),
   createdAt: timestamp("created_at", { withTimezone: true })
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),

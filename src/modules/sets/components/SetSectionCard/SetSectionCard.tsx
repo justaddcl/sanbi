@@ -23,7 +23,7 @@ export const SetSectionCard: FC<SetSectionProps> = ({
       <header className="flex flex-col gap-2">
         <div className="flex justify-between">
           <Text asElement="h3" style="header-medium-semibold">
-            {type.section}
+            {type.name}
           </Text>
           <button className="flex h-6 w-6 place-content-center rounded border border-slate-300 p-[6px]">
             <DotsThree className="text-slate-900" size={12} />

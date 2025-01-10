@@ -80,7 +80,7 @@ export default async function Dashboard({
                 {orgSet.sections.map((section) => (
                   <SetListCardSection
                     key={section.id}
-                    title={section.type.section}
+                    title={section.type.name}
                   >
                     {section.songs.map((setSectionSong) => {
                       let indexStart = 1;

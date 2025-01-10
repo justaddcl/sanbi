@@ -166,9 +166,9 @@ const seed = async () => {
 
   /** seed the section types table */
   const seedSetSectionTypes: NewSetSectionType[] = [
-    { section: "Full band", organizationId: organization!.id },
-    { section: "Prayer", organizationId: organization!.id },
-    { section: `Lord's Supper`, organizationId: organization!.id },
+    { name: "Full band", organizationId: organization!.id },
+    { name: "Prayer", organizationId: organization!.id },
+    { name: `Lord's Supper`, organizationId: organization!.id },
   ];
   await db.execute(sql`TRUNCATE TABLE sanbi_set_section_types CASCADE`);
   const seededSectionTypes = await db
