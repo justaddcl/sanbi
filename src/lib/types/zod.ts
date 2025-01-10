@@ -2,6 +2,7 @@ import {
   organizationMemberships,
   organizations,
   sets,
+  setSections,
   setSectionSongs,
   setSectionTypes,
   songs,
@@ -72,6 +73,11 @@ export const songGetLastPlayInstanceSchema = songIdSchema;
  * Set section type schemas
  */
 export const insertSetSectionTypeSchema = createInsertSchema(setSectionTypes);
+
+/**
+ * Set section schemas
+ */
+export const insertSetSectionSchema = createInsertSchema(setSections);
 
 /**
  * Set section songs schemas
