@@ -34,7 +34,7 @@ import { redirect } from "next/navigation";
 import { api } from "@/trpc/react";
 import { HStack } from "@components/HStack";
 import { CommandGroup, CommandList } from "@components/ui/command";
-import { useForm } from "react-hook-form";
+import { type SubmitHandler, useForm } from "react-hook-form";
 import { insertSetSectionSongSchema } from "@lib/types/zod";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -44,24 +44,10 @@ import {
   FormField,
   FormItem,
   FormLabel,
+  FormMessage,
 } from "@components/ui/form";
 import { toast } from "sonner";
-
-// type guard to type-safely determine what kind of SetSectionListItem the object is
-const isClearable = (
-  setSectionListItem: SetSectionListItem,
-): setSectionListItem is NewSetSectionListItem =>
-  (setSectionListItem as NewSetSectionListItem).clearable !== undefined;
-
-type NewSetSectionListItem = {
-  id: string;
-  type: {
-    name: string;
-  };
-  clearable: boolean;
-};
-
-type SetSectionListItem = SetSectionWithSongs | NewSetSectionListItem;
+import { DevTool } from "@hookform/devtools";
 
 const createSetSectionSongsSchema = insertSetSectionSongSchema
   .pick({
@@ -99,20 +85,14 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
     ComboboxOption[]
   >([]);
 
-  const [setSectionsList, setSetSectionsList] =
-    useState<SetSectionListItem[]>(existingSetSections);
-
-  const [isAddingSection, setIsAddingSection] = useState<boolean>(
-    existingSetSections.length === 0,
-  );
-
-  const [setSectionTypeToAdd, setSetSectionTypeToAdd] = useState<string>("");
+  const [newSetSectionType, setNewSetSectionType] =
+    useState<ComboboxOption | null>(null);
 
   const [isAddSectionComboboxOpen, setIsAddSectionComboboxOpen] =
     useState<boolean>(false);
 
   const addSongToSetForm = useForm<AddSongToSetFormFields>({
-    mode: "onBlur",
+    // mode: "onBlur",
     resolver: zodResolver(createSetSectionSongsSchema),
     defaultValues: {
       songId: selectedSong.songId,
@@ -123,21 +103,16 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
   });
 
   const {
-    formState: { isDirty, isSubmitting, isValid, errors },
+    formState: { isDirty, isSubmitting, isValid },
     setValue,
-    getValues,
-    watch,
+    setError,
+    clearErrors,
   } = addSongToSetForm;
-  // console.log("🚀 ~ isDirty:", isDirty);
-  // console.log("🚀 ~ isSubmitting:", isSubmitting);
-  // console.log("🚀 ~ isValid:", isValid);
-  const watchKey = watch();
-  console.log("🚀 ~ watchFields:", watchKey);
-  console.log("🚀 ~ errors:", errors);
-
   const shouldAddSongBeDisabled = !isDirty || !isValid || isSubmitting;
 
   const addSetSectionSongMutation = api.setSectionSong.create.useMutation();
+  const createSetSectionTypeMutation = api.setSectionType.create.useMutation();
+  const createSetSectionMutation = api.setSection.create.useMutation();
   const apiUtils = api.useUtils();
 
   const {
@@ -170,6 +145,22 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
     { enabled: !!userMembership },
   );
 
+  const {
+    data: sectionsForSetData,
+    error: sectionsForSetQueryError,
+    isLoading: isSectionsForSetQueryLoading,
+  } = api.setSection.getSectionsForSet.useQuery(
+    { organizationId: userMembership.organizationId, setId },
+    { enabled: !!userMembership, placeholderData: existingSetSections },
+  );
+
+  const [isAddingSection, setIsAddingSection] = useState<boolean>(
+    !isSectionsForSetQueryLoading &&
+      !sectionsForSetQueryError &&
+      !!sectionsForSetData &&
+      sectionsForSetData.length === 0,
+  );
+
   useEffect(() => {
     if (
       !isSetSectionTypesQueryLoading &&
@@ -178,7 +169,7 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
     ) {
       const setSectionTypes: ComboboxOption[] =
         setSectionTypesData?.map((setSectionType) => ({
-          value: setSectionType.id,
+          id: setSectionType.id,
           label: setSectionType.name,
         })) ?? [];
 
@@ -190,86 +181,148 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
     setSectionTypesQueryError,
   ]);
 
+  if (
+    isSectionsForSetQueryLoading ||
+    !!sectionsForSetQueryError ||
+    sectionsForSetData === undefined
+  ) {
+    // TODO: handle this case?
+    return;
+  }
+
   if (isUserQueryLoading || !isAuthLoaded) {
     return <Text>Loading user data...</Text>;
   }
 
-  const handleAddSetSection = () => {
-    const newSetSectionItem: NewSetSectionListItem = {
-      id: setSectionTypeToAdd,
-      type: {
-        name: setSectionTypeToAdd,
-      },
-      clearable: true,
-    };
+  const handleAddSetSection = async (
+    clickEvent: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+  ) => {
+    // console.log("🚀 ~ handleAddSetSection ~ clickEvent:", clickEvent);
 
-    // TODO: add some UI indicator that this section already exists
-    if (
-      !setSectionsList.some(
-        (setSection) => setSection.id === setSectionTypeToAdd,
-      )
-    ) {
-      setSetSectionsList((currentSectionsList) => [
-        ...currentSectionsList,
-        newSetSectionItem,
-      ]);
+    clickEvent.preventDefault();
 
-      setValue("setSectionId", setSectionTypeToAdd, {
-        shouldValidate: false,
-        shouldDirty: true,
-        shouldTouch: true,
-      });
-
-      setSetSectionTypeToAdd("");
+    if (!newSetSectionType) {
+      // TODO: this case shouldn't happen, but how would we properly handle it just in case?
+      return;
     }
-  };
 
-  const handleRemoveTempSetSection = (setSectionIdToRemove: string) => {
-    const modifiedSetSectionsList = setSectionsList.filter(
-      (setSection) => setSection.id !== setSectionIdToRemove,
+    const setAlreadyHasSelectedSection = sectionsForSetData.some(
+      (setSection) => setSection.sectionTypeId === newSetSectionType.id,
     );
 
-    setSetSectionsList(modifiedSetSectionsList);
+    if (!setAlreadyHasSelectedSection) {
+      const positionForNewSetSection = sectionsForSetData.length;
+      console.log(
+        "🚀 ~ handleAddSetSection ~ positionForNewSetSection:",
+        positionForNewSetSection,
+      );
 
-    if (getValues("setSectionId") === setSectionIdToRemove) {
-      setValue("setSectionId", "", {
-        shouldValidate: false,
-        shouldDirty: true,
-        shouldTouch: true,
+      await createSetSectionMutation.mutateAsync(
+        {
+          setId,
+          organizationId: userMembership.organizationId,
+          sectionTypeId: newSetSectionType.id,
+          position: positionForNewSetSection,
+        },
+        {
+          async onSuccess(createSetSectionMutationResult) {
+            const [newSetSection] = createSetSectionMutationResult;
+
+            console.log(
+              "🤖 - [createSetSectionMutation/onSuccess] ~ mutation result: ",
+              createSetSectionMutationResult,
+            );
+
+            if (newSetSection) {
+              setValue("setSectionId", newSetSection.id, {
+                shouldValidate: true,
+                shouldDirty: true,
+                shouldTouch: true,
+              });
+
+              setNewSetSectionType(null);
+
+              toast.success(`Section added to set`);
+
+              await apiUtils.setSection.getSectionsForSet.refetch({
+                organizationId: userMembership.organizationId,
+                setId,
+              });
+
+              await apiUtils.set.get.invalidate({
+                setId,
+                organizationId: userMembership.organizationId,
+              });
+            }
+          },
+        },
+      );
+    } else {
+      setError("setSectionId", {
+        type: "custom",
+        message: "Section already exists on set",
       });
     }
   };
 
-  const handleNewSetSectionOptionCreate = () => {
+  // FIXME: this would need to be updated to delete setSection from DB - should this be done here?
+  // const handleRemoveTempSetSection = (setSectionIdToRemove: string) => {
+  //   const modifiedSetSectionsList = setSectionsList.filter(
+  //     (setSection) => setSection.id !== setSectionIdToRemove,
+  //   );
+
+  //   if (getValues("setSectionId") === setSectionIdToRemove) {
+  //     setValue("setSectionId", "", {
+  //       shouldValidate: false,
+  //       shouldDirty: true,
+  //       shouldTouch: true,
+  //     });
+  //   }
+  // };
+
+  const handleCreateNewSetSectionType = async () => {
     const trimmedInput = newSetSectionInputValue.trim();
 
-    setSetSectionTypesOptions((currentOptions) => [
-      ...currentOptions,
+    await createSetSectionTypeMutation.mutateAsync(
+      { name: trimmedInput, organizationId: userMembership.organizationId },
       {
-        value: trimmedInput,
-        label: trimmedInput,
-      },
-    ]);
+        async onSuccess(createSetSectionTypeMutationResult) {
+          const [newSetSectionType] = createSetSectionTypeMutationResult;
 
-    setSetSectionTypeToAdd(trimmedInput);
+          if (newSetSectionType) {
+            toast.success(`${newSetSectionType.name} set section type created`);
+
+            console.log(
+              "🤖 [createSetSectionTypeMutation/onSuccess] ~ mutation result:",
+              createSetSectionTypeMutationResult,
+            );
+
+            setNewSetSectionType({
+              id: newSetSectionType.id,
+              label: newSetSectionType.name,
+            });
+
+            await apiUtils.setSectionType.getTypes.invalidate({
+              organizationId: userMembership.organizationId,
+            });
+          }
+        },
+      },
+    );
+
     setIsAddSectionComboboxOpen(false);
     setNewSetSectionInputValue("");
   };
 
-  const handleAddSongToSetSubmit = async (
-    formValues: AddSongToSetFormFields,
-  ) => {
-    console.log(
-      "🚀 ~ ConfigureSongForSet ~ handleAddSongToSetSubmit ~ formValues:",
-      formValues,
-    );
+  const handleAddSongToSetSubmit: SubmitHandler<
+    AddSongToSetFormFields
+  > = async (formValues: AddSongToSetFormFields) => {
     const { songId, key, setSectionId, addAnotherSong } = formValues;
 
-    const setSectionToAddTo = existingSetSections.find(
+    const setSectionToAddTo = sectionsForSetData.find(
       (setSection) => setSection.id === setSectionId,
     );
     const setSectionSongPosition = setSectionToAddTo!.songs.length; // using non-null assertion since in the happiest path where we don't add any new set sections to the set, this set section already exists
-    console.log("🚀 ~ setSectionSongPosition:", setSectionSongPosition);
 
     await addSetSectionSongMutation.mutateAsync(
       {
@@ -292,9 +345,10 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
 
           toast.success("Song added to the set!");
 
-          if (addAnotherSong) {
-            setDialogStep("search");
-          } else {
+          setDialogStep("search");
+
+          if (!addAnotherSong) {
+            // close the dialog
             onSubmit?.();
           }
         },
@@ -334,6 +388,7 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
           <Form {...addSongToSetForm}>
             <form
               onSubmit={addSongToSetForm.handleSubmit(handleAddSongToSetSubmit)}
+              className="flex flex-col gap-4"
             >
               <section className="flex flex-col gap-2">
                 <FormField
@@ -394,7 +449,7 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
                           />
                           <Text>
                             Looking up last time {selectedSong.name} was
-                            played...{" "}
+                            played...
                           </Text>
                         </>
                       )}
@@ -409,7 +464,7 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
                 </div>
               </section>
               <section className="flex flex-col text-slate-700">
-                {setSectionsList.length > 0 && (
+                {sectionsForSetData.length > 0 && (
                   <FormField
                     control={addSongToSetForm.control}
                     name="setSectionId"
@@ -418,11 +473,11 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
                         <FormLabel>Which part of the set?</FormLabel>
                         <FormControl>
                           <RadioGroup
-                            {...field}
                             onValueChange={field.onChange}
                             defaultValue={field.value}
+                            value={field.value}
                           >
-                            {setSectionsList.map((setSection) => (
+                            {sectionsForSetData.map((setSection) => (
                               <FormItem
                                 key={setSection.id}
                                 className="flex items-center space-y-0 rounded border border-slate-200"
@@ -435,7 +490,7 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
                                     <Text>{setSection.type.name}</Text>
                                   </FormLabel>
                                 </div>
-                                {isClearable(setSection) &&
+                                {/* {isClearable(setSection) &&
                                   setSection.clearable && (
                                     <Button
                                       variant="ghost"
@@ -449,16 +504,17 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
                                     >
                                       <X />
                                     </Button>
-                                  )}
+                                  )} */}
                               </FormItem>
                             ))}
                           </RadioGroup>
                         </FormControl>
+                        <FormMessage />
                       </FormItem>
                     )}
                   />
                 )}
-                {setSectionsList.length === 0 && (
+                {sectionsForSetData.length === 0 && (
                   <div className="mb-4 flex w-full flex-col items-center rounded border border-dashed border-slate-200 py-3">
                     <Text
                       style="header-small-semibold"
@@ -484,13 +540,12 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
                 )}
                 {isAddingSection && (
                   <>
-                    {/* TODO: does the combobox value need to of combobox option or can the setValue be the work-around? */}
                     <Combobox
                       placeholder="Add a set section"
                       options={setSectionTypesOptions}
-                      value={setSectionTypeToAdd}
+                      value={newSetSectionType}
                       onChange={(selectedValue) => {
-                        setSetSectionTypeToAdd(selectedValue);
+                        setNewSetSectionType(selectedValue);
                       }}
                       open={isAddSectionComboboxOpen}
                       setOpen={setIsAddSectionComboboxOpen}
@@ -518,7 +573,12 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
                             variant="ghost"
                             size="sm"
                             className="flex-grow-0"
-                            onClick={handleNewSetSectionOptionCreate}
+                            onClick={handleCreateNewSetSectionType}
+                            isLoading={createSetSectionTypeMutation.isPending}
+                            disabled={
+                              newSetSectionInputValue === "" ||
+                              createSetSectionTypeMutation.isPending
+                            }
                           >
                             <Plus />
                             Create
@@ -527,13 +587,14 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
                       </CommandGroup>
                     </Combobox>
                     <div className="mt-2 flex justify-end gap-2">
-                      {setSectionsList.length > 0 && (
+                      {sectionsForSetData.length > 0 && (
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => {
                             setIsAddingSection(false);
-                            setSetSectionTypeToAdd("");
+                            clearErrors("setSectionId");
+                            setNewSetSectionType(null);
                           }}
                         >
                           Cancel
@@ -542,8 +603,15 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
                       <Button
                         variant="secondary"
                         size="sm"
-                        onClick={handleAddSetSection}
-                        disabled={setSectionTypeToAdd === ""}
+                        onClick={(clickEvent) =>
+                          handleAddSetSection(clickEvent)
+                        }
+                        disabled={
+                          !newSetSectionType ||
+                          newSetSectionType.id === "" ||
+                          createSetSectionMutation.isPending
+                        }
+                        isLoading={createSetSectionMutation.isPending}
                       >
                         Add
                       </Button>
@@ -575,6 +643,7 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
                   Add song
                 </Button>
               </div>
+              <DevTool control={addSongToSetForm.control} />
             </form>
           </Form>
         </DialogDescription>

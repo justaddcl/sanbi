@@ -27,7 +27,7 @@ import {
 } from "@phosphor-icons/react/dist/ssr";
 
 export type ComboboxOption = {
-  value: string;
+  id: string;
   label: string;
 };
 
@@ -37,8 +37,8 @@ type ComboboxProps = {
   searchPlaceholder?: string;
   emptyState?: React.ReactNode;
   options: ComboboxOption[];
-  value: string;
-  onChange: (selectedValue: string) => void;
+  value: ComboboxOption | null;
+  onChange: (selectedOption: ComboboxProps["value"]) => void;
   open: boolean;
   setOpen: React.Dispatch<React.SetStateAction<ComboboxProps["open"]>>;
   loading?: boolean;
@@ -71,7 +71,9 @@ export const Combobox: React.FC<React.PropsWithChildren<ComboboxProps>> = ({
         >
           <Text>
             {value
-              ? options.find((option) => option.value === value)?.label
+              ? options.find((option) => {
+                  return option.id === value.id;
+                })?.label
               : placeholder}
           </Text>
           {loading && (
@@ -89,10 +91,10 @@ export const Combobox: React.FC<React.PropsWithChildren<ComboboxProps>> = ({
             <CommandGroup>
               {options.map((option) => (
                 <CommandItem
-                  key={option.value}
-                  value={option.value}
-                  onSelect={(currentValue) => {
-                    onChange(currentValue === value ? "" : currentValue);
+                  key={option.id}
+                  value={option.label}
+                  onSelect={() => {
+                    onChange(option.id === value?.id ? null : option);
                     setOpen(false);
                   }}
                 >
@@ -100,7 +102,9 @@ export const Combobox: React.FC<React.PropsWithChildren<ComboboxProps>> = ({
                   <Check
                     className={cn(
                       "ml-auto",
-                      value === option.value ? "opacity-100" : "opacity-0",
+                      value && value.id === option.id
+                        ? "opacity-100"
+                        : "opacity-0",
                     )}
                   />
                 </CommandItem>
