@@ -8,7 +8,7 @@ export const setSectionSongRouter = createTRPCRouter({
   create: organizationProcedure
     .input(insertSetSectionSongSchema)
     .mutation(async ({ ctx, input }) => {
-      console.log("🤖 - [setSectionSong/create]");
+      console.log("🤖 - [setSectionSong/create] - input:", input);
 
       const { user } = ctx;
       const { organizationId, songId, setSectionId, key, position, notes } =
