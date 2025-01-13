@@ -25,7 +25,9 @@ let db: PostgresJsDatabase<typeof schema> | VercelPgDatabase<typeof schema>;
 const conn = globalForDb.conn ?? postgres(env.DATABASE_URL);
 if (env.NODE_ENV !== "production") {
   globalForDb.conn = conn;
-  const queryClient = postgres(env.DATABASE_URL);
+  const queryClient = postgres(env.DATABASE_URL, {
+    max: 5,
+  });
   db = LocalDrizzle(queryClient, { schema });
 } else {
   db = VercelDrizzle(sql, { schema });
