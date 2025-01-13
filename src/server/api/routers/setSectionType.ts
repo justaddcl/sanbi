@@ -12,6 +12,7 @@ export const setSectionTypeRouter = createTRPCRouter({
     const setSectionTypes = await ctx.db.query.setSectionTypes.findMany({
       where: (setSectionTypes, { eq }) =>
         eq(setSectionTypes.organizationId, input.organizationId),
+      orderBy: (setSectionTypes, { asc }) => [asc(setSectionTypes.name)],
     });
 
     console.log(
