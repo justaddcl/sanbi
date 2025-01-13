@@ -35,8 +35,10 @@ export default async function Dashboard({
     where: eq(sets.organizationId, params.organization),
     with: {
       sections: {
+        orderBy: (sections, { asc }) => [asc(sections.position)],
         with: {
           songs: {
+            orderBy: (songs, { asc }) => [asc(songs.position)],
             with: {
               song: true,
             },

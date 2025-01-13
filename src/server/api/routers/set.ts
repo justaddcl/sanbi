@@ -30,9 +30,11 @@ export const setRouter = createTRPCRouter({
         with: {
           eventType: true,
           sections: {
+            orderBy: (sections, { asc }) => [asc(sections.position)],
             with: {
               type: true,
               songs: {
+                orderBy: (songs, { asc }) => [asc(songs.position)],
                 with: {
                   song: true,
                 },
