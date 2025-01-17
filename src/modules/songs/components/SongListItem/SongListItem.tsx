@@ -44,7 +44,7 @@ export const SongListItem: FC<SongListItemProps> = ({
       </div>
       <div className="flex gap-3">
         {lastPlayed ? (
-          <div className="flex items-center gap-1">
+          <div className="flex h-6 items-center gap-1">
             <ClockCounterClockwise className="text-slate-400" size="16px" />
             <Text style="body-small" className="text-slate-500">
               {distanceFromLastPlayedInWeeks > 0
@@ -58,7 +58,7 @@ export const SongListItem: FC<SongListItemProps> = ({
           </Text>
         )}
         {tags && tags.length > 0 && (
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             {tags.map((tag) => (
               <Badge key={tag} label={tag} />
             ))}
