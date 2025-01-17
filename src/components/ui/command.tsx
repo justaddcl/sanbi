@@ -64,7 +64,6 @@ const CommandDialog: React.FC<CommandDialogProps> = ({
             "top-0": fixed,
             "md:mt-0": fixed,
             "md:top-[12%]": fixed,
-            "lg:top-[25%]": fixed,
           },
         )}
       >

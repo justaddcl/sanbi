@@ -36,8 +36,7 @@ import {
   DrawerTrigger,
   type DrawerTriggerProps,
 } from "@components/ui/drawer";
-
-const DESKTOP_MEDIA_QUERY_STRING = "(min-width: 1025px)";
+import { DESKTOP_MEDIA_QUERY_STRING } from "@lib/constants/mediaQueries";
 
 type ResponsiveDialogProps = React.PropsWithChildren & {
   open?: boolean;

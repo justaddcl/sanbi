@@ -1,6 +1,6 @@
 import { Combobox, type ComboboxOption } from "@components/ui/combobox";
 import { Input } from "@components/ui/input";
-import { songKeys } from "@lib/constants";
+import { DESKTOP_MEDIA_QUERY_STRING, songKeys } from "@lib/constants";
 import { formatSongKey } from "@lib/string/formatSongKey";
 import { cn } from "@lib/utils";
 import {
@@ -48,6 +48,7 @@ import {
 } from "@components/ui/form";
 import { toast } from "sonner";
 import { DevTool } from "@hookform/devtools";
+import { useMediaQuery } from "usehooks-ts";
 
 const createSetSectionSongsSchema = insertSetSectionSongSchema
   .pick({
@@ -78,6 +79,9 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
   onSubmit,
   setId,
 }) => {
+  const isDesktop = useMediaQuery(DESKTOP_MEDIA_QUERY_STRING);
+  const textSize = isDesktop ? "text-base" : "text-xs";
+
   const [newSetSectionInputValue, setNewSetSectionInputValue] =
     useState<string>("");
 
@@ -382,7 +386,7 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
               lastPlayed={selectedSong?.lastPlayedDate}
               tags={selectedSong?.tags}
               hidePreferredKey
-              size="sm"
+              size={isDesktop ? "md" : "sm"}
             />
           </div>
           <Form {...addSongToSetForm}>
@@ -396,7 +400,9 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
                   name="key"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-xs font-normal text-slate-900">
+                      <FormLabel
+                        className={cn("font-normal text-slate-900", textSize)}
+                      >
                         Song key
                       </FormLabel>
                       <FormControl>
@@ -404,7 +410,7 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
                           onValueChange={field.onChange}
                           defaultValue={field.value as string}
                         >
-                          <SelectTrigger className="text-xs">
+                          <SelectTrigger className={cn(textSize)}>
                             <SelectValue placeholder="Select song key" />
                           </SelectTrigger>
                           <SelectContent>
@@ -420,7 +426,7 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
                                 <SelectItem
                                   key={key}
                                   value={key}
-                                  className="text-xs"
+                                  className={cn(textSize)}
                                 >
                                   {formatSongKey(key)}
                                   {appendedText.length > 0 &&
@@ -444,9 +450,10 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
                   </div>
                   <div className="flex items-center gap-1">
                     <ClockCounterClockwise />
-                    {/* TODO: get the key the song was last played in - this is a new query */}
                     <HStack className="items-center">
-                      <Text style="small">Last played:</Text>
+                      <Text style={isDesktop ? "body-small" : "small"}>
+                        Last played:
+                      </Text>
                       {isLastPlayInstanceQueryLoading && (
                         <>
                           <CircleNotch
@@ -476,7 +483,9 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
                     name="setSectionId"
                     render={({ field }) => (
                       <FormItem className="mb-2">
-                        <FormLabel className="text-xs font-normal text-slate-900">
+                        <FormLabel
+                          className={cn("font-normal text-slate-900", textSize)}
+                        >
                           Which part of the set?
                         </FormLabel>
                         <FormControl>
@@ -498,7 +507,7 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
                                     />
                                   </FormControl>
                                   <FormLabel className="flex-1 cursor-pointer ">
-                                    <Text className="text-xs">
+                                    <Text className={cn(textSize)}>
                                       {setSection.type.name}
                                     </Text>
                                   </FormLabel>
@@ -545,11 +554,13 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
                   <Button
                     size="sm"
                     variant="ghost"
-                    className="h-8 border border-dashed"
+                    className={cn("border border-dashed", [
+                      !isDesktop && "h-8",
+                    ])}
                     onClick={() => setIsAddingSection(true)}
                   >
                     <Plus />
-                    <Text className="text-xs">Add another section</Text>
+                    <Text className={cn(textSize)}>Add another section</Text>
                   </Button>
                 )}
                 {isAddingSection && (
@@ -565,7 +576,7 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
                       setOpen={setIsAddSectionComboboxOpen}
                       loading={isSetSectionTypesQueryLoading}
                       disabled={isSetSectionTypesQueryLoading}
-                      textStyles="text-slate-700 text-xs"
+                      textStyles={cn("text-slate-700", textSize)}
                     >
                       <CommandGroup heading="Create new section type">
                         <div
@@ -634,7 +645,7 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
                   </>
                 )}
               </section>
-              <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:justify-end">
+              <div className="flex flex-col gap-4 sm:flex-row sm:justify-end">
                 <FormField
                   control={addSongToSetForm.control}
                   name="addAnotherSong"
@@ -646,7 +657,7 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
                           onCheckedChange={field.onChange}
                         />
                       </FormControl>
-                      <FormLabel className="text-xs">
+                      <FormLabel className={cn(textSize)}>
                         Add another song
                       </FormLabel>
                     </FormItem>
