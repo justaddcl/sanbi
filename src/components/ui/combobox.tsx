@@ -43,6 +43,7 @@ type ComboboxProps = {
   setOpen: React.Dispatch<React.SetStateAction<ComboboxProps["open"]>>;
   loading?: boolean;
   disabled?: boolean;
+  textStyles?: string;
 };
 
 export const Combobox: React.FC<React.PropsWithChildren<ComboboxProps>> = ({
@@ -57,6 +58,7 @@ export const Combobox: React.FC<React.PropsWithChildren<ComboboxProps>> = ({
   setOpen,
   loading = false,
   disabled = false,
+  textStyles,
   children,
 }) => {
   return (
@@ -69,7 +71,7 @@ export const Combobox: React.FC<React.PropsWithChildren<ComboboxProps>> = ({
           className="min-w-[300px] max-w-full justify-between"
           disabled={disabled}
         >
-          <Text>
+          <Text className={cn(textStyles)}>
             {value
               ? options.find((option) => {
                   return option.id === value.id;
@@ -97,6 +99,7 @@ export const Combobox: React.FC<React.PropsWithChildren<ComboboxProps>> = ({
                     onChange(option.id === value?.id ? null : option);
                     setOpen(false);
                   }}
+                  className={cn(textStyles)}
                 >
                   {option.label}
                   <Check

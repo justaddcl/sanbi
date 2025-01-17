@@ -367,9 +367,9 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
           </Button>
           <DialogTitle className="text-center">Add song to set</DialogTitle>
         </div>
-        <DialogDescription className="text-700 mt-6 flex flex-col gap-6">
+        <DialogDescription className="mt-6 flex flex-col gap-6">
           <div
-            className="cursor-pointer rounded-lg border p-4 text-slate-900 transition-colors hover:bg-accent"
+            className="cursor-pointer rounded-lg border px-3 py-2 text-slate-900 transition-colors hover:bg-accent"
             onClick={goBackToSearch}
           >
             <SongListItem
@@ -382,26 +382,29 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
               lastPlayed={selectedSong?.lastPlayedDate}
               tags={selectedSong?.tags}
               hidePreferredKey
+              size="sm"
             />
           </div>
           <Form {...addSongToSetForm}>
             <form
               onSubmit={addSongToSetForm.handleSubmit(handleAddSongToSetSubmit)}
-              className="flex flex-col gap-4"
+              className="flex flex-col gap-6"
             >
-              <section className="flex flex-col gap-2">
+              <section className="flex flex-col gap-2 text-slate-700">
                 <FormField
                   control={addSongToSetForm.control}
                   name="key"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Song key</FormLabel>
+                      <FormLabel className="text-xs font-normal text-slate-900">
+                        Song key
+                      </FormLabel>
                       <FormControl>
                         <Select
                           onValueChange={field.onChange}
                           defaultValue={field.value as string}
                         >
-                          <SelectTrigger>
+                          <SelectTrigger className="text-xs">
                             <SelectValue placeholder="Select song key" />
                           </SelectTrigger>
                           <SelectContent>
@@ -414,7 +417,11 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
                                 appendedText.push("last played in");
                               }
                               return (
-                                <SelectItem key={key} value={key}>
+                                <SelectItem
+                                  key={key}
+                                  value={key}
+                                  className="text-xs"
+                                >
                                   {formatSongKey(key)}
                                   {appendedText.length > 0 &&
                                     ` (${appendedText.join(", ")})`}
@@ -469,7 +476,9 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
                     name="setSectionId"
                     render={({ field }) => (
                       <FormItem className="mb-2">
-                        <FormLabel>Which part of the set?</FormLabel>
+                        <FormLabel className="text-xs font-normal text-slate-900">
+                          Which part of the set?
+                        </FormLabel>
                         <FormControl>
                           <RadioGroup
                             onValueChange={field.onChange}
@@ -483,10 +492,15 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
                               >
                                 <div className="flex w-full items-center gap-2 py-2 pl-4">
                                   <FormControl>
-                                    <RadioGroupItem value={setSection.id} />
+                                    <RadioGroupItem
+                                      value={setSection.id}
+                                      className="size-3"
+                                    />
                                   </FormControl>
-                                  <FormLabel className="flex-1 cursor-pointer">
-                                    <Text>{setSection.type.name}</Text>
+                                  <FormLabel className="flex-1 cursor-pointer ">
+                                    <Text className="text-xs">
+                                      {setSection.type.name}
+                                    </Text>
                                   </FormLabel>
                                 </div>
                                 {/* {isClearable(setSection) &&
@@ -529,12 +543,13 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
                 )}
                 {!isAddingSection && (
                   <Button
+                    size="sm"
                     variant="ghost"
-                    className="border border-dashed"
+                    className="h-8 border border-dashed"
                     onClick={() => setIsAddingSection(true)}
                   >
                     <Plus />
-                    <Text>Add another section</Text>
+                    <Text className="text-xs">Add another section</Text>
                   </Button>
                 )}
                 {isAddingSection && (
@@ -550,6 +565,7 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
                       setOpen={setIsAddSectionComboboxOpen}
                       loading={isSetSectionTypesQueryLoading}
                       disabled={isSetSectionTypesQueryLoading}
+                      textStyles="text-slate-700 text-xs"
                     >
                       <CommandGroup heading="Create new section type">
                         <div
@@ -630,11 +646,14 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
                           onCheckedChange={field.onChange}
                         />
                       </FormControl>
-                      <FormLabel>Add another song</FormLabel>
+                      <FormLabel className="text-xs">
+                        Add another song
+                      </FormLabel>
                     </FormItem>
                   )}
                 />
                 <Button
+                  size="sm"
                   type="submit"
                   disabled={shouldAddSongBeDisabled}
                   isLoading={isSubmitting}

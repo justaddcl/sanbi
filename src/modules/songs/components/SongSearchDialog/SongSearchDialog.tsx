@@ -18,6 +18,7 @@ type SongSearchDialogProps = {
   open: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
   onSongSelect?: (selectedSong?: SongSearchResult) => void;
+  // TODO: remove prop if unnecessary
   existingSetSections: SetSectionWithSongs[];
   setId: string;
 };

@@ -5,6 +5,7 @@ import { SongKey } from "@components/SongKey";
 import { ClockCounterClockwise } from "@phosphor-icons/react/dist/ssr";
 import { differenceInCalendarDays, differenceInCalendarWeeks } from "date-fns";
 import { Badge } from "@components/Badge";
+import { cn } from "@lib/utils";
 
 export type SongListItemSongData = Pick<
   Song,
@@ -16,6 +17,7 @@ export type SongListItemProps = {
   lastPlayed: Date | null;
   tags?: Tag["tag"][];
   hidePreferredKey?: boolean;
+  size?: "sm" | "md";
 };
 
 export const SongListItem: FC<SongListItemProps> = ({
@@ -23,6 +25,7 @@ export const SongListItem: FC<SongListItemProps> = ({
   lastPlayed,
   tags,
   hidePreferredKey,
+  size = "md",
 }) => {
   const distanceFromLastPlayedInDays = differenceInCalendarDays(
     new Date(),
@@ -35,9 +38,15 @@ export const SongListItem: FC<SongListItemProps> = ({
   );
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className={cn("flex flex-col gap-2", [size === "sm" && "gap-1"])}>
       <div className="flex items-center gap-2">
-        <Text style="header-medium-semibold">{song.name}</Text>
+        <Text
+          style={
+            size === "sm" ? "header-small-semibold" : "header-medium-semibold"
+          }
+        >
+          {song.name}
+        </Text>
         {!hidePreferredKey && (
           <SongKey size="medium" songKey={song.preferredKey} />
         )}
@@ -60,7 +69,7 @@ export const SongListItem: FC<SongListItemProps> = ({
         {tags && tags.length > 0 && (
           <div className="flex flex-wrap gap-2">
             {tags.map((tag) => (
-              <Badge key={tag} label={tag} />
+              <Badge key={tag} label={tag} size={size} />
             ))}
           </div>
         )}
