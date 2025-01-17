@@ -361,12 +361,11 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
   return (
     <CommandList className="max-h-[600px] lg:max-h-[900px]">
       <CommandGroup>
-        {/* FIXME: the title should be aligned center in the center of the dialog */}
-        <div className="flex w-1/2 items-center justify-between">
+        <div className="grid grid-cols-[40px_1fr_40px] items-center">
           <Button size="icon" variant="ghost" onClick={goBackToSearch}>
             <CaretLeft />
           </Button>
-          <DialogTitle>Add song to set</DialogTitle>
+          <DialogTitle className="text-center">Add song to set</DialogTitle>
         </div>
         <DialogDescription className="text-700 mt-6 flex flex-col gap-6">
           <div
