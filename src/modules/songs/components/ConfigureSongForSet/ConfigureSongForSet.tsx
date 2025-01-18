@@ -49,20 +49,25 @@ import {
 import { toast } from "sonner";
 import { DevTool } from "@hookform/devtools";
 import { useMediaQuery } from "usehooks-ts";
+import { Textarea } from "@components/ui/textarea";
 
 const createSetSectionSongsSchema = insertSetSectionSongSchema
   .pick({
     songId: true,
     setSectionId: true,
     key: true,
+    notes: true,
   })
   .extend({
     addAnotherSong: z.boolean(),
   });
 
-export type AddSongToSetFormFields = z.infer<
-  typeof createSetSectionSongsSchema
->;
+export type AddSongToSetFormFields = Omit<
+  z.infer<typeof createSetSectionSongsSchema>,
+  "notes"
+> & {
+  notes: NonNullable<z.infer<typeof createSetSectionSongsSchema>["notes"]>;
+};
 
 type ConfigureSongForSetProps = {
   existingSetSections: SetSectionWithSongs[];
@@ -103,6 +108,7 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
       setSectionId: undefined,
       key: selectedSong.preferredKey,
       addAnotherSong: false,
+      notes: "",
     },
   });
 
@@ -321,7 +327,7 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
   const handleAddSongToSetSubmit: SubmitHandler<
     AddSongToSetFormFields
   > = async (formValues: AddSongToSetFormFields) => {
-    const { songId, key, setSectionId, addAnotherSong } = formValues;
+    const { songId, key, setSectionId, addAnotherSong, notes } = formValues;
 
     const setSectionToAddTo = sectionsForSetData.find(
       (setSection) => setSection.id === setSectionId,
@@ -335,6 +341,7 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
         setSectionId,
         key: key!,
         position: setSectionSongPosition,
+        notes: notes || null,
       },
       {
         async onSuccess(data) {
@@ -622,6 +629,7 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
                             clearErrors("setSectionId");
                             setNewSetSectionType(null);
                           }}
+                          className={cn(textSize)}
                         >
                           Cancel
                         </Button>
@@ -638,12 +646,31 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
                           createSetSectionMutation.isPending
                         }
                         isLoading={createSetSectionMutation.isPending}
+                        className={cn(textSize)}
                       >
                         Add
                       </Button>
                     </div>
                   </>
                 )}
+              </section>
+              <section>
+                <FormField
+                  control={addSongToSetForm.control}
+                  name="notes"
+                  render={({ field }) => (
+                    <FormItem className="">
+                      <FormLabel
+                        className={cn("font-normal text-slate-900", textSize)}
+                      >
+                        Song notes
+                      </FormLabel>
+                      <FormControl>
+                        <Textarea {...field} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
               </section>
               <div className="flex flex-col gap-4 sm:flex-row sm:justify-end">
                 <FormField
