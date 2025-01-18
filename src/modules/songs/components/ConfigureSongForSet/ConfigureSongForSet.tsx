@@ -7,12 +7,10 @@ import {
   CaretLeft,
   ClockCounterClockwise,
   Heart,
-  X,
   Plus,
   CircleNotch,
 } from "@phosphor-icons/react/dist/ssr";
 import { DialogTitle, DialogDescription } from "@components/ui/dialog";
-import { Label } from "@components/ui/label";
 import { RadioGroupItem, RadioGroup } from "@components/ui/radio-group";
 import {
   Select,
@@ -450,7 +448,7 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
                 <div className="flex gap-2 text-slate-500">
                   <div className="flex items-center gap-1">
                     <Heart />
-                    <Text style="small">
+                    <Text style={isDesktop ? "body-small" : "small"}>
                       Preferred key: {formatSongKey(selectedSong.preferredKey!)}
                       {/* used the non-null assertion since all songs should have a selected key */}
                     </Text>
@@ -467,7 +465,7 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
                             size={12}
                             className="mr-2 h-4 w-4 animate-spin"
                           />
-                          <Text>
+                          <Text style={isDesktop ? "body-small" : "small"}>
                             Looking up last time {selectedSong.name} was
                             played...
                           </Text>
@@ -475,7 +473,10 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
                       )}
                       {!isLastPlayInstanceQueryLoading &&
                         lastPlayInstance?.song.key && (
-                          <Text style="small" className="ml-1">
+                          <Text
+                            style={isDesktop ? "body-small" : "small"}
+                            className="ml-1"
+                          >
                             {formatSongKey(lastPlayInstance.song.key)}
                           </Text>
                         )}
@@ -684,7 +685,9 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
                           onCheckedChange={field.onChange}
                         />
                       </FormControl>
-                      <FormLabel className={cn(textSize)}>
+                      <FormLabel
+                        className={cn("font-normal text-slate-700", textSize)}
+                      >
                         Add another song
                       </FormLabel>
                     </FormItem>
