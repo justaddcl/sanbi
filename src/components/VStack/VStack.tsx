@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 import { type PolymorphicComponentProps } from "@lib/types";
 
-export const HStack = <HTMLElement extends React.ElementType = "div">({
+export const VStack = <HTMLElement extends React.ElementType = "div">({
   as,
   children,
   className,
@@ -9,7 +9,7 @@ export const HStack = <HTMLElement extends React.ElementType = "div">({
 }: PolymorphicComponentProps<HTMLElement>) => {
   const HTMLElement = as ?? "div";
   return (
-    <HTMLElement className={cn(`flex flex-row`, className)} {...props}>
+    <HTMLElement className={cn(`flex flex-col`, className)} {...props}>
       {children}
     </HTMLElement>
   );

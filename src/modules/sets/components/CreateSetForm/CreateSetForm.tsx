@@ -10,14 +10,6 @@ import {
 import { Text } from "@components/Text";
 import { Button } from "@components/ui/button";
 import { DatePicker, type DatePickerPreset } from "@components/ui/datePicker";
-import { Switch } from "@components/ui/switch";
-import { Label } from "@components/ui/label";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@components/ui/accordion";
 import { useForm } from "react-hook-form";
 import { insertSetSchema } from "@lib/types/zod";
 import { type z } from "zod";
@@ -34,12 +26,19 @@ import { useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { skipToken } from "@tanstack/react-query";
+import { Textarea } from "@components/ui/textarea";
 
 const createSetFormSchema = insertSetSchema.pick({
   date: true,
   eventTypeId: true,
+  notes: true,
 });
-export type CreateSetFormFields = z.infer<typeof createSetFormSchema>;
+export type CreateSetFormFields = Omit<
+  z.infer<typeof createSetFormSchema>,
+  "notes"
+> & {
+  notes: NonNullable<z.infer<typeof createSetFormSchema>["notes"]>;
+};
 
 type CreateSetFormProps = {
   onSubmit: () => void;
@@ -54,6 +53,7 @@ export const CreateSetForm: React.FC<CreateSetFormProps> = ({ onSubmit }) => {
     defaultValues: {
       date: undefined,
       eventTypeId: undefined,
+      notes: "",
     },
     mode: "onChange",
   });
@@ -78,7 +78,7 @@ export const CreateSetForm: React.FC<CreateSetFormProps> = ({ onSubmit }) => {
   );
 
   const handleCreateSetSubmit = async (formValues: CreateSetFormFields) => {
-    const { date, eventTypeId } = formValues;
+    const { date, eventTypeId, notes } = formValues;
 
     if (!isError && userData) {
       const organizationMembership = userData.memberships[0];
@@ -91,6 +91,7 @@ export const CreateSetForm: React.FC<CreateSetFormProps> = ({ onSubmit }) => {
         {
           date,
           eventTypeId,
+          notes: notes || null,
           organizationId: organizationMembership.organizationId,
           isArchived: false,
         },
@@ -183,7 +184,20 @@ export const CreateSetForm: React.FC<CreateSetFormProps> = ({ onSubmit }) => {
             </FormItem>
           )}
         />
-        <div className="flex flex-col gap-2">
+        <FormField
+          control={createSetForm.control}
+          name="notes"
+          render={({ field }) => (
+            <FormItem className="">
+              <FormLabel>Set notes</FormLabel>
+              <FormControl>
+                <Textarea {...field} />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+        {/* TODO: this was for proof of concept, but we should figure out if we want to implement it */}
+        {/* <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between">
             <Label htmlFor="start-with-last-set-toggle">
               Start with last week&apos;s set
@@ -198,7 +212,7 @@ export const CreateSetForm: React.FC<CreateSetFormProps> = ({ onSubmit }) => {
               <AccordionContent>Last set&apos;s songs here</AccordionContent>
             </AccordionItem>
           </Accordion>
-        </div>
+        </div> */}
         <Button
           className="w-full"
           type="submit"

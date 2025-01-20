@@ -30,7 +30,7 @@ export default async function Dashboard({
     notFound();
   }
 
-  // FIXME: move query to db/queries
+  // FIXME: move query to api set router
   const organizationSets = await db.query.sets.findMany({
     where: eq(sets.organizationId, params.organization),
     with: {
