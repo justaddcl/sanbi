@@ -79,7 +79,6 @@ export const CreateSetForm: React.FC<CreateSetFormProps> = ({ onSubmit }) => {
 
   const handleCreateSetSubmit = async (formValues: CreateSetFormFields) => {
     const { date, eventTypeId, notes } = formValues;
-    console.log("🚀 ~ handleCreateSetSubmit ~ formValues:", formValues);
 
     if (!isError && userData) {
       const organizationMembership = userData.memberships[0];
