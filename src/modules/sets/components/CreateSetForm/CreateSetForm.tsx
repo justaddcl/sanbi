@@ -189,11 +189,7 @@ export const CreateSetForm: React.FC<CreateSetFormProps> = ({ onSubmit }) => {
           name="notes"
           render={({ field }) => (
             <FormItem className="">
-              <FormLabel
-              // className={cn("font-normal text-slate-900", textSize)}
-              >
-                Song notes
-              </FormLabel>
+              <FormLabel>Set notes</FormLabel>
               <FormControl>
                 <Textarea {...field} />
               </FormControl>
