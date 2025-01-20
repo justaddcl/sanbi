@@ -19,6 +19,8 @@ import { type SetSectionWithSongs } from "@lib/types";
 import { useSetQuery } from "@modules/sets/api";
 import { SetPageLoadingState } from "@modules/sets/components/SetLoadingState";
 import { SetPageErrorState } from "@modules/sets/components/SetErrorState";
+import { HStack } from "@components/HStack";
+import { VStack } from "@components/VStack";
 
 type SetListPageProps = { params: { organization: string; setId: string } };
 
@@ -93,7 +95,7 @@ export default function SetListPage({ params }: SetListPageProps) {
     ) ?? 0;
 
   return (
-    <div className="flex h-full min-w-full max-w-xs flex-1 flex-col gap-6">
+    <VStack className="flex h-full min-w-full max-w-xs flex-1 flex-col gap-6">
       {!isPageLoading && !queryError && (
         <>
           <PageTitle
@@ -102,22 +104,32 @@ export default function SetListPage({ params }: SetListPageProps) {
             details={`${songCount} ${pluralize(songCount, { singular: "song", plural: "songs" })}`}
           />
           {setData.isArchived && (
-            <div className="flex items-center gap-1 uppercase text-slate-500">
+            <HStack className="flex items-center gap-1 uppercase text-slate-500">
               <Archive />
               <Text>Set is archived</Text>
-            </div>
+            </HStack>
           )}
-          <section className="flex gap-2">
-            <Button variant="outline" size="sm">
-              <Note />
-              Add set notes
-            </Button>
-            <SetActionsMenu
-              setId={params.setId}
-              organizationId={userMembership.organizationId}
-              archived={setData.isArchived ?? false}
-            />
-          </section>
+          <VStack className="gap-6">
+            {setData.notes && (
+              <VStack className="gap-2">
+                <Text style="header-small-semibold" className="text-slate-500">
+                  Set notes
+                </Text>
+                <Text>{setData.notes}</Text>
+              </VStack>
+            )}
+            <HStack className="flex gap-2">
+              <Button variant="outline" size="sm">
+                <Note />
+                {setData.notes ? "Edit notes" : "Add set notes"}
+              </Button>
+              <SetActionsMenu
+                setId={params.setId}
+                organizationId={userMembership.organizationId}
+                archived={setData.isArchived ?? false}
+              />
+            </HStack>
+          </VStack>
           {(!setData?.sections || setData.sections.length === 0) && (
             <SetEmptyState
               onActionClick={() => {
@@ -163,6 +175,6 @@ export default function SetListPage({ params }: SetListPageProps) {
           />
         </>
       )}
-    </div>
+    </VStack>
   );
 }
