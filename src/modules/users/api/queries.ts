@@ -1,14 +1,18 @@
 import { api } from "@/trpc/react";
+import { useAuth } from "@clerk/nextjs";
 import { validate as uuidValidate } from "uuid";
 
-export const useUserQuery = (params: { userId: string }) => {
-  const { userId } = params;
-  return api.user.getUser.useQuery(
+export const useUserQuery = () => {
+  const { userId, isLoaded: isAuthLoaded } = useAuth();
+
+  const user = api.user.getUser.useQuery(
     {
-      userId: userId,
+      userId: userId!, // using non-null assertion as the query will not be enabled if the userId is null
     },
     {
-      enabled: !!userId && uuidValidate(userId),
+      enabled: isAuthLoaded && !!userId && uuidValidate(userId),
     },
   );
+
+  return { ...user, isAuthLoaded };
 };

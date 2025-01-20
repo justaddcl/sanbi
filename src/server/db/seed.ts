@@ -31,7 +31,7 @@ import {
   type NewSet,
   type NewSetSection,
   type NewSetSectionSong,
-  type SetSectionType,
+  type SetSection,
 } from "@lib/types/db";
 import { faker } from "@faker-js/faker";
 import { sql } from "drizzle-orm";
@@ -92,18 +92,6 @@ const seedUser: NewUser = {
   lastName: faker.person.lastName(),
 };
 
-const seedEventTypes: NewEventType[] = [
-  { event: "Sunday service" },
-  { event: "Team Stoneway" },
-  { event: "Discipleship Community" },
-];
-
-const seedSetSectionTypes: NewSetSectionType[] = [
-  { section: "Full band" },
-  { section: "Prayer" },
-  { section: `Lord's Supper` },
-];
-
 const seedTags: NewTag[] = [
   { tag: "God's love" },
   { tag: "God's sovereignty" },
@@ -162,6 +150,12 @@ const seed = async () => {
   console.log("🚀 ~ seed ~ orgMembership:", orgMembership);
 
   /** seed the event types table */
+  const seedEventTypes: NewEventType[] = [
+    { name: "Sunday service", organizationId: organization!.id },
+    { name: "Team Stoneway", organizationId: organization!.id },
+    { name: "Discipleship Community", organizationId: organization!.id },
+  ];
+
   await db.execute(sql`TRUNCATE TABLE sanbi_event_types CASCADE`);
   const seededEventTypes = await db
     .insert(eventTypes)
@@ -171,6 +165,11 @@ const seed = async () => {
   console.log("🚀 ~ seed ~ seededEventTypes:", seededEventTypes);
 
   /** seed the section types table */
+  const seedSetSectionTypes: NewSetSectionType[] = [
+    { name: "Full band", organizationId: organization!.id },
+    { name: "Prayer", organizationId: organization!.id },
+    { name: `Lord's Supper`, organizationId: organization!.id },
+  ];
   await db.execute(sql`TRUNCATE TABLE sanbi_set_section_types CASCADE`);
   const seededSectionTypes = await db
     .insert(setSectionTypes)
@@ -331,7 +330,7 @@ const seed = async () => {
   await db.execute(sql`TRUNCATE TABLE sanbi_set_section_songs CASCADE`);
 
   const createSeedForSetSection = async (
-    setSection: SetSectionType,
+    setSection: SetSection,
   ): Promise<NewSetSectionSong[]> => {
     const randomAmountOfSongs =
       Math.floor(Math.random() * MAX_AMOUNT_OF_SONGS_PER_SECTION) +
@@ -360,7 +359,7 @@ const seed = async () => {
   };
 
   const createSeedForSet = (
-    setSections: SetSectionType[],
+    setSections: SetSection[],
   ): Promise<NewSetSectionSong[]>[] =>
     setSections.map((setSection) => createSeedForSetSection(setSection));
 

@@ -5,6 +5,7 @@ import {
   type MappedTwProperties,
   mappedTwProperties,
 } from "@lib/styles/typography";
+import { cn } from "@lib/utils";
 
 type TextProps = {
   /**
@@ -81,6 +82,17 @@ type TextProps = {
    * Default: `normal`
    */
   letterSpacing?: string;
+
+  /**
+   * Sets the text alignment
+   * - left
+   * - center
+   * - right
+   * - - -
+   *
+   * Default: `left`
+   */
+  align?: "left" | "center" | "right";
 };
 
 export const Text: React.FC<React.PropsWithChildren<TextProps>> = ({
@@ -91,6 +103,7 @@ export const Text: React.FC<React.PropsWithChildren<TextProps>> = ({
   fontSize,
   lineHeight,
   letterSpacing,
+  align = "left",
   color,
   children,
 }) => {
@@ -111,7 +124,11 @@ export const Text: React.FC<React.PropsWithChildren<TextProps>> = ({
 
   return (
     <HtmlElement
-      className={`${fontStyleClasses}${className ? ` ${className}` : ""}`}
+      className={cn(fontStyleClasses, className, [
+        align === "left" && "text-left",
+        align === "center" && "text-center",
+        align === "right" && "text-right",
+      ])}
     >
       {children}
     </HtmlElement>

@@ -8,7 +8,7 @@ export type SetListCardHeaderProps = {
   date: string;
 
   /** type of event the set will be played at */
-  type: EventType["event"];
+  type: EventType["name"];
 
   /** total number of songs in the set */
   numberOfSongs: number;

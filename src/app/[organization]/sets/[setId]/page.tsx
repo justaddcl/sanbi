@@ -3,7 +3,7 @@ import { pluralize } from "@lib/string";
 import { CardList } from "@modules/SetListCard";
 import { PageTitle } from "@components/PageTitle";
 import { Text } from "@components/Text";
-import { Archive, Note } from "@phosphor-icons/react/dist/ssr";
+import { Archive, Note, Plus } from "@phosphor-icons/react/dist/ssr";
 import { redirect } from "next/navigation";
 import { SetActionsMenu } from "@modules/sets/components/SetActionsMenu";
 import { SetEmptyState } from "@modules/sets/components/SetEmptyState";
@@ -98,7 +98,7 @@ export default function SetListPage({ params }: SetListPageProps) {
         <>
           <PageTitle
             title={formatDate(setData.date, { month: "long" })}
-            subtitle={setData.eventType.event}
+            subtitle={setData.eventType.name}
             details={`${songCount} ${pluralize(songCount, { singular: "song", plural: "songs" })}`}
           />
           {setData.isArchived && (
@@ -126,31 +126,40 @@ export default function SetListPage({ params }: SetListPageProps) {
             />
           )}
           {setData?.sections && setData.sections.length > 0 && (
-            <CardList gap="gap-6">
-              {setData.sections.map((section) => {
-                let sectionStartIndex = 1;
-
-                for (
-                  let sectionPosition = 0;
-                  sectionPosition < section.position;
-                  sectionPosition++
-                ) {
-                  sectionStartIndex +=
-                    setData.sections[sectionPosition]!.songs.length;
-                }
-                return (
-                  <SetSectionCard
-                    key={section.id}
-                    section={section as SetSectionWithSongs}
-                    sectionStartIndex={sectionStartIndex}
-                  />
-                );
-              })}
-            </CardList>
+            <>
+              <Button
+                variant="secondary"
+                onClick={() => setIsSongSearchDialogOpen(true)}
+              >
+                <Plus /> Add to this set
+              </Button>
+              <CardList gap="gap-6">
+                {setData.sections.map((section) => {
+                  let sectionStartIndex = 1;
+                  for (
+                    let sectionPosition = 0;
+                    sectionPosition < section.position;
+                    sectionPosition++
+                  ) {
+                    sectionStartIndex +=
+                      setData.sections[sectionPosition]!.songs.length;
+                  }
+                  return (
+                    <SetSectionCard
+                      key={section.id}
+                      section={section as SetSectionWithSongs}
+                      sectionStartIndex={sectionStartIndex}
+                    />
+                  );
+                })}
+              </CardList>
+            </>
           )}
           <SongSearchDialog
             open={isSongSearchDialogOpen}
             setOpen={setIsSongSearchDialogOpen}
+            existingSetSections={setData.sections}
+            setId={setData.id}
           />
         </>
       )}

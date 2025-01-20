@@ -169,12 +169,15 @@ export const songs = createTable(
 
 export const eventTypes = createTable("event_types", {
   id: uuid("id").primaryKey().defaultRandom(),
-  event: varchar("event").unique().notNull(),
+  name: varchar("event").unique().notNull(),
   createdAt: timestamp("created_at", { withTimezone: true })
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),
   updatedAt: timestamp("updatedAt", { withTimezone: true })
     .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+  organizationId: uuid("organization_id")
+    .references(() => organizations.id)
     .notNull(),
 });
 
@@ -197,12 +200,15 @@ export const sets = createTable("sets", {
 
 export const setSectionTypes = createTable("set_section_types", {
   id: uuid("id").primaryKey().defaultRandom(),
-  section: varchar("section").unique().notNull(),
+  name: varchar("name").unique().notNull(),
   createdAt: timestamp("created_at", { withTimezone: true })
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),
   updatedAt: timestamp("updatedAt", { withTimezone: true })
     .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+  organizationId: uuid("organization_id")
+    .references(() => organizations.id)
     .notNull(),
 });
 
@@ -231,42 +237,31 @@ export const setSections = createTable(
   },
 );
 
-export const setSectionSongs = createTable(
-  "set_section_songs",
-  {
-    setSectionId: uuid("set_section_id")
-      .references(() => setSections.id)
-      .notNull(),
-    songId: uuid("song_id")
-      .references(() => songs.id)
-      .notNull(),
-    position: integer("position").notNull(),
-    key: songKeyEnum("song_key"),
-    notes: text("notes"),
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),
-    updatedAt: timestamp("updatedAt", { withTimezone: true })
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),
-  },
-  (setSectionSongsTable) => {
-    return {
-      pk: primaryKey({
-        columns: [
-          setSectionSongsTable.setSectionId,
-          setSectionSongsTable.songId,
-        ],
-      }),
-    };
-  },
-);
+export const setSectionSongs = createTable("set_section_songs", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  setSectionId: uuid("set_section_id")
+    .references(() => setSections.id)
+    .notNull(),
+  songId: uuid("song_id")
+    .references(() => songs.id)
+    .notNull(),
+  position: integer("position").notNull(),
+  key: songKeyEnum("song_key"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+  updatedAt: timestamp("updatedAt", { withTimezone: true })
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+});
 
 /** drizzle relationships */
 export const organizationsRelations = relations(organizations, ({ many }) => ({
   members: many(organizationMemberships),
   songs: many(songs),
   sets: many(sets),
+  eventTypes: many(eventTypes),
 }));
 
 export const organizationMembersRelations = relations(
@@ -358,6 +353,10 @@ export const setsRelations = relations(sets, ({ one, many }) => ({
   }),
 }));
 
-export const eventTypesRelations = relations(eventTypes, ({ many }) => ({
+export const eventTypesRelations = relations(eventTypes, ({ one, many }) => ({
   sets: many(sets),
+  organizations: one(organizations, {
+    fields: [eventTypes.organizationId],
+    references: [organizations.id],
+  }),
 }));

@@ -35,8 +35,10 @@ export default async function Dashboard({
     where: eq(sets.organizationId, params.organization),
     with: {
       sections: {
+        orderBy: (sections, { asc }) => [asc(sections.position)],
         with: {
           songs: {
+            orderBy: (songs, { asc }) => [asc(songs.position)],
             with: {
               song: true,
             },
@@ -70,7 +72,7 @@ export default async function Dashboard({
             <SetListCard>
               <SetListCardHeader
                 date={orgSet.date}
-                type={orgSet.eventType.event}
+                type={orgSet.eventType.name}
                 numberOfSongs={orgSet.sections.reduce(
                   (total, section) => total + section.songs.length,
                   0,
@@ -80,7 +82,7 @@ export default async function Dashboard({
                 {orgSet.sections.map((section) => (
                   <SetListCardSection
                     key={section.id}
-                    title={section.type.section}
+                    title={section.type.name}
                   >
                     {section.songs.map((setSectionSong) => {
                       let indexStart = 1;

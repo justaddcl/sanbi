@@ -1,12 +1,16 @@
 "use client";
 
 import * as React from "react";
-import { type DialogProps } from "@radix-ui/react-dialog";
 import { Command as CommandPrimitive } from "cmdk";
 import { Search } from "lucide-react";
 
 import { cn } from "@lib/utils";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  type DialogContentProps,
+  type DialogProps,
+} from "@components/ui/dialog";
 
 const Command = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive>,
@@ -27,20 +31,32 @@ type CommandDialogProps = DialogProps & {
   fixed?: boolean;
   loop?: boolean;
   shouldFilter?: boolean;
+  hasDialogContentComponentStyling?: boolean;
+  animated?: DialogContentProps["animated"];
+  minimalPadding?: boolean;
 };
 const CommandDialog: React.FC<CommandDialogProps> = ({
   children,
   fixed = false,
   loop = true,
   shouldFilter,
+  hasDialogContentComponentStyling,
+  animated,
+  minimalPadding,
   ...props
 }) => {
   return (
     <Dialog {...props}>
       <DialogContent
+        animated={animated}
         className={cn(
           "overflow-hidden rounded-lg p-0 shadow-lg",
           "max-w-3xl pb-3",
+          [
+            hasDialogContentComponentStyling &&
+              "fixed left-[50%] z-50 grid w-full translate-x-[-50%] gap-4 border bg-background p-2 shadow-lg sm:rounded-lg",
+          ],
+          [hasDialogContentComponentStyling && !minimalPadding && "p-6"],
           {
             "translate-y-0": fixed,
             "w-[calc(100%_-_24px)]": fixed,
@@ -48,14 +64,20 @@ const CommandDialog: React.FC<CommandDialogProps> = ({
             "top-0": fixed,
             "md:mt-0": fixed,
             "md:top-[12%]": fixed,
-            "lg:top-[25%]": fixed,
           },
         )}
       >
         <Command
           loop={loop}
           shouldFilter={shouldFilter}
-          className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-group]]:px-2 [&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5 [&_[cmdk-input]]:h-12 [&_[cmdk-item]]:px-3 [&_[cmdk-item]]:py-3 [&_[cmdk-item]_svg]:h-4 [&_[cmdk-item]_svg]:w-4"
+          className={cn(
+            "[&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5 [&_[cmdk-input]]:h-12 [&_[cmdk-item]_svg]:h-4 [&_[cmdk-item]_svg]:w-4",
+            [
+              !minimalPadding &&
+                "[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-group]]:px-2 ",
+            ],
+            { "p-0": minimalPadding },
+          )}
         >
           {children}
         </Command>

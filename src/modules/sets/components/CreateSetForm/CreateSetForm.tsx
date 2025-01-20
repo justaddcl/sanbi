@@ -19,7 +19,7 @@ import {
   AccordionTrigger,
 } from "@components/ui/accordion";
 import { useForm } from "react-hook-form";
-import { insertSetSchema } from "@/lib/types/zod";
+import { insertSetSchema } from "@lib/types/zod";
 import { type z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -169,11 +169,10 @@ export const CreateSetForm: React.FC<CreateSetFormProps> = ({ onSubmit }) => {
                         <SelectValue placeholder="Select..." />
                       </SelectTrigger>
                       <SelectContent>
-                        {/* FIXME: need to add organization ID to event types table */}
                         {!eventTypeQueryError &&
                           eventTypeData?.map((eventType) => (
                             <SelectItem key={eventType.id} value={eventType.id}>
-                              {eventType.event}
+                              {eventType.name}
                             </SelectItem>
                           ))}
                       </SelectContent>
