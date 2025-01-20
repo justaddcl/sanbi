@@ -1,10 +1,16 @@
 import { cn } from "@/lib/utils";
-import { type DetailedHTMLProps, type HTMLAttributes, type FC } from "react";
-type HStackProps = DetailedHTMLProps<
-  HTMLAttributes<HTMLDivElement>,
-  HTMLDivElement
->;
+import { type PolymorphicComponentProps } from "@lib/types";
 
-export const HStack: FC<HStackProps> = ({ className, ...props }) => {
-  return <div className={cn(`flex flex-row`, className)} {...props}></div>;
+export const HStack = <HTMLElement extends React.ElementType = "div">({
+  as,
+  children,
+  className,
+  ...props
+}: PolymorphicComponentProps<HTMLElement>) => {
+  const HTMLElement = as ?? "div";
+  return (
+    <HTMLElement className={cn(`flex flex-row`, className)} {...props}>
+      {children}
+    </HTMLElement>
+  );
 };
