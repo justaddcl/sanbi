@@ -29,14 +29,13 @@ import { formatSongKey } from "@/lib/string/formatSongKey";
 const createSongFormSchema = insertSongSchema
   .pick({
     name: true,
-    preferredKey: true,
   })
   .extend({
     /**
      * by default, zod thinks preferred key and notes are nullable which causes type issues.
      * these fields have been manually re-defined to omit the nullable
      */
-    preferredKey: z.enum(songKeys).optional(), // TODO: confirm if this should be optional
+    preferredKey: z.enum(songKeys),
     notes: z.string().optional(),
   });
 
@@ -72,7 +71,6 @@ export const CreateSongForm: React.FC<CreateSongFormProps> = ({ onSubmit }) => {
     });
 
   const handleCreateSongSubmit = async (formValues: CreateSongFormFields) => {
-    console.log("🚀 ~ handleCreateSongSubmit ~ formValues:", formValues);
     const { name, preferredKey, notes } = formValues;
 
     // attempt to create song
