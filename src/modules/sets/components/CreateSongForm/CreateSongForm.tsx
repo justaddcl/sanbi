@@ -170,7 +170,7 @@ export const CreateSongForm: React.FC<CreateSongFormProps> = ({ onSubmit }) => {
             <FormItem className="flex flex-col gap-2">
               <FormLabel>Song notes</FormLabel>
               <FormControl>
-                <Textarea placeholder="Add notes about the song" {...field} />
+                <Textarea {...field} />
               </FormControl>
             </FormItem>
           )}
