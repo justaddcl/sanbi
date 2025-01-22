@@ -142,7 +142,7 @@ export const CreateSongForm: React.FC<CreateSongFormProps> = ({ onSubmit }) => {
           name="preferredKey"
           render={({ field }) => (
             <FormItem className="flex flex-col gap-2">
-              <FormLabel>Song name</FormLabel>
+              <FormLabel>Preferred key *</FormLabel>
               <FormControl>
                 <Select
                   onValueChange={field.onChange}
