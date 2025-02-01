@@ -1,6 +1,5 @@
 "use client";
 import { pluralize } from "@lib/string";
-import { CardList } from "@modules/SetListCard";
 import { PageTitle } from "@components/PageTitle";
 import { Text } from "@components/Text";
 import { Archive, Note, Plus } from "@phosphor-icons/react/dist/ssr";
@@ -145,7 +144,7 @@ export default function SetListPage({ params }: SetListPageProps) {
               >
                 <Plus /> Add to this set
               </Button>
-              <CardList gap="gap-6">
+              <VStack className="t-12 flex flex-col gap-12">
                 {setData.sections.map((section) => {
                   let sectionStartIndex = 1;
                   for (
@@ -164,7 +163,7 @@ export default function SetListPage({ params }: SetListPageProps) {
                     />
                   );
                 })}
-              </CardList>
+              </VStack>
             </>
           )}
           <SongSearchDialog

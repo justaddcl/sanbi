@@ -1,5 +1,7 @@
+import { HStack } from "@components/HStack";
 import { SongKey, type SongKeyProps } from "@components/SongKey";
 import { Text } from "@components/Text";
+import { VStack } from "@components/VStack";
 
 export type SongItemProps = {
   /** index of song in the set list */
@@ -22,23 +24,27 @@ export const SongItem: React.FC<SongItemProps> = ({
   notes,
 }) => {
   return (
-    <div className="flex gap-3 text-xs font-semibold">
-      <p className="h-[18px] w-[18px] flex-none text-right text-xs/[18px] text-slate-400">
+    <HStack className="flex items-center gap-3 rounded-lg px-6 py-3 text-xs font-semibold shadow">
+      <Text
+        style="header-medium-semibold"
+        align="right"
+        className="text-slate-400"
+      >
         {index}.
-      </p>
-      <div className="flex flex-col gap-2">
-        <div className="items-top flex gap-2">
+      </Text>
+      <VStack className="flex flex-col gap-2">
+        <HStack className="flex items-center gap-2">
           <SongKey songKey={songKey} />
-          <Text style="body-small" fontWeight="semibold">
+          <Text fontWeight="semibold" className="text-sm">
             {name}
           </Text>
-        </div>
+        </HStack>
         {notes ? (
           <Text style="small" color="slate-700">
             {notes}
           </Text>
         ) : null}
-      </div>
-    </div>
+      </VStack>
+    </HStack>
   );
 };
