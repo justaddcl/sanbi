@@ -6,6 +6,8 @@ const config = {
   content: [
     "./pages/**/*.{ts,tsx}",
     "./components/**/*.{ts,tsx}",
+    "./modules/**/*.{ts, tsx}",
+    "./lib/styles/**/*.{ts, tsx}",
     "./app/**/*.{ts,tsx}",
     "./src/**/*.{ts,tsx}",
   ],
