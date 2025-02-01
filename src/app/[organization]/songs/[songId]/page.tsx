@@ -11,7 +11,7 @@ import { Badge } from "@components/Badge";
 import { PageTitle } from "@components/PageTitle";
 import { SongKey } from "@components/SongKey";
 import { Text } from "@components/Text";
-import { CardList, PlayHistoryItem, ResourceCard } from "@modules/SetListCard";
+import { PlayHistoryItem, ResourceCard } from "@modules/SetListCard";
 import {
   Archive,
   ClockCounterClockwise,
@@ -28,6 +28,8 @@ import { SongActionsMenu } from "@/modules/songs/components/SongActionsMenu";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { api } from "@/trpc/server";
+import { VStack } from "@components/VStack";
+import { HStack } from "@components/HStack";
 
 export default async function SetListPage({
   params,
@@ -83,7 +85,7 @@ export default async function SetListPage({
   }
 
   return (
-    <div className="flex min-w-full max-w-xs flex-col justify-center gap-6">
+    <VStack className="min-w-full max-w-xs justify-center gap-6">
       <PageTitle title={songData.name} />
       <section>
         {/* FIXME: refactor definition list into reusable components */}
@@ -101,7 +103,7 @@ export default async function SetListPage({
           </dt>
           <dd className="[&:not(:last-child)]:mb-2">
             {lastPlayed ? (
-              <div className="flex gap-[3px] leading-4">
+              <HStack className="gap-[3px] leading-4">
                 <Text asElement="span" style="body-small" color="slate-700">
                   {formatDistanceToNow(lastPlayed.sets!.date, {
                     addSuffix: true,
@@ -114,7 +116,7 @@ export default async function SetListPage({
                 <Text asElement="span" style="body-small" color="slate-700">
                   {lastPlayed.event_types?.name}
                 </Text>
-              </div>
+              </HStack>
             ) : (
               <Text color="slate-700" style="body-small">
                 Hasn&apos;t been played in a set yet
@@ -150,20 +152,20 @@ export default async function SetListPage({
         </dl>
       </section>
       {songData.isArchived && (
-        <div className="flex items-center gap-1 uppercase text-slate-500">
+        <HStack className="items-center gap-1 uppercase text-slate-500">
           <Archive />
           <Text>Song is archived</Text>
-        </div>
+        </HStack>
       )}
       {songData?.notes && (
-        <section className="flex flex-col gap-4 text-xs">
+        <VStack as="section" className="gap-4 text-xs">
           <Text asElement="h3" style="header-small-semibold">
             Notes
           </Text>
           <Text style="body-small">{songData.notes}</Text>
-        </section>
+        </VStack>
       )}
-      <section className="flex justify-between gap-2">
+      <HStack as="section" className="justify-between gap-2">
         <button className="flex w-full items-center justify-center gap-2 rounded border border-slate-300 px-3 text-slate-700">
           <ListPlus size={12} />
           <Text
@@ -182,37 +184,37 @@ export default async function SetListPage({
           organizationId={userMembership.organizationId}
           archived={songData.isArchived ?? false}
         />
-      </section>
-      <CardList gap="gap-8">
+      </HStack>
+      <VStack className="gap-8">
         {/* FIXME: refactor this markup to be reusable components */}
-        <div className="flex flex-col gap-4 rounded border border-slate-200 p-4 shadow">
-          <header className="flex flex-col gap-2">
-            <div className="flex justify-between">
+        <VStack className="gap-4 rounded border border-slate-200 p-4 shadow">
+          <VStack as="header" className="flex flex-col gap-2">
+            <HStack className="flex justify-between">
               <Text asElement="h3" style="header-medium-semibold">
                 Resources
               </Text>
               <button className="flex h-6 w-6 place-content-center rounded border border-slate-300 p-[6px]">
                 <DotsThree className="text-slate-900" size={12} />
               </button>
-            </div>
+            </HStack>
             <hr className="bg-slate-100" />
-          </header>
+          </VStack>
           {/* TODO: add resources db set up and data */}
           <div className="grid grid-cols-[repeat(auto-fill,_124px)] grid-rows-[repeat(auto-fill,_92px)] gap-2">
             <ResourceCard title="In My Place" url="theworshipinitiative.com" />
             <ResourceCard title="In My Place" url="open.spotify.com" />
           </div>
-        </div>
-        <div className="flex flex-col gap-4 rounded border border-slate-200 p-4 shadow">
-          <header className="flex flex-col gap-2">
-            <div className="flex justify-between">
+        </VStack>
+        <VStack className="gap-4 rounded border border-slate-200 p-4 shadow">
+          <VStack as="header" className="gap-2">
+            <HStack className="flex justify-between">
               <h3 className="text-base font-semibold">Play history</h3>
               <button className="flex h-6 w-6 place-content-center rounded border border-slate-300 p-[6px]">
                 <DotsThree className="text-slate-900" size={12} />
               </button>
-            </div>
+            </HStack>
             <hr className="bg-slate-100" />
-          </header>
+          </VStack>
           <div className="grid grid-cols-[16px_1fr] gap-y-4">
             {playHistory.length > 0 &&
               playHistory.map((playInstance) => (
@@ -227,8 +229,8 @@ export default async function SetListPage({
               ))}
             <PlayHistoryItem date={dateFormatter.format(songData?.createdAt)} />
           </div>
-        </div>
-      </CardList>
-    </div>
+        </VStack>
+      </VStack>
+    </VStack>
   );
 }

@@ -1,15 +1,13 @@
 import { PageTitle } from "@/components";
 import { pluralize } from "@/lib/string";
+import { VStack } from "@components/VStack";
 import {
-  CardList,
-  SetListCard,
-  SetListCardBody,
   SetListCardHeader,
   SetListCardSection,
   SongItem,
-} from "@/modules/SetListCard";
-import { db } from "@/server/db";
-import { sets } from "@/server/db/schema";
+} from "@modules/SetListCard";
+import { db } from "@server/db";
+import { sets } from "@server/db/schema";
 import { eq } from "drizzle-orm";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -52,7 +50,7 @@ export default async function Dashboard({
   });
 
   return (
-    <div className="flex min-w-full max-w-xs flex-col justify-center">
+    <VStack className="min-w-full max-w-xs justify-center">
       <PageTitle
         title="Upcoming sets"
         details={`${organizationSets.length} ${pluralize(organizationSets.length, { singular: "set", plural: "sets" })}`}
@@ -63,13 +61,14 @@ export default async function Dashboard({
         </select>
         <a className="text-xs text-slate-900">See all</a>
       </section>
-      <CardList>
+      {/* FIXME: update set list styling */}
+      <VStack className="gap-4">
         {organizationSets.map((orgSet) => (
           <Link
             key={orgSet.id}
             href={`/${params.organization}/sets/${orgSet.id}`}
           >
-            <SetListCard>
+            <VStack className="h-full min-w-full max-w-xs flex-1 gap-6">
               <SetListCardHeader
                 date={orgSet.date}
                 type={orgSet.eventType.name}
@@ -78,7 +77,7 @@ export default async function Dashboard({
                   0,
                 )}
               />
-              <SetListCardBody>
+              <VStack className="gap-4">
                 {orgSet.sections.map((section) => (
                   <SetListCardSection
                     key={section.id}
@@ -113,11 +112,11 @@ export default async function Dashboard({
                     })}
                   </SetListCardSection>
                 ))}
-              </SetListCardBody>
-            </SetListCard>
+              </VStack>
+            </VStack>
           </Link>
         ))}
-      </CardList>
-    </div>
+      </VStack>
+    </VStack>
   );
 }
