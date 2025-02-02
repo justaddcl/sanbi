@@ -1,5 +1,6 @@
 import { PageTitle } from "@/components";
 import { pluralize } from "@/lib/string";
+import { PageContentContainer } from "@components/PageContentContainer";
 import { VStack } from "@components/VStack";
 import {
   SetListCardHeader,
@@ -50,7 +51,7 @@ export default async function Dashboard({
   });
 
   return (
-    <VStack className="min-w-full max-w-xs justify-center">
+    <PageContentContainer>
       <PageTitle
         title="Upcoming sets"
         details={`${organizationSets.length} ${pluralize(organizationSets.length, { singular: "set", plural: "sets" })}`}
@@ -117,6 +118,6 @@ export default async function Dashboard({
           </Link>
         ))}
       </VStack>
-    </VStack>
+    </PageContentContainer>
   );
 }

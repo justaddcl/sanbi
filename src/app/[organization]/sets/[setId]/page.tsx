@@ -20,6 +20,7 @@ import { SetPageLoadingState } from "@modules/sets/components/SetLoadingState";
 import { SetPageErrorState } from "@modules/sets/components/SetErrorState";
 import { HStack } from "@components/HStack";
 import { VStack } from "@components/VStack";
+import { PageContentContainer } from "@components/PageContentContainer";
 
 type SetListPageProps = { params: { organization: string; setId: string } };
 
@@ -94,7 +95,7 @@ export default function SetListPage({ params }: SetListPageProps) {
     ) ?? 0;
 
   return (
-    <VStack className="flex h-full min-w-full max-w-xs flex-1 flex-col gap-6">
+    <PageContentContainer>
       {!isPageLoading && !queryError && (
         <>
           <PageTitle
@@ -174,6 +175,6 @@ export default function SetListPage({ params }: SetListPageProps) {
           />
         </>
       )}
-    </VStack>
+    </PageContentContainer>
   );
 }

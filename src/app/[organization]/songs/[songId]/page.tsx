@@ -30,6 +30,7 @@ import { redirect } from "next/navigation";
 import { api } from "@/trpc/server";
 import { VStack } from "@components/VStack";
 import { HStack } from "@components/HStack";
+import { PageContentContainer } from "@components/PageContentContainer";
 
 export default async function SetListPage({
   params,
@@ -85,7 +86,7 @@ export default async function SetListPage({
   }
 
   return (
-    <VStack className="min-w-full max-w-xs justify-center gap-6">
+    <PageContentContainer>
       <PageTitle title={songData.name} />
       <section>
         {/* FIXME: refactor definition list into reusable components */}
@@ -231,6 +232,6 @@ export default async function SetListPage({
           </div>
         </VStack>
       </VStack>
-    </VStack>
+    </PageContentContainer>
   );
 }
