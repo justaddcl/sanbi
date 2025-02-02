@@ -90,67 +90,99 @@ export default async function SetListPage({
       <PageTitle title={songData.name} />
       <section>
         {/* FIXME: refactor definition list into reusable components */}
-        <dl>
-          <dt className="mb-[2px] flex items-center gap-1 text-[8px]/[12px] uppercase text-slate-500">
-            <MusicNotesSimple className="text-slate-400" size={8} />
-            <span>Preferred Key</span>
-          </dt>
-          <dd className="[&:not(:last-child)]:mb-2">
-            <SongKey songKey={songData.preferredKey} size="medium" />
-          </dd>
-          <dt className="mt-2 flex items-center gap-1 text-[8px]/[12px] uppercase text-slate-500">
-            <ClockCounterClockwise className="text-slate-400" size={8} />
-            <span>Last Played</span>
-          </dt>
-          <dd className="[&:not(:last-child)]:mb-2">
-            {lastPlayed ? (
-              <HStack className="gap-[3px] leading-4">
-                <Text asElement="span" style="body-small" color="slate-700">
-                  {formatDistanceToNow(lastPlayed.sets!.date, {
-                    addSuffix: true,
-                    includeSeconds: false,
-                  })}
+        <VStack as="dl" className="gap-4 md:gap-6">
+          <VStack className="gap-2">
+            <HStack
+              as="dt"
+              className="items-center gap-2 text-xs uppercase text-slate-500"
+            >
+              <MusicNotesSimple className="text-slate-400" size={12} />
+              <Text className="text-sm">Preferred Key</Text>
+            </HStack>
+            <dd>
+              <SongKey songKey={songData.preferredKey} size="medium" />
+            </dd>
+          </VStack>
+          <VStack className="gap-2">
+            <HStack
+              as="dt"
+              className="items-center gap-2 text-xs uppercase text-slate-500"
+            >
+              <ClockCounterClockwise className="text-slate-400" size={12} />
+              <Text className="text-sm">Last Played</Text>
+            </HStack>
+            <dd>
+              {lastPlayed ? (
+                <HStack className="gap-[3px] leading-4">
+                  <Text
+                    asElement="span"
+                    style="body-small"
+                    className="text-slate-700"
+                  >
+                    {formatDistanceToNow(lastPlayed.sets!.date, {
+                      addSuffix: true,
+                      includeSeconds: false,
+                    })}
+                  </Text>
+                  <Text
+                    asElement="span"
+                    style="body-small"
+                    className="text-slate-500"
+                  >
+                    for
+                  </Text>
+                  <Text
+                    asElement="span"
+                    style="body-small"
+                    className="text-slate-700"
+                  >
+                    {lastPlayed.event_types?.name}
+                  </Text>
+                </HStack>
+              ) : (
+                <Text style="body-small" className="text-slate-700">
+                  Hasn&apos;t been played in a set yet
                 </Text>
-                <Text asElement="span" style="body-small" color="slate-500">
-                  for
-                </Text>
-                <Text asElement="span" style="body-small" color="slate-700">
-                  {lastPlayed.event_types?.name}
-                </Text>
-              </HStack>
-            ) : (
-              <Text color="slate-700" style="body-small">
-                Hasn&apos;t been played in a set yet
-              </Text>
-            )}
-          </dd>
+              )}
+            </dd>
+          </VStack>
           {songData?.tags && (
-            <>
-              <dt className="flex items-center gap-1 text-[8px]/[12px] uppercase text-slate-500">
-                <TagSimple className="text-slate-400" size={8} />
-                <span>Tags</span>
-              </dt>
-              <dd className="flex gap-2 [&:not(:last-child)]:mb-2">
+            <VStack className="gap-2">
+              <HStack
+                as="dt"
+                className="items-center gap-2 text-xs uppercase text-slate-500"
+              >
+                <TagSimple className="text-slate-400" size={12} />
+                <Text className="text-sm">Tags</Text>
+              </HStack>
+              <HStack as="dd" className="gap-2">
                 {songData?.tags.map((tag) => (
                   <Badge key={tag.tagId} label={tag.tag.tag} />
                 ))}
-              </dd>
-            </>
+              </HStack>
+            </VStack>
           )}
           {songData?.tempo && (
             <>
-              <dt className="flex items-center gap-1 text-[8px]/[12px] uppercase text-slate-500">
-                <Metronome className="text-slate-400" size={8} />
-                <span>Tempo</span>
-              </dt>
-              <dd className="[&:not(:last-child)]:mb-2">
-                <Text asElement="span" style="body-small" color="slate-700">
+              <HStack
+                as="dt"
+                className="items-center gap-2 text-xs uppercase text-slate-500"
+              >
+                <Metronome className="text-slate-400" size={12} />
+                <Text className="text-sm">Tempo</Text>
+              </HStack>
+              <dd>
+                <Text
+                  asElement="span"
+                  style="body-small"
+                  className="text-slate-700"
+                >
                   {songData.tempo}
                 </Text>
               </dd>
             </>
           )}
-        </dl>
+        </VStack>
       </section>
       {songData.isArchived && (
         <HStack className="items-center gap-1 uppercase text-slate-500">

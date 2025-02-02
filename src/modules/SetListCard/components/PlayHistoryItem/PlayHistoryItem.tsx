@@ -10,6 +10,8 @@ import { type EventType, type None } from "@lib/types";
 import { PlayHistoryBullet } from "../PlayHistoryBullet/PlayHistoryBullet";
 import { isFuture } from "date-fns";
 import Link from "next/link";
+import { VStack } from "@components/VStack";
+import { HStack } from "@components/HStack";
 
 /**
  * A PlayHistoryItem can include just the date or include extended properties
@@ -74,14 +76,14 @@ export const PlayHistoryItem: React.FC<PlayHistoryItemProps> = ({
     return (
       <>
         <PlayHistoryBullet />
-        <div className={`relative flex flex-col gap-1`}>
-          <Text fontWeight="semibold" fontSize="[10px]">
+        <VStack className="gap-1">
+          <Text fontWeight="semibold" fontSize="xs">
             Song added to library
           </Text>
-          <Text fontSize="[10px]" color="slate-500">
+          <Text fontSize="xs" className="text-slate-500">
             {formattedDate}
           </Text>
-        </div>
+        </VStack>
       </>
     );
   }
@@ -97,7 +99,7 @@ export const PlayHistoryItem: React.FC<PlayHistoryItemProps> = ({
         href={`../sets/${setId}`}
         className={`play-history-item relative flex flex-col gap-1 ${isFuture(date) ? "italic" : "not-italic"}`}
       >
-        <div className="flex gap-[3px] leading-[16px]">
+        <HStack className="gap-[3px] leading-[16px]">
           <Text
             style="small-semibold"
             // TODO: figure out a better way of changing the text color as this is repeated
@@ -114,13 +116,13 @@ export const PlayHistoryItem: React.FC<PlayHistoryItemProps> = ({
           >
             {eventType}
           </Text>
-        </div>
-        <div className="flex gap-1">
-          <Text asElement="span" style="small" color="slate-500">
+        </HStack>
+        <HStack className="gap-1">
+          <Text asElement="span" style="small" className="text-slate-500">
             {isFuture(date) ? "Will play" : "Played"} in
           </Text>
           <SongKey songKey={songKey} {...accidentalsProps} />
-          <Text asElement="span" style="small" color="slate-500">
+          <Text asElement="span" style="small" className="text-slate-500">
             during{" "}
           </Text>
           <Text
@@ -131,7 +133,7 @@ export const PlayHistoryItem: React.FC<PlayHistoryItemProps> = ({
           >
             {setSection}
           </Text>
-        </div>
+        </HStack>
       </Link>
     </>
   );
