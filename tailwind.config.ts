@@ -81,6 +81,7 @@ const config = {
     },
   },
   safelist: [
+    "text-4xl", // Tailwind doesn't automatically include this class as this value is used in @lib/styles/typography and dynamically applied with `mapTwFontClass`
     "text-2xl", // Tailwind doesn't automatically include this class as this value is used in @lib/styles/typography and dynamically applied with `mapTwFontClass`
   ],
   plugins: [require("tailwindcss-animate")],

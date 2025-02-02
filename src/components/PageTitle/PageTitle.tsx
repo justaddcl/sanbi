@@ -18,7 +18,11 @@ export const PageTitle: React.FC<PageTitleProps> = ({
 }) => {
   return (
     <header className="flex flex-col gap-1 pb-2">
-      <Text asElement="h1" style="header-large">
+      <Text
+        asElement="h1"
+        style="header-large"
+        className="text-2xl lg:text-4xl"
+      >
         {/* TODO: format the date to match locale */}
         {title}
       </Text>

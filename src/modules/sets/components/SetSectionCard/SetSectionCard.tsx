@@ -27,11 +27,11 @@ export const SetSectionCard: FC<SetSectionProps> = ({
           </Text>
           <HStack className="flex gap-2">
             <Button size="sm" variant="outline">
-              <Plus />
+              <Plus className="text-slate-900" size={16} />
               Add song
             </Button>
             <Button size="sm" variant="outline">
-              <DotsThree className="text-slate-900" size={12} />
+              <DotsThree className="text-slate-900" size={16} />
             </Button>
           </HStack>
         </HStack>
