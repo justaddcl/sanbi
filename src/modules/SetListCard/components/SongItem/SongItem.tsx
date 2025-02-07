@@ -24,7 +24,7 @@ export const SongItem: React.FC<SongItemProps> = ({
   notes,
 }) => {
   return (
-    <HStack className="flex items-center gap-3 rounded-lg px-6 py-3 text-xs font-semibold shadow">
+    <HStack className="flex items-center gap-3 rounded-lg px-6 py-3 text-xs font-semibold shadow lg:py-4">
       <Text
         style="header-medium-semibold"
         align="right"

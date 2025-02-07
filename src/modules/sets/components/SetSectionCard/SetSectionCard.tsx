@@ -19,18 +19,25 @@ export const SetSectionCard: FC<SetSectionProps> = ({
 }) => {
   const { id, type, songs } = section;
   return (
-    <VStack key={id} className="flex flex-col gap-4">
-      <VStack as="header" className="flex flex-col gap-4">
-        <HStack className="flex items-baseline justify-between">
-          <Text asElement="h3" style="header-medium-semibold">
+    <VStack
+      key={id}
+      className="gap-4 rounded-lg border p-4 shadow lg:gap-8 lg:p-8"
+    >
+      <VStack as="header" className="gap-4 lg:gap-8">
+        <HStack className="items-center justify-between gap-4 lg:gap-16">
+          <Text
+            asElement="h3"
+            style="header-medium-semibold"
+            className="flex-wrap text-xl"
+          >
             {type.name}
           </Text>
-          <HStack className="flex gap-2">
+          <HStack className="flex gap-2 self-center">
             <Button size="sm" variant="outline">
               <Plus className="text-slate-900" size={16} />
-              Add song
+              <span className="hidden sm:inline">Add song</span>
             </Button>
-            <Button size="sm" variant="outline">
+            <Button size="sm" variant="ghost">
               <DotsThree className="text-slate-900" size={16} />
             </Button>
           </HStack>

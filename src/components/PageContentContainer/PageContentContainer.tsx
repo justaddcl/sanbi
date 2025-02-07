@@ -17,7 +17,7 @@ export const PageContentContainer = ({
   <VStack
     as={as}
     className={cn(
-      "mx-auto min-w-[min(100%,_800px)] max-w-full justify-center gap-6 md:px-8 lg:mt-8 lg:px-0",
+      "mx-auto w-[min(100%,_800px)] justify-center gap-6 md:px-8 lg:mt-8 lg:px-0",
       className,
     )}
     {...props}
