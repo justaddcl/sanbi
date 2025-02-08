@@ -39,7 +39,7 @@ export const SongActionMenuItem: React.FC<SongActionMenuItemProps> = ({
 
   return (
     <DropdownMenuItem asChild disabled={disabled}>
-      <HStack className="gap-2">
+      <HStack className="gap-2" aria-label={`${children} action`}>
         <Icon
           size={16}
           className={cn(
