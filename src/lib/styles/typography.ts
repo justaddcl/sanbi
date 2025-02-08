@@ -40,51 +40,49 @@ export const twClassNameMapping: Record<MappedTwProperties, string> = {
 
 export const textStyles: Record<TypographyStyle, FontStyles> = {
   "header-large": {
-    fontSize: "2xl" /* 24px */,
-    lineHeight: "normal" /* 150% / 30px */,
+    fontSize: "4xl" /* 36px */,
+    lineHeight: "tight" /* 1.25 */,
     fontWeight: "semibold",
-    letterSpacing: "normal",
+    letterSpacing: "tighter" /* -0.05em */,
   },
   "header-medium": {
-    fontSize: "base" /* 16px */,
-    lineHeight: "normal" /* 150% / 24px */,
+    fontSize: "lg" /* 18px */,
+    lineHeight: "tight" /* 1.25 */,
     fontWeight: "normal",
-    letterSpacing: "normal",
+    letterSpacing: "tight" /* -0.025em */,
   },
   "header-medium-semibold": {
     fontSize: "base" /* 16px */,
-    lineHeight: "tight" /* 125% / 20px */,
+    lineHeight: "tight" /* 1.25% */,
     fontWeight: "semibold",
     letterSpacing: "normal",
   },
   "header-small": {
-    fontSize: "xs" /* 12px */,
-    lineHeight: "tight" /* 125% / 15px */,
+    fontSize: "sm" /* 14px */,
+    lineHeight: "normal" /* 1.5 */,
     fontWeight: "normal",
     letterSpacing: "normal",
   },
   "header-small-semibold": {
-    fontSize: "xs" /* 12px */,
-    lineHeight: "tight" /* 125% / 15px*/,
+    fontSize: "sm" /* 14px */,
+    lineHeight: "tight" /* 1.25 */,
     fontWeight: "semibold",
-    letterSpacing: "tighter" /* -0.05em */,
+    letterSpacing: "normal",
   },
   "body-small": {
-    fontSize: "xs" /* 12px */,
-    lineHeight: "normal" /* 150% / 18px */,
+    fontSize: "sm" /* 14px */,
+    lineHeight: "normal" /* 1.5 */,
     fontWeight: "normal",
     letterSpacing: "normal",
   },
   small: {
-    fontSize:
-      "[10px]" /* 10px doesn't exists as a preset font-size in Tailwind */,
+    fontSize: "xs" /* 12px */,
     lineHeight: "normal" /* 150% / 15px */,
     fontWeight: "normal",
     letterSpacing: "normal",
   },
   "small-semibold": {
-    fontSize:
-      "[10px]" /* 10px doesn't exists as a preset font-size in Tailwind */,
+    fontSize: "xs" /* 12px */,
     lineHeight: "normal" /* 150% / 15px */,
     fontWeight: "semibold",
     letterSpacing: "tight" /* -0.025em */,

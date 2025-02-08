@@ -1,6 +1,5 @@
 "use client";
 import { pluralize } from "@lib/string";
-import { CardList } from "@modules/SetListCard";
 import { PageTitle } from "@components/PageTitle";
 import { Text } from "@components/Text";
 import { Archive, Note, Plus } from "@phosphor-icons/react/dist/ssr";
@@ -21,6 +20,7 @@ import { SetPageLoadingState } from "@modules/sets/components/SetLoadingState";
 import { SetPageErrorState } from "@modules/sets/components/SetErrorState";
 import { HStack } from "@components/HStack";
 import { VStack } from "@components/VStack";
+import { PageContentContainer } from "@components/PageContentContainer";
 
 type SetListPageProps = { params: { organization: string; setId: string } };
 
@@ -80,7 +80,7 @@ export default function SetListPage({ params }: SetListPageProps) {
   }
 
   const queryError = !!setQueryError || !!userQueryError;
-  if (!!setQueryError || !!userQueryError) {
+  if (!!queryError) {
     return <SetPageErrorState />;
   }
 
@@ -95,86 +95,88 @@ export default function SetListPage({ params }: SetListPageProps) {
     ) ?? 0;
 
   return (
-    <VStack className="flex h-full min-w-full max-w-xs flex-1 flex-col gap-6">
-      {!isPageLoading && !queryError && (
-        <>
-          <PageTitle
-            title={formatDate(setData.date, { month: "long" })}
-            subtitle={setData.eventType.name}
-            details={`${songCount} ${pluralize(songCount, { singular: "song", plural: "songs" })}`}
-          />
-          {setData.isArchived && (
-            <HStack className="flex items-center gap-1 uppercase text-slate-500">
-              <Archive />
-              <Text>Set is archived</Text>
-            </HStack>
+    <PageContentContainer className="gap-8">
+      <VStack className="gap6">
+        <PageTitle
+          title={formatDate(setData.date, { month: "long" })}
+          subtitle={setData.eventType.name}
+          details={`${songCount} ${pluralize(songCount, { singular: "song", plural: "songs" })}`}
+        />
+        {setData.isArchived && (
+          <HStack className="flex items-center gap-1 uppercase text-slate-500">
+            <Archive />
+            <Text>Set is archived</Text>
+          </HStack>
+        )}
+        <VStack className="gap-6">
+          {setData.notes && (
+            <VStack className="gap-2">
+              <Text style="header-small-semibold" className="text-slate-500">
+                Set notes
+              </Text>
+              <Text>{setData.notes}</Text>
+            </VStack>
           )}
-          <VStack className="gap-6">
-            {setData.notes && (
-              <VStack className="gap-2">
-                <Text style="header-small-semibold" className="text-slate-500">
-                  Set notes
-                </Text>
-                <Text>{setData.notes}</Text>
-              </VStack>
-            )}
-            <HStack className="flex gap-2">
-              <Button variant="outline" size="sm">
-                <Note />
-                {setData.notes ? "Edit notes" : "Add set notes"}
-              </Button>
-              <SetActionsMenu
-                setId={params.setId}
-                organizationId={userMembership.organizationId}
-                archived={setData.isArchived ?? false}
-              />
-            </HStack>
-          </VStack>
-          {(!setData?.sections || setData.sections.length === 0) && (
-            <SetEmptyState
-              onActionClick={() => {
-                setIsSongSearchDialogOpen(true);
-              }}
+          <HStack className="flex gap-2">
+            <Button variant="outline" size="sm">
+              <Note />
+              {setData.notes ? "Edit notes" : "Add set notes"}
+            </Button>
+            <SetActionsMenu
+              setId={params.setId}
+              organizationId={userMembership.organizationId}
+              archived={setData.isArchived ?? false}
             />
-          )}
-          {setData?.sections && setData.sections.length > 0 && (
-            <>
-              <Button
-                variant="secondary"
-                onClick={() => setIsSongSearchDialogOpen(true)}
-              >
-                <Plus /> Add to this set
-              </Button>
-              <CardList gap="gap-6">
-                {setData.sections.map((section) => {
-                  let sectionStartIndex = 1;
-                  for (
-                    let sectionPosition = 0;
-                    sectionPosition < section.position;
-                    sectionPosition++
-                  ) {
-                    sectionStartIndex +=
-                      setData.sections[sectionPosition]!.songs.length;
-                  }
-                  return (
-                    <SetSectionCard
-                      key={section.id}
-                      section={section as SetSectionWithSongs}
-                      sectionStartIndex={sectionStartIndex}
-                    />
-                  );
-                })}
-              </CardList>
-            </>
-          )}
-          <SongSearchDialog
-            open={isSongSearchDialogOpen}
-            setOpen={setIsSongSearchDialogOpen}
-            existingSetSections={setData.sections}
-            setId={setData.id}
-          />
-        </>
+          </HStack>
+        </VStack>
+      </VStack>
+      {(!setData?.sections || setData.sections.length === 0) && (
+        <SetEmptyState
+          onActionClick={() => {
+            setIsSongSearchDialogOpen(true);
+          }}
+        />
       )}
-    </VStack>
+      {setData?.sections && setData.sections.length > 0 && (
+        <VStack className="gap-8 lg:gap-12">
+          <>
+            <Button
+              variant="secondary"
+              onClick={() => setIsSongSearchDialogOpen(true)}
+            >
+              <Plus /> Add a song
+            </Button>
+            {setData.sections.map((section) => {
+              let sectionStartIndex = 1;
+              for (
+                let sectionPosition = 0;
+                sectionPosition < section.position;
+                sectionPosition++
+              ) {
+                sectionStartIndex +=
+                  setData.sections[sectionPosition]!.songs.length;
+              }
+              return (
+                <SetSectionCard
+                  key={section.id}
+                  section={section as SetSectionWithSongs}
+                  sectionStartIndex={sectionStartIndex}
+                />
+              );
+            })}
+          </>
+          <Button variant="outline">
+            <Plus /> Add another section
+          </Button>
+        </VStack>
+      )}
+
+      <SongSearchDialog
+        open={isSongSearchDialogOpen}
+        setOpen={setIsSongSearchDialogOpen}
+        existingSetSections={setData.sections}
+        setId={setData.id}
+      />
+    </PageContentContainer>
   );
 }

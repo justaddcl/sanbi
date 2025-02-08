@@ -11,9 +11,7 @@ export const SetListCardSection: React.FC<
     <section>
       <Text
         asElement="h4"
-        style="small"
-        color="slate-500"
-        className="mb-2 uppercase "
+        className="mb-2 text-sm font-medium uppercase text-slate-500"
       >
         {title}
       </Text>

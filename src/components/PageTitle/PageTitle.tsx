@@ -1,4 +1,5 @@
 import { Text } from "@components/Text";
+import { VStack } from "@components/VStack";
 
 export type PageTitleProps = {
   /** title */
@@ -17,8 +18,12 @@ export const PageTitle: React.FC<PageTitleProps> = ({
   details,
 }) => {
   return (
-    <header className="flex flex-col gap-1 pb-2">
-      <Text asElement="h1" style="header-large">
+    <VStack as="header" className="flex flex-col gap-1 pb-2">
+      <Text
+        asElement="h1"
+        style="header-large"
+        className="text-2xl lg:text-4xl"
+      >
         {/* TODO: format the date to match locale */}
         {title}
       </Text>
@@ -36,6 +41,6 @@ export const PageTitle: React.FC<PageTitleProps> = ({
           {details}
         </Text>
       )}
-    </header>
+    </VStack>
   );
 };
