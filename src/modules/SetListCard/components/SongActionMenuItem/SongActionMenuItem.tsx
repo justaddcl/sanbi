@@ -26,22 +26,35 @@ const iconMap = {
 type SongActionMenuItemProps = React.PropsWithChildren<{
   icon: keyof typeof iconMap;
   destructive?: boolean;
+  disabled?: boolean;
 }>;
 
 export const SongActionMenuItem: React.FC<SongActionMenuItemProps> = ({
   icon,
   destructive = false,
+  disabled = false,
   children,
 }) => {
   const Icon = iconMap[icon];
 
   return (
-    <DropdownMenuItem asChild>
+    <DropdownMenuItem asChild disabled={disabled}>
       <HStack className="gap-2">
         <Icon
-          className={cn("text-slate-500", [destructive && "text-slate-300"])}
+          size={16}
+          className={cn(
+            "text-slate-500",
+            [destructive && "text-red-500"],
+            [disabled && "text-slate-400"],
+          )}
         />
-        <Text className={cn("text-sm", [destructive && "text-slate-400"])}>
+        <Text
+          className={cn(
+            "text-sm",
+            [destructive && "text-red-500"],
+            [disabled && "text-slate-400"],
+          )}
+        >
           {children}
         </Text>
       </HStack>

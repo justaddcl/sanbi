@@ -28,9 +28,11 @@ export const SongActionMenu: React.FC = () => {
         <SongActionMenuItem icon="Pencil">Edit song</SongActionMenuItem>
         <SongActionMenuItem icon="Swap">Replace song</SongActionMenuItem>
         <DropdownMenuSeparator />
-        <SongActionMenuItem icon="ArrowUp">Move up</SongActionMenuItem>
+        <SongActionMenuItem icon="ArrowUp" disabled>
+          Move up
+        </SongActionMenuItem>
         <SongActionMenuItem icon="ArrowDown">Move down</SongActionMenuItem>
-        <SongActionMenuItem icon="ArrowLineUp">
+        <SongActionMenuItem icon="ArrowLineUp" disabled>
           Move to previous section
         </SongActionMenuItem>
         <SongActionMenuItem icon="ArrowLineDown">
