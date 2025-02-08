@@ -24,7 +24,7 @@ export const SongItem: React.FC<SongItemProps> = ({
   notes,
 }) => {
   return (
-    <HStack className="flex items-center gap-3 rounded-lg px-6 py-3 text-xs font-semibold shadow lg:py-4">
+    <HStack className="flex items-baseline gap-3 rounded-lg px-6 py-3 text-xs font-semibold shadow lg:py-4">
       <Text
         style="header-medium-semibold"
         align="right"
@@ -33,7 +33,7 @@ export const SongItem: React.FC<SongItemProps> = ({
         {index}.
       </Text>
       <VStack className="flex flex-col gap-2">
-        <HStack className="flex items-center gap-2">
+        <HStack className="flex items-baseline gap-2">
           <SongKey songKey={songKey} />
           <Text fontWeight="semibold" className="text-sm">
             {name}
