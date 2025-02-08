@@ -63,13 +63,13 @@ export default async function Dashboard({
         <a className="text-xs text-slate-900">See all</a>
       </section>
       {/* FIXME: update set list styling */}
-      <VStack className="gap-4">
+      <VStack className="gap-8">
         {organizationSets.map((orgSet) => (
           <Link
             key={orgSet.id}
             href={`/${params.organization}/sets/${orgSet.id}`}
           >
-            <VStack className="h-full min-w-full max-w-xs flex-1 gap-6">
+            <VStack className="h-full min-w-full max-w-xs flex-1 gap-6 rounded-lg border p-4 shadow lg:p-6">
               <SetListCardHeader
                 date={orgSet.date}
                 type={orgSet.eventType.name}
@@ -78,7 +78,7 @@ export default async function Dashboard({
                   0,
                 )}
               />
-              <VStack className="gap-4">
+              <VStack className="gap-6">
                 {orgSet.sections.map((section) => (
                   <SetListCardSection
                     key={section.id}
