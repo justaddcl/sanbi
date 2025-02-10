@@ -107,6 +107,7 @@ export default async function Dashboard({
                             {...(setSectionSong.notes && {
                               notes: setSectionSong.notes,
                             })}
+                            withActionsMenu={false}
                           />
                         </Link>
                       );
