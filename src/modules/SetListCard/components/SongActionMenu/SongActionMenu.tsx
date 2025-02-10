@@ -10,10 +10,63 @@ import {
 import { useState } from "react";
 import { DotsThree } from "@phosphor-icons/react";
 import { SongActionMenuItem } from "@modules/SetListCard/components/SongActionMenuItem";
+import { api } from "@/trpc/react";
+import { toast } from "sonner";
+import { useUserQuery } from "@modules/users/api/queries";
 
-export const SongActionMenu: React.FC = () => {
+type SongActionMenuProps = {
+  /** ID of the specific set section song these actions related to */
+  setSectionSongId: string;
+
+  /** the ID of the set the set section song is attached to */
+  setId: string;
+};
+
+export const SongActionMenu: React.FC<SongActionMenuProps> = ({
+  setSectionSongId,
+  setId,
+}) => {
+  const apiUtils = api.useUtils();
   const [isSongActionMenuOpen, setIsSongActionMenuOpen] =
     useState<boolean>(false);
+
+  const {
+    data: userData,
+    error: userQueryError,
+    isLoading: userQueryLoading,
+    isAuthLoaded,
+  } = useUserQuery();
+  const userMembership = userData?.memberships[0];
+
+  const deleteSetSectionSongMutation = api.setSectionSong.delete.useMutation();
+  const removeSong = (organizationId: string, setSectionSongId: string) => {
+    console.log("🤖 - SongActionMenu ~ removeSong");
+    // TODO: add confirmation dialog for removing song
+
+    deleteSetSectionSongMutation.mutate(
+      { organizationId, setSectionSongId },
+      {
+        async onSuccess() {
+          toast.success("Song removed");
+          await apiUtils.set.get.invalidate({ setId });
+        },
+        onError(error) {
+          toast.error(`Song could not be removed: ${error.message}`);
+        },
+      },
+    );
+  };
+
+  if (
+    !!userQueryError ||
+    !isAuthLoaded ||
+    userQueryLoading ||
+    !userData ||
+    !userMembership
+  ) {
+    return null;
+  }
+
   return (
     <DropdownMenu
       open={isSongActionMenuOpen}
@@ -39,6 +92,9 @@ export const SongActionMenu: React.FC = () => {
         <SongActionMenuItem
           icon="Trash"
           label="Remove from section"
+          onClick={() => {
+            removeSong(userMembership?.organizationId, setSectionSongId);
+          }}
           destructive
         />
       </DropdownMenuContent>

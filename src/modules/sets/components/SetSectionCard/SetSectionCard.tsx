@@ -2,7 +2,6 @@ import { type FC } from "react";
 import { type SetSectionWithSongs } from "@lib/types";
 import { DotsThree, Plus } from "@phosphor-icons/react/dist/ssr";
 import { SongItem } from "@modules/SetListCard";
-import Link from "next/link";
 import { Text } from "@components/Text";
 import { Button } from "@components/ui/button";
 import { VStack } from "@components/VStack";
@@ -17,7 +16,7 @@ export const SetSectionCard: FC<SetSectionProps> = ({
   section,
   sectionStartIndex,
 }) => {
-  const { id, type, songs } = section;
+  const { id, type, songs, setId } = section;
   return (
     <VStack
       key={id}
@@ -47,23 +46,14 @@ export const SetSectionCard: FC<SetSectionProps> = ({
       <VStack className="gap-y-4">
         {songs &&
           songs.length > 0 &&
-          section.songs.map((setSectionSong) => {
-            return (
-              <Link
-                key={setSectionSong.songId}
-                href={`../songs/${setSectionSong.songId}`}
-              >
-                <SongItem
-                  index={sectionStartIndex + setSectionSong.position}
-                  songKey={setSectionSong.key}
-                  name={setSectionSong.song.name}
-                  {...(setSectionSong.notes && {
-                    notes: setSectionSong.notes,
-                  })}
-                />
-              </Link>
-            );
-          })}
+          section.songs.map((setSectionSong) => (
+            <SongItem
+              key={setSectionSong.id}
+              setSectionSong={setSectionSong}
+              index={sectionStartIndex + setSectionSong.position}
+              setId={setId}
+            />
+          ))}
       </VStack>
     </VStack>
   );
