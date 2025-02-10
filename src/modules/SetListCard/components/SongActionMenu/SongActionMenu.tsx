@@ -25,23 +25,22 @@ export const SongActionMenu: React.FC = () => {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
-        <SongActionMenuItem icon="Pencil">Edit song</SongActionMenuItem>
-        <SongActionMenuItem icon="Swap">Replace song</SongActionMenuItem>
+        <SongActionMenuItem icon="Pencil" label="Edit song" />
+        <SongActionMenuItem icon="Swap" label="Replace song" />
         <DropdownMenuSeparator />
-        <SongActionMenuItem icon="ArrowUp" disabled>
-          Move up
-        </SongActionMenuItem>
-        <SongActionMenuItem icon="ArrowDown">Move down</SongActionMenuItem>
-        <SongActionMenuItem icon="ArrowLineUp" disabled>
-          Move to previous section
-        </SongActionMenuItem>
-        <SongActionMenuItem icon="ArrowLineDown">
-          Move to next section
-        </SongActionMenuItem>
+        <SongActionMenuItem icon="ArrowUp" label="Move up" />
+        <SongActionMenuItem icon="ArrowDown" label="Move down" />
+        <SongActionMenuItem
+          icon="ArrowLineUp"
+          label="Move to previous section"
+        />
+        <SongActionMenuItem icon="ArrowLineDown" label="Move to next section" />
         <DropdownMenuSeparator />
-        <SongActionMenuItem icon="Trash" destructive>
-          Remove from section
-        </SongActionMenuItem>
+        <SongActionMenuItem
+          icon="Trash"
+          label="Remove from section"
+          destructive
+        />
       </DropdownMenuContent>
     </DropdownMenu>
   );
