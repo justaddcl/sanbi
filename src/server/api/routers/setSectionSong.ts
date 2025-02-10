@@ -1,8 +1,12 @@
 import { type NewSetSectionSong } from "@lib/types";
-import { insertSetSectionSongSchema } from "@lib/types/zod";
+import {
+  deleteSetSectionSongSchema,
+  insertSetSectionSongSchema,
+} from "@lib/types/zod";
 import { createTRPCRouter, organizationProcedure } from "@server/api/trpc";
 import { setSectionSongs } from "@server/db/schema";
 import { TRPCError } from "@trpc/server";
+import { eq } from "drizzle-orm";
 
 export const setSectionSongRouter = createTRPCRouter({
   create: organizationProcedure
@@ -33,5 +37,29 @@ export const setSectionSongRouter = createTRPCRouter({
         .insert(setSectionSongs)
         .values(newSetSectionSong)
         .returning();
+    }),
+  delete: organizationProcedure
+    .input(deleteSetSectionSongSchema)
+    .mutation(async ({ ctx, input }) => {
+      console.log(
+        "🤖 - [setSectionSong/delete] - song to delete:",
+        input.setSectionSongId,
+      );
+
+      const [deletedSetSectionSong] = await ctx.db
+        .delete(setSectionSongs)
+        .where(eq(setSectionSongs.id, input.setSectionSongId))
+        .returning();
+
+      if (deletedSetSectionSong) {
+        console.info(
+          `🤖 - [set/delete] - Set ID ${deletedSetSectionSong.id} was successfully deleted`,
+        );
+        return deletedSetSectionSong;
+      } else {
+        console.error(
+          `🤖 - [set/delete] - Set ID ${input.setSectionSongId} could not be deleted`,
+        );
+      }
     }),
 });
