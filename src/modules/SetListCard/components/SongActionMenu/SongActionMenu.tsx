@@ -25,7 +25,7 @@ export const SongActionMenu: React.FC = () => {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
-        <SongActionMenuItem icon="Pencil" label="Edit song" />
+        <SongActionMenuItem icon="PianoKeys" label="Change key" />
         <SongActionMenuItem icon="Swap" label="Replace song" />
         <DropdownMenuSeparator />
         <SongActionMenuItem icon="ArrowUp" label="Move up" />
