@@ -55,16 +55,17 @@ export const SongActionMenu: React.FC<SongActionMenuProps> = ({
 
   const deleteSetSectionSongMutation = api.setSectionSong.delete.useMutation();
   const removeSong = (organizationId: string, setSectionSongId: string) => {
-    console.log("🤖 - SongActionMenu ~ removeSong");
-
+    toast.loading("Removing song...");
     deleteSetSectionSongMutation.mutate(
       { organizationId, setSectionSongId },
       {
         async onSuccess() {
+          toast.dismiss();
           toast.success("Song removed");
           await apiUtils.set.get.invalidate({ setId });
         },
         onError(error) {
+          toast.dismiss();
           toast.error(`Song could not be removed: ${error.message}`);
         },
       },
