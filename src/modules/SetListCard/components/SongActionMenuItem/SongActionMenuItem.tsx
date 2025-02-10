@@ -30,6 +30,7 @@ type SongActionMenuItemProps = {
   icon: keyof typeof iconMap;
   destructive?: boolean;
   disabled?: boolean;
+  onClick?: () => void;
 };
 
 export const SongActionMenuItem: React.FC<SongActionMenuItemProps> = ({
@@ -37,12 +38,17 @@ export const SongActionMenuItem: React.FC<SongActionMenuItemProps> = ({
   icon,
   destructive = false,
   disabled = false,
+  onClick,
 }) => {
   const Icon = iconMap[icon];
 
   return (
     <DropdownMenuItem asChild disabled={disabled}>
-      <HStack className="gap-2" aria-label={`${label} action`}>
+      <HStack
+        className="gap-2"
+        aria-label={`${label} action`}
+        onClick={onClick}
+      >
         <Icon
           size={16}
           className={cn(

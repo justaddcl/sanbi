@@ -84,4 +84,8 @@ export const getSectionsForSet = z.object({ setId: z.string().uuid() });
 /**
  * Set section songs schemas
  */
+const setSectionSongIdSchema = z.object({
+  setSectionSongId: z.string().uuid(),
+});
 export const insertSetSectionSongSchema = createInsertSchema(setSectionSongs);
+export const deleteSetSectionSongSchema = setSectionSongIdSchema;
