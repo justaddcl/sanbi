@@ -13,21 +13,36 @@ import { SongActionMenuItem } from "@modules/SetListCard/components/SongActionMe
 import { api } from "@/trpc/react";
 import { toast } from "sonner";
 import { useUserQuery } from "@modules/users/api/queries";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@components/ui/alert-dialog";
+import { type SetSectionSongWithSongData } from "@lib/types";
 
 type SongActionMenuProps = {
-  /** ID of the specific set section song these actions related to */
-  setSectionSongId: string;
+  /** set section song object */
+  setSectionSong: SetSectionSongWithSongData;
+
+  /** the type of set section this song is attached to */
+  setSectionType: string;
 
   /** the ID of the set the set section song is attached to */
   setId: string;
 };
 
 export const SongActionMenu: React.FC<SongActionMenuProps> = ({
-  setSectionSongId,
+  setSectionSong,
+  setSectionType,
   setId,
 }) => {
   const apiUtils = api.useUtils();
   const [isSongActionMenuOpen, setIsSongActionMenuOpen] =
+    useState<boolean>(false);
+  const [isConfirmationDialogOpen, setIsConfirmationDialogOpen] =
     useState<boolean>(false);
 
   const {
@@ -41,7 +56,6 @@ export const SongActionMenu: React.FC<SongActionMenuProps> = ({
   const deleteSetSectionSongMutation = api.setSectionSong.delete.useMutation();
   const removeSong = (organizationId: string, setSectionSongId: string) => {
     console.log("🤖 - SongActionMenu ~ removeSong");
-    // TODO: add confirmation dialog for removing song
 
     deleteSetSectionSongMutation.mutate(
       { organizationId, setSectionSongId },
@@ -68,36 +82,70 @@ export const SongActionMenu: React.FC<SongActionMenuProps> = ({
   }
 
   return (
-    <DropdownMenu
-      open={isSongActionMenuOpen}
-      onOpenChange={setIsSongActionMenuOpen}
-    >
-      <DropdownMenuTrigger>
-        <Button variant="ghost" size="sm">
-          <DotsThree className="text-slate-900" size={16} />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent>
-        <SongActionMenuItem icon="PianoKeys" label="Change key" />
-        <SongActionMenuItem icon="Swap" label="Replace song" />
-        <DropdownMenuSeparator />
-        <SongActionMenuItem icon="ArrowUp" label="Move up" />
-        <SongActionMenuItem icon="ArrowDown" label="Move down" />
-        <SongActionMenuItem
-          icon="ArrowLineUp"
-          label="Move to previous section"
-        />
-        <SongActionMenuItem icon="ArrowLineDown" label="Move to next section" />
-        <DropdownMenuSeparator />
-        <SongActionMenuItem
-          icon="Trash"
-          label="Remove from section"
-          onClick={() => {
-            removeSong(userMembership?.organizationId, setSectionSongId);
-          }}
-          destructive
-        />
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <>
+      <DropdownMenu
+        open={isSongActionMenuOpen}
+        onOpenChange={setIsSongActionMenuOpen}
+      >
+        <DropdownMenuTrigger>
+          <Button variant="ghost" size="sm">
+            <DotsThree className="text-slate-900" size={16} />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <SongActionMenuItem icon="PianoKeys" label="Change key" />
+          <SongActionMenuItem icon="Swap" label="Replace song" />
+          <DropdownMenuSeparator />
+          <SongActionMenuItem icon="ArrowUp" label="Move up" />
+          <SongActionMenuItem icon="ArrowDown" label="Move down" />
+          <SongActionMenuItem
+            icon="ArrowLineUp"
+            label="Move to previous section"
+          />
+          <SongActionMenuItem
+            icon="ArrowLineDown"
+            label="Move to next section"
+          />
+          <DropdownMenuSeparator />
+          <SongActionMenuItem
+            icon="Trash"
+            label="Remove from section"
+            onClick={() => {
+              setIsConfirmationDialogOpen(true);
+              setIsSongActionMenuOpen(false);
+            }}
+            destructive
+          />
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <AlertDialog
+        open={isConfirmationDialogOpen}
+        onOpenChange={setIsConfirmationDialogOpen}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-lg font-semibold">
+              Remove &quot;{setSectionSong.song.name}&quot; from the{" "}
+              {setSectionType} section?
+            </AlertDialogTitle>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => setIsConfirmationDialogOpen(false)}
+            >
+              Cancel
+            </AlertDialogCancel>
+            <Button
+              variant="destructive"
+              onClick={() =>
+                removeSong(userMembership?.organizationId, setSectionSong.id)
+              }
+            >
+              Remove song
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 };

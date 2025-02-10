@@ -103,6 +103,7 @@ export default async function Dashboard({
                           <SongItem
                             index={indexStart + setSectionSong.position}
                             setSectionSong={setSectionSong}
+                            setSectionType={section.type.name}
                             setId={orgSet.id}
                             withActionsMenu={false}
                           />

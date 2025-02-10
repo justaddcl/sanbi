@@ -52,6 +52,7 @@ export const SetSectionCard: FC<SetSectionProps> = ({
               setSectionSong={setSectionSong}
               index={sectionStartIndex + setSectionSong.position}
               setId={setId}
+              setSectionType={type.name}
             />
           ))}
       </VStack>

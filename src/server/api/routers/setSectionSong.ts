@@ -42,7 +42,7 @@ export const setSectionSongRouter = createTRPCRouter({
     .input(deleteSetSectionSongSchema)
     .mutation(async ({ ctx, input }) => {
       console.log(
-        "🤖 - [setSectionSong/delete] - song to delete:",
+        "🤖 - [setSectionSong/delete] - Attempting to delete:",
         input.setSectionSongId,
       );
 
@@ -53,12 +53,12 @@ export const setSectionSongRouter = createTRPCRouter({
 
       if (deletedSetSectionSong) {
         console.info(
-          `🤖 - [set/delete] - Set ID ${deletedSetSectionSong.id} was successfully deleted`,
+          `🤖 - [setSectionSong/delete] - SetSectionSong ID ${deletedSetSectionSong.id} was successfully deleted`,
         );
         return deletedSetSectionSong;
       } else {
         console.error(
-          `🤖 - [set/delete] - Set ID ${input.setSectionSongId} could not be deleted`,
+          `🤖 - [setSectionSong/delete] - SetSectionSong ID ${input.setSectionSongId} could not be deleted`,
         );
       }
     }),

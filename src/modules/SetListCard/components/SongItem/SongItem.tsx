@@ -19,6 +19,9 @@ export type SongItemProps = {
   /** index of song in the set list */
   index: number;
 
+  /** the type of set section this song is attached to */
+  setSectionType: string;
+
   /** should the song item show the action menu? */
   withActionsMenu?: boolean;
 };
@@ -27,6 +30,7 @@ export const SongItem: React.FC<SongItemProps> = ({
   setSectionSong,
   setId,
   index,
+  setSectionType,
   withActionsMenu = true,
 }) => {
   const params = useParams<{ organization: string }>();
@@ -61,7 +65,11 @@ export const SongItem: React.FC<SongItemProps> = ({
         </VStack>
       </HStack>
       {withActionsMenu && (
-        <SongActionMenu setSectionSongId={setSectionSong.id} setId={setId} />
+        <SongActionMenu
+          setSectionSong={setSectionSong}
+          setId={setId}
+          setSectionType={setSectionType}
+        />
       )}
     </HStack>
   );
