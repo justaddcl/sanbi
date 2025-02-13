@@ -136,6 +136,12 @@ export const setSectionSongRouter = createTRPCRouter({
       }
     }),
 
+  swapSongWithPrevious: organizationProcedure
+    .input(swapSetSectionSongSchema)
+    .mutation(async ({ input }) => {
+      return await swapSongPosition(input.setSectionSongId, "up");
+    }),
+
   swapSongWithNext: organizationProcedure
     .input(swapSetSectionSongSchema)
     .mutation(async ({ input }) => {

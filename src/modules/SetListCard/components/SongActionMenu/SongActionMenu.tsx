@@ -23,6 +23,7 @@ import {
 } from "@components/ui/alert-dialog";
 import { type SetSectionSongWithSongData } from "@lib/types";
 import { type SongItemWithActionsMenuProps } from "@modules/SetListCard/components/SongItem";
+import { SwapSongDirection } from "@server/mutations";
 
 type SongActionMenuProps = {
   /** set section song object */
@@ -71,10 +72,28 @@ export const SongActionMenu: React.FC<SongActionMenuProps> = ({
   const userMembership = userData?.memberships[0];
 
   const deleteSetSectionSongMutation = api.setSectionSong.delete.useMutation();
-  const removeSong = (organizationId: string, setSectionSongId: string) => {
+  const swapSongWithPreviousMutation =
+    api.setSectionSong.swapSongWithPrevious.useMutation();
+  const swapSongWithNextMutation =
+    api.setSectionSong.swapSongWithNext.useMutation();
+
+  if (
+    !!userQueryError ||
+    !isAuthLoaded ||
+    userQueryLoading ||
+    !userData ||
+    !userMembership
+  ) {
+    return null;
+  }
+
+  const removeSong = () => {
     toast.loading("Removing song...");
     deleteSetSectionSongMutation.mutate(
-      { organizationId, setSectionSongId },
+      {
+        organizationId: userMembership.organizationId,
+        setSectionSongId: setSectionSong.id,
+      },
       {
         async onSuccess() {
           toast.dismiss();
@@ -89,42 +108,39 @@ export const SongActionMenu: React.FC<SongActionMenuProps> = ({
     );
   };
 
-  const swapSongWithNextMutation =
-    api.setSectionSong.swapSongWithNext.useMutation();
-  const moveSongDown = (organizationId: string, setSectionSongId: string) => {
-    toast.loading("Moving song down...");
-    swapSongWithNextMutation.mutate(
-      { organizationId, setSectionSongId },
+  const moveSong = (direction: SwapSongDirection) => {
+    toast.loading(`Moving song ${direction}...`);
+
+    const moveSongMutation =
+      direction === "up"
+        ? swapSongWithPreviousMutation
+        : swapSongWithNextMutation;
+
+    moveSongMutation.mutate(
+      {
+        organizationId: userMembership.organizationId,
+        setSectionSongId: setSectionSong.id,
+      },
       {
         async onSuccess(swapSongWithNextResult) {
           toast.dismiss();
 
           if (!swapSongWithNextResult.success) {
             toast.error(
-              `Could not move song down: ${swapSongWithNextResult.message}`,
+              `Could not move song ${direction}: ${swapSongWithNextResult.message}`,
             );
           } else {
-            toast.success("Moved song down");
+            toast.success(`Moved song ${direction}`);
             await apiUtils.set.get.invalidate({ setId });
           }
         },
         onError(error) {
           toast.dismiss();
-          toast.error("Song could not be moved down");
+          toast.error(`Song could not be moved ${direction}`);
         },
       },
     );
   };
-
-  if (
-    !!userQueryError ||
-    !isAuthLoaded ||
-    userQueryLoading ||
-    !userData ||
-    !userMembership
-  ) {
-    return null;
-  }
 
   const isOnlySong = isFirstSong && isLastSong;
   const isInOnlySection = isInFirstSection && isInLastSection;
@@ -150,16 +166,17 @@ export const SongActionMenu: React.FC<SongActionMenuProps> = ({
                 icon="ArrowUp"
                 label="Move up"
                 disabled={isFirstSong}
+                onClick={() => {
+                  moveSong("up");
+                  setIsSongActionMenuOpen(false);
+                }}
               />
               <SongActionMenuItem
                 icon="ArrowDown"
                 label="Move down"
                 disabled={isLastSong}
                 onClick={() => {
-                  moveSongDown(
-                    userMembership.organizationId,
-                    setSectionSong.id,
-                  );
+                  moveSong("down");
                   setIsSongActionMenuOpen(false);
                 }}
               />
@@ -208,12 +225,7 @@ export const SongActionMenu: React.FC<SongActionMenuProps> = ({
             >
               Cancel
             </AlertDialogCancel>
-            <Button
-              variant="destructive"
-              onClick={() =>
-                removeSong(userMembership?.organizationId, setSectionSong.id)
-              }
-            >
+            <Button variant="destructive" onClick={() => removeSong()}>
               Remove song
             </Button>
           </AlertDialogFooter>

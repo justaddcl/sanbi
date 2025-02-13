@@ -90,7 +90,7 @@ export const swapSongPosition = async (
       .where(eq(setSectionSongs.id, songToSwap.id));
 
     console.info(
-      `🤖 - [setSectionSongs/swapSongPosition/${direction}] - Successfully moved song ${direction}. ${setSectionSongToSwapId} new position: ${targetPosition}. ${songToSwap.id} new position: ${position}`,
+      `🤖 - [setSectionSongs/swapSongPosition/${direction}] - Successfully moved song ${direction}:\n${setSectionSongToSwapId} new position: ${targetPosition}.\n${songToSwap.id} new position: ${position}`,
     );
 
     return {
