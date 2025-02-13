@@ -89,6 +89,33 @@ export const SongActionMenu: React.FC<SongActionMenuProps> = ({
     );
   };
 
+  const swapSongWithNextMutation =
+    api.setSectionSong.swapSongWithNext.useMutation();
+  const moveSongDown = (organizationId: string, setSectionSongId: string) => {
+    toast.loading("Moving song down...");
+    swapSongWithNextMutation.mutate(
+      { organizationId, setSectionSongId },
+      {
+        async onSuccess(swapSongWithNextResult) {
+          toast.dismiss();
+
+          if (!swapSongWithNextResult.success) {
+            toast.error(
+              `Could not move song down: ${swapSongWithNextResult.message}`,
+            );
+          } else {
+            toast.success("Moved song down");
+            await apiUtils.set.get.invalidate({ setId });
+          }
+        },
+        onError(error) {
+          toast.dismiss();
+          toast.error("Song could not be moved down");
+        },
+      },
+    );
+  };
+
   if (
     !!userQueryError ||
     !isAuthLoaded ||
@@ -128,6 +155,13 @@ export const SongActionMenu: React.FC<SongActionMenuProps> = ({
                 icon="ArrowDown"
                 label="Move down"
                 disabled={isLastSong}
+                onClick={() => {
+                  moveSongDown(
+                    userMembership.organizationId,
+                    setSectionSong.id,
+                  );
+                  setIsSongActionMenuOpen(false);
+                }}
               />
             </>
           )}

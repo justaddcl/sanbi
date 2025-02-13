@@ -89,3 +89,4 @@ const setSectionSongIdSchema = z.object({
 });
 export const insertSetSectionSongSchema = createInsertSchema(setSectionSongs);
 export const deleteSetSectionSongSchema = setSectionSongIdSchema;
+export const swapSetSectionSongSchema = setSectionSongIdSchema;
