@@ -22,7 +22,7 @@ import {
   AlertDialogTitle,
 } from "@components/ui/alert-dialog";
 import { type SetSectionSongWithSongData } from "@lib/types";
-import { type SongItemProps } from "@modules/SetListCard/components/SongItem";
+import { type SongItemWithActionsMenuProps } from "@modules/SetListCard/components/SongItem";
 
 type SongActionMenuProps = {
   /** set section song object */
@@ -35,16 +35,16 @@ type SongActionMenuProps = {
   setId: string;
 
   /** is this song in the first section of the set? */
-  isInFirstSection: SongItemProps["isInFirstSection"];
+  isInFirstSection: SongItemWithActionsMenuProps["isInFirstSection"];
 
   /** is this song in the last section of the set? */
-  isInLastSection: SongItemProps["isInLastSection"];
+  isInLastSection: SongItemWithActionsMenuProps["isInLastSection"];
 
   /** is this song the first song of the section? */
-  isFirstSong: SongItemProps["isFirstSong"];
+  isFirstSong: SongItemWithActionsMenuProps["isFirstSong"];
 
   /** is this song the last song of the section? */
-  isLastSong: SongItemProps["isLastSong"];
+  isLastSong: SongItemWithActionsMenuProps["isLastSong"];
 };
 
 export const SongActionMenu: React.FC<SongActionMenuProps> = ({
@@ -124,16 +124,20 @@ export const SongActionMenu: React.FC<SongActionMenuProps> = ({
             label="Move down"
             disabled={isLastSong}
           />
-          <SongActionMenuItem
-            icon="ArrowLineUp"
-            label="Move to previous section"
-            disabled={isInFirstSection}
-          />
-          <SongActionMenuItem
-            icon="ArrowLineDown"
-            label="Move to next section"
-            disabled={isInLastSection}
-          />
+          {!(isInFirstSection && isInLastSection) && (
+            <>
+              <SongActionMenuItem
+                icon="ArrowLineUp"
+                label="Move to previous section"
+                disabled={isInFirstSection}
+              />
+              <SongActionMenuItem
+                icon="ArrowLineDown"
+                label="Move to next section"
+                disabled={isInLastSection}
+              />
+            </>
+          )}
           <DropdownMenuSeparator />
           <SongActionMenuItem
             icon="Trash"

@@ -68,6 +68,7 @@ export const SetSectionCard: FC<SetSectionCardProps> = ({
               isInLastSection={isLastSection}
               isFirstSong={setSectionSong.position === 0}
               isLastSong={setSectionSong.position === section.songs.length - 1}
+              withActionsMenu
             />
           ))}
       </VStack>

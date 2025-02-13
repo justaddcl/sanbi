@@ -105,7 +105,6 @@ export default async function Dashboard({
                             setSectionSong={setSectionSong}
                             setSectionType={section.type.name}
                             setId={orgSet.id}
-                            withActionsMenu={false}
                           />
                         </Link>
                       );
