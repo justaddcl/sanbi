@@ -8,6 +8,7 @@ import { SongActionMenu } from "../SongActionMenu/SongActionMenu";
 import { type SetSectionSongWithSongData } from "@lib/types";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { type SetSectionCardProps } from "@modules/sets/components/SetSectionCard";
 
 export type SongItemProps = {
   /** set section song object */
@@ -24,6 +25,18 @@ export type SongItemProps = {
 
   /** should the song item show the action menu? */
   withActionsMenu?: boolean;
+
+  /** is this song in the first section of the set? */
+  isInFirstSection: SetSectionCardProps["isFirstSection"];
+
+  /** is this song in the last section of the set? */
+  isInLastSection: SetSectionCardProps["isLastSection"];
+
+  /** is this song the first song of the section? */
+  isFirstSong: boolean;
+
+  /** is this song the last song of the section? */
+  isLastSong: boolean;
 };
 
 export const SongItem: React.FC<SongItemProps> = ({
@@ -32,6 +45,10 @@ export const SongItem: React.FC<SongItemProps> = ({
   index,
   setSectionType,
   withActionsMenu = true,
+  isFirstSong,
+  isLastSong,
+  isInFirstSection,
+  isInLastSection,
 }) => {
   const params = useParams<{ organization: string }>();
 
@@ -69,6 +86,10 @@ export const SongItem: React.FC<SongItemProps> = ({
           setSectionSong={setSectionSong}
           setId={setId}
           setSectionType={setSectionType}
+          isFirstSong={isFirstSong}
+          isLastSong={isLastSong}
+          isInFirstSection={isInFirstSection}
+          isInLastSection={isInLastSection}
         />
       )}
     </HStack>

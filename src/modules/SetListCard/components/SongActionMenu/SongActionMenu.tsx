@@ -22,6 +22,7 @@ import {
   AlertDialogTitle,
 } from "@components/ui/alert-dialog";
 import { type SetSectionSongWithSongData } from "@lib/types";
+import { type SongItemProps } from "@modules/SetListCard/components/SongItem";
 
 type SongActionMenuProps = {
   /** set section song object */
@@ -32,12 +33,28 @@ type SongActionMenuProps = {
 
   /** the ID of the set the set section song is attached to */
   setId: string;
+
+  /** is this song in the first section of the set? */
+  isInFirstSection: SongItemProps["isInFirstSection"];
+
+  /** is this song in the last section of the set? */
+  isInLastSection: SongItemProps["isInLastSection"];
+
+  /** is this song the first song of the section? */
+  isFirstSong: SongItemProps["isFirstSong"];
+
+  /** is this song the last song of the section? */
+  isLastSong: SongItemProps["isLastSong"];
 };
 
 export const SongActionMenu: React.FC<SongActionMenuProps> = ({
   setSectionSong,
   setSectionType,
   setId,
+  isFirstSong,
+  isLastSong,
+  isInFirstSection,
+  isInLastSection,
 }) => {
   const apiUtils = api.useUtils();
   const [isSongActionMenuOpen, setIsSongActionMenuOpen] =
@@ -97,15 +114,25 @@ export const SongActionMenu: React.FC<SongActionMenuProps> = ({
           <SongActionMenuItem icon="PianoKeys" label="Change key" />
           <SongActionMenuItem icon="Swap" label="Replace song" />
           <DropdownMenuSeparator />
-          <SongActionMenuItem icon="ArrowUp" label="Move up" />
-          <SongActionMenuItem icon="ArrowDown" label="Move down" />
+          <SongActionMenuItem
+            icon="ArrowUp"
+            label="Move up"
+            disabled={isFirstSong}
+          />
+          <SongActionMenuItem
+            icon="ArrowDown"
+            label="Move down"
+            disabled={isLastSong}
+          />
           <SongActionMenuItem
             icon="ArrowLineUp"
             label="Move to previous section"
+            disabled={isInFirstSection}
           />
           <SongActionMenuItem
             icon="ArrowLineDown"
             label="Move to next section"
+            disabled={isInLastSection}
           />
           <DropdownMenuSeparator />
           <SongActionMenuItem

@@ -161,6 +161,10 @@ export default function SetListPage({ params }: SetListPageProps) {
                   key={section.id}
                   section={section as SetSectionWithSongs}
                   sectionStartIndex={sectionStartIndex}
+                  isFirstSection={section.position === 0}
+                  isLastSection={
+                    section.position === setData.sections.length - 1
+                  }
                 />
               );
             })}

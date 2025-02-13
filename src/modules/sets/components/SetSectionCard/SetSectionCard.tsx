@@ -7,14 +7,25 @@ import { Button } from "@components/ui/button";
 import { VStack } from "@components/VStack";
 import { HStack } from "@components/HStack";
 
-export type SetSectionProps = {
+export type SetSectionCardProps = {
+  /** The section data including songs, type, and position */
   section: SetSectionWithSongs;
+
+  /** The 1-based index where this section's songs start in the overall set */
   sectionStartIndex: number;
+
+  /** Whether this is the first section in the set */
+  isFirstSection: boolean;
+
+  /** Whether this is the last section in the set */
+  isLastSection: boolean;
 };
 
-export const SetSectionCard: FC<SetSectionProps> = ({
+export const SetSectionCard: FC<SetSectionCardProps> = ({
   section,
   sectionStartIndex,
+  isFirstSection,
+  isLastSection,
 }) => {
   const { id, type, songs, setId } = section;
   return (
@@ -53,6 +64,10 @@ export const SetSectionCard: FC<SetSectionProps> = ({
               index={sectionStartIndex + setSectionSong.position}
               setId={setId}
               setSectionType={type.name}
+              isInFirstSection={isFirstSection}
+              isInLastSection={isLastSection}
+              isFirstSong={setSectionSong.position === 0}
+              isLastSong={setSectionSong.position === section.songs.length - 1}
             />
           ))}
       </VStack>
