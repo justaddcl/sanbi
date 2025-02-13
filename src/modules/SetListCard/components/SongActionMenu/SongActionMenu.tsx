@@ -99,6 +99,9 @@ export const SongActionMenu: React.FC<SongActionMenuProps> = ({
     return null;
   }
 
+  const isOnlySong = isFirstSong && isLastSong;
+  const isInOnlySection = isInFirstSection && isInLastSection;
+
   return (
     <>
       <DropdownMenu
@@ -114,7 +117,7 @@ export const SongActionMenu: React.FC<SongActionMenuProps> = ({
           <SongActionMenuItem icon="PianoKeys" label="Change key" />
           <SongActionMenuItem icon="Swap" label="Replace song" />
           <DropdownMenuSeparator />
-          {!(isFirstSong && isLastSong) && (
+          {!isOnlySong && (
             <>
               <SongActionMenuItem
                 icon="ArrowUp"
@@ -128,7 +131,7 @@ export const SongActionMenu: React.FC<SongActionMenuProps> = ({
               />
             </>
           )}
-          {!(isInFirstSection && isInLastSection) && (
+          {!isInOnlySection && (
             <>
               <SongActionMenuItem
                 icon="ArrowLineUp"
@@ -142,7 +145,7 @@ export const SongActionMenu: React.FC<SongActionMenuProps> = ({
               />
             </>
           )}
-          <DropdownMenuSeparator />
+          {!(isOnlySong && isInOnlySection) && <DropdownMenuSeparator />}
           <SongActionMenuItem
             icon="Trash"
             label="Remove from section"
