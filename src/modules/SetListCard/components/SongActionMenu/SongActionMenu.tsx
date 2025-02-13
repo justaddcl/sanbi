@@ -114,16 +114,20 @@ export const SongActionMenu: React.FC<SongActionMenuProps> = ({
           <SongActionMenuItem icon="PianoKeys" label="Change key" />
           <SongActionMenuItem icon="Swap" label="Replace song" />
           <DropdownMenuSeparator />
-          <SongActionMenuItem
-            icon="ArrowUp"
-            label="Move up"
-            disabled={isFirstSong}
-          />
-          <SongActionMenuItem
-            icon="ArrowDown"
-            label="Move down"
-            disabled={isLastSong}
-          />
+          {!(isFirstSong && isLastSong) && (
+            <>
+              <SongActionMenuItem
+                icon="ArrowUp"
+                label="Move up"
+                disabled={isFirstSong}
+              />
+              <SongActionMenuItem
+                icon="ArrowDown"
+                label="Move down"
+                disabled={isLastSong}
+              />
+            </>
+          )}
           {!(isInFirstSection && isInLastSection) && (
             <>
               <SongActionMenuItem
