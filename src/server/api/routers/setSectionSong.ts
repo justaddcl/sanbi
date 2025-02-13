@@ -80,38 +80,52 @@ export const setSectionSongRouter = createTRPCRouter({
         });
       }
 
-      const [deletedSetSectionSong] = await ctx.db
-        .delete(setSectionSongs)
-        .where(eq(setSectionSongs.id, input.setSectionSongId))
-        .returning();
+      try {
+        const [deletedSong] = await ctx.db.transaction(async (transaction) => {
+          const [deletedSetSectionSong] = await transaction
+            .delete(setSectionSongs)
+            .where(eq(setSectionSongs.id, input.setSectionSongId))
+            .returning();
 
-      // Update positions of remaining songs
-      if (deletedSetSectionSong) {
-        await ctx.db
-          .update(setSectionSongs)
-          .set({
-            position: sql`position - 1`,
-          })
-          .where(
-            and(
-              eq(
-                setSectionSongs.setSectionId,
-                deletedSetSectionSong.setSectionId,
+          if (!deletedSetSectionSong) {
+            console.error(
+              `🤖 - [setSectionSong/delete] - Could not delete SetSectionSong ID ${input.setSectionSongId}. Aborting song reorder.`,
+            );
+
+            throw new TRPCError({
+              code: "INTERNAL_SERVER_ERROR",
+              message: `Failed to delete set section song ${input.setSectionSongId}`,
+            });
+          }
+          // Update positions of remaining songs
+          await transaction
+            .update(setSectionSongs)
+            .set({
+              position: sql`position - 1`,
+            })
+            .where(
+              and(
+                eq(
+                  setSectionSongs.setSectionId,
+                  deletedSetSectionSong.setSectionId,
+                ),
+                gt(setSectionSongs.position, deletedSetSectionSong.position),
               ),
-              gt(setSectionSongs.position, deletedSetSectionSong.position),
-            ),
-          );
-      }
-
-      if (deletedSetSectionSong) {
+            );
+          return [deletedSetSectionSong];
+        });
         console.info(
-          `🤖 - [setSectionSong/delete] - SetSectionSong ID ${deletedSetSectionSong.id} was successfully deleted`,
+          `🤖 - [setSectionSong/delete] - SetSectionSong ID ${deletedSong.id} was successfully deleted`,
         );
-        return deletedSetSectionSong;
-      } else {
+        return deletedSong;
+      } catch (deleteError) {
         console.error(
           `🤖 - [setSectionSong/delete] - SetSectionSong ID ${input.setSectionSongId} could not be deleted`,
         );
+
+        if (deleteError instanceof TRPCError) {
+          throw deleteError;
+        }
 
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
