@@ -1,15 +1,12 @@
 "use client";
 
 import { HStack } from "@components/HStack";
-import { SongKey } from "@components/SongKey";
-import { Text } from "@components/Text";
-import { VStack } from "@components/VStack";
 import { SongActionMenu } from "../SongActionMenu/SongActionMenu";
 import { type SetSectionSongWithSongData } from "@lib/types";
-import Link from "next/link";
-import { useParams } from "next/navigation";
+import { type SetSectionCardProps } from "@modules/sets/components/SetSectionCard";
+import { SongContent } from "@modules/SetListCard/components/SongContent";
 
-export type SongItemProps = {
+type BaseSongItemProps = {
   /** set section song object */
   setSectionSong: SetSectionSongWithSongData;
 
@@ -26,49 +23,49 @@ export type SongItemProps = {
   withActionsMenu?: boolean;
 };
 
+export type SongItemWithActionsMenuProps = BaseSongItemProps & {
+  withActionsMenu: true;
+
+  /** is this song in the first section of the set? */
+  isInFirstSection: SetSectionCardProps["isFirstSection"];
+
+  /** is this song in the last section of the set? */
+  isInLastSection: SetSectionCardProps["isLastSection"];
+
+  /** is this song the first song of the section? */
+  isFirstSong: boolean;
+
+  /** is this song the last song of the section? */
+  isLastSong: boolean;
+};
+
+type SongItemWithoutActionsMenuProps = BaseSongItemProps & {
+  withActionsMenu?: false;
+};
+
+export type SongItemProps =
+  | SongItemWithActionsMenuProps
+  | SongItemWithoutActionsMenuProps;
+
 export const SongItem: React.FC<SongItemProps> = ({
   setSectionSong,
   setId,
   index,
   setSectionType,
-  withActionsMenu = true,
+  ...props
 }) => {
-  const params = useParams<{ organization: string }>();
-
   return (
     <HStack className="items-center justify-between rounded-lg px-6 py-3 shadow lg:py-4">
-      <HStack className="w-full items-baseline gap-3 text-xs font-semibold">
-        <Text
-          style="header-medium-semibold"
-          align="right"
-          className="text-slate-400"
-        >
-          {index}.
-        </Text>
-        <VStack className="flex flex-grow flex-col gap-2">
-          <HStack className="flex items-baseline gap-2">
-            <SongKey songKey={setSectionSong.key} />
-            <Link
-              href={`/${params.organization}/songs/${setSectionSong.song.id}`}
-              className="w-full"
-            >
-              <Text fontWeight="semibold" className="text-sm">
-                {setSectionSong.song.name}
-              </Text>
-            </Link>
-          </HStack>
-          {setSectionSong.notes ? (
-            <Text style="small" color="slate-700">
-              {setSectionSong.notes}
-            </Text>
-          ) : null}
-        </VStack>
-      </HStack>
-      {withActionsMenu && (
+      <SongContent setSectionSong={setSectionSong} index={index} />
+      {props.withActionsMenu && (
         <SongActionMenu
           setSectionSong={setSectionSong}
           setId={setId}
           setSectionType={setSectionType}
+          isFirstSong={props.isFirstSong}
+          isLastSong={props.isLastSong}
+          isInFirstSection={props.isInFirstSection}
+          isInLastSection={props.isInLastSection}
         />
       )}
     </HStack>

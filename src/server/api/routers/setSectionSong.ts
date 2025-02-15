@@ -2,6 +2,7 @@ import { type NewSetSectionSong } from "@lib/types";
 import {
   deleteSetSectionSongSchema,
   insertSetSectionSongSchema,
+  swapSetSectionSongSchema,
 } from "@lib/types/zod";
 import {
   adminProcedure,
@@ -9,6 +10,7 @@ import {
   organizationProcedure,
 } from "@server/api/trpc";
 import { setSectionSongs } from "@server/db/schema";
+import { swapSongPosition } from "@server/mutations";
 import { TRPCError } from "@trpc/server";
 import { and, eq, gt, sql } from "drizzle-orm";
 
@@ -132,5 +134,17 @@ export const setSectionSongRouter = createTRPCRouter({
           message: `Failed to delete set section song ${input.setSectionSongId}`,
         });
       }
+    }),
+
+  swapSongWithPrevious: organizationProcedure
+    .input(swapSetSectionSongSchema)
+    .mutation(async ({ input }) => {
+      return await swapSongPosition(input.setSectionSongId, "up");
+    }),
+
+  swapSongWithNext: organizationProcedure
+    .input(swapSetSectionSongSchema)
+    .mutation(async ({ input }) => {
+      return await swapSongPosition(input.setSectionSongId, "down");
     }),
 });
