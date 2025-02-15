@@ -6,6 +6,7 @@ import {
   ArrowLineDown,
   ArrowLineUp,
   ArrowUp,
+  Article,
   Pencil,
   Swap,
   Trash,
@@ -19,6 +20,7 @@ const iconMap = {
   ArrowLineDown,
   ArrowLineUp,
   ArrowUp,
+  Article,
   Pencil,
   Swap,
   Trash,
@@ -50,9 +52,9 @@ export const SongActionMenuItem: React.FC<SongActionMenuItemProps> = ({
         onClick={onClick}
       >
         <Icon
-          size={16}
+          size={18}
           className={cn(
-            "text-slate-500",
+            "text-slate-700",
             [destructive && "text-red-500"],
             [disabled && "text-slate-400"],
           )}

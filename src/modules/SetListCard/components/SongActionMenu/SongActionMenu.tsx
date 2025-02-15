@@ -23,7 +23,8 @@ import {
 } from "@components/ui/alert-dialog";
 import { type SetSectionSongWithSongData } from "@lib/types";
 import { type SongItemWithActionsMenuProps } from "@modules/SetListCard/components/SongItem";
-import { SwapSongDirection } from "@server/mutations";
+import { type SwapSongDirection } from "@server/mutations";
+import { useParams, useRouter } from "next/navigation";
 
 type SongActionMenuProps = {
   /** set section song object */
@@ -62,6 +63,9 @@ export const SongActionMenu: React.FC<SongActionMenuProps> = ({
     useState<boolean>(false);
   const [isConfirmationDialogOpen, setIsConfirmationDialogOpen] =
     useState<boolean>(false);
+
+  const params = useParams<{ organization: string }>();
+  const router = useRouter();
 
   const {
     data: userData,
@@ -156,7 +160,17 @@ export const SongActionMenu: React.FC<SongActionMenuProps> = ({
             <DotsThree className="text-slate-900" size={16} />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent>
+        <DropdownMenuContent avoidCollisions align="end" side="bottom">
+          <SongActionMenuItem
+            icon="Article"
+            label="View song details"
+            onClick={() =>
+              router.push(
+                `/${params.organization}/songs/${setSectionSong.song.id}`,
+              )
+            }
+          />
+          <DropdownMenuSeparator />
           <SongActionMenuItem icon="PianoKeys" label="Change key" />
           <SongActionMenuItem icon="Swap" label="Replace song" />
           <DropdownMenuSeparator />
