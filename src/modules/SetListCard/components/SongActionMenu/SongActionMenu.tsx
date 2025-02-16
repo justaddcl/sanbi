@@ -186,6 +186,12 @@ export const SongActionMenu: React.FC<SongActionMenuProps> = ({
 
   const isOnlySong = isFirstSong && isLastSong;
   const isInOnlySection = isInFirstSection && isInLastSection;
+  const isMutationPending =
+    swapSongWithPreviousMutation.isPending ||
+    swapSongWithNextMutation.isPending ||
+    moveSongToPreviousSectionMutation.isPending ||
+    moveSongToNextSectionMutation.isPending ||
+    deleteSetSectionSongMutation.isPending;
 
   return (
     <>
@@ -217,7 +223,7 @@ export const SongActionMenu: React.FC<SongActionMenuProps> = ({
               <SongActionMenuItem
                 icon="ArrowUp"
                 label="Move up"
-                disabled={isFirstSong}
+                disabled={isFirstSong || isMutationPending}
                 onClick={() => {
                   moveSong("up");
                   setIsSongActionMenuOpen(false);
@@ -226,7 +232,7 @@ export const SongActionMenu: React.FC<SongActionMenuProps> = ({
               <SongActionMenuItem
                 icon="ArrowDown"
                 label="Move down"
-                disabled={isLastSong}
+                disabled={isLastSong || isMutationPending}
                 onClick={() => {
                   moveSong("down");
                   setIsSongActionMenuOpen(false);
@@ -239,10 +245,7 @@ export const SongActionMenu: React.FC<SongActionMenuProps> = ({
               <SongActionMenuItem
                 icon="ArrowLineUp"
                 label="Move to previous section"
-                disabled={
-                  isInFirstSection ||
-                  moveSongToPreviousSectionMutation.isPending
-                }
+                disabled={isInFirstSection || isMutationPending}
                 onClick={() => {
                   moveSongToAdjacentSection("previous");
                   setIsSongActionMenuOpen(false);
@@ -251,9 +254,7 @@ export const SongActionMenu: React.FC<SongActionMenuProps> = ({
               <SongActionMenuItem
                 icon="ArrowLineDown"
                 label="Move to next section"
-                disabled={
-                  isInLastSection || moveSongToNextSectionMutation.isPending
-                }
+                disabled={isInLastSection || isMutationPending}
                 onClick={() => {
                   moveSongToAdjacentSection("next");
                   setIsSongActionMenuOpen(false);
@@ -265,6 +266,7 @@ export const SongActionMenu: React.FC<SongActionMenuProps> = ({
           <SongActionMenuItem
             icon="Trash"
             label="Remove from section"
+            disabled={isMutationPending}
             onClick={() => {
               setIsConfirmationDialogOpen(true);
               setIsSongActionMenuOpen(false);
