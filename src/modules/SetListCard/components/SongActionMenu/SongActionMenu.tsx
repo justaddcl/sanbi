@@ -23,7 +23,10 @@ import {
 } from "@components/ui/alert-dialog";
 import { type SetSectionSongWithSongData } from "@lib/types";
 import { type SongItemWithActionsMenuProps } from "@modules/SetListCard/components/SongItem";
-import { type SwapSongDirection } from "@server/mutations";
+import {
+  type MoveSectionDirection,
+  type SwapSongDirection,
+} from "@server/mutations";
 import { useParams, useRouter } from "next/navigation";
 
 type SongActionMenuProps = {
@@ -80,6 +83,8 @@ export const SongActionMenu: React.FC<SongActionMenuProps> = ({
     api.setSectionSong.swapSongWithPrevious.useMutation();
   const swapSongWithNextMutation =
     api.setSectionSong.swapSongWithNext.useMutation();
+  const moveSongToAdjacentSectionMutation =
+    api.setSectionSong.moveSongToPreviousSection.useMutation();
 
   if (
     !!userQueryError ||
@@ -138,9 +143,34 @@ export const SongActionMenu: React.FC<SongActionMenuProps> = ({
             await apiUtils.set.get.invalidate({ setId });
           }
         },
-        onError(error) {
+        onError(moveError) {
           toast.dismiss();
-          toast.error(`Song could not be moved ${direction}`);
+          toast.error(
+            `Song could not be moved ${direction}: ${moveError.message}`,
+          );
+        },
+      },
+    );
+  };
+
+  const moveSongToAdjacentSection = (direction: MoveSectionDirection) => {
+    toast.loading(`Moving song to the ${direction} section...`);
+    moveSongToAdjacentSectionMutation.mutate(
+      {
+        organizationId: userMembership.organizationId,
+        setSectionSongId: setSectionSong.id,
+      },
+      {
+        async onSuccess() {
+          toast.dismiss();
+          toast.success(`Song moved to the ${direction} section`);
+          await apiUtils.set.get.invalidate({ setId });
+        },
+        onError(moveError) {
+          toast.dismiss();
+          toast.error(
+            `Song could not be moved to the ${direction} section: ${moveError.message}`,
+          );
         },
       },
     );
@@ -201,7 +231,14 @@ export const SongActionMenu: React.FC<SongActionMenuProps> = ({
               <SongActionMenuItem
                 icon="ArrowLineUp"
                 label="Move to previous section"
-                disabled={isInFirstSection}
+                disabled={
+                  isInFirstSection ||
+                  moveSongToAdjacentSectionMutation.isPending
+                }
+                onClick={() => {
+                  moveSongToAdjacentSection("previous");
+                  setIsSongActionMenuOpen(false);
+                }}
               />
               <SongActionMenuItem
                 icon="ArrowLineDown"
