@@ -156,7 +156,7 @@ export const moveSongToAdjacentSection = async (
       .where(eq(setSectionSongs.setSectionId, targetSetSection.id));
 
     const songPositionAfterMove =
-      (highestSongPositionInTargetSection?.maxPosition ?? 0) + 1;
+      (highestSongPositionInTargetSection?.maxPosition ?? -1) + 1;
 
     // Update the songs after the target song's position to fill in the hole
     await moveTransaction

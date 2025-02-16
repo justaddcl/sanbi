@@ -83,8 +83,10 @@ export const SongActionMenu: React.FC<SongActionMenuProps> = ({
     api.setSectionSong.swapSongWithPrevious.useMutation();
   const swapSongWithNextMutation =
     api.setSectionSong.swapSongWithNext.useMutation();
-  const moveSongToAdjacentSectionMutation =
+  const moveSongToPreviousSectionMutation =
     api.setSectionSong.moveSongToPreviousSection.useMutation();
+  const moveSongToNextSectionMutation =
+    api.setSectionSong.moveSongToNextSection.useMutation();
 
   if (
     !!userQueryError ||
@@ -155,6 +157,12 @@ export const SongActionMenu: React.FC<SongActionMenuProps> = ({
 
   const moveSongToAdjacentSection = (direction: MoveSectionDirection) => {
     toast.loading(`Moving song to the ${direction} section...`);
+
+    const moveSongToAdjacentSectionMutation =
+      direction === "previous"
+        ? moveSongToPreviousSectionMutation
+        : moveSongToNextSectionMutation;
+
     moveSongToAdjacentSectionMutation.mutate(
       {
         organizationId: userMembership.organizationId,
@@ -233,7 +241,7 @@ export const SongActionMenu: React.FC<SongActionMenuProps> = ({
                 label="Move to previous section"
                 disabled={
                   isInFirstSection ||
-                  moveSongToAdjacentSectionMutation.isPending
+                  moveSongToPreviousSectionMutation.isPending
                 }
                 onClick={() => {
                   moveSongToAdjacentSection("previous");
@@ -243,7 +251,13 @@ export const SongActionMenu: React.FC<SongActionMenuProps> = ({
               <SongActionMenuItem
                 icon="ArrowLineDown"
                 label="Move to next section"
-                disabled={isInLastSection}
+                disabled={
+                  isInLastSection || moveSongToNextSectionMutation.isPending
+                }
+                onClick={() => {
+                  moveSongToAdjacentSection("next");
+                  setIsSongActionMenuOpen(false);
+                }}
               />
             </>
           )}

@@ -157,4 +157,10 @@ export const setSectionSongRouter = createTRPCRouter({
         "previous",
       );
     }),
+
+  moveSongToNextSection: organizationProcedure
+    .input(moveSetSectionSongToAdjacentSetSectionSchema)
+    .mutation(async ({ input }) => {
+      return await moveSongToAdjacentSection(input.setSectionSongId, "next");
+    }),
 });
