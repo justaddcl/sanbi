@@ -3,8 +3,6 @@ import { SongKey } from "@components/SongKey";
 import { Text } from "@components/Text";
 import { VStack } from "@components/VStack";
 import { type SetSectionSongWithSongData } from "@lib/types";
-import Link from "next/link";
-import { useParams } from "next/navigation";
 
 export type SongContentProps = {
   /** The set section song object containing song details and metadata */
@@ -22,8 +20,6 @@ export const SongContent: React.FC<SongContentProps> = ({
   setSectionSong,
   index,
 }) => {
-  const params = useParams<{ organization: string }>();
-
   return (
     <HStack className="w-full items-baseline gap-3 text-xs font-semibold">
       <Text
@@ -36,14 +32,9 @@ export const SongContent: React.FC<SongContentProps> = ({
       <VStack className="flex flex-grow flex-col gap-2">
         <HStack className="flex items-baseline gap-2">
           <SongKey songKey={setSectionSong.key} />
-          <Link
-            href={`/${params.organization}/songs/${setSectionSong.song.id}`}
-            className="w-full"
-          >
-            <Text fontWeight="semibold" className="text-sm">
-              {setSectionSong.song.name}
-            </Text>
-          </Link>
+          <Text fontWeight="semibold" className="text-sm">
+            {setSectionSong.song.name}
+          </Text>
         </HStack>
         {setSectionSong.notes ? (
           <Text style="small" color="slate-700">
