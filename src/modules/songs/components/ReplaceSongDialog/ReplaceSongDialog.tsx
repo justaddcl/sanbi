@@ -87,12 +87,13 @@ export const ReplaceSongDialog: React.FC<ReplaceSongDialogProps> = ({
   };
 
   const handleOnConfirm = () => {
-    toast.loading("Replacing song...");
     if (selectedSong) {
       if (selectedSong.songId === currentSong.songId) {
-        toast.dismiss();
+        toast.error("Cannot replace a song with itself");
+        return;
       }
 
+      toast.loading("Replacing song...");
       replaceSongMutation.mutate(
         {
           organizationId: userMembership.organizationId,
