@@ -83,6 +83,7 @@ export const ReplaceSongDialog: React.FC<ReplaceSongDialogProps> = ({
   const handleCloseDialog = () => {
     setOpen(false);
     setSelectedSong(null);
+    setDialogStep("search");
   };
 
   const handleOnConfirm = () => {
@@ -102,6 +103,7 @@ export const ReplaceSongDialog: React.FC<ReplaceSongDialogProps> = ({
           async onSuccess() {
             toast.dismiss();
             toast.success("Song replaced");
+            handleCloseDialog();
             await apiUtils.set.get.invalidate({});
           },
 

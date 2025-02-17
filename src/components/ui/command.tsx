@@ -34,6 +34,7 @@ type CommandDialogProps = DialogProps & {
   hasDialogContentComponentStyling?: boolean;
   animated?: DialogContentProps["animated"];
   minimalPadding?: boolean;
+  className?: string;
 };
 const CommandDialog: React.FC<CommandDialogProps> = ({
   children,
@@ -43,6 +44,7 @@ const CommandDialog: React.FC<CommandDialogProps> = ({
   hasDialogContentComponentStyling,
   animated,
   minimalPadding,
+  className,
   ...props
 }) => {
   return (
@@ -65,6 +67,7 @@ const CommandDialog: React.FC<CommandDialogProps> = ({
             "md:mt-0": fixed,
             "md:top-[12%]": fixed,
           },
+          className,
         )}
       >
         <Command

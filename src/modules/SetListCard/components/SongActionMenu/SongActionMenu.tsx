@@ -28,6 +28,7 @@ import {
   type SwapSongDirection,
 } from "@server/mutations";
 import { useParams, useRouter } from "next/navigation";
+import { ReplaceSongDialog } from "@modules/songs/components/ReplaceSongDialog";
 
 type SongActionMenuProps = {
   /** set section song object */
@@ -65,6 +66,8 @@ export const SongActionMenu: React.FC<SongActionMenuProps> = ({
   const [isSongActionMenuOpen, setIsSongActionMenuOpen] =
     useState<boolean>(false);
   const [isConfirmationDialogOpen, setIsConfirmationDialogOpen] =
+    useState<boolean>(false);
+  const [isSongSearchDialogOpen, setIsSongSearchDialogOpen] =
     useState<boolean>(false);
 
   const params = useParams<{ organization: string }>();
@@ -216,7 +219,15 @@ export const SongActionMenu: React.FC<SongActionMenuProps> = ({
           />
           <DropdownMenuSeparator />
           <SongActionMenuItem icon="PianoKeys" label="Change key" />
-          <SongActionMenuItem icon="Swap" label="Replace song" />
+          <SongActionMenuItem
+            icon="Swap"
+            label="Replace song"
+            disabled={isMutationPending}
+            onClick={() => {
+              setIsSongActionMenuOpen(false);
+              setIsSongSearchDialogOpen(true);
+            }}
+          />
           <DropdownMenuSeparator />
           {!isOnlySong && (
             <>
@@ -298,6 +309,12 @@ export const SongActionMenu: React.FC<SongActionMenuProps> = ({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <ReplaceSongDialog
+        open={isSongSearchDialogOpen}
+        setOpen={setIsSongSearchDialogOpen}
+        currentSong={setSectionSong}
+        setId={setId}
+      />
     </>
   );
 };
