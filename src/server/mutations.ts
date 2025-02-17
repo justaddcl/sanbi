@@ -1,8 +1,9 @@
 "use server";
 
 import { db } from "@server/db";
-import { setSectionSongs } from "@server/db/schema";
-import { and, eq, sql } from "drizzle-orm";
+import { setSections, setSectionSongs } from "@server/db/schema";
+import { TRPCError } from "@trpc/server";
+import { and, eq, gt, sql } from "drizzle-orm";
 
 export type SwapSongDirection = "up" | "down";
 
@@ -96,6 +97,94 @@ export const swapSongPosition = async (
     return {
       success: true,
       message: `Successfully moved song ${setSectionSongToSwapId} ${direction}`,
+    };
+  });
+};
+
+export type MoveSectionDirection = "previous" | "next";
+
+export const moveSongToAdjacentSection = async (
+  setSectionSongId: string,
+  direction: MoveSectionDirection,
+) => {
+  return await db.transaction(async (moveTransaction) => {
+    const targetSetSectionSong =
+      await moveTransaction.query.setSectionSongs.findFirst({
+        where: eq(setSectionSongs.id, setSectionSongId),
+        with: {
+          setSection: true,
+        },
+      });
+
+    if (!targetSetSectionSong) {
+      console.error(
+        `🤖 - [setSectionSongs/moveSongToAdjacentSection/${direction}] - Could not find set section song ${setSectionSongId}`,
+      );
+
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Cannot find set section song",
+      });
+    }
+
+    // Find the set section to move the song to
+    const targetSetSection = await moveTransaction.query.setSections.findFirst({
+      where: and(
+        eq(setSections.setId, targetSetSectionSong.setSection.setId),
+        eq(
+          setSections.position,
+          targetSetSectionSong.setSection.position +
+            (direction === "next" ? 1 : -1),
+        ),
+      ),
+    });
+
+    if (!targetSetSection) {
+      console.error(
+        `🤖 - [setSectionSongs/moveSongToAdjacentSection/${direction}] - Could not find a set section ${direction} to ${targetSetSectionSong.setSectionId}`,
+      );
+
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: `Cannot find ${direction} set section`,
+      });
+    }
+
+    const [highestSongPositionInTargetSection] = await moveTransaction
+      .select({ maxPosition: sql<number>`COALESCE(MAX(position), -1)` })
+      .from(setSectionSongs)
+      .where(eq(setSectionSongs.setSectionId, targetSetSection.id));
+
+    const songPositionAfterMove =
+      (highestSongPositionInTargetSection?.maxPosition ?? -1) + 1;
+
+    // Update the songs after the target song's position to fill in the hole
+    await moveTransaction
+      .update(setSectionSongs)
+      .set({ position: sql`position - 1` })
+      .where(
+        and(
+          eq(setSectionSongs.setSectionId, targetSetSectionSong.setSectionId),
+          gt(setSectionSongs.position, targetSetSectionSong.position),
+        ),
+      );
+
+    await moveTransaction
+      .update(setSectionSongs)
+      .set({
+        setSectionId: targetSetSection.id,
+        position: songPositionAfterMove,
+      })
+      .where(eq(setSectionSongs.id, setSectionSongId));
+
+    console.info(
+      `🤖 - [setSectionSongs/moveSongToAdjacentSection/${direction}] - Successfully moved ${setSectionSongId} to ${direction} set section, ${targetSetSection.id}, with position ${songPositionAfterMove}`,
+    );
+
+    return {
+      success: true,
+      newSetSectionId: targetSetSection.id,
+      newPosition: songPositionAfterMove,
     };
   });
 };

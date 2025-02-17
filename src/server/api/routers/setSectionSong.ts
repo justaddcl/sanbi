@@ -2,6 +2,7 @@ import { type NewSetSectionSong } from "@lib/types";
 import {
   deleteSetSectionSongSchema,
   insertSetSectionSongSchema,
+  moveSetSectionSongToAdjacentSetSectionSchema,
   swapSetSectionSongSchema,
 } from "@lib/types/zod";
 import {
@@ -10,7 +11,7 @@ import {
   organizationProcedure,
 } from "@server/api/trpc";
 import { setSectionSongs } from "@server/db/schema";
-import { swapSongPosition } from "@server/mutations";
+import { moveSongToAdjacentSection, swapSongPosition } from "@server/mutations";
 import { TRPCError } from "@trpc/server";
 import { and, eq, gt, sql } from "drizzle-orm";
 
@@ -146,5 +147,20 @@ export const setSectionSongRouter = createTRPCRouter({
     .input(swapSetSectionSongSchema)
     .mutation(async ({ input }) => {
       return await swapSongPosition(input.setSectionSongId, "down");
+    }),
+
+  moveSongToPreviousSection: organizationProcedure
+    .input(moveSetSectionSongToAdjacentSetSectionSchema)
+    .mutation(async ({ input }) => {
+      return await moveSongToAdjacentSection(
+        input.setSectionSongId,
+        "previous",
+      );
+    }),
+
+  moveSongToNextSection: organizationProcedure
+    .input(moveSetSectionSongToAdjacentSetSectionSchema)
+    .mutation(async ({ input }) => {
+      return await moveSongToAdjacentSection(input.setSectionSongId, "next");
     }),
 });

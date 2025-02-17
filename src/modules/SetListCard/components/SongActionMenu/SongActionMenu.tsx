@@ -23,7 +23,10 @@ import {
 } from "@components/ui/alert-dialog";
 import { type SetSectionSongWithSongData } from "@lib/types";
 import { type SongItemWithActionsMenuProps } from "@modules/SetListCard/components/SongItem";
-import { type SwapSongDirection } from "@server/mutations";
+import {
+  type MoveSectionDirection,
+  type SwapSongDirection,
+} from "@server/mutations";
 import { useParams, useRouter } from "next/navigation";
 
 type SongActionMenuProps = {
@@ -80,6 +83,10 @@ export const SongActionMenu: React.FC<SongActionMenuProps> = ({
     api.setSectionSong.swapSongWithPrevious.useMutation();
   const swapSongWithNextMutation =
     api.setSectionSong.swapSongWithNext.useMutation();
+  const moveSongToPreviousSectionMutation =
+    api.setSectionSong.moveSongToPreviousSection.useMutation();
+  const moveSongToNextSectionMutation =
+    api.setSectionSong.moveSongToNextSection.useMutation();
 
   if (
     !!userQueryError ||
@@ -138,9 +145,40 @@ export const SongActionMenu: React.FC<SongActionMenuProps> = ({
             await apiUtils.set.get.invalidate({ setId });
           }
         },
-        onError(error) {
+        onError(moveError) {
           toast.dismiss();
-          toast.error(`Song could not be moved ${direction}`);
+          toast.error(
+            `Song could not be moved ${direction}: ${moveError.message}`,
+          );
+        },
+      },
+    );
+  };
+
+  const moveSongToAdjacentSection = (direction: MoveSectionDirection) => {
+    toast.loading(`Moving song to the ${direction} section...`);
+
+    const moveSongToAdjacentSectionMutation =
+      direction === "previous"
+        ? moveSongToPreviousSectionMutation
+        : moveSongToNextSectionMutation;
+
+    moveSongToAdjacentSectionMutation.mutate(
+      {
+        organizationId: userMembership.organizationId,
+        setSectionSongId: setSectionSong.id,
+      },
+      {
+        async onSuccess() {
+          toast.dismiss();
+          toast.success(`Song moved to the ${direction} section`);
+          await apiUtils.set.get.invalidate({ setId });
+        },
+        onError(moveError) {
+          toast.dismiss();
+          toast.error(
+            `Song could not be moved to the ${direction} section: ${moveError.message}`,
+          );
         },
       },
     );
@@ -148,6 +186,12 @@ export const SongActionMenu: React.FC<SongActionMenuProps> = ({
 
   const isOnlySong = isFirstSong && isLastSong;
   const isInOnlySection = isInFirstSection && isInLastSection;
+  const isMutationPending =
+    swapSongWithPreviousMutation.isPending ||
+    swapSongWithNextMutation.isPending ||
+    moveSongToPreviousSectionMutation.isPending ||
+    moveSongToNextSectionMutation.isPending ||
+    deleteSetSectionSongMutation.isPending;
 
   return (
     <>
@@ -179,7 +223,7 @@ export const SongActionMenu: React.FC<SongActionMenuProps> = ({
               <SongActionMenuItem
                 icon="ArrowUp"
                 label="Move up"
-                disabled={isFirstSong}
+                disabled={isFirstSong || isMutationPending}
                 onClick={() => {
                   moveSong("up");
                   setIsSongActionMenuOpen(false);
@@ -188,7 +232,7 @@ export const SongActionMenu: React.FC<SongActionMenuProps> = ({
               <SongActionMenuItem
                 icon="ArrowDown"
                 label="Move down"
-                disabled={isLastSong}
+                disabled={isLastSong || isMutationPending}
                 onClick={() => {
                   moveSong("down");
                   setIsSongActionMenuOpen(false);
@@ -201,12 +245,20 @@ export const SongActionMenu: React.FC<SongActionMenuProps> = ({
               <SongActionMenuItem
                 icon="ArrowLineUp"
                 label="Move to previous section"
-                disabled={isInFirstSection}
+                disabled={isInFirstSection || isMutationPending}
+                onClick={() => {
+                  moveSongToAdjacentSection("previous");
+                  setIsSongActionMenuOpen(false);
+                }}
               />
               <SongActionMenuItem
                 icon="ArrowLineDown"
                 label="Move to next section"
-                disabled={isInLastSection}
+                disabled={isInLastSection || isMutationPending}
+                onClick={() => {
+                  moveSongToAdjacentSection("next");
+                  setIsSongActionMenuOpen(false);
+                }}
               />
             </>
           )}
@@ -214,6 +266,7 @@ export const SongActionMenu: React.FC<SongActionMenuProps> = ({
           <SongActionMenuItem
             icon="Trash"
             label="Remove from section"
+            disabled={isMutationPending}
             onClick={() => {
               setIsConfirmationDialogOpen(true);
               setIsSongActionMenuOpen(false);
