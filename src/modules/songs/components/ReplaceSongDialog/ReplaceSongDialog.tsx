@@ -13,7 +13,7 @@ import {
 } from "@modules/songs/components/SongSearch";
 import { type SetSectionSongWithSongData } from "@lib/types";
 import { Button } from "@components/ui/button";
-import { ArrowDown, ArrowRight, CaretLeft } from "@phosphor-icons/react";
+import { ArrowRight, CaretLeft } from "@phosphor-icons/react";
 import { DialogDescription, DialogTitle } from "@components/ui/dialog";
 import { HStack } from "@components/HStack";
 import { api } from "@/trpc/react";
@@ -46,11 +46,11 @@ export const ReplaceSongDialog: React.FC<ReplaceSongDialogProps> = ({
   setOpen,
   onSongSelect,
   currentSong,
+  setId,
 }) => {
   const apiUtils = api.useUtils();
   const {
     data: userData,
-    error: userQueryError,
     isLoading: userQueryLoading,
     isAuthLoaded,
   } = useUserQuery();
@@ -69,11 +69,17 @@ export const ReplaceSongDialog: React.FC<ReplaceSongDialogProps> = ({
   }
 
   if (!isAuthLoaded || userQueryLoading) {
-    return <Text>Loading...</Text>;
+    return (
+      <CommandDialog open={open} onOpenChange={setOpen}>
+        <HStack className="items-center justify-center p-4">
+          <Text>Loading...</Text>
+        </HStack>
+      </CommandDialog>
+    );
   }
 
   const handleSongSelect = (song?: SongSearchResult) => {
-    if (!!song) {
+    if (song) {
       setSelectedSong(song);
       setDialogStep("confirm");
       onSongSelect?.(song);
@@ -105,7 +111,7 @@ export const ReplaceSongDialog: React.FC<ReplaceSongDialogProps> = ({
             toast.dismiss();
             toast.success("Song replaced");
             handleCloseDialog();
-            await apiUtils.set.get.invalidate({});
+            await apiUtils.set.get.invalidate({ setId });
           },
 
           async onError() {
@@ -162,7 +168,6 @@ export const ReplaceSongDialog: React.FC<ReplaceSongDialogProps> = ({
                   <Text className="text-slate-500">Current song</Text>
                   <Text className="col-start-3 text-slate-900">New song</Text>
                   <div className="flex h-full items-center gap-4 rounded border border-slate-200 px-2 py-1 text-slate-500 md:px-4 md:py-2">
-                    {/* <Text asElement="span">-</Text> */}
                     <Text asElement="span" className="font-medium">
                       {currentSong.song.name}
                     </Text>
@@ -172,7 +177,6 @@ export const ReplaceSongDialog: React.FC<ReplaceSongDialogProps> = ({
                     size={16}
                   />
                   <div className="flex h-full items-center gap-4 rounded border border-slate-400 px-2 py-1 text-slate-900 md:px-4 md:py-2">
-                    {/* <Text asElement="span">+</Text> */}
                     <Text asElement="span" className="font-medium">
                       {selectedSong.name}
                     </Text>
