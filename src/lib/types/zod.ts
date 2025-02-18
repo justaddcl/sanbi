@@ -92,3 +92,6 @@ export const deleteSetSectionSongSchema = setSectionSongIdSchema;
 export const swapSetSectionSongSchema = setSectionSongIdSchema;
 export const moveSetSectionSongToAdjacentSetSectionSchema =
   setSectionSongIdSchema;
+export const replaceSetSectionSongSongSchema = setSectionSongIdSchema.extend({
+  replacementSong: z.string().uuid(),
+});

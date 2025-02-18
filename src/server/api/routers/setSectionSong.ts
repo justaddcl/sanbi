@@ -3,6 +3,7 @@ import {
   deleteSetSectionSongSchema,
   insertSetSectionSongSchema,
   moveSetSectionSongToAdjacentSetSectionSchema,
+  replaceSetSectionSongSongSchema,
   swapSetSectionSongSchema,
 } from "@lib/types/zod";
 import {
@@ -10,7 +11,7 @@ import {
   createTRPCRouter,
   organizationProcedure,
 } from "@server/api/trpc";
-import { setSectionSongs } from "@server/db/schema";
+import { setSectionSongs, songs } from "@server/db/schema";
 import { moveSongToAdjacentSection, swapSongPosition } from "@server/mutations";
 import { TRPCError } from "@trpc/server";
 import { and, eq, gt, sql } from "drizzle-orm";
@@ -162,5 +163,61 @@ export const setSectionSongRouter = createTRPCRouter({
     .input(moveSetSectionSongToAdjacentSetSectionSchema)
     .mutation(async ({ input }) => {
       return await moveSongToAdjacentSection(input.setSectionSongId, "next");
+    }),
+
+  replaceSong: organizationProcedure
+    .input(replaceSetSectionSongSongSchema)
+    .mutation(async ({ ctx, input }) => {
+      console.log(
+        `🤖 - [setSectionSong/replaceSong] - attempting to update ${input.setSectionSongId}'s song to ${input.replacementSong}:`,
+      );
+
+      return await ctx.db.transaction(async (replaceTransaction) => {
+        const setSectionSong =
+          await replaceTransaction.query.setSectionSongs.findFirst({
+            where: eq(setSectionSongs.id, input.setSectionSongId),
+          });
+
+        if (!setSectionSong) {
+          console.error(
+            `🤖 - [setSectionSong/replaceSong] - could not find set section song ${input.setSectionSongId}`,
+          );
+
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Cannot find the set section song",
+          });
+        }
+
+        const replacementSong = await replaceTransaction.query.songs.findFirst({
+          where: eq(songs.id, input.replacementSong),
+        });
+
+        if (!replacementSong) {
+          console.error(
+            `🤖 - [setSectionSong/replaceSong] - could not find song ${input.replacementSong}`,
+          );
+
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Cannot find the replacement song",
+          });
+        }
+
+        await replaceTransaction
+          .update(setSectionSongs)
+          .set({ songId: input.replacementSong })
+          .where(eq(setSectionSongs.id, input.setSectionSongId));
+
+        console.info(
+          `🤖 - [setSectionSong/replaceSong] - Successfully updated ${input.setSectionSongId}'s song to ${input.replacementSong}`,
+        );
+
+        return {
+          success: true,
+          setSectionSong: input.setSectionSongId,
+          replacementSong: input.replacementSong,
+        };
+      });
     }),
 });
