@@ -140,7 +140,7 @@ export const ReplaceSongDialog: React.FC<ReplaceSongDialogProps> = ({
         <SongSearch onSongSelect={handleSongSelect} />
       )}
       {dialogStep === "confirm" && !!selectedSong && (
-        <CommandList className="text-center">
+        <CommandList className="max-h-[calc(100dvh_-_24px)] text-center md:max-h-[calc(100dvh_-_12dvh_-_5dvh)]">
           <CommandGroup>
             <div className="grid grid-cols-[40px_1fr_40px] items-center">
               <Button
@@ -152,28 +152,39 @@ export const ReplaceSongDialog: React.FC<ReplaceSongDialogProps> = ({
               </Button>
               <DialogTitle className="text-center">Replace song</DialogTitle>
             </div>
-            <DialogDescription className="mt-6 flex flex-col gap-6">
-              <VStack className="gap-2 text-slate-900">
-                <HStack className="items-center gap-4 rounded bg-red-100 px-4 py-1 text-slate-600">
-                  <Text asElement="span">-</Text>
-                  <Text asElement="span" className="font-medium">
-                    {currentSong.song.name}
-                  </Text>
-                </HStack>
-                <ArrowDown className="self-center" />
-                <HStack className="gap-4 rounded bg-green-100 px-4 py-1">
-                  <Text asElement="span">+</Text>
-                  <Text asElement="span" className="font-medium">
-                    {selectedSong.name}
-                  </Text>
+            <DialogDescription className="mt-2" asChild>
+              <VStack className="gap-8 px-4">
+                <Text className="text-slate-900">
+                  Are you sure you want to replace the current song with the
+                  selected one?
+                </Text>
+                <div className="grid grid-cols-[1fr_16px_1fr] gap-2">
+                  <Text className="text-slate-500">Current song</Text>
+                  <Text className="col-start-3 text-slate-900">New song</Text>
+                  <div className="flex h-full items-center gap-4 rounded border border-slate-200 px-2 py-1 text-slate-500 md:px-4 md:py-2">
+                    {/* <Text asElement="span">-</Text> */}
+                    <Text asElement="span" className="font-medium">
+                      {currentSong.song.name}
+                    </Text>
+                  </div>
+                  <ArrowRight
+                    className="self-center text-slate-900"
+                    size={16}
+                  />
+                  <div className="flex h-full items-center gap-4 rounded border border-slate-400 px-2 py-1 text-slate-900 md:px-4 md:py-2">
+                    {/* <Text asElement="span">+</Text> */}
+                    <Text asElement="span" className="font-medium">
+                      {selectedSong.name}
+                    </Text>
+                  </div>
+                </div>
+                <HStack className="justify-end gap-2">
+                  <Button variant="outline" onClick={handleCloseDialog}>
+                    Cancel
+                  </Button>
+                  <Button onClick={handleOnConfirm}>Replace song</Button>
                 </HStack>
               </VStack>
-              <HStack className="justify-center gap-2">
-                <Button variant="outline" onClick={handleCloseDialog}>
-                  Cancel
-                </Button>
-                <Button onClick={handleOnConfirm}>Replace song</Button>
-              </HStack>
             </DialogDescription>
           </CommandGroup>
         </CommandList>
