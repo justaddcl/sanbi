@@ -248,6 +248,9 @@ export const setSectionSongs = createTable("set_section_songs", {
   position: integer("position").notNull(),
   key: songKeyEnum("song_key"),
   notes: text("notes"),
+  organizationId: uuid("organization_id")
+    .references(() => organizations.id)
+    .notNull(),
   createdAt: timestamp("created_at", { withTimezone: true })
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),
@@ -261,6 +264,7 @@ export const organizationsRelations = relations(organizations, ({ many }) => ({
   members: many(organizationMemberships),
   songs: many(songs),
   sets: many(sets),
+  setSectionSongs: many(setSectionSongs),
   eventTypes: many(eventTypes),
 }));
 
@@ -321,6 +325,10 @@ export const setSectionSongsRelations = relations(
     setSection: one(setSections, {
       fields: [setSectionSongs.setSectionId],
       references: [setSections.id],
+    }),
+    organization: one(organizations, {
+      fields: [setSectionSongs.organizationId],
+      references: [organizations.id],
     }),
   }),
 );

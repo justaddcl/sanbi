@@ -39,6 +39,7 @@ export const setSectionSongRouter = createTRPCRouter({
         key,
         position,
         notes,
+        organizationId,
       };
 
       return ctx.db
@@ -197,8 +198,7 @@ export const setSectionSongRouter = createTRPCRouter({
         }
 
         if (
-          setSectionSong.setSection.set.organizationId !==
-          ctx.user.membership.organizationId
+          setSectionSong.organizationId !== ctx.user.membership.organizationId
         ) {
           console.error(
             `🤖 - [setSectionSong/replaceSong] - User ${ctx.user.id} not authorized to replace song on ${setSectionSong.id}`,
@@ -225,10 +225,7 @@ export const setSectionSongRouter = createTRPCRouter({
           });
         }
 
-        if (
-          replacementSong.organizationId !==
-          setSectionSong.setSection.set.organizationId
-        ) {
+        if (replacementSong.organizationId !== setSectionSong.organizationId) {
           console.error(
             `🤖 - [setSectionSong/replaceSong] - Cannot update setSectionSong ${setSectionSong.id} with a song from a different organization: ${replacementSong.id}`,
           );

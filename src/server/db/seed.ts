@@ -347,6 +347,7 @@ const seed = async () => {
           songId: song.id,
           position: index,
           key: randomKey,
+          organizationId: organization!.id,
         };
       },
     );
