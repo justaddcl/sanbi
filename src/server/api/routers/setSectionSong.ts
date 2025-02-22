@@ -176,6 +176,13 @@ export const setSectionSongRouter = createTRPCRouter({
         const setSectionSong =
           await replaceTransaction.query.setSectionSongs.findFirst({
             where: eq(setSectionSongs.id, input.setSectionSongId),
+            with: {
+              setSection: {
+                with: {
+                  set: true,
+                },
+              },
+            },
           });
 
         if (!setSectionSong) {
@@ -186,6 +193,20 @@ export const setSectionSongRouter = createTRPCRouter({
           throw new TRPCError({
             code: "BAD_REQUEST",
             message: "Cannot find the set section song",
+          });
+        }
+
+        if (
+          setSectionSong.setSection.set.organizationId !==
+          ctx.user.membership.organizationId
+        ) {
+          console.error(
+            `🤖 - [setSectionSong/replaceSong] - could not find set section song ${input.setSectionSongId}`,
+          );
+
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Not authorized to replace this song",
           });
         }
 

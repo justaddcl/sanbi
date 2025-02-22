@@ -62,7 +62,8 @@ export const ReplaceSongDialog: React.FC<ReplaceSongDialogProps> = ({
     null,
   );
 
-  const replaceSongMutation = api.setSectionSong.replaceSong.useMutation();
+  const replaceSongMutation =
+    api.setSectionSong.replaceSong.useMutation<Error>();
 
   if (!userData || !userMembership) {
     return null;
