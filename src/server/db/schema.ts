@@ -254,9 +254,7 @@ export const setSectionSongs = createTable("set_section_songs", {
   createdAt: timestamp("created_at", { withTimezone: true })
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),
-  updatedAt: timestamp("updatedAt", { withTimezone: true })
-    .default(sql`CURRENT_TIMESTAMP`)
-    .notNull(),
+  updatedAt,
 });
 
 /** drizzle relationships */

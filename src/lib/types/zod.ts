@@ -95,3 +95,12 @@ export const moveSetSectionSongToAdjacentSetSectionSchema =
 export const replaceSetSectionSongSongSchema = setSectionSongIdSchema.extend({
   replacementSong: z.string().uuid(),
 });
+export const updateSetSectionSongSchema = insertSetSectionSongSchema
+  .required({
+    id: true,
+  })
+  .partial({
+    position: true,
+    setSectionId: true,
+    songId: true,
+  });
