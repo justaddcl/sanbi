@@ -225,6 +225,16 @@ export const setSectionSongRouter = createTRPCRouter({
           });
         }
 
+        if (
+          replacementSong.organizationId !==
+          setSectionSong.setSection.set.organizationId
+        ) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Cannot replace with a song from a different organization",
+          });
+        }
+
         await replaceTransaction
           .update(setSectionSongs)
           .set({ songId: input.replacementSong })
