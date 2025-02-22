@@ -201,7 +201,7 @@ export const setSectionSongRouter = createTRPCRouter({
           ctx.user.membership.organizationId
         ) {
           console.error(
-            `🤖 - [setSectionSong/replaceSong] - could not find set section song ${input.setSectionSongId}`,
+            `🤖 - [setSectionSong/replaceSong] - User ${ctx.user.id} not authorized to replace song on ${setSectionSong.id}`,
           );
 
           throw new TRPCError({
@@ -229,6 +229,10 @@ export const setSectionSongRouter = createTRPCRouter({
           replacementSong.organizationId !==
           setSectionSong.setSection.set.organizationId
         ) {
+          console.error(
+            `🤖 - [setSectionSong/replaceSong] - Cannot update setSectionSong ${setSectionSong.id} with a song from a different organization: ${replacementSong.id}`,
+          );
+
           throw new TRPCError({
             code: "BAD_REQUEST",
             message: "Cannot replace with a song from a different organization",
