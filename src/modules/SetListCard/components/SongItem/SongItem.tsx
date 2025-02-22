@@ -5,6 +5,17 @@ import { SongActionMenu } from "../SongActionMenu/SongActionMenu";
 import { type SetSectionSongWithSongData } from "@lib/types";
 import { type SetSectionCardProps } from "@modules/sets/components/SetSectionCard";
 import { SongContent } from "@modules/SetListCard/components/SongContent";
+import { useState } from "react";
+import { VStack } from "@components/VStack";
+import { Button } from "@components/ui/button";
+import { insertSetSectionSongSchema } from "@lib/types/zod";
+import { type z } from "zod";
+import { type SubmitHandler, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Form } from "@components/ui/form";
+import { api } from "@/trpc/react";
+import { toast } from "sonner";
+import { useUserQuery } from "@modules/users/api/queries";
 
 type BaseSongItemProps = {
   /** set section song object */
@@ -43,6 +54,18 @@ type SongItemWithoutActionsMenuProps = BaseSongItemProps & {
   withActionsMenu?: false;
 };
 
+const updateSetSectionSongsSchema = insertSetSectionSongSchema.pick({
+  key: true,
+  notes: true,
+});
+
+export type UpdateSetSectionSongFormFields = Omit<
+  z.infer<typeof updateSetSectionSongsSchema>,
+  "notes"
+> & {
+  notes: NonNullable<z.infer<typeof updateSetSectionSongsSchema>["notes"]>;
+};
+
 export type SongItemProps =
   | SongItemWithActionsMenuProps
   | SongItemWithoutActionsMenuProps;
@@ -54,20 +77,126 @@ export const SongItem: React.FC<SongItemProps> = ({
   setSectionType,
   ...props
 }) => {
+  const [isEditingDetails, setIsEditingDetails] = useState<boolean>(false);
+
+  const apiUtils = api.useUtils();
+  const updateSetSectionSongMutation =
+    api.setSectionSong.updateDetails.useMutation();
+
+  const updateSetSectionSongForm = useForm<UpdateSetSectionSongFormFields>({
+    resolver: zodResolver(updateSetSectionSongsSchema),
+    defaultValues: {
+      key: setSectionSong.key,
+      notes: setSectionSong.notes ?? "",
+    },
+  });
+
+  const {
+    formState: { isDirty, isSubmitting, isValid },
+    reset: resetForm,
+  } = updateSetSectionSongForm;
+
+  const {
+    data: userData,
+    error: userQueryError,
+    isLoading: userQueryLoading,
+    isAuthLoaded,
+  } = useUserQuery();
+  const userMembership = userData?.memberships[0];
+
+  const shouldUpdateSongButtonBeDisabled =
+    !isDirty ||
+    !isValid ||
+    isSubmitting ||
+    updateSetSectionSongMutation.isPending;
+
+  if (!!userQueryError || !isAuthLoaded || !userData || !userMembership) {
+    return null;
+  }
+
+  const handleUpdateSetSectionSong: SubmitHandler<
+    UpdateSetSectionSongFormFields
+  > = async (formValues: UpdateSetSectionSongFormFields) => {
+    toast.loading("Updating song...");
+
+    updateSetSectionSongMutation.mutate(
+      {
+        id: setSectionSong.id,
+        organizationId: userMembership.organizationId,
+        ...formValues,
+      },
+      {
+        async onSuccess() {
+          toast.dismiss();
+          toast.success("Updated song");
+          await apiUtils.set.get.invalidate({
+            setId,
+            organizationId: userMembership.organizationId,
+          });
+        },
+
+        async onError(updateError) {
+          toast.dismiss();
+          toast.error(`Could not update song: ${updateError.message}`);
+        },
+      },
+    );
+
+    setIsEditingDetails(false);
+  };
+
   return (
-    <HStack className="items-center justify-between rounded-lg px-6 py-3 shadow lg:py-4">
-      <SongContent setSectionSong={setSectionSong} index={index} />
-      {props.withActionsMenu && (
-        <SongActionMenu
-          setSectionSong={setSectionSong}
-          setId={setId}
-          setSectionType={setSectionType}
-          isFirstSong={props.isFirstSong}
-          isLastSong={props.isLastSong}
-          isInFirstSection={props.isInFirstSection}
-          isInLastSection={props.isInLastSection}
-        />
-      )}
-    </HStack>
+    <Form {...updateSetSectionSongForm}>
+      <form
+        onSubmit={updateSetSectionSongForm.handleSubmit(
+          handleUpdateSetSectionSong,
+        )}
+      >
+        <VStack className="gap-4 rounded-lg px-6 py-3 shadow lg:py-4">
+          <HStack className="items-baseline justify-between">
+            <SongContent
+              setSectionSong={setSectionSong}
+              index={index}
+              isEditing={isEditingDetails}
+              updateForm={updateSetSectionSongForm}
+            />
+            {props.withActionsMenu && !isEditingDetails && (
+              <SongActionMenu
+                setSectionSong={setSectionSong}
+                setId={setId}
+                setSectionType={setSectionType}
+                isFirstSong={props.isFirstSong}
+                isLastSong={props.isLastSong}
+                isInFirstSection={props.isInFirstSection}
+                isInLastSection={props.isInLastSection}
+                setIsEditingDetails={setIsEditingDetails}
+              />
+            )}
+          </HStack>
+          {isEditingDetails && (
+            <HStack className="justify-end gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  resetForm();
+                  setIsEditingDetails(false);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                size="sm"
+                type="submit"
+                disabled={shouldUpdateSongButtonBeDisabled}
+                isLoading={isSubmitting}
+              >
+                Save
+              </Button>
+            </HStack>
+          )}
+        </VStack>
+      </form>
+    </Form>
   );
 };

@@ -10,7 +10,6 @@ import {
   Pencil,
   Swap,
   Trash,
-  PianoKeys,
 } from "@phosphor-icons/react/dist/ssr";
 import { DropdownMenuItem } from "@components/ui/dropdown-menu";
 import { cn } from "@lib/utils";
@@ -24,7 +23,6 @@ const iconMap = {
   Pencil,
   Swap,
   Trash,
-  PianoKeys,
 } as const;
 
 type SongActionMenuItemProps = {

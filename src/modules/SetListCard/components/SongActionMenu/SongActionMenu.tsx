@@ -7,7 +7,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@components/ui/dropdown-menu";
-import { useState } from "react";
+import { type Dispatch, type SetStateAction, useState } from "react";
 import { DotsThree } from "@phosphor-icons/react";
 import { SongActionMenuItem } from "@modules/SetListCard/components/SongActionMenuItem";
 import { api } from "@/trpc/react";
@@ -51,6 +51,9 @@ type SongActionMenuProps = {
 
   /** is this song the last song of the section? */
   isLastSong: SongItemWithActionsMenuProps["isLastSong"];
+
+  /** call back to set if the song item is in edit mode */
+  setIsEditingDetails: Dispatch<SetStateAction<boolean>>;
 };
 
 export const SongActionMenu: React.FC<SongActionMenuProps> = ({
@@ -61,6 +64,7 @@ export const SongActionMenu: React.FC<SongActionMenuProps> = ({
   isLastSong,
   isInFirstSection,
   isInLastSection,
+  setIsEditingDetails,
 }) => {
   const apiUtils = api.useUtils();
   const [isSongActionMenuOpen, setIsSongActionMenuOpen] =
@@ -218,7 +222,14 @@ export const SongActionMenu: React.FC<SongActionMenuProps> = ({
             }
           />
           <DropdownMenuSeparator />
-          <SongActionMenuItem icon="PianoKeys" label="Change key" />
+          <SongActionMenuItem
+            icon="Pencil"
+            label="Edit song"
+            onClick={() => {
+              setIsEditingDetails(true);
+              setIsSongActionMenuOpen(false);
+            }}
+          />
           <SongActionMenuItem
             icon="Swap"
             label="Replace song"
