@@ -43,9 +43,7 @@ export const users = createTable(
     createdAt: timestamp("created_at", { withTimezone: true })
       .default(sql`CURRENT_TIMESTAMP`)
       .notNull(),
-    updatedAt: timestamp("updatedAt", { withTimezone: true })
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),
+    updatedAt,
   },
   (usersTable) => {
     return {
@@ -63,9 +61,7 @@ export const organizations = createTable(
     createdAt: timestamp("created_at", { withTimezone: true })
       .default(sql`CURRENT_TIMESTAMP`)
       .notNull(),
-    updatedAt: timestamp("updatedAt", { withTimezone: true })
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),
+    updatedAt,
   },
   (organizationsTable) => {
     return {
@@ -93,9 +89,7 @@ export const organizationMemberships = createTable(
     createdAt: timestamp("created_at", { withTimezone: true })
       .default(sql`CURRENT_TIMESTAMP`)
       .notNull(),
-    updatedAt: timestamp("updatedAt", { withTimezone: true })
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),
+    updatedAt,
   },
   (table) => {
     return {
@@ -110,9 +104,7 @@ export const tags = createTable("tags", {
   createdAt: timestamp("created_at", { withTimezone: true })
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),
-  updatedAt: timestamp("updatedAt", { withTimezone: true })
-    .default(sql`CURRENT_TIMESTAMP`)
-    .notNull(),
+  updatedAt,
 });
 
 export const songTags = createTable(
@@ -127,9 +119,7 @@ export const songTags = createTable(
     createdAt: timestamp("created_at", { withTimezone: true })
       .default(sql`CURRENT_TIMESTAMP`)
       .notNull(),
-    updatedAt: timestamp("updatedAt", { withTimezone: true })
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),
+    updatedAt,
   },
   (songTagsTable) => {
     return {
@@ -170,15 +160,13 @@ export const songs = createTable(
 export const eventTypes = createTable("event_types", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: varchar("event").unique().notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .default(sql`CURRENT_TIMESTAMP`)
-    .notNull(),
-  updatedAt: timestamp("updatedAt", { withTimezone: true })
-    .default(sql`CURRENT_TIMESTAMP`)
-    .notNull(),
   organizationId: uuid("organization_id")
     .references(() => organizations.id)
     .notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+  updatedAt,
 });
 
 export const sets = createTable("sets", {
@@ -201,15 +189,13 @@ export const sets = createTable("sets", {
 export const setSectionTypes = createTable("set_section_types", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: varchar("name").unique().notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .default(sql`CURRENT_TIMESTAMP`)
-    .notNull(),
-  updatedAt: timestamp("updatedAt", { withTimezone: true })
-    .default(sql`CURRENT_TIMESTAMP`)
-    .notNull(),
   organizationId: uuid("organization_id")
     .references(() => organizations.id)
     .notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+  updatedAt,
 });
 
 export const setSections = createTable(
@@ -226,9 +212,7 @@ export const setSections = createTable(
     createdAt: timestamp("created_at", { withTimezone: true })
       .default(sql`CURRENT_TIMESTAMP`)
       .notNull(),
-    updatedAt: timestamp("updatedAt", { withTimezone: true })
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),
+    updatedAt,
   },
   (setSectionsTable) => {
     return {
