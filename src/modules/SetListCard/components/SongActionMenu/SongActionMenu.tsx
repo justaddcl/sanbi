@@ -1,15 +1,8 @@
 "use client";
 
 import { Button } from "@components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@components/ui/dropdown-menu";
+import { DropdownMenuSeparator } from "@components/ui/dropdown-menu";
 import { type Dispatch, type SetStateAction, useState } from "react";
-import { DotsThree } from "@phosphor-icons/react";
-import { SongActionMenuItem } from "@modules/SetListCard/components/SongActionMenuItem";
 import { api } from "@/trpc/react";
 import { toast } from "sonner";
 import { useUserQuery } from "@modules/users/api/queries";
@@ -29,6 +22,7 @@ import {
 } from "@server/mutations";
 import { useParams, useRouter } from "next/navigation";
 import { ReplaceSongDialog } from "@modules/songs/components/ReplaceSongDialog";
+import { ActionMenu, ActionMenuItem } from "@components/ActionMenu";
 
 type SongActionMenuProps = {
   /** set section song object */
@@ -202,101 +196,94 @@ export const SongActionMenu: React.FC<SongActionMenuProps> = ({
 
   return (
     <>
-      <DropdownMenu
-        open={isSongActionMenuOpen}
-        onOpenChange={setIsSongActionMenuOpen}
+      <ActionMenu
+        isOpen={isSongActionMenuOpen}
+        setIsOpen={setIsSongActionMenuOpen}
       >
-        <DropdownMenuTrigger>
-          <Button variant="ghost" size="sm">
-            <DotsThree className="text-slate-900" size={16} />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent avoidCollisions align="end" side="bottom">
-          <SongActionMenuItem
-            icon="Article"
-            label="View song details"
-            onClick={() =>
-              router.push(
-                `/${params.organization}/songs/${setSectionSong.song.id}`,
-              )
-            }
-          />
-          <DropdownMenuSeparator />
-          <SongActionMenuItem
-            icon="Pencil"
-            label="Edit song"
-            onClick={() => {
-              setIsEditingDetails(true);
-              setIsSongActionMenuOpen(false);
-            }}
-          />
-          <SongActionMenuItem
-            icon="Swap"
-            label="Replace song"
-            disabled={isMutationPending}
-            onClick={() => {
-              setIsSongActionMenuOpen(false);
-              setIsSongSearchDialogOpen(true);
-            }}
-          />
-          <DropdownMenuSeparator />
-          {!isOnlySong && (
-            <>
-              <SongActionMenuItem
-                icon="ArrowUp"
-                label="Move up"
-                disabled={isFirstSong || isMutationPending}
-                onClick={() => {
-                  moveSong("up");
-                  setIsSongActionMenuOpen(false);
-                }}
-              />
-              <SongActionMenuItem
-                icon="ArrowDown"
-                label="Move down"
-                disabled={isLastSong || isMutationPending}
-                onClick={() => {
-                  moveSong("down");
-                  setIsSongActionMenuOpen(false);
-                }}
-              />
-            </>
-          )}
-          {!isInOnlySection && (
-            <>
-              <SongActionMenuItem
-                icon="ArrowLineUp"
-                label="Move to previous section"
-                disabled={isInFirstSection || isMutationPending}
-                onClick={() => {
-                  moveSongToAdjacentSection("previous");
-                  setIsSongActionMenuOpen(false);
-                }}
-              />
-              <SongActionMenuItem
-                icon="ArrowLineDown"
-                label="Move to next section"
-                disabled={isInLastSection || isMutationPending}
-                onClick={() => {
-                  moveSongToAdjacentSection("next");
-                  setIsSongActionMenuOpen(false);
-                }}
-              />
-            </>
-          )}
-          {!(isOnlySong && isInOnlySection) && <DropdownMenuSeparator />}
-          <SongActionMenuItem
-            icon="Trash"
-            label="Remove from section"
-            disabled={isMutationPending}
-            onClick={() => {
-              setIsConfirmationDialogOpen(true);
-              setIsSongActionMenuOpen(false);
-            }}
-            destructive
-          />
-        </DropdownMenuContent>
-      </DropdownMenu>
+        <ActionMenuItem
+          icon="Article"
+          label="View song details"
+          onClick={() =>
+            router.push(
+              `/${params.organization}/songs/${setSectionSong.song.id}`,
+            )
+          }
+        />
+        <DropdownMenuSeparator />
+        <ActionMenuItem
+          icon="Pencil"
+          label="Edit song"
+          onClick={() => {
+            setIsEditingDetails(true);
+            setIsSongActionMenuOpen(false);
+          }}
+        />
+        <ActionMenuItem
+          icon="Swap"
+          label="Replace song"
+          disabled={isMutationPending}
+          onClick={() => {
+            setIsSongActionMenuOpen(false);
+            setIsSongSearchDialogOpen(true);
+          }}
+        />
+        <DropdownMenuSeparator />
+        {!isOnlySong && (
+          <>
+            <ActionMenuItem
+              icon="ArrowUp"
+              label="Move up"
+              disabled={isFirstSong || isMutationPending}
+              onClick={() => {
+                moveSong("up");
+                setIsSongActionMenuOpen(false);
+              }}
+            />
+            <ActionMenuItem
+              icon="ArrowDown"
+              label="Move down"
+              disabled={isLastSong || isMutationPending}
+              onClick={() => {
+                moveSong("down");
+                setIsSongActionMenuOpen(false);
+              }}
+            />
+          </>
+        )}
+        {!isInOnlySection && (
+          <>
+            <ActionMenuItem
+              icon="ArrowLineUp"
+              label="Move to previous section"
+              disabled={isInFirstSection || isMutationPending}
+              onClick={() => {
+                moveSongToAdjacentSection("previous");
+                setIsSongActionMenuOpen(false);
+              }}
+            />
+            <ActionMenuItem
+              icon="ArrowLineDown"
+              label="Move to next section"
+              disabled={isInLastSection || isMutationPending}
+              onClick={() => {
+                moveSongToAdjacentSection("next");
+                setIsSongActionMenuOpen(false);
+              }}
+            />
+          </>
+        )}
+        {!(isOnlySong && isInOnlySection) && <DropdownMenuSeparator />}
+        <ActionMenuItem
+          icon="Trash"
+          label="Remove from section"
+          disabled={isMutationPending}
+          onClick={() => {
+            setIsConfirmationDialogOpen(true);
+            setIsSongActionMenuOpen(false);
+          }}
+          destructive
+        />
+      </ActionMenu>
       <AlertDialog
         open={isConfirmationDialogOpen}
         onOpenChange={setIsConfirmationDialogOpen}

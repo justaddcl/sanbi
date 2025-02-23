@@ -1,18 +1,58 @@
+"use client";
+
 import { HStack } from "@components/HStack";
 import { Text } from "@components/Text";
-import React from "react";
+import { Button } from "@components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@components/ui/dropdown-menu";
+import { cn } from "@lib/utils";
 import {
   ArrowDown,
   ArrowLineDown,
   ArrowLineUp,
   ArrowUp,
   Article,
+  DotsThree,
   Pencil,
   Swap,
   Trash,
-} from "@phosphor-icons/react/dist/ssr";
-import { DropdownMenuItem } from "@components/ui/dropdown-menu";
-import { cn } from "@lib/utils";
+} from "@phosphor-icons/react";
+import React, {
+  type Dispatch,
+  type PropsWithChildren,
+  type SetStateAction,
+} from "react";
+
+type ActionMenuProps = PropsWithChildren & {
+  /** open/closed state of the menu */
+  isOpen: boolean;
+
+  /** callback to set open/closed state of the menu */
+  setIsOpen: Dispatch<SetStateAction<boolean>>;
+};
+
+export const ActionMenu: React.FC<ActionMenuProps> = ({
+  isOpen,
+  setIsOpen,
+  children,
+}) => {
+  return (
+    <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
+      <DropdownMenuTrigger>
+        <Button variant="ghost" size="sm">
+          <DotsThree className="text-slate-900" size={16} />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent avoidCollisions align="end" side="bottom">
+        {children}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+};
 
 const iconMap = {
   ArrowDown,
@@ -25,7 +65,7 @@ const iconMap = {
   Trash,
 } as const;
 
-type SongActionMenuItemProps = {
+type ActionMenuItemProps = {
   label: string;
   icon: keyof typeof iconMap;
   destructive?: boolean;
@@ -33,7 +73,7 @@ type SongActionMenuItemProps = {
   onClick?: () => void;
 };
 
-export const SongActionMenuItem: React.FC<SongActionMenuItemProps> = ({
+export const ActionMenuItem: React.FC<ActionMenuItemProps> = ({
   label,
   icon,
   destructive = false,
