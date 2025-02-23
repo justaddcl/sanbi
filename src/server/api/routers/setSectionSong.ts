@@ -5,6 +5,7 @@ import {
   moveSetSectionSongToAdjacentSetSectionSchema,
   replaceSetSectionSongSongSchema,
   swapSetSectionSongSchema,
+  updateSetSectionSongSchema,
 } from "@lib/types/zod";
 import {
   adminProcedure,
@@ -39,6 +40,7 @@ export const setSectionSongRouter = createTRPCRouter({
         key,
         position,
         notes,
+        organizationId,
       };
 
       return ctx.db
@@ -197,8 +199,7 @@ export const setSectionSongRouter = createTRPCRouter({
         }
 
         if (
-          setSectionSong.setSection.set.organizationId !==
-          ctx.user.membership.organizationId
+          setSectionSong.organizationId !== ctx.user.membership.organizationId
         ) {
           console.error(
             `🤖 - [setSectionSong/replaceSong] - User ${ctx.user.id} not authorized to replace song on ${setSectionSong.id}`,
@@ -225,10 +226,7 @@ export const setSectionSongRouter = createTRPCRouter({
           });
         }
 
-        if (
-          replacementSong.organizationId !==
-          setSectionSong.setSection.set.organizationId
-        ) {
+        if (replacementSong.organizationId !== setSectionSong.organizationId) {
           console.error(
             `🤖 - [setSectionSong/replaceSong] - Cannot update setSectionSong ${setSectionSong.id} with a song from a different organization: ${replacementSong.id}`,
           );
@@ -254,5 +252,63 @@ export const setSectionSongRouter = createTRPCRouter({
           replacementSong: input.replacementSong,
         };
       });
+    }),
+
+  updateDetails: organizationProcedure
+    .input(updateSetSectionSongSchema)
+    .mutation(async ({ ctx, input }) => {
+      const { id: setSectionSongId, ...updates } = input;
+      const setSectionSong = await ctx.db.query.setSectionSongs.findFirst({
+        where: eq(setSectionSongs.id, setSectionSongId),
+        with: {
+          setSection: {
+            with: {
+              set: true,
+            },
+          },
+        },
+      });
+
+      if (!setSectionSong) {
+        console.error(
+          `🤖 - [setSectionSong/updateDetails] - could not find set section song ${setSectionSongId}`,
+        );
+
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Cannot find the set section song",
+        });
+      }
+
+      if (
+        setSectionSong.organizationId !== ctx.user.membership.organizationId
+      ) {
+        console.error(
+          `🤖 - [setSectionSong/updateDetails] - User ${ctx.user.id} not authorized to update set section song ${setSectionSong.id}`,
+        );
+
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Not authorized to update this song",
+        });
+      }
+
+      console.info(
+        `🤖 - [setSectionSong/updateDetails] - Attempting to update set section song ${setSectionSongId} with the following updates:`,
+        updates,
+      );
+
+      const [updatedSong] = await ctx.db
+        .update(setSectionSongs)
+        .set({ ...updates })
+        .where(eq(setSectionSongs.id, setSectionSongId))
+        .returning();
+
+      console.info(
+        `🤖 - [setSectionSong/updateDetails] - Successfully updated details for ${setSectionSongId}:`,
+        updatedSong,
+      );
+
+      return updatedSong;
     }),
 });
