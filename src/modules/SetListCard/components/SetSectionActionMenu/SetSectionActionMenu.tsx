@@ -1,15 +1,7 @@
 "use client";
 
-import { Button } from "@components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@components/ui/dropdown-menu";
+import { DropdownMenuSeparator } from "@components/ui/dropdown-menu";
 import { type Dispatch, type SetStateAction, useState } from "react";
-import { DotsThree } from "@phosphor-icons/react";
-import { SongActionMenuItem } from "@modules/SetListCard/components/SongActionMenuItem";
 import { api } from "@/trpc/react";
 import { toast } from "sonner";
 import { useUserQuery } from "@modules/users/api/queries";
@@ -28,17 +20,14 @@ import {
   type SwapSongDirection,
 } from "@server/mutations";
 import { useParams, useRouter } from "next/navigation";
-import { ReplaceSongDialog } from "@modules/songs/components/ReplaceSongDialog";
+import { ActionMenu, ActionMenuItem } from "@components/ActionMenu";
 
 type SetSectionActionMenuProps = {
-  /** set section song object */
-  setSectionSong: SetSectionSongWithSongData;
-
   /** the type of set section this song is attached to */
-  setSectionType: string;
+  // setSectionType: string;
 
   /** the ID of the set the set section song is attached to */
-  setId: string;
+  // setId: string;
 
   /** is this song in the first section of the set? */
   isInFirstSection: SongItemWithActionsMenuProps["isInFirstSection"];
@@ -47,7 +36,7 @@ type SetSectionActionMenuProps = {
   isInLastSection: SongItemWithActionsMenuProps["isInLastSection"];
 
   /** call back to set if the song item is in edit mode */
-  setIsEditingDetails: Dispatch<SetStateAction<boolean>>;
+  // setIsEditingDetails: Dispatch<SetStateAction<boolean>>;
 };
 
 export const SetSectionActionMenu: React.FC<SetSectionActionMenuProps> = ({
@@ -90,35 +79,28 @@ export const SetSectionActionMenu: React.FC<SetSectionActionMenuProps> = ({
 
   return (
     <>
-      <DropdownMenu open={isActionMenuOpen} onOpenChange={setIsActionMenuOpen}>
-        <DropdownMenuTrigger>
-          <Button variant="ghost" size="sm">
-            <DotsThree className="text-slate-900" size={16} />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent avoidCollisions align="end" side="bottom">
-          <SongActionMenuItem icon="Swap" label="Change section type" />
-          <DropdownMenuSeparator />
-          {!isInOnlySection && (
-            <>
-              <SongActionMenuItem
-                icon="ArrowLineUp"
-                label="Move section to top"
-                disabled={isInFirstSection}
-              />
-              <SongActionMenuItem icon="ArrowUp" label="Move section up" />
-              <SongActionMenuItem icon="ArrowDown" label="Move section down" />
-              <SongActionMenuItem
-                icon="ArrowLineDown"
-                label="Move section to bottom"
-                disabled={isInLastSection}
-              />
-              <DropdownMenuSeparator />
-            </>
-          )}
-          <SongActionMenuItem icon="Trash" label="Delete section" destructive />
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <ActionMenu isOpen={isActionMenuOpen} setIsOpen={setIsActionMenuOpen}>
+        <ActionMenuItem icon="Swap" label="Change section type" />
+        <DropdownMenuSeparator />
+        {!isInOnlySection && (
+          <>
+            <ActionMenuItem
+              icon="ArrowLineUp"
+              label="Move section to top"
+              disabled={isInFirstSection}
+            />
+            <ActionMenuItem icon="ArrowUp" label="Move section up" />
+            <ActionMenuItem icon="ArrowDown" label="Move section down" />
+            <ActionMenuItem
+              icon="ArrowLineDown"
+              label="Move section to bottom"
+              disabled={isInLastSection}
+            />
+            <DropdownMenuSeparator />
+          </>
+        )}
+        <ActionMenuItem icon="Trash" label="Delete section" destructive />
+      </ActionMenu>
       {/* <AlertDialog
         open={isConfirmationDialogOpen}
         onOpenChange={setIsConfirmationDialogOpen}

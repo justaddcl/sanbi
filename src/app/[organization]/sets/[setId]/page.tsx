@@ -165,6 +165,7 @@ export default function SetListPage({ params }: SetListPageProps) {
                   isLastSection={
                     section.position === setData.sections.length - 1
                   }
+                  withActionsMenu
                 />
               );
             })}

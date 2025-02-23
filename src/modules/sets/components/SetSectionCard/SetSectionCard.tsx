@@ -1,6 +1,6 @@
 import { type FC } from "react";
 import { type SetSectionWithSongs } from "@lib/types";
-import { DotsThree, Plus } from "@phosphor-icons/react/dist/ssr";
+import { Plus } from "@phosphor-icons/react/dist/ssr";
 import { SongItem } from "@modules/SetListCard";
 import { Text } from "@components/Text";
 import { Button } from "@components/ui/button";
@@ -52,7 +52,12 @@ export const SetSectionCard: FC<SetSectionCardProps> = ({
               <Plus className="text-slate-900" size={16} />
               <span className="hidden sm:inline">Add song</span>
             </Button>
-            {withActionsMenu && <SetSectionActionMenu />}
+            {withActionsMenu && (
+              <SetSectionActionMenu
+                isInFirstSection={isFirstSection}
+                isInLastSection={isLastSection}
+              />
+            )}
             {/* <Button size="sm" variant="ghost">
               <DotsThree className="text-slate-900" size={16} />
             </Button> */}
