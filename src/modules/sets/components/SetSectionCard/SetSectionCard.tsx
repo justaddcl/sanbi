@@ -6,6 +6,7 @@ import { Text } from "@components/Text";
 import { Button } from "@components/ui/button";
 import { VStack } from "@components/VStack";
 import { HStack } from "@components/HStack";
+import { SetSectionActionMenu } from "@modules/SetListCard/components/SetSectionActionMenu";
 
 export type SetSectionCardProps = {
   /** The section data including songs, type, and position */
@@ -19,6 +20,9 @@ export type SetSectionCardProps = {
 
   /** Whether this is the last section in the set */
   isLastSection: boolean;
+
+  /** should the SetSection card have the action menu? */
+  withActionsMenu?: boolean;
 };
 
 export const SetSectionCard: FC<SetSectionCardProps> = ({
@@ -26,6 +30,7 @@ export const SetSectionCard: FC<SetSectionCardProps> = ({
   sectionStartIndex,
   isFirstSection,
   isLastSection,
+  withActionsMenu,
 }) => {
   const { id, type, songs, setId } = section;
   return (
@@ -47,9 +52,10 @@ export const SetSectionCard: FC<SetSectionCardProps> = ({
               <Plus className="text-slate-900" size={16} />
               <span className="hidden sm:inline">Add song</span>
             </Button>
-            <Button size="sm" variant="ghost">
+            {withActionsMenu && <SetSectionActionMenu />}
+            {/* <Button size="sm" variant="ghost">
               <DotsThree className="text-slate-900" size={16} />
-            </Button>
+            </Button> */}
           </HStack>
         </HStack>
         <hr className="bg-slate-100" />
