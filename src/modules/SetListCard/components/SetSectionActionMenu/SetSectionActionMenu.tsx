@@ -21,8 +21,15 @@ import {
 } from "@server/mutations";
 import { useParams, useRouter } from "next/navigation";
 import { ActionMenu, ActionMenuItem } from "@components/ActionMenu";
+import { type SetSectionCardProps } from "@modules/sets/components/SetSectionCard";
 
 type SetSectionActionMenuProps = {
+  /** set section the action menu is attached to */
+  setSection: SetSectionCardProps["section"];
+
+  /** how many set sections are in the set this section is attached to */
+  setSectionsLength: SetSectionCardProps["setSectionsLength"];
+
   /** the type of set section this song is attached to */
   // setSectionType: string;
 
@@ -40,6 +47,8 @@ type SetSectionActionMenuProps = {
 };
 
 export const SetSectionActionMenu: React.FC<SetSectionActionMenuProps> = ({
+  setSection,
+  setSectionsLength,
   // setSectionSong,
   // setSectionType,
   // setId,
@@ -84,18 +93,30 @@ export const SetSectionActionMenu: React.FC<SetSectionActionMenuProps> = ({
         <DropdownMenuSeparator />
         {!isInOnlySection && (
           <>
+            {setSection.position > 1 && (
+              <ActionMenuItem
+                icon="ArrowLineUp"
+                label="Move section to top"
+                disabled={isInFirstSection}
+              />
+            )}
             <ActionMenuItem
-              icon="ArrowLineUp"
-              label="Move section to top"
+              icon="ArrowUp"
+              label="Move section up"
               disabled={isInFirstSection}
             />
-            <ActionMenuItem icon="ArrowUp" label="Move section up" />
-            <ActionMenuItem icon="ArrowDown" label="Move section down" />
             <ActionMenuItem
-              icon="ArrowLineDown"
-              label="Move section to bottom"
+              icon="ArrowDown"
+              label="Move section down"
               disabled={isInLastSection}
             />
+            {setSection.position < setSectionsLength - 2 && (
+              <ActionMenuItem
+                icon="ArrowLineDown"
+                label="Move section to bottom"
+                disabled={isInLastSection}
+              />
+            )}
             <DropdownMenuSeparator />
           </>
         )}

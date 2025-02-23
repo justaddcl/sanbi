@@ -12,14 +12,17 @@ export type SetSectionCardProps = {
   /** The section data including songs, type, and position */
   section: SetSectionWithSongs;
 
+  /** how many set sections are in the set this section is attached to */
+  setSectionsLength: number;
+
   /** The 1-based index where this section's songs start in the overall set */
   sectionStartIndex: number;
 
   /** Whether this is the first section in the set */
-  isFirstSection: boolean;
+  // isFirstSection: boolean;
 
   /** Whether this is the last section in the set */
-  isLastSection: boolean;
+  // isLastSection: boolean;
 
   /** should the SetSection card have the action menu? */
   withActionsMenu?: boolean;
@@ -27,12 +30,14 @@ export type SetSectionCardProps = {
 
 export const SetSectionCard: FC<SetSectionCardProps> = ({
   section,
+  setSectionsLength,
   sectionStartIndex,
-  isFirstSection,
-  isLastSection,
   withActionsMenu,
 }) => {
-  const { id, type, songs, setId } = section;
+  const { id, type, songs, setId, position } = section;
+  const isFirstSection = position === 0;
+  const isLastSection = position === setSectionsLength - 1;
+
   return (
     <VStack
       key={id}
@@ -54,6 +59,8 @@ export const SetSectionCard: FC<SetSectionCardProps> = ({
             </Button>
             {withActionsMenu && (
               <SetSectionActionMenu
+                setSection={section}
+                setSectionsLength={setSectionsLength}
                 isInFirstSection={isFirstSection}
                 isInLastSection={isLastSection}
               />

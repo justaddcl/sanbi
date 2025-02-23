@@ -38,10 +38,10 @@ export type SongItemWithActionsMenuProps = BaseSongItemProps & {
   withActionsMenu: true;
 
   /** is this song in the first section of the set? */
-  isInFirstSection: SetSectionCardProps["isFirstSection"];
+  isInFirstSection: boolean;
 
   /** is this song in the last section of the set? */
-  isInLastSection: SetSectionCardProps["isLastSection"];
+  isInLastSection: boolean;
 
   /** is this song the first song of the section? */
   isFirstSong: boolean;

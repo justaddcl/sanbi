@@ -160,11 +160,8 @@ export default function SetListPage({ params }: SetListPageProps) {
                 <SetSectionCard
                   key={section.id}
                   section={section as SetSectionWithSongs}
+                  setSectionsLength={setData.sections.length}
                   sectionStartIndex={sectionStartIndex}
-                  isFirstSection={section.position === 0}
-                  isLastSection={
-                    section.position === setData.sections.length - 1
-                  }
                   withActionsMenu
                 />
               );
