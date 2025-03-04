@@ -147,6 +147,7 @@ export const SetSectionCard: FC<SetSectionCardProps> = ({
             setId: section.setId,
             organizationId: userMembership.organizationId,
           });
+          setIsEditingSectionType(false);
         },
 
         async onError(updateError) {
@@ -155,9 +156,6 @@ export const SetSectionCard: FC<SetSectionCardProps> = ({
         },
       },
     );
-
-    toast.dismiss();
-    setIsEditingSectionType(false);
   };
 
   const shouldUpdateSectionButtonBeDisabled =
