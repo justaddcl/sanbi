@@ -1,17 +1,8 @@
-import { useEffect, useState, type FC } from "react";
-import { type SetSectionWithSongs } from "@lib/types";
-import { Plus } from "@phosphor-icons/react/dist/ssr";
-import { SongItem } from "@modules/SetListCard";
+import { api } from "@/trpc/react";
+import { HStack } from "@components/HStack";
 import { Text } from "@components/Text";
 import { Button } from "@components/ui/button";
-import { VStack } from "@components/VStack";
-import { HStack } from "@components/HStack";
-import { SetSectionActionMenu } from "@modules/SetListCard/components/SetSectionActionMenu";
-import { insertSetSectionSchema } from "@lib/types/zod";
-import { type z } from "zod";
-import { type SubmitHandler, useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { toast } from "sonner";
+import { type ComboboxOption } from "@components/ui/combobox";
 import {
   Form,
   FormControl,
@@ -19,15 +10,23 @@ import {
   FormItem,
   FormLabel,
 } from "@components/ui/form";
-import { Combobox, type ComboboxOption } from "@components/ui/combobox";
-import { CommandGroup } from "@components/ui/command";
-import { Input } from "@components/ui/input";
-import { cn } from "@lib/utils";
-import { api } from "@/trpc/react";
-import { useUserQuery } from "@modules/users/api/queries";
-import { useMediaQuery } from "usehooks-ts";
+import { VStack } from "@components/VStack";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { DESKTOP_MEDIA_QUERY_STRING } from "@lib/constants";
+import { type SetSectionWithSongs } from "@lib/types";
+import { insertSetSectionSchema } from "@lib/types/zod";
+import { cn } from "@lib/utils";
+import { SongItem } from "@modules/SetListCard";
+import { SetSectionActionMenu } from "@modules/SetListCard/components/SetSectionActionMenu";
+import { SetSectionTypeCombobox } from "@modules/sets/components/SetSectionTypeCombobox";
+import { useUserQuery } from "@modules/users/api/queries";
+import { Plus } from "@phosphor-icons/react/dist/ssr";
 import { redirect } from "next/navigation";
+import { useEffect, useState, type FC } from "react";
+import { useForm, type SubmitHandler } from "react-hook-form";
+import { toast } from "sonner";
+import { useMediaQuery } from "usehooks-ts";
+import { type z } from "zod";
 
 const updateSetSectionSchema = insertSetSectionSchema.pick({
   sectionTypeId: true,
@@ -76,8 +75,6 @@ export const SetSectionCard: FC<SetSectionCardProps> = ({
   >([]);
   const [isAddSectionComboboxOpen, setIsAddSectionComboboxOpen] =
     useState<boolean>(false);
-  const [newSetSectionInputValue, setNewSetSectionInputValue] =
-    useState<string>("");
 
   const updateSetSectionForm = useForm<UpdateSetSectionFormFields>({
     resolver: zodResolver(updateSetSectionSchema),
@@ -91,7 +88,6 @@ export const SetSectionCard: FC<SetSectionCardProps> = ({
     reset: resetForm,
   } = updateSetSectionForm;
 
-  const createSetSectionTypeMutation = api.setSectionType.create.useMutation();
   const changeSetSectionTypeMutation = api.setSection.changeType.useMutation();
   const apiUtils = api.useUtils();
 
@@ -131,39 +127,6 @@ export const SetSectionCard: FC<SetSectionCardProps> = ({
     setSectionTypesData,
     setSectionTypesQueryError,
   ]);
-
-  const handleCreateNewSetSectionType = async (
-    fieldOnChange: (setSectionTypeId: string) => void,
-  ) => {
-    const trimmedInput = newSetSectionInputValue.trim();
-
-    await createSetSectionTypeMutation.mutateAsync(
-      { name: trimmedInput, organizationId: userMembership.organizationId },
-      {
-        async onSuccess(createSetSectionTypeMutationResult) {
-          const [newSetSectionType] = createSetSectionTypeMutationResult;
-
-          if (newSetSectionType) {
-            toast.success(`${newSetSectionType.name} set section type created`);
-
-            console.log(
-              "🤖 [createSetSectionTypeMutation/onSuccess] ~ mutation result:",
-              createSetSectionTypeMutationResult,
-            );
-
-            fieldOnChange(newSetSectionType.id);
-
-            await apiUtils.setSectionType.getTypes.invalidate({
-              organizationId: userMembership.organizationId,
-            });
-          }
-        },
-      },
-    );
-
-    setIsAddSectionComboboxOpen(false);
-    setNewSetSectionInputValue("");
-  };
 
   const handleUpdateSetSection: SubmitHandler<
     UpdateSetSectionFormFields
@@ -241,13 +204,7 @@ export const SetSectionCard: FC<SetSectionCardProps> = ({
                       return (
                         <FormItem>
                           <VStack className="gap-2">
-                            <FormLabel
-                            // onClick={() =>
-                            //   setIsAddSectionComboboxOpen(
-                            //     (isCurrentlyOpen) => !isCurrentlyOpen,
-                            //   )
-                            // }
-                            >
+                            <FormLabel>
                               <Text
                                 asElement="h3"
                                 style="header-medium-semibold"
@@ -257,12 +214,10 @@ export const SetSectionCard: FC<SetSectionCardProps> = ({
                               </Text>
                             </FormLabel>
                             <FormControl>
-                              <Combobox
-                                placeholder="Add a set section"
+                              <SetSectionTypeCombobox
                                 options={setSectionTypesOptions}
                                 value={value}
                                 onChange={(selectedValue) => {
-                                  // setNewSetSectionType(selectedValue);
                                   field.onChange(selectedValue?.id);
                                 }}
                                 open={isAddSectionComboboxOpen}
@@ -270,47 +225,11 @@ export const SetSectionCard: FC<SetSectionCardProps> = ({
                                 loading={isSetSectionTypesListLoading}
                                 disabled={isSetSectionTypesQueryLoading}
                                 textStyles={cn("text-slate-700", textSize)}
-                              >
-                                <CommandGroup heading="Create new section type">
-                                  <div
-                                    className={cn(
-                                      "flex gap-2",
-                                      "relative cursor-default select-none items-center gap-2 rounded-sm px-2 py-2 text-sm outline-none data-[disabled=true]:pointer-events-none data-[selected='true']:bg-accent data-[selected=true]:text-accent-foreground data-[disabled=true]:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
-                                    )}
-                                  >
-                                    <Input
-                                      size="small"
-                                      className="flex-1"
-                                      value={newSetSectionInputValue}
-                                      onChange={(changeEvent) =>
-                                        setNewSetSectionInputValue(
-                                          changeEvent.target.value,
-                                        )
-                                      }
-                                    />
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      className="flex-grow-0"
-                                      onClick={() =>
-                                        handleCreateNewSetSectionType(
-                                          field.onChange,
-                                        )
-                                      }
-                                      isLoading={
-                                        createSetSectionTypeMutation.isPending
-                                      }
-                                      disabled={
-                                        newSetSectionInputValue === "" ||
-                                        createSetSectionTypeMutation.isPending
-                                      }
-                                    >
-                                      <Plus />
-                                      Create
-                                    </Button>
-                                  </div>
-                                </CommandGroup>
-                              </Combobox>
+                                organizationId={userMembership.organizationId}
+                                onCreateSuccess={(newSectionType) =>
+                                  field.onChange(newSectionType.id)
+                                }
+                              />
                             </FormControl>
                           </VStack>
                         </FormItem>
