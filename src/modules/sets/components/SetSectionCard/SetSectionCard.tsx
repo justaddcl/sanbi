@@ -147,8 +147,8 @@ export const SetSectionCard: FC<SetSectionCardProps> = ({
           <form
             onSubmit={updateSetSectionForm.handleSubmit(handleUpdateSetSection)}
           >
-            <HStack className="items-baseline justify-between gap-4 lg:gap-16">
-              {!isEditingSectionType && (
+            {!isEditingSectionType && (
+              <HStack className="flex-wrap items-baseline justify-between gap-4 lg:gap-16">
                 <Text
                   asElement="h3"
                   style="header-medium-semibold"
@@ -156,8 +156,25 @@ export const SetSectionCard: FC<SetSectionCardProps> = ({
                 >
                   {type.name}
                 </Text>
-              )}
-              {isEditingSectionType && (
+                <HStack className="flex items-start gap-2">
+                  <Button size="sm" variant="outline">
+                    <Plus className="text-slate-900" size={16} />
+                    <span className="hidden sm:inline">Add song</span>
+                  </Button>
+                  {withActionsMenu && (
+                    <SetSectionActionMenu
+                      setSection={section}
+                      setSectionsLength={setSectionsLength}
+                      isInFirstSection={isFirstSection}
+                      isInLastSection={isLastSection}
+                      setIsEditingSectionType={setIsEditingSectionType}
+                    />
+                  )}
+                </HStack>
+              </HStack>
+            )}
+            {isEditingSectionType && (
+              <VStack className="gap-4">
                 <FormField
                   control={updateSetSectionForm.control}
                   name="sectionTypeId"
@@ -206,51 +223,30 @@ export const SetSectionCard: FC<SetSectionCardProps> = ({
                     );
                   }}
                 />
-              )}
-              <HStack className="flex items-start gap-2">
-                {!isEditingSectionType && (
-                  <>
-                    <Button size="sm" variant="outline">
-                      <Plus className="text-slate-900" size={16} />
-                      <span className="hidden sm:inline">Add song</span>
-                    </Button>
-                    {withActionsMenu && (
-                      <SetSectionActionMenu
-                        setSection={section}
-                        setSectionsLength={setSectionsLength}
-                        isInFirstSection={isFirstSection}
-                        isInLastSection={isLastSection}
-                        setIsEditingSectionType={setIsEditingSectionType}
-                      />
-                    )}
-                  </>
-                )}
-                {isEditingSectionType && (
-                  <>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => {
-                        resetForm({
-                          sectionTypeId,
-                        });
-                        setIsEditingSectionType(false);
-                      }}
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      size="sm"
-                      type="submit"
-                      disabled={shouldUpdateSectionButtonBeDisabled}
-                      isLoading={isSubmitting}
-                    >
-                      Update section
-                    </Button>
-                  </>
-                )}
-              </HStack>
-            </HStack>
+                <HStack className="flex items-start gap-2 self-end">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      resetForm({
+                        sectionTypeId,
+                      });
+                      setIsEditingSectionType(false);
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    size="sm"
+                    type="submit"
+                    disabled={shouldUpdateSectionButtonBeDisabled}
+                    isLoading={isSubmitting}
+                  >
+                    Update section
+                  </Button>
+                </HStack>
+              </VStack>
+            )}
           </form>
         </Form>
         <hr className="bg-slate-100" />
