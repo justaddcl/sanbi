@@ -61,7 +61,8 @@ export const SetSectionCard: FC<SetSectionCardProps> = ({
   sectionStartIndex,
   withActionsMenu,
 }) => {
-  const { id, type, songs, setId, position } = section;
+  const { id, type, songs, setId, position, sectionTypeId } = section;
+
   const isFirstSection = position === 0;
   const isLastSection = position === setSectionsLength - 1;
 
@@ -81,7 +82,7 @@ export const SetSectionCard: FC<SetSectionCardProps> = ({
   const updateSetSectionForm = useForm<UpdateSetSectionFormFields>({
     resolver: zodResolver(updateSetSectionSchema),
     defaultValues: {
-      sectionTypeId: section.sectionTypeId,
+      sectionTypeId,
     },
   });
 
@@ -342,7 +343,9 @@ export const SetSectionCard: FC<SetSectionCardProps> = ({
                       size="sm"
                       variant="outline"
                       onClick={() => {
-                        resetForm();
+                        resetForm({
+                          sectionTypeId,
+                        });
                         setIsEditingSectionType(false);
                       }}
                     >
