@@ -43,7 +43,7 @@ type SetSectionActionMenuProps = {
   isInLastSection: SongItemWithActionsMenuProps["isInLastSection"];
 
   /** call back to set if the song item is in edit mode */
-  // setIsEditingDetails: Dispatch<SetStateAction<boolean>>;
+  setIsEditingSectionType: Dispatch<SetStateAction<boolean>>;
 };
 
 export const SetSectionActionMenu: React.FC<SetSectionActionMenuProps> = ({
@@ -54,7 +54,7 @@ export const SetSectionActionMenu: React.FC<SetSectionActionMenuProps> = ({
   // setId,
   isInFirstSection,
   isInLastSection,
-  // setIsEditingDetails,
+  setIsEditingSectionType,
 }) => {
   const apiUtils = api.useUtils();
   const [isActionMenuOpen, setIsActionMenuOpen] = useState<boolean>(false);
@@ -89,7 +89,11 @@ export const SetSectionActionMenu: React.FC<SetSectionActionMenuProps> = ({
   return (
     <>
       <ActionMenu isOpen={isActionMenuOpen} setIsOpen={setIsActionMenuOpen}>
-        <ActionMenuItem icon="Swap" label="Change section type" />
+        <ActionMenuItem
+          icon="Swap"
+          label="Change section type"
+          onClick={() => setIsEditingSectionType(true)}
+        />
         <DropdownMenuSeparator />
         {!isInOnlySection && (
           <>
