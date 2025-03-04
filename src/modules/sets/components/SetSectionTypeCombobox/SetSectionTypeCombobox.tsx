@@ -129,6 +129,16 @@ export const SetSectionTypeCombobox: React.FC<SetSectionTypeComboboxProps> = ({
             onChange={(changeEvent) =>
               setNewSetSectionInputValue(changeEvent.target.value)
             }
+            onKeyDown={async (e) => {
+              if (
+                e.key === "Enter" &&
+                newSetSectionInputValue.trim() !== "" &&
+                !createSetSectionTypeMutation.isPending
+              ) {
+                e.preventDefault();
+                await handleCreateNewSetSectionType();
+              }
+            }}
           />
           <Button
             variant="ghost"
