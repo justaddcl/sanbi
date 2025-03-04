@@ -19,10 +19,11 @@ import { cn } from "@lib/utils";
 import { SongItem } from "@modules/SetListCard";
 import { SetSectionActionMenu } from "@modules/SetListCard/components/SetSectionActionMenu";
 import { SetSectionTypeCombobox } from "@modules/sets/components/SetSectionTypeCombobox";
+import { useSectionTypesOptions } from "@modules/sets/hooks/useSetSectionTypes";
 import { useUserQuery } from "@modules/users/api/queries";
 import { Plus } from "@phosphor-icons/react/dist/ssr";
 import { redirect } from "next/navigation";
-import { useEffect, useState, type FC } from "react";
+import { useState, type FC } from "react";
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { toast } from "sonner";
 import { useMediaQuery } from "usehooks-ts";
@@ -70,9 +71,6 @@ export const SetSectionCard: FC<SetSectionCardProps> = ({
 
   const [isEditingSectionType, setIsEditingSectionType] =
     useState<boolean>(false);
-  const [setSectionTypesOptions, setSetSectionTypesOptions] = useState<
-    ComboboxOption[]
-  >([]);
   const [isAddSectionComboboxOpen, setIsAddSectionComboboxOpen] =
     useState<boolean>(false);
 
@@ -100,33 +98,9 @@ export const SetSectionCard: FC<SetSectionCardProps> = ({
   }
 
   const {
-    data: setSectionTypesData,
-    error: setSectionTypesQueryError,
+    options: setSectionTypesOptions,
     isLoading: isSetSectionTypesQueryLoading,
-  } = api.setSectionType.getTypes.useQuery(
-    { organizationId: userMembership.organizationId },
-    { enabled: !!userMembership },
-  );
-
-  useEffect(() => {
-    if (
-      !isSetSectionTypesQueryLoading &&
-      !setSectionTypesQueryError &&
-      setSectionTypesData
-    ) {
-      const setSectionTypes: ComboboxOption[] =
-        setSectionTypesData?.map((setSectionType) => ({
-          id: setSectionType.id,
-          label: setSectionType.name,
-        })) ?? [];
-
-      setSetSectionTypesOptions(setSectionTypes);
-    }
-  }, [
-    isSetSectionTypesQueryLoading,
-    setSectionTypesData,
-    setSectionTypesQueryError,
-  ]);
+  } = useSectionTypesOptions(userMembership.organizationId);
 
   const handleUpdateSetSection: SubmitHandler<
     UpdateSetSectionFormFields
@@ -184,57 +158,54 @@ export const SetSectionCard: FC<SetSectionCardProps> = ({
                 </Text>
               )}
               {isEditingSectionType && (
-                <>
-                  <FormField
-                    control={updateSetSectionForm.control}
-                    name="sectionTypeId"
-                    render={({ field }) => {
-                      const matchingSetSectionType =
-                        setSectionTypesOptions.find(
-                          (setSectionType) => setSectionType.id === field.value,
-                        );
+                <FormField
+                  control={updateSetSectionForm.control}
+                  name="sectionTypeId"
+                  render={({ field }) => {
+                    const matchingSetSectionType = setSectionTypesOptions.find(
+                      (setSectionType) => setSectionType.id === field.value,
+                    );
 
-                      const value: ComboboxOption = {
-                        id: matchingSetSectionType?.id ?? "",
-                        label: matchingSetSectionType?.label ?? "",
-                      };
+                    const value: ComboboxOption = {
+                      id: matchingSetSectionType?.id ?? "",
+                      label: matchingSetSectionType?.label ?? "",
+                    };
 
-                      return (
-                        <FormItem>
-                          <VStack className="gap-2">
-                            <FormLabel>
-                              <Text
-                                asElement="h3"
-                                style="header-medium-semibold"
-                                className="flex-wrap"
-                              >
-                                Section type
-                              </Text>
-                            </FormLabel>
-                            <FormControl>
-                              <SetSectionTypeCombobox
-                                options={setSectionTypesOptions}
-                                value={value}
-                                onChange={(selectedValue) => {
-                                  field.onChange(selectedValue?.id);
-                                }}
-                                open={isAddSectionComboboxOpen}
-                                setOpen={setIsAddSectionComboboxOpen}
-                                loading={isSetSectionTypesListLoading}
-                                disabled={isSetSectionTypesQueryLoading}
-                                textStyles={cn("text-slate-700", textSize)}
-                                organizationId={userMembership.organizationId}
-                                onCreateSuccess={(newSectionType) =>
-                                  field.onChange(newSectionType.id)
-                                }
-                              />
-                            </FormControl>
-                          </VStack>
-                        </FormItem>
-                      );
-                    }}
-                  />
-                </>
+                    return (
+                      <FormItem>
+                        <VStack className="gap-2">
+                          <FormLabel>
+                            <Text
+                              asElement="h3"
+                              style="header-medium-semibold"
+                              className="flex-wrap"
+                            >
+                              Section type
+                            </Text>
+                          </FormLabel>
+                          <FormControl>
+                            <SetSectionTypeCombobox
+                              options={setSectionTypesOptions}
+                              value={value}
+                              onChange={(selectedValue) => {
+                                field.onChange(selectedValue?.id);
+                              }}
+                              open={isAddSectionComboboxOpen}
+                              setOpen={setIsAddSectionComboboxOpen}
+                              loading={isSetSectionTypesListLoading}
+                              disabled={isSetSectionTypesQueryLoading}
+                              textStyles={cn("text-slate-700", textSize)}
+                              organizationId={userMembership.organizationId}
+                              onCreateSuccess={(newSectionType) =>
+                                field.onChange(newSectionType.id)
+                              }
+                            />
+                          </FormControl>
+                        </VStack>
+                      </FormItem>
+                    );
+                  }}
+                />
               )}
               <HStack className="flex items-start gap-2">
                 {!isEditingSectionType && (

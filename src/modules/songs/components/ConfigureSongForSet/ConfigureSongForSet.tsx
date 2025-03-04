@@ -31,6 +31,7 @@ import { type SetSectionWithSongs } from "@lib/types";
 import { insertSetSectionSongSchema } from "@lib/types/zod";
 import { cn } from "@lib/utils";
 import { SetSectionTypeCombobox } from "@modules/sets/components/SetSectionTypeCombobox";
+import { useSectionTypesOptions } from "@modules/sets/hooks/useSetSectionTypes";
 import { SongListItem } from "@modules/songs/components/SongListItem";
 import { type SongSearchResult } from "@modules/songs/components/SongSearch";
 import { type SongSearchDialogSteps } from "@modules/songs/components/SongSearchDialog";
@@ -43,7 +44,7 @@ import {
   Plus,
 } from "@phosphor-icons/react/dist/ssr";
 import { redirect } from "next/navigation";
-import { type Dispatch, type SetStateAction, useEffect, useState } from "react";
+import { type Dispatch, type SetStateAction, useState } from "react";
 import { type SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useMediaQuery } from "usehooks-ts";
@@ -84,10 +85,6 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
 }) => {
   const isDesktop = useMediaQuery(DESKTOP_MEDIA_QUERY_STRING);
   const textSize = isDesktop ? "text-base" : "text-xs";
-
-  const [setSectionTypesOptions, setSetSectionTypesOptions] = useState<
-    ComboboxOption[]
-  >([]);
 
   const [newSetSectionType, setNewSetSectionType] =
     useState<ComboboxOption | null>(null);
@@ -131,20 +128,16 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
     redirect("/sign-in");
   }
 
+  const {
+    options: setSectionTypesOptions,
+    isLoading: isSetSectionTypesQueryLoading,
+  } = useSectionTypesOptions(userMembership.organizationId);
+
   const { data: lastPlayInstance, isLoading: isLastPlayInstanceQueryLoading } =
     api.song.getLastPlayInstance.useQuery({
       organizationId: userMembership.organizationId,
       songId: selectedSong.songId,
     });
-
-  const {
-    data: setSectionTypesData,
-    error: setSectionTypesQueryError,
-    isLoading: isSetSectionTypesQueryLoading,
-  } = api.setSectionType.getTypes.useQuery(
-    { organizationId: userMembership.organizationId },
-    { enabled: !!userMembership },
-  );
 
   const {
     data: sectionsForSetData,
@@ -161,26 +154,6 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
       !!sectionsForSetData &&
       sectionsForSetData.length === 0,
   );
-
-  useEffect(() => {
-    if (
-      !isSetSectionTypesQueryLoading &&
-      !setSectionTypesQueryError &&
-      setSectionTypesData
-    ) {
-      const setSectionTypes: ComboboxOption[] =
-        setSectionTypesData?.map((setSectionType) => ({
-          id: setSectionType.id,
-          label: setSectionType.name,
-        })) ?? [];
-
-      setSetSectionTypesOptions(setSectionTypes);
-    }
-  }, [
-    isSetSectionTypesQueryLoading,
-    setSectionTypesData,
-    setSectionTypesQueryError,
-  ]);
 
   if (
     isSectionsForSetQueryLoading ||
