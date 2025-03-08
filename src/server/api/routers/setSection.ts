@@ -2,8 +2,10 @@ import { type NewSetSection } from "@lib/types";
 import {
   getSectionsForSet,
   insertSetSectionSchema,
+  swapSetSectionPositionSchema,
   updateSetSectionType,
 } from "@lib/types/zod";
+import { updateSetSectionPosition } from "@modules/setSections/api/mutations";
 import { createTRPCRouter, organizationProcedure } from "@server/api/trpc";
 import { setSections, setSectionTypes } from "@server/db/schema";
 import { TRPCError } from "@trpc/server";
@@ -127,5 +129,29 @@ export const setSectionRouter = createTRPCRouter({
           sectionType: sectionTypeId,
         };
       });
+    }),
+
+  swapSectionWithPrevious: organizationProcedure
+    .input(swapSetSectionPositionSchema)
+    .mutation(async ({ input }) => {
+      return await updateSetSectionPosition(input.setSectionId, "up");
+    }),
+
+  swapSectionWithNext: organizationProcedure
+    .input(swapSetSectionPositionSchema)
+    .mutation(async ({ input }) => {
+      return await updateSetSectionPosition(input.setSectionId, "down");
+    }),
+
+  moveSectionToFirst: organizationProcedure
+    .input(swapSetSectionPositionSchema)
+    .mutation(async ({ input }) => {
+      return await updateSetSectionPosition(input.setSectionId, "first");
+    }),
+
+  moveSectionToLast: organizationProcedure
+    .input(swapSetSectionPositionSchema)
+    .mutation(async ({ input }) => {
+      return await updateSetSectionPosition(input.setSectionId, "last");
     }),
 });
