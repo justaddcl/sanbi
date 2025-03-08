@@ -31,7 +31,7 @@ export type ComboboxOption = {
   label: string;
 };
 
-type ComboboxProps = {
+export type ComboboxProps = {
   placeholder: string;
   hasSearch?: boolean;
   searchPlaceholder?: string;

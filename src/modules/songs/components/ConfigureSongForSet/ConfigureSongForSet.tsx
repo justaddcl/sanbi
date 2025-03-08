@@ -1,41 +1,10 @@
-import { Combobox, type ComboboxOption } from "@components/ui/combobox";
-import { Input } from "@components/ui/input";
-import { DESKTOP_MEDIA_QUERY_STRING, songKeys } from "@lib/constants";
-import { formatSongKey } from "@lib/string/formatSongKey";
-import { cn } from "@lib/utils";
-import {
-  CaretLeft,
-  ClockCounterClockwise,
-  Heart,
-  Plus,
-  CircleNotch,
-} from "@phosphor-icons/react/dist/ssr";
-import { DialogTitle, DialogDescription } from "@components/ui/dialog";
-import { RadioGroupItem, RadioGroup } from "@components/ui/radio-group";
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "@components/ui/select";
-import { Switch } from "@components/ui/switch";
-import { SongListItem } from "@modules/songs/components/SongListItem";
-import { Button } from "@components/ui/button";
-import { Text } from "@components/Text";
-import { type Dispatch, type SetStateAction, useEffect, useState } from "react";
-import { type SetSectionWithSongs } from "@lib/types";
-import { type SongSearchResult } from "@modules/songs/components/SongSearch";
-import { type SongSearchDialogSteps } from "@modules/songs/components/SongSearchDialog";
-import { useUserQuery } from "@modules/users/api/queries";
-import { redirect } from "next/navigation";
 import { api } from "@/trpc/react";
 import { HStack } from "@components/HStack";
+import { Text } from "@components/Text";
+import { Button } from "@components/ui/button";
+import { type ComboboxOption } from "@components/ui/combobox";
 import { CommandGroup, CommandList } from "@components/ui/command";
-import { type SubmitHandler, useForm } from "react-hook-form";
-import { insertSetSectionSongSchema } from "@lib/types/zod";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { DialogDescription, DialogTitle } from "@components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -44,10 +13,42 @@ import {
   FormLabel,
   FormMessage,
 } from "@components/ui/form";
-import { toast } from "sonner";
-import { DevTool } from "@hookform/devtools";
-import { useMediaQuery } from "usehooks-ts";
+import { RadioGroup, RadioGroupItem } from "@components/ui/radio-group";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@components/ui/select";
+import { Switch } from "@components/ui/switch";
 import { Textarea } from "@components/ui/textarea";
+import { DevTool } from "@hookform/devtools";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { DESKTOP_MEDIA_QUERY_STRING, songKeys } from "@lib/constants";
+import { formatSongKey } from "@lib/string/formatSongKey";
+import { type SetSectionWithSongs } from "@lib/types";
+import { insertSetSectionSongSchema } from "@lib/types/zod";
+import { cn } from "@lib/utils";
+import { SetSectionTypeCombobox } from "@modules/sets/components/SetSectionTypeCombobox";
+import { useSectionTypesOptions } from "@modules/sets/hooks/useSetSectionTypes";
+import { SongListItem } from "@modules/songs/components/SongListItem";
+import { type SongSearchResult } from "@modules/songs/components/SongSearch";
+import { type SongSearchDialogSteps } from "@modules/songs/components/SongSearchDialog";
+import { useUserQuery } from "@modules/users/api/queries";
+import {
+  CaretLeft,
+  CircleNotch,
+  ClockCounterClockwise,
+  Heart,
+  Plus,
+} from "@phosphor-icons/react/dist/ssr";
+import { redirect } from "next/navigation";
+import { type Dispatch, type SetStateAction, useState } from "react";
+import { type SubmitHandler, useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { useMediaQuery } from "usehooks-ts";
+import { z } from "zod";
 
 const createSetSectionSongsSchema = insertSetSectionSongSchema
   .pick({
@@ -85,13 +86,6 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
   const isDesktop = useMediaQuery(DESKTOP_MEDIA_QUERY_STRING);
   const textSize = isDesktop ? "text-base" : "text-xs";
 
-  const [newSetSectionInputValue, setNewSetSectionInputValue] =
-    useState<string>("");
-
-  const [setSectionTypesOptions, setSetSectionTypesOptions] = useState<
-    ComboboxOption[]
-  >([]);
-
   const [newSetSectionType, setNewSetSectionType] =
     useState<ComboboxOption | null>(null);
 
@@ -119,7 +113,6 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
   const shouldAddSongBeDisabled = !isDirty || !isValid || isSubmitting;
 
   const addSetSectionSongMutation = api.setSectionSong.create.useMutation();
-  const createSetSectionTypeMutation = api.setSectionType.create.useMutation();
   const createSetSectionMutation = api.setSection.create.useMutation();
   const apiUtils = api.useUtils();
 
@@ -136,22 +129,15 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
   }
 
   const {
-    data: lastPlayInstance,
-    isLoading: isLastPlayInstanceQueryLoading,
-    error: lastPlayInstanceQueryError,
-  } = api.song.getLastPlayInstance.useQuery({
-    organizationId: userMembership.organizationId,
-    songId: selectedSong.songId,
-  });
-
-  const {
-    data: setSectionTypesData,
-    error: setSectionTypesQueryError,
+    options: setSectionTypesOptions,
     isLoading: isSetSectionTypesQueryLoading,
-  } = api.setSectionType.getTypes.useQuery(
-    { organizationId: userMembership.organizationId },
-    { enabled: !!userMembership },
-  );
+  } = useSectionTypesOptions(userMembership.organizationId);
+
+  const { data: lastPlayInstance, isLoading: isLastPlayInstanceQueryLoading } =
+    api.song.getLastPlayInstance.useQuery({
+      organizationId: userMembership.organizationId,
+      songId: selectedSong.songId,
+    });
 
   const {
     data: sectionsForSetData,
@@ -169,26 +155,6 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
       sectionsForSetData.length === 0,
   );
 
-  useEffect(() => {
-    if (
-      !isSetSectionTypesQueryLoading &&
-      !setSectionTypesQueryError &&
-      setSectionTypesData
-    ) {
-      const setSectionTypes: ComboboxOption[] =
-        setSectionTypesData?.map((setSectionType) => ({
-          id: setSectionType.id,
-          label: setSectionType.name,
-        })) ?? [];
-
-      setSetSectionTypesOptions(setSectionTypes);
-    }
-  }, [
-    isSetSectionTypesQueryLoading,
-    setSectionTypesData,
-    setSectionTypesQueryError,
-  ]);
-
   if (
     isSectionsForSetQueryLoading ||
     !!sectionsForSetQueryError ||
@@ -205,8 +171,6 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
   const handleAddSetSection = async (
     clickEvent: React.MouseEvent<HTMLButtonElement, MouseEvent>,
   ) => {
-    // console.log("🚀 ~ handleAddSetSection ~ clickEvent:", clickEvent);
-
     clickEvent.preventDefault();
 
     if (!newSetSectionType) {
@@ -220,10 +184,6 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
 
     if (!setAlreadyHasSelectedSection) {
       const positionForNewSetSection = sectionsForSetData.length;
-      console.log(
-        "🚀 ~ handleAddSetSection ~ positionForNewSetSection:",
-        positionForNewSetSection,
-      );
 
       await createSetSectionMutation.mutateAsync(
         {
@@ -235,11 +195,6 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
         {
           async onSuccess(createSetSectionMutationResult) {
             const [newSetSection] = createSetSectionMutationResult;
-
-            console.log(
-              "🤖 - [createSetSectionMutation/onSuccess] ~ mutation result: ",
-              createSetSectionMutationResult,
-            );
 
             if (newSetSection) {
               setValue("setSectionId", newSetSection.id, {
@@ -271,55 +226,6 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
         message: "Section already exists on set",
       });
     }
-  };
-
-  // FIXME: this would need to be updated to delete setSection from DB - should this be done here?
-  // const handleRemoveTempSetSection = (setSectionIdToRemove: string) => {
-  //   const modifiedSetSectionsList = setSectionsList.filter(
-  //     (setSection) => setSection.id !== setSectionIdToRemove,
-  //   );
-
-  //   if (getValues("setSectionId") === setSectionIdToRemove) {
-  //     setValue("setSectionId", "", {
-  //       shouldValidate: false,
-  //       shouldDirty: true,
-  //       shouldTouch: true,
-  //     });
-  //   }
-  // };
-
-  const handleCreateNewSetSectionType = async () => {
-    const trimmedInput = newSetSectionInputValue.trim();
-
-    await createSetSectionTypeMutation.mutateAsync(
-      { name: trimmedInput, organizationId: userMembership.organizationId },
-      {
-        async onSuccess(createSetSectionTypeMutationResult) {
-          const [newSetSectionType] = createSetSectionTypeMutationResult;
-
-          if (newSetSectionType) {
-            toast.success(`${newSetSectionType.name} set section type created`);
-
-            console.log(
-              "🤖 [createSetSectionTypeMutation/onSuccess] ~ mutation result:",
-              createSetSectionTypeMutationResult,
-            );
-
-            setNewSetSectionType({
-              id: newSetSectionType.id,
-              label: newSetSectionType.name,
-            });
-
-            await apiUtils.setSectionType.getTypes.invalidate({
-              organizationId: userMembership.organizationId,
-            });
-          }
-        },
-      },
-    );
-
-    setIsAddSectionComboboxOpen(false);
-    setNewSetSectionInputValue("");
   };
 
   const handleAddSongToSetSubmit: SubmitHandler<
@@ -573,53 +479,18 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
                 )}
                 {isAddingSection && (
                   <>
-                    <Combobox
+                    <SetSectionTypeCombobox
                       placeholder="Add a set section"
                       options={setSectionTypesOptions}
                       value={newSetSectionType}
-                      onChange={(selectedValue) => {
-                        setNewSetSectionType(selectedValue);
-                      }}
+                      onChange={setNewSetSectionType}
                       open={isAddSectionComboboxOpen}
                       setOpen={setIsAddSectionComboboxOpen}
                       loading={isSetSectionTypesQueryLoading}
                       disabled={isSetSectionTypesQueryLoading}
                       textStyles={cn("text-slate-700", textSize)}
-                    >
-                      <CommandGroup heading="Create new section type">
-                        <div
-                          className={cn(
-                            "flex gap-2",
-                            "relative cursor-default select-none items-center gap-2 rounded-sm px-2 py-2 text-sm outline-none data-[disabled=true]:pointer-events-none data-[selected='true']:bg-accent data-[selected=true]:text-accent-foreground data-[disabled=true]:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
-                          )}
-                        >
-                          <Input
-                            size="small"
-                            className="flex-1"
-                            value={newSetSectionInputValue}
-                            onChange={(changeEvent) =>
-                              setNewSetSectionInputValue(
-                                changeEvent.target.value,
-                              )
-                            }
-                          />
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="flex-grow-0"
-                            onClick={handleCreateNewSetSectionType}
-                            isLoading={createSetSectionTypeMutation.isPending}
-                            disabled={
-                              newSetSectionInputValue === "" ||
-                              createSetSectionTypeMutation.isPending
-                            }
-                          >
-                            <Plus />
-                            Create
-                          </Button>
-                        </div>
-                      </CommandGroup>
-                    </Combobox>
+                      organizationId={userMembership.organizationId}
+                    />
                     <div className="mt-2 flex justify-end gap-2">
                       {sectionsForSetData.length > 0 && (
                         <Button
