@@ -103,11 +103,14 @@ export const SetSectionActionMenu: React.FC<SetSectionActionMenuProps> = ({
           return moveSetSectionToFirstMutation;
         case "last":
           return moveSetSectionToLastMutation;
-        default:
+        default: {
           const _exhaustiveCheck: never = direction;
           return _exhaustiveCheck;
+        }
       }
     })();
+
+    const isSwapUpdate = direction === "up" || direction === "down";
 
     moveSectionMutation.mutate(
       {
@@ -117,8 +120,6 @@ export const SetSectionActionMenu: React.FC<SetSectionActionMenuProps> = ({
       {
         async onSuccess(swapSetSectionResult) {
           toast.dismiss();
-
-          const isSwapUpdate = direction === "up" || direction === "down";
 
           if (!swapSetSectionResult.success) {
             isSwapUpdate
@@ -140,8 +141,6 @@ export const SetSectionActionMenu: React.FC<SetSectionActionMenuProps> = ({
         },
         async onError(swapError) {
           toast.dismiss();
-
-          const isSwapUpdate = direction === "up" || direction === "down";
 
           isSwapUpdate
             ? toast.error(

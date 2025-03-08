@@ -13,7 +13,7 @@ export const updateSetSectionPosition = async (
   setSectionToUpdate: string,
   direction: SwapSetSectionPositionDirection,
 ): Promise<SwapSetSectionPositionResult> => {
-  return await db.transaction(async (updateTransaction) => {
+  return db.transaction(async (updateTransaction) => {
     const [setSection] = await updateTransaction
       .select()
       .from(setSections)
@@ -77,7 +77,7 @@ export const updateSetSectionPosition = async (
       return 0;
     })();
 
-    const isSwapUpdate = direction === "up" || direction == "down";
+    const isSwapUpdate = direction === "up" || direction === "down";
 
     if (isSwapUpdate) {
       const [setSectionToSwap] = await updateTransaction
