@@ -134,12 +134,12 @@ export const SongActionMenu: React.FC<SongActionMenuProps> = ({
         setSectionSongId: setSectionSong.id,
       },
       {
-        async onSuccess(swapSongWithNextResult) {
+        async onSuccess(moveSongResult) {
           toast.dismiss();
 
-          if (!swapSongWithNextResult.success) {
+          if (!moveSongResult.success) {
             toast.error(
-              `Could not move song ${direction}: ${swapSongWithNextResult.message}`,
+              `Could not move song ${direction}: ${moveSongResult.message}`,
             );
           } else {
             toast.success(`Moved song ${direction}`);
