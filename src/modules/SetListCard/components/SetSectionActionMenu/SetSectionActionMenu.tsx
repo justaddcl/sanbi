@@ -15,13 +15,10 @@ import {
 } from "@components/ui/alert-dialog";
 import { type SetSectionSongWithSongData } from "@lib/types";
 import { type SongItemWithActionsMenuProps } from "@modules/SetListCard/components/SongItem";
-import {
-  type MoveSectionDirection,
-  type SwapSongDirection,
-} from "@server/mutations";
 import { useParams, useRouter } from "next/navigation";
 import { ActionMenu, ActionMenuItem } from "@components/ActionMenu";
 import { type SetSectionCardProps } from "@modules/sets/components/SetSectionCard";
+import { type SwapSetSectionPositionDirection } from "@modules/setSections/api/mutations";
 
 type SetSectionActionMenuProps = {
   /** set section the action menu is attached to */
@@ -74,6 +71,15 @@ export const SetSectionActionMenu: React.FC<SetSectionActionMenuProps> = ({
   } = useUserQuery();
   const userMembership = userData?.memberships[0];
 
+  const swapSetSectionWithPreviousMutation =
+    api.setSection.swapSectionWithPrevious.useMutation();
+  const swapSetSectionWithNextMutation =
+    api.setSection.swapSectionWithNext.useMutation();
+  const moveSetSectionToFirstMutation =
+    api.setSection.moveSectionToFirst.useMutation();
+  const moveSetSectionToLastMutation =
+    api.setSection.moveSectionToLast.useMutation();
+
   if (
     !!userQueryError ||
     !isAuthLoaded ||
@@ -83,6 +89,71 @@ export const SetSectionActionMenu: React.FC<SetSectionActionMenuProps> = ({
   ) {
     return null;
   }
+
+  const moveSection = (direction: SwapSetSectionPositionDirection) => {
+    toast.loading(`Moving section ${direction}`);
+
+    const moveSectionMutation = (() => {
+      switch (direction) {
+        case "up":
+          return swapSetSectionWithPreviousMutation;
+        case "down":
+          return swapSetSectionWithNextMutation;
+        case "first":
+          return moveSetSectionToFirstMutation;
+        case "last":
+          return moveSetSectionToLastMutation;
+        default:
+          const _exhaustiveCheck: never = direction;
+          return _exhaustiveCheck;
+      }
+    })();
+
+    moveSectionMutation.mutate(
+      {
+        organizationId: userMembership.organizationId,
+        setSectionId: setSection.id,
+      },
+      {
+        async onSuccess(swapSetSectionResult) {
+          toast.dismiss();
+
+          const isSwapUpdate = direction === "up" || direction === "down";
+
+          if (!swapSetSectionResult.success) {
+            isSwapUpdate
+              ? toast.error(
+                  `Could not move section ${direction}: ${swapSetSectionResult.message}`,
+                )
+              : toast.error(
+                  `Could not move section to the ${direction} position: ${swapSetSectionResult.message}`,
+                );
+          } else {
+            isSwapUpdate
+              ? toast.success(`Moved section ${direction}`)
+              : toast.success(`Moved section to the ${direction} position`);
+            await apiUtils.set.get.invalidate({
+              organizationId: userMembership.organizationId,
+              setId: setSection.setId,
+            });
+          }
+        },
+        async onError(swapError) {
+          toast.dismiss();
+
+          const isSwapUpdate = direction === "up" || direction === "down";
+
+          isSwapUpdate
+            ? toast.error(
+                `Could not move section ${direction}: ${swapError.message}`,
+              )
+            : toast.error(
+                `Could not move section to the ${direction} position: ${swapError.message}`,
+              );
+        },
+      },
+    );
+  };
 
   const isInOnlySection = isInFirstSection && isInLastSection;
 
@@ -102,23 +173,39 @@ export const SetSectionActionMenu: React.FC<SetSectionActionMenuProps> = ({
                 icon="ArrowLineUp"
                 label="Move section to top"
                 disabled={isInFirstSection}
+                onClick={() => {
+                  moveSection("first");
+                  setIsActionMenuOpen(false);
+                }}
               />
             )}
             <ActionMenuItem
               icon="ArrowUp"
               label="Move section up"
               disabled={isInFirstSection}
+              onClick={() => {
+                moveSection("up");
+                setIsActionMenuOpen(false);
+              }}
             />
             <ActionMenuItem
               icon="ArrowDown"
               label="Move section down"
               disabled={isInLastSection}
+              onClick={() => {
+                moveSection("down");
+                setIsActionMenuOpen(false);
+              }}
             />
             {setSection.position < setSectionsLength - 2 && (
               <ActionMenuItem
                 icon="ArrowLineDown"
                 label="Move section to bottom"
                 disabled={isInLastSection}
+                onClick={() => {
+                  moveSection("last");
+                  setIsActionMenuOpen(false);
+                }}
               />
             )}
             <DropdownMenuSeparator />
