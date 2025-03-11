@@ -203,7 +203,7 @@ export const setSections = createTable(
   {
     id: uuid("id").primaryKey().defaultRandom(),
     setId: uuid("set_id")
-      .references(() => sets.id)
+      .references(() => sets.id, { onDelete: "cascade" })
       .notNull(),
     position: integer("position").notNull(),
     sectionTypeId: uuid("section_type_id")
@@ -213,6 +213,9 @@ export const setSections = createTable(
       .default(sql`CURRENT_TIMESTAMP`)
       .notNull(),
     updatedAt,
+    organizationId: uuid("organization_id")
+      .references(() => organizations.id)
+      .notNull(),
   },
   (setSectionsTable) => {
     return {
@@ -224,7 +227,7 @@ export const setSections = createTable(
 export const setSectionSongs = createTable("set_section_songs", {
   id: uuid("id").primaryKey().defaultRandom(),
   setSectionId: uuid("set_section_id")
-    .references(() => setSections.id)
+    .references(() => setSections.id, { onDelete: "cascade" })
     .notNull(),
   songId: uuid("song_id")
     .references(() => songs.id)
@@ -324,6 +327,10 @@ export const setSectionsRelations = relations(setSections, ({ one, many }) => ({
   type: one(setSectionTypes, {
     fields: [setSections.sectionTypeId],
     references: [setSectionTypes.id],
+  }),
+  organization: one(organizations, {
+    fields: [setSections.organizationId],
+    references: [organizations.id],
   }),
 }));
 

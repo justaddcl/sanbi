@@ -17,12 +17,13 @@ export const setSectionRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       console.log("🤖 - [setSectionType/create] - input:", input);
 
-      const { setId, sectionTypeId, position } = input;
+      const { setId, sectionTypeId, position, organizationId } = input;
 
       const newSetSection: NewSetSection = {
         setId,
         sectionTypeId,
         position,
+        organizationId,
       };
 
       return ctx.db.insert(setSections).values(newSetSection).returning();

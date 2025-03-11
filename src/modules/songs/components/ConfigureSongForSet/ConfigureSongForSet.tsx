@@ -520,7 +520,7 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
                         isLoading={createSetSectionMutation.isPending}
                         className={cn(textSize)}
                       >
-                        Add
+                        Add section to set
                       </Button>
                     </div>
                   </>
