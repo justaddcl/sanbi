@@ -87,7 +87,7 @@ export const setSectionSongRouter = createTRPCRouter({
       }
 
       try {
-        const [deletedSong] = await ctx.db.transaction(async (transaction) => {
+        const deletedSong = await ctx.db.transaction(async (transaction) => {
           const [deletedSetSectionSong] = await transaction
             .delete(setSectionSongs)
             .where(eq(setSectionSongs.id, input.setSectionSongId))
@@ -118,7 +118,7 @@ export const setSectionSongRouter = createTRPCRouter({
                 gt(setSectionSongs.position, deletedSetSectionSong.position),
               ),
             );
-          return [deletedSetSectionSong];
+          return deletedSetSectionSong;
         });
         console.info(
           `🤖 - [setSectionSong/delete] - SetSectionSong ID ${deletedSong.id} was successfully deleted`,
