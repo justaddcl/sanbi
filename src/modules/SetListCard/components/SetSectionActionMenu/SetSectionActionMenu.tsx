@@ -36,13 +36,13 @@ type SetSectionActionMenuProps = {
   /** the ID of the set the set section song is attached to */
   // setId: string;
 
-  /** is this song in the first section of the set? */
+  /** is this the first section of the set? */
   isInFirstSection: SongItemWithActionsMenuProps["isInFirstSection"];
 
-  /** is this song in the last section of the set? */
+  /** is this the last section of the set? */
   isInLastSection: SongItemWithActionsMenuProps["isInLastSection"];
 
-  /** call back to set if the song item is in edit mode */
+  /** call back to set if the setSection item is in edit mode */
   setIsEditingSectionType: Dispatch<SetStateAction<boolean>>;
 };
 
@@ -94,7 +94,11 @@ export const SetSectionActionMenu: React.FC<SetSectionActionMenuProps> = ({
   }
 
   const moveSection = (direction: SwapSetSectionPositionDirection) => {
-    toast.loading(`Moving section ${direction}`);
+    const isSwapUpdate = direction === "up" || direction === "down";
+
+    isSwapUpdate
+      ? toast.loading(`Moving section ${direction}`)
+      : toast.loading(`Moving section to the ${direction} position`);
 
     const moveSectionMutation = (() => {
       switch (direction) {
@@ -112,8 +116,6 @@ export const SetSectionActionMenu: React.FC<SetSectionActionMenuProps> = ({
         }
       }
     })();
-
-    const isSwapUpdate = direction === "up" || direction === "down";
 
     moveSectionMutation.mutate(
       {
