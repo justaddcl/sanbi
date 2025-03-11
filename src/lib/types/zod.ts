@@ -77,6 +77,9 @@ export const insertSetSectionTypeSchema = createInsertSchema(setSectionTypes);
 /**
  * Set section schemas
  */
+export const setSectionIdSchema = z.object({
+  setSectionId: z.string().uuid(),
+});
 export const insertSetSectionSchema = createInsertSchema(setSections);
 export const getSectionsForSet = z.object({ setId: z.string().uuid() });
 export const updateSetSectionType = insertSetSectionSchema
@@ -87,9 +90,8 @@ export const updateSetSectionType = insertSetSectionSchema
   .required({
     id: true,
   });
-export const swapSetSectionPositionSchema = z.object({
-  setSectionId: z.string().uuid(),
-});
+export const swapSetSectionPositionSchema = setSectionIdSchema;
+export const deleteSetSectionSchema = setSectionIdSchema;
 
 /**
  * Set section songs schemas
