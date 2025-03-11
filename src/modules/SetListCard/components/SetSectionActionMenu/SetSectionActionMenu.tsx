@@ -72,13 +72,12 @@ export const SetSectionActionMenu: React.FC<SetSectionActionMenuProps> = ({
   const userMembership = userData?.memberships[0];
 
   const swapSetSectionWithPreviousMutation =
-    api.setSection.swapSectionWithPrevious.useMutation();
+    api.setSection.swapWithPrevious.useMutation();
   const swapSetSectionWithNextMutation =
-    api.setSection.swapSectionWithNext.useMutation();
+    api.setSection.swapWithNext.useMutation();
   const moveSetSectionToFirstMutation =
-    api.setSection.moveSectionToFirst.useMutation();
-  const moveSetSectionToLastMutation =
-    api.setSection.moveSectionToLast.useMutation();
+    api.setSection.moveToFirst.useMutation();
+  const moveSetSectionToLastMutation = api.setSection.moveToLast.useMutation();
 
   if (
     !!userQueryError ||

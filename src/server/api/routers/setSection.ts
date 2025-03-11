@@ -131,25 +131,25 @@ export const setSectionRouter = createTRPCRouter({
       });
     }),
 
-  swapSectionWithPrevious: organizationProcedure
+  swapWithPrevious: organizationProcedure
     .input(swapSetSectionPositionSchema)
     .mutation(async ({ input }) => {
       return await updateSetSectionPosition(input.setSectionId, "up");
     }),
 
-  swapSectionWithNext: organizationProcedure
+  swapWithNext: organizationProcedure
     .input(swapSetSectionPositionSchema)
     .mutation(async ({ input }) => {
       return await updateSetSectionPosition(input.setSectionId, "down");
     }),
 
-  moveSectionToFirst: organizationProcedure
+  moveToFirst: organizationProcedure
     .input(swapSetSectionPositionSchema)
     .mutation(async ({ input }) => {
       return await updateSetSectionPosition(input.setSectionId, "first");
     }),
 
-  moveSectionToLast: organizationProcedure
+  moveToLast: organizationProcedure
     .input(swapSetSectionPositionSchema)
     .mutation(async ({ input }) => {
       return await updateSetSectionPosition(input.setSectionId, "last");
