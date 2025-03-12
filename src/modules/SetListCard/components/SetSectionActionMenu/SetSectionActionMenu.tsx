@@ -256,7 +256,7 @@ export const SetSectionActionMenu: React.FC<SetSectionActionMenuProps> = ({
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="text-lg font-semibold">
-              Remove {setSection.type.name.toLowerCase()} section
+              Remove {setSection.type.name} section
             </AlertDialogTitle>
             <AlertDialogDescription>
               <VStack className="gap-2 text-slate-700">
