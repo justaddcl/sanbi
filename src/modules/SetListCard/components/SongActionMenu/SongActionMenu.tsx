@@ -301,7 +301,13 @@ export const SongActionMenu: React.FC<SongActionMenuProps> = ({
             >
               Cancel
             </AlertDialogCancel>
-            <Button variant="destructive" onClick={() => removeSong()}>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                setIsConfirmationDialogOpen(false);
+                removeSong();
+              }}
+            >
               Remove song
             </Button>
           </AlertDialogFooter>

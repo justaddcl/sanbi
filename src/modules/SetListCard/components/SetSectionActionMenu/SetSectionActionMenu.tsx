@@ -9,16 +9,19 @@ import {
   AlertDialog,
   AlertDialogCancel,
   AlertDialogContent,
+  AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@components/ui/alert-dialog";
-import { type SetSectionSongWithSongData } from "@lib/types";
 import { type SongItemWithActionsMenuProps } from "@modules/SetListCard/components/SongItem";
 import { useParams, useRouter } from "next/navigation";
 import { ActionMenu, ActionMenuItem } from "@components/ActionMenu";
 import { type SetSectionCardProps } from "@modules/sets/components/SetSectionCard";
 import { type SwapSetSectionPositionDirection } from "@modules/setSections/api/mutations";
+import { Button } from "@components/ui/button";
+import { VStack } from "@components/VStack";
+import { Text } from "@components/Text";
 
 type SetSectionActionMenuProps = {
   /** set section the action menu is attached to */
@@ -33,13 +36,13 @@ type SetSectionActionMenuProps = {
   /** the ID of the set the set section song is attached to */
   // setId: string;
 
-  /** is this song in the first section of the set? */
+  /** is this the first section of the set? */
   isInFirstSection: SongItemWithActionsMenuProps["isInFirstSection"];
 
-  /** is this song in the last section of the set? */
+  /** is this the last section of the set? */
   isInLastSection: SongItemWithActionsMenuProps["isInLastSection"];
 
-  /** call back to set if the song item is in edit mode */
+  /** call back to set if the setSection item is in edit mode */
   setIsEditingSectionType: Dispatch<SetStateAction<boolean>>;
 };
 
@@ -72,13 +75,13 @@ export const SetSectionActionMenu: React.FC<SetSectionActionMenuProps> = ({
   const userMembership = userData?.memberships[0];
 
   const swapSetSectionWithPreviousMutation =
-    api.setSection.swapSectionWithPrevious.useMutation();
+    api.setSection.swapWithPrevious.useMutation();
   const swapSetSectionWithNextMutation =
-    api.setSection.swapSectionWithNext.useMutation();
+    api.setSection.swapWithNext.useMutation();
   const moveSetSectionToFirstMutation =
-    api.setSection.moveSectionToFirst.useMutation();
-  const moveSetSectionToLastMutation =
-    api.setSection.moveSectionToLast.useMutation();
+    api.setSection.moveToFirst.useMutation();
+  const moveSetSectionToLastMutation = api.setSection.moveToLast.useMutation();
+  const deleteSetSectionMutation = api.setSection.delete.useMutation();
 
   if (
     !!userQueryError ||
@@ -91,7 +94,11 @@ export const SetSectionActionMenu: React.FC<SetSectionActionMenuProps> = ({
   }
 
   const moveSection = (direction: SwapSetSectionPositionDirection) => {
-    toast.loading(`Moving section ${direction}`);
+    const isSwapUpdate = direction === "up" || direction === "down";
+
+    isSwapUpdate
+      ? toast.loading(`Moving section ${direction}`)
+      : toast.loading(`Moving section to the ${direction} position`);
 
     const moveSectionMutation = (() => {
       switch (direction) {
@@ -109,8 +116,6 @@ export const SetSectionActionMenu: React.FC<SetSectionActionMenuProps> = ({
         }
       }
     })();
-
-    const isSwapUpdate = direction === "up" || direction === "down";
 
     moveSectionMutation.mutate(
       {
@@ -149,6 +154,31 @@ export const SetSectionActionMenu: React.FC<SetSectionActionMenuProps> = ({
             : toast.error(
                 `Could not move section to the ${direction} position: ${swapError.message}`,
               );
+        },
+      },
+    );
+  };
+
+  const removeSection = () => {
+    toast.loading("Removing section...");
+    deleteSetSectionMutation.mutate(
+      {
+        organizationId: userMembership.organizationId,
+        setSectionId: setSection.id,
+      },
+      {
+        async onSuccess() {
+          toast.dismiss();
+          toast.success("Section removed");
+
+          await apiUtils.set.get.invalidate({
+            setId: setSection.setId,
+            organizationId: userMembership.organizationId,
+          });
+        },
+        onError(error) {
+          toast.dismiss();
+          toast.error(`Section could not be removed: ${error.message}`);
         },
       },
     );
@@ -210,18 +240,37 @@ export const SetSectionActionMenu: React.FC<SetSectionActionMenuProps> = ({
             <DropdownMenuSeparator />
           </>
         )}
-        <ActionMenuItem icon="Trash" label="Delete section" destructive />
+        <ActionMenuItem
+          icon="Trash"
+          label="Delete section"
+          destructive
+          onClick={() => {
+            setIsActionMenuOpen(false);
+            setIsConfirmationDialogOpen(true);
+          }}
+        />
       </ActionMenu>
-      {/* <AlertDialog
+      <AlertDialog
         open={isConfirmationDialogOpen}
         onOpenChange={setIsConfirmationDialogOpen}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="text-lg font-semibold">
-              Remove &quot;{setSectionSong.song.name}&quot; from the{" "}
-              {setSectionType} section?
+              Remove {setSection.type.name} section
             </AlertDialogTitle>
+            <AlertDialogDescription>
+              <VStack className="gap-2 text-slate-700">
+                <Text>
+                  Are you sure you want to remove the {setSection.type.name}{" "}
+                  section from this set?
+                </Text>
+                <Text>
+                  This can&apos;t be undone and you&apos;ll have to re-create
+                  this section and re-add all the songs.
+                </Text>
+              </VStack>
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel
@@ -229,12 +278,19 @@ export const SetSectionActionMenu: React.FC<SetSectionActionMenuProps> = ({
             >
               Cancel
             </AlertDialogCancel>
-            <Button variant="destructive" onClick={() => removeSong()}>
-              Remove song
+            <Button
+              variant="destructive"
+              onClick={() => {
+                setIsConfirmationDialogOpen(false);
+                removeSection();
+              }}
+              disabled={deleteSetSectionMutation.isPending}
+            >
+              Remove section
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
-      </AlertDialog> */}
+      </AlertDialog>
       {/* <ReplaceSongDialog
         open={isSongSearchDialogOpen}
         setOpen={setIsSongSearchDialogOpen}

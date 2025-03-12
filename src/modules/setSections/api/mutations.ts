@@ -9,10 +9,16 @@ export type SwapSetSectionPositionResult = {
   message?: string;
 };
 
+// TODO: add TRPCErrors - especially if the user is not authorized to update set section
 export const updateSetSectionPosition = async (
   setSectionToUpdate: string,
   direction: SwapSetSectionPositionDirection,
 ): Promise<SwapSetSectionPositionResult> => {
+  console.log(
+    `🤖 - [setSection/swapWithPrevious/${direction}] - attempting to update set section`,
+    { setSectionId: setSectionToUpdate },
+  );
+
   return db.transaction(async (updateTransaction) => {
     const [setSection] = await updateTransaction
       .select()

@@ -313,6 +313,7 @@ const seed = async () => {
         setId: set.id,
         position: index,
         sectionTypeId: sectionType.id,
+        organizationId: organization!.id,
       }),
     );
 

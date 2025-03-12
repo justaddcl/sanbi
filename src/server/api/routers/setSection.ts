@@ -1,15 +1,20 @@
 import { type NewSetSection } from "@lib/types";
 import {
+  deleteSetSectionSchema,
   getSectionsForSet,
   insertSetSectionSchema,
   swapSetSectionPositionSchema,
   updateSetSectionType,
 } from "@lib/types/zod";
 import { updateSetSectionPosition } from "@modules/setSections/api/mutations";
-import { createTRPCRouter, organizationProcedure } from "@server/api/trpc";
+import {
+  adminProcedure,
+  createTRPCRouter,
+  organizationProcedure,
+} from "@server/api/trpc";
 import { setSections, setSectionTypes } from "@server/db/schema";
 import { TRPCError } from "@trpc/server";
-import { eq } from "drizzle-orm";
+import { and, eq, gt, sql } from "drizzle-orm";
 
 export const setSectionRouter = createTRPCRouter({
   create: organizationProcedure
@@ -17,12 +22,13 @@ export const setSectionRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       console.log("🤖 - [setSectionType/create] - input:", input);
 
-      const { setId, sectionTypeId, position } = input;
+      const { setId, sectionTypeId, position, organizationId } = input;
 
       const newSetSection: NewSetSection = {
         setId,
         sectionTypeId,
         position,
+        organizationId,
       };
 
       return ctx.db.insert(setSections).values(newSetSection).returning();
@@ -131,27 +137,118 @@ export const setSectionRouter = createTRPCRouter({
       });
     }),
 
-  swapSectionWithPrevious: organizationProcedure
+  swapWithPrevious: organizationProcedure
     .input(swapSetSectionPositionSchema)
     .mutation(async ({ input }) => {
       return await updateSetSectionPosition(input.setSectionId, "up");
     }),
 
-  swapSectionWithNext: organizationProcedure
+  swapWithNext: organizationProcedure
     .input(swapSetSectionPositionSchema)
     .mutation(async ({ input }) => {
       return await updateSetSectionPosition(input.setSectionId, "down");
     }),
 
-  moveSectionToFirst: organizationProcedure
+  moveToFirst: organizationProcedure
     .input(swapSetSectionPositionSchema)
     .mutation(async ({ input }) => {
       return await updateSetSectionPosition(input.setSectionId, "first");
     }),
 
-  moveSectionToLast: organizationProcedure
+  moveToLast: organizationProcedure
     .input(swapSetSectionPositionSchema)
     .mutation(async ({ input }) => {
       return await updateSetSectionPosition(input.setSectionId, "last");
+    }),
+
+  delete: adminProcedure
+    .input(deleteSetSectionSchema)
+    .mutation(async ({ ctx, input }) => {
+      console.log(
+        `🤖 - [setSection/delete] - attempting to delete set section`,
+        { ...input },
+      );
+
+      try {
+        const deletedSetSection = await ctx.db.transaction(
+          async (deleteTransaction) => {
+            const setSectionToDelete =
+              await deleteTransaction.query.setSections.findFirst({
+                where: eq(setSections.id, input.setSectionId),
+              });
+
+            if (!setSectionToDelete) {
+              console.error(
+                `🤖 - [setSection/delete] - could not find sets section ${input.setSectionId}`,
+              );
+
+              throw new TRPCError({
+                code: "NOT_FOUND",
+                message: "Cannot find set section",
+              });
+            }
+
+            if (
+              setSectionToDelete.organizationId !==
+              ctx.user.membership.organizationId
+            ) {
+              console.error(
+                `🤖 - [setSection/delete] - User ${ctx.user.id} is not authorized to delete set section ${input.setSectionId}`,
+              );
+
+              throw new TRPCError({
+                code: "FORBIDDEN",
+                message: "Not authorized to delete this set section",
+              });
+            }
+
+            const [deletedSection] = await deleteTransaction
+              .delete(setSections)
+              .where(eq(setSections.id, input.setSectionId))
+              .returning();
+
+            if (!deletedSection) {
+              console.error(
+                `🤖 - [setSection/delete] - Could not delete set section ${input.setSectionId}. Aborting remaining sections reorder.`,
+              );
+
+              throw new TRPCError({
+                code: "INTERNAL_SERVER_ERROR",
+                message: "Failed to delete set section",
+              });
+            }
+
+            await deleteTransaction
+              .update(setSections)
+              .set({ position: sql`position - 1` })
+              .where(
+                and(
+                  eq(setSections.setId, deletedSection.setId),
+                  gt(setSections.position, deletedSection.position),
+                ),
+              );
+
+            return deletedSection;
+          },
+        );
+
+        console.info(
+          `🤖 - [setSection/delete] - SetSection ID ${deletedSetSection.id} was successfully deleted`,
+        );
+        return deletedSetSection;
+      } catch (deleteError) {
+        console.error(
+          `🤖 - [setSectionSong/delete] - Could not delete set section ${input.setSectionId}`,
+        );
+
+        if (deleteError instanceof TRPCError) {
+          throw deleteError;
+        }
+
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: `Failed to delete set section ${input.setSectionId}`,
+        });
+      }
     }),
 });
