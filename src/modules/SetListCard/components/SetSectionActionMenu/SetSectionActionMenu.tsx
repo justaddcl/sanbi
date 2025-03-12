@@ -173,6 +173,7 @@ export const SetSectionActionMenu: React.FC<SetSectionActionMenuProps> = ({
 
           await apiUtils.set.get.invalidate({
             setId: setSection.setId,
+            organizationId: userMembership.organizationId,
           });
         },
         onError(error) {
