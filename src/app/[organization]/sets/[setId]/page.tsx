@@ -3,13 +3,13 @@ import { pluralize } from "@lib/string";
 import { PageTitle } from "@components/PageTitle";
 import { Text } from "@components/Text";
 import { Archive, Note, Plus } from "@phosphor-icons/react/dist/ssr";
-import { redirect } from "next/navigation";
+import { redirect, useSearchParams } from "next/navigation";
 import { SetActionsMenu } from "@modules/sets/components/SetActionsMenu";
 import { SetEmptyState } from "@modules/sets/components/SetEmptyState";
 import { Button } from "@components/ui/button";
 import { formatDate } from "@lib/date";
 import { SongSearchDialog } from "@modules/songs/components/SongSearchDialog";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { api } from "@/trpc/react";
 import { validate as uuidValidate } from "uuid";
 import { useAuth } from "@clerk/nextjs";
@@ -21,12 +21,32 @@ import { SetPageErrorState } from "@modules/sets/components/SetErrorState";
 import { HStack } from "@components/HStack";
 import { VStack } from "@components/VStack";
 import { PageContentContainer } from "@components/PageContentContainer";
+import { type ConfigureSongForSetProps } from "@modules/songs/components/ConfigureSongForSet/ConfigureSongForSet";
 
-type SetListPageProps = { params: { organization: string; setId: string } };
+type SetListPageProps = {
+  params: { organization: string; setId: string };
+  searchParams: Record<string, string | string[] | undefined>;
+};
 
 export default function SetListPage({ params }: SetListPageProps) {
+  const searchParams = useSearchParams();
+
+  const [prePopulatedSetSectionId, setPrePopulatedSetSectionId] =
+    useState<ConfigureSongForSetProps["prePopulatedSetSectionId"]>(undefined);
   const [isSongSearchDialogOpen, setIsSongSearchDialogOpen] =
     useState<boolean>(false);
+
+  useEffect(() => {
+    const addSongDialogOpen = searchParams.get("addSongDialogOpen");
+    const setSectionIdFromUrl = searchParams.get("setSectionId");
+
+    const isSongSearchDialogOpenFromUrl = [null, undefined, "false", "0"].every(
+      (falsyValue) => addSongDialogOpen !== falsyValue,
+    );
+
+    setIsSongSearchDialogOpen(isSongSearchDialogOpenFromUrl);
+    setPrePopulatedSetSectionId(setSectionIdFromUrl);
+  }, [searchParams]);
 
   const validateParams = useCallback(() => {
     const isOrganizationIdValidUuid = uuidValidate(params.organization);
@@ -175,9 +195,9 @@ export default function SetListPage({ params }: SetListPageProps) {
 
       <SongSearchDialog
         open={isSongSearchDialogOpen}
-        setOpen={setIsSongSearchDialogOpen}
         existingSetSections={setData.sections}
         setId={setData.id}
+        prePopulatedSetSectionId={prePopulatedSetSectionId}
       />
     </PageContentContainer>
   );

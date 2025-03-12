@@ -3,32 +3,36 @@
 import { CommandDialog } from "@components/ui/command";
 import { useAuth } from "@clerk/nextjs";
 import { Text } from "@components/Text";
-import { redirect } from "next/navigation";
+import { redirect, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import {
   SongSearch,
   type SongSearchResult,
 } from "@modules/songs/components/SongSearch";
 import { type SetSectionWithSongs } from "@lib/types";
-import { ConfigureSongForSet } from "../ConfigureSongForSet/ConfigureSongForSet";
+import {
+  ConfigureSongForSet,
+  type ConfigureSongForSetProps,
+} from "../ConfigureSongForSet/ConfigureSongForSet";
 
 export type SongSearchDialogSteps = "search" | "configure";
 
 type SongSearchDialogProps = {
   open: boolean;
-  setOpen: React.Dispatch<React.SetStateAction<boolean>>;
   onSongSelect?: (selectedSong?: SongSearchResult) => void;
   // TODO: remove prop if unnecessary
   existingSetSections: SetSectionWithSongs[];
   setId: string;
+  prePopulatedSetSectionId?: ConfigureSongForSetProps["prePopulatedSetSectionId"];
 };
 
 export const SongSearchDialog: React.FC<SongSearchDialogProps> = ({
   open,
-  setOpen,
   existingSetSections,
   setId,
+  prePopulatedSetSectionId,
 }) => {
+  const searchParams = useSearchParams();
   const { userId, isLoaded } = useAuth();
 
   const [dialogStep, setDialogStep] = useState<SongSearchDialogSteps>("search");
@@ -43,6 +47,24 @@ export const SongSearchDialog: React.FC<SongSearchDialogProps> = ({
   if (!isLoaded) {
     return <Text>Loading auth...</Text>;
   }
+
+  const setOpen = (isOpen: boolean) => {
+    const params = new URLSearchParams(searchParams.toString());
+
+    if (isOpen) {
+      params.set("addSongDialogOpen", "1");
+    } else {
+      if (params.has("addSongDialogOpen")) {
+        params.delete("addSongDialogOpen");
+      }
+
+      if (params.has("setSectionId")) {
+        params.delete("setSectionId");
+      }
+    }
+
+    window.history.pushState(null, "", `?${params.toString()}`);
+  };
 
   const handleSongSelect = (song?: SongSearchResult) => {
     if (!!song) {
@@ -81,6 +103,7 @@ export const SongSearchDialog: React.FC<SongSearchDialogProps> = ({
             setOpen(false);
           }}
           setId={setId}
+          prePopulatedSetSectionId={prePopulatedSetSectionId}
         />
       )}
     </CommandDialog>
