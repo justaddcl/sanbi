@@ -462,6 +462,12 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
                   />
                 )}
                 {sectionsForSetData.length === 0 && (
+                  <VStack className="gap-2">
+                    <Text
+                      className={cn("font-normal text-slate-900", textSize)}
+                    >
+                      Which part of the set?
+                    </Text>
                     <div className="mb-4 flex w-full flex-col items-center rounded border border-dashed border-slate-200 py-3">
                       <Text
                         style="header-small-semibold"
@@ -474,6 +480,7 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
                         Add one below to get started.
                       </Text>
                     </div>
+                  </VStack>
                 )}
                 {!isAddingSection && (
                   <Button
