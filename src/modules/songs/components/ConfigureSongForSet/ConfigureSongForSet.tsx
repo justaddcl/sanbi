@@ -125,11 +125,6 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
 
   const shouldAddSongBeDisabled = !isDirty || !isValid || isSubmitting;
 
-  console.log("🚀 ~ ConfigureSongForSet.tsx:112 ~ formState:", {
-    isDirty,
-    isSubmitting,
-    isValid,
-  });
   const addSetSectionSongMutation = api.setSectionSong.create.useMutation();
   const createSetSectionMutation = api.setSection.create.useMutation();
   const apiUtils = api.useUtils();
