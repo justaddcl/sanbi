@@ -22,6 +22,13 @@ import { HStack } from "@components/HStack";
 import { VStack } from "@components/VStack";
 import { PageContentContainer } from "@components/PageContentContainer";
 import { type ConfigureSongForSetProps } from "@modules/songs/components/ConfigureSongForSet/ConfigureSongForSet";
+import { cn } from "@lib/utils";
+import { SetSectionTypeCombobox } from "@modules/sets/components/SetSectionTypeCombobox";
+import { useMediaQuery } from "usehooks-ts";
+import { DESKTOP_MEDIA_QUERY_STRING } from "@lib/constants";
+import { useSectionTypesOptions } from "@modules/sets/hooks/useSetSectionTypes";
+import { type ComboboxOption } from "@components/ui/combobox";
+import { toast } from "sonner";
 
 type SetListPageProps = {
   params: { organization: string; setId: string };
@@ -31,10 +38,21 @@ type SetListPageProps = {
 export default function SetListPage({ params }: SetListPageProps) {
   const searchParams = useSearchParams();
 
+  const isDesktop = useMediaQuery(DESKTOP_MEDIA_QUERY_STRING);
+  const textSize = isDesktop ? "text-base" : "text-xs";
+
   const [prePopulatedSetSectionId, setPrePopulatedSetSectionId] =
     useState<ConfigureSongForSetProps["prePopulatedSetSectionId"]>(undefined);
   const [isSongSearchDialogOpen, setIsSongSearchDialogOpen] =
     useState<boolean>(false);
+  const [isAddingSection, setIsAddingSection] = useState<boolean>(false);
+  const [newSetSectionType, setNewSetSectionType] =
+    useState<ComboboxOption | null>(null);
+  const [isAddSectionComboboxOpen, setIsAddSectionComboboxOpen] =
+    useState<boolean>(false);
+
+  const createSetSectionMutation = api.setSection.create.useMutation();
+  const apiUtils = api.useUtils();
 
   useEffect(() => {
     const addSongDialogOpen = searchParams.get("addSongDialogOpen");
@@ -91,6 +109,11 @@ export default function SetListPage({ params }: SetListPageProps) {
   } = api.user.getUser.useQuery({ userId: userId! }, { enabled: !!userId }); // we use a non-null assertion here since the query will be disabled if userId is falsy
   const userMembership = userData?.memberships[0];
 
+  const {
+    options: setSectionTypesOptions,
+    isLoading: isSetSectionTypesQueryLoading,
+  } = useSectionTypesOptions(userMembership?.organizationId);
+
   validateParams();
 
   const isPageLoading =
@@ -107,6 +130,58 @@ export default function SetListPage({ params }: SetListPageProps) {
   if (!userMembership || !setData) {
     redirect(`/`);
   }
+
+  const openAddSongDialog = () => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("addSongDialogOpen", "1");
+    window.history.pushState(null, "", `?${params.toString()}`);
+  };
+
+  const handleAddSetSection = async () => {
+    const toastId = toast.loading("Adding section to set...");
+
+    if (!newSetSectionType) {
+      // TODO: this case shouldn't happen, but how would we properly handle it just in case?
+      return;
+    }
+
+    const setAlreadyHasSelectedSection = setData.sections.some(
+      (setSection) => setSection.sectionTypeId === newSetSectionType.id,
+    );
+
+    if (setAlreadyHasSelectedSection) {
+      toast.error("Section type already exists on this set", { id: toastId });
+    } else {
+      const positionForNewSetSection = setData.sections.length;
+
+      await createSetSectionMutation.mutateAsync(
+        {
+          setId: setData.id,
+          organizationId: userMembership.organizationId,
+          sectionTypeId: newSetSectionType.id,
+          position: positionForNewSetSection,
+        },
+        {
+          async onSuccess() {
+            toast.success(`Section added to set!`, { id: toastId });
+
+            setIsAddingSection(false);
+            setNewSetSectionType(null);
+
+            await apiUtils.setSection.getSectionsForSet.refetch({
+              organizationId: userMembership.organizationId,
+              setId: setData.id,
+            });
+
+            await apiUtils.set.get.invalidate({
+              setId: setData.id,
+              organizationId: userMembership.organizationId,
+            });
+          },
+        },
+      );
+    }
+  };
 
   const songCount =
     setData?.sections.reduce(
@@ -153,17 +228,14 @@ export default function SetListPage({ params }: SetListPageProps) {
       {(!setData?.sections || setData.sections.length === 0) && (
         <SetEmptyState
           onActionClick={() => {
-            setIsSongSearchDialogOpen(true);
+            openAddSongDialog();
           }}
         />
       )}
       {setData?.sections && setData.sections.length > 0 && (
         <VStack className="gap-8 lg:gap-12">
           <>
-            <Button
-              variant="secondary"
-              onClick={() => setIsSongSearchDialogOpen(true)}
-            >
+            <Button variant="secondary" onClick={openAddSongDialog}>
               <Plus /> Add a song
             </Button>
             {setData.sections.map((section) => {
@@ -187,9 +259,65 @@ export default function SetListPage({ params }: SetListPageProps) {
               );
             })}
           </>
-          <Button variant="outline">
-            <Plus /> Add another section
-          </Button>
+          {isAddingSection ? (
+            <VStack className="gap-4 rounded-lg border p-4 shadow lg:gap-8 lg:p-8">
+              <Text
+                asElement="h3"
+                style="header-medium-semibold"
+                className="flex-wrap text-xl"
+              >
+                Add a new section
+              </Text>
+              <SetSectionTypeCombobox
+                placeholder="Select a section type to add"
+                options={setSectionTypesOptions}
+                value={newSetSectionType}
+                onChange={setNewSetSectionType}
+                open={isAddSectionComboboxOpen}
+                setOpen={setIsAddSectionComboboxOpen}
+                loading={isSetSectionTypesQueryLoading}
+                disabled={isSetSectionTypesQueryLoading}
+                textStyles={cn("text-slate-700", textSize)}
+                organizationId={userMembership.organizationId}
+              />
+              <div className="mt-2 flex justify-end gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setIsAddingSection(false);
+                    setNewSetSectionType(null);
+                  }}
+                  className={cn(textSize)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={handleAddSetSection}
+                  disabled={
+                    !newSetSectionType ||
+                    newSetSectionType.id === "" ||
+                    createSetSectionMutation.isPending
+                  }
+                  isLoading={createSetSectionMutation.isPending}
+                  className={cn(textSize)}
+                >
+                  Add section to set
+                </Button>
+              </div>
+            </VStack>
+          ) : (
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsAddingSection(true);
+              }}
+            >
+              <Plus /> Add another section
+            </Button>
+          )}
         </VStack>
       )}
 
