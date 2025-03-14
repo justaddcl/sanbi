@@ -113,16 +113,23 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
     setError,
     clearErrors,
   } = addSongToSetForm;
-  const shouldAddSongBeDisabled = !isDirty || !isValid || isSubmitting;
 
   useEffect(() => {
     if (prePopulatedSetSectionId) {
       setValue("setSectionId", prePopulatedSetSectionId, {
         shouldDirty: true,
+        shouldValidate: true,
       });
     }
-  }, [prePopulatedSetSectionId]);
+  }, [prePopulatedSetSectionId, setValue]);
 
+  const shouldAddSongBeDisabled = !isDirty || !isValid || isSubmitting;
+
+  console.log("🚀 ~ ConfigureSongForSet.tsx:112 ~ formState:", {
+    isDirty,
+    isSubmitting,
+    isValid,
+  });
   const addSetSectionSongMutation = api.setSectionSong.create.useMutation();
   const createSetSectionMutation = api.setSection.create.useMutation();
   const apiUtils = api.useUtils();
