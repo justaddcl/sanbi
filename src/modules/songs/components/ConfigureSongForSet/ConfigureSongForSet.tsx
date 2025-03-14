@@ -23,6 +23,7 @@ import {
 } from "@components/ui/select";
 import { Switch } from "@components/ui/switch";
 import { Textarea } from "@components/ui/textarea";
+import { VStack } from "@components/VStack";
 import { DevTool } from "@hookform/devtools";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { DESKTOP_MEDIA_QUERY_STRING, songKeys } from "@lib/constants";
@@ -44,7 +45,7 @@ import {
   Plus,
 } from "@phosphor-icons/react/dist/ssr";
 import { redirect } from "next/navigation";
-import { type Dispatch, type SetStateAction, useState } from "react";
+import { type Dispatch, type SetStateAction, useEffect, useState } from "react";
 import { type SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useMediaQuery } from "usehooks-ts";
@@ -68,12 +69,13 @@ export type AddSongToSetFormFields = Omit<
   notes: NonNullable<z.infer<typeof createSetSectionSongsSchema>["notes"]>;
 };
 
-type ConfigureSongForSetProps = {
+export type ConfigureSongForSetProps = {
   existingSetSections: SetSectionWithSongs[];
   selectedSong: NonNullable<SongSearchResult>;
   setDialogStep: Dispatch<SetStateAction<SongSearchDialogSteps>>;
   onSubmit?: () => void;
   setId: string;
+  prePopulatedSetSectionId?: string | null;
 };
 
 export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
@@ -82,6 +84,7 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
   setDialogStep,
   onSubmit,
   setId,
+  prePopulatedSetSectionId,
 }) => {
   const isDesktop = useMediaQuery(DESKTOP_MEDIA_QUERY_STRING);
   const textSize = isDesktop ? "text-base" : "text-xs";
@@ -110,6 +113,16 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
     setError,
     clearErrors,
   } = addSongToSetForm;
+
+  useEffect(() => {
+    if (prePopulatedSetSectionId) {
+      setValue("setSectionId", prePopulatedSetSectionId, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+    }
+  }, [prePopulatedSetSectionId, setValue]);
+
   const shouldAddSongBeDisabled = !isDirty || !isValid || isSubmitting;
 
   const addSetSectionSongMutation = api.setSectionSong.create.useMutation();
@@ -451,18 +464,25 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
                   />
                 )}
                 {sectionsForSetData.length === 0 && (
-                  <div className="mb-4 flex w-full flex-col items-center rounded border border-dashed border-slate-200 py-3">
+                  <VStack className="gap-2">
                     <Text
-                      style="header-small-semibold"
-                      align="center"
-                      className="text-slate-900"
+                      className={cn("font-normal text-slate-900", textSize)}
                     >
-                      No sections yet
+                      Which part of the set?
                     </Text>
-                    <Text align="center" className="">
-                      Add one below to get started.
-                    </Text>
-                  </div>
+                    <div className="mb-4 flex w-full flex-col items-center rounded border border-dashed border-slate-200 py-3">
+                      <Text
+                        style="header-small-semibold"
+                        align="center"
+                        className="text-slate-900"
+                      >
+                        No sections yet
+                      </Text>
+                      <Text align="center" className="">
+                        Add one below to get started.
+                      </Text>
+                    </div>
+                  </VStack>
                 )}
                 {!isAddingSection && (
                   <Button

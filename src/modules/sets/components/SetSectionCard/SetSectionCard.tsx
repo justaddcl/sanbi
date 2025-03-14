@@ -22,7 +22,7 @@ import { SetSectionTypeCombobox } from "@modules/sets/components/SetSectionTypeC
 import { useSectionTypesOptions } from "@modules/sets/hooks/useSetSectionTypes";
 import { useUserQuery } from "@modules/users/api/queries";
 import { Plus } from "@phosphor-icons/react/dist/ssr";
-import { redirect } from "next/navigation";
+import { redirect, useSearchParams } from "next/navigation";
 import { useState, type FC } from "react";
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { toast } from "sonner";
@@ -62,6 +62,7 @@ export const SetSectionCard: FC<SetSectionCardProps> = ({
   withActionsMenu,
 }) => {
   const { id, type, songs, setId, position, sectionTypeId } = section;
+  const searchParams = useSearchParams();
 
   const isFirstSection = position === 0;
   const isLastSection = position === setSectionsLength - 1;
@@ -132,6 +133,13 @@ export const SetSectionCard: FC<SetSectionCardProps> = ({
     );
   };
 
+  const openAddSongDialogWithPrePopulatedSection = () => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("addSongDialogOpen", "1");
+    params.set("setSectionId", section.id);
+    window.history.pushState(null, "", `?${params.toString()}`);
+  };
+
   const shouldUpdateSectionButtonBeDisabled =
     !isDirty || !isValid || isSubmitting;
   const isSetSectionTypesListLoading =
@@ -157,7 +165,14 @@ export const SetSectionCard: FC<SetSectionCardProps> = ({
                   {type.name}
                 </Text>
                 <HStack className="flex items-start gap-2">
-                  <Button size="sm" variant="outline">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={(clickEvent) => {
+                      clickEvent.preventDefault();
+                      openAddSongDialogWithPrePopulatedSection();
+                    }}
+                  >
                     <Plus className="text-slate-900" size={16} />
                     <span className="hidden sm:inline">Add song</span>
                   </Button>
