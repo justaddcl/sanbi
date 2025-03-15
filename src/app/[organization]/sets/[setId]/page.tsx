@@ -26,7 +26,6 @@ import { cn } from "@lib/utils";
 import { SetSectionTypeCombobox } from "@modules/sets/components/SetSectionTypeCombobox";
 import { useMediaQuery } from "usehooks-ts";
 import { DESKTOP_MEDIA_QUERY_STRING } from "@lib/constants";
-import { useSectionTypesOptions } from "@modules/sets/hooks/useSetSectionTypes";
 import { type ComboboxOption } from "@components/ui/combobox";
 import { toast } from "sonner";
 
@@ -48,8 +47,6 @@ export default function SetListPage({ params }: SetListPageProps) {
   const [isAddingSection, setIsAddingSection] = useState<boolean>(false);
   const [newSetSectionType, setNewSetSectionType] =
     useState<ComboboxOption | null>(null);
-  const [isAddSectionComboboxOpen, setIsAddSectionComboboxOpen] =
-    useState<boolean>(false);
 
   const createSetSectionMutation = api.setSection.create.useMutation();
   const apiUtils = api.useUtils();
@@ -108,11 +105,6 @@ export default function SetListPage({ params }: SetListPageProps) {
     error: userQueryError,
   } = api.user.getUser.useQuery({ userId: userId! }, { enabled: !!userId }); // we use a non-null assertion here since the query will be disabled if userId is falsy
   const userMembership = userData?.memberships[0];
-
-  const {
-    options: setSectionTypesOptions,
-    isLoading: isSetSectionTypesQueryLoading,
-  } = useSectionTypesOptions(userMembership?.organizationId);
 
   validateParams();
 
@@ -270,13 +262,8 @@ export default function SetListPage({ params }: SetListPageProps) {
               </Text>
               <SetSectionTypeCombobox
                 placeholder="Select a section type to add"
-                options={setSectionTypesOptions}
                 value={newSetSectionType}
                 onChange={setNewSetSectionType}
-                open={isAddSectionComboboxOpen}
-                setOpen={setIsAddSectionComboboxOpen}
-                loading={isSetSectionTypesQueryLoading}
-                disabled={isSetSectionTypesQueryLoading}
                 textStyles={cn("text-slate-700", textSize)}
                 organizationId={userMembership.organizationId}
               />
