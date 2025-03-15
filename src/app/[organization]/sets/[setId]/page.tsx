@@ -28,6 +28,16 @@ import { useMediaQuery } from "usehooks-ts";
 import { DESKTOP_MEDIA_QUERY_STRING } from "@lib/constants";
 import { type ComboboxOption } from "@components/ui/combobox";
 import { toast } from "sonner";
+import {
+  ResponsiveDialog,
+  ResponsiveDialogClose,
+  ResponsiveDialogContent,
+  ResponsiveDialogDescription,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+  ResponsiveDialogTrigger,
+} from "@components/ResponsiveDialog";
+import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 
 type SetListPageProps = {
   params: { organization: string; setId: string };
@@ -44,7 +54,6 @@ export default function SetListPage({ params }: SetListPageProps) {
     useState<ConfigureSongForSetProps["prePopulatedSetSectionId"]>(undefined);
   const [isSongSearchDialogOpen, setIsSongSearchDialogOpen] =
     useState<boolean>(false);
-  const [isAddingSection, setIsAddingSection] = useState<boolean>(false);
   const [newSetSectionType, setNewSetSectionType] =
     useState<ComboboxOption | null>(null);
 
@@ -157,7 +166,6 @@ export default function SetListPage({ params }: SetListPageProps) {
           async onSuccess() {
             toast.success(`Section added to set!`, { id: toastId });
 
-            setIsAddingSection(false);
             setNewSetSectionType(null);
 
             await apiUtils.setSection.getSectionsForSet.refetch({
@@ -251,60 +259,73 @@ export default function SetListPage({ params }: SetListPageProps) {
               );
             })}
           </>
-          {isAddingSection ? (
-            <VStack className="gap-4 rounded-lg border p-4 shadow lg:gap-8 lg:p-8">
-              <Text
-                asElement="h3"
-                style="header-medium-semibold"
-                className="flex-wrap text-xl"
-              >
-                Add a new section
-              </Text>
-              <SetSectionTypeCombobox
-                placeholder="Select a section type to add"
-                value={newSetSectionType}
-                onChange={setNewSetSectionType}
-                textStyles={cn("text-slate-700", textSize)}
-                organizationId={userMembership.organizationId}
-              />
-              <div className="mt-2 flex justify-end gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setIsAddingSection(false);
-                    setNewSetSectionType(null);
-                  }}
-                  className={cn(textSize)}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={handleAddSetSection}
-                  disabled={
-                    !newSetSectionType ||
-                    newSetSectionType.id === "" ||
-                    createSetSectionMutation.isPending
-                  }
-                  isLoading={createSetSectionMutation.isPending}
-                  className={cn(textSize)}
+          <ResponsiveDialog
+            onOpenChange={(isOpen) => {
+              if (!isOpen) {
+                setNewSetSectionType(null);
+              }
+            }}
+          >
+            <ResponsiveDialogTrigger asChild>
+              <Button variant="outline">
+                <Plus /> Add another section
+              </Button>
+            </ResponsiveDialogTrigger>
+            <ResponsiveDialogContent className="p-6 lg:p-8">
+              <ResponsiveDialogHeader>
+                <VisuallyHidden.Root>
+                  <>
+                    <ResponsiveDialogTitle>
+                      Add section to set
+                    </ResponsiveDialogTitle>
+                    <ResponsiveDialogDescription>
+                      Dialog to add section to set
+                    </ResponsiveDialogDescription>
+                  </>
+                </VisuallyHidden.Root>
+              </ResponsiveDialogHeader>
+              <ResponsiveDialogTitle>
+                <Text
+                  asElement="h3"
+                  style="header-medium-semibold"
+                  className="flex-wrap text-xl"
                 >
                   Add section to set
-                </Button>
-              </div>
-            </VStack>
-          ) : (
-            <Button
-              variant="outline"
-              onClick={() => {
-                setIsAddingSection(true);
-              }}
-            >
-              <Plus /> Add another section
-            </Button>
-          )}
+                </Text>
+              </ResponsiveDialogTitle>
+              <VStack className="mt-4 gap-4 lg:mt-0 lg:gap-8">
+                <SetSectionTypeCombobox
+                  placeholder="Select a section type to add"
+                  value={newSetSectionType}
+                  onChange={setNewSetSectionType}
+                  textStyles={cn("text-slate-700", textSize)}
+                  organizationId={userMembership.organizationId}
+                />
+                <div className="mt-2 flex justify-end gap-2">
+                  <ResponsiveDialogClose asChild>
+                    <Button variant="ghost" size="sm" className={cn(textSize)}>
+                      Cancel
+                    </Button>
+                  </ResponsiveDialogClose>
+                  <ResponsiveDialogClose asChild>
+                    <Button
+                      size="sm"
+                      onClick={handleAddSetSection}
+                      disabled={
+                        !newSetSectionType ||
+                        newSetSectionType.id === "" ||
+                        createSetSectionMutation.isPending
+                      }
+                      isLoading={createSetSectionMutation.isPending}
+                      className={cn(textSize)}
+                    >
+                      Add section to set
+                    </Button>
+                  </ResponsiveDialogClose>
+                </div>
+              </VStack>
+            </ResponsiveDialogContent>
+          </ResponsiveDialog>
         </VStack>
       )}
 
