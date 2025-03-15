@@ -1,9 +1,5 @@
 import { useState } from "react";
-import {
-  Combobox,
-  type ComboboxProps,
-  type ComboboxOption,
-} from "@components/ui/combobox";
+import { Combobox, type ComboboxOption } from "@components/ui/combobox";
 import { Input } from "@components/ui/input";
 import { Button } from "@components/ui/button";
 import { CommandGroup } from "@components/ui/command";
@@ -11,22 +7,17 @@ import { Plus } from "@phosphor-icons/react/dist/ssr";
 import { cn } from "@lib/utils";
 import { api } from "@/trpc/react";
 import { toast } from "sonner";
+import { useSectionTypesOptions } from "@modules/sets/hooks/useSetSectionTypes";
 
 export type SetSectionTypeComboboxProps = {
   /** Available set section type options */
-  options: ComboboxOption[];
+  options?: ComboboxOption[];
 
   /** Currently selected value */
   value: ComboboxOption | null;
 
   /** Callback when value changes */
   onChange: (value: ComboboxOption | null) => void;
-
-  /** Whether the combobox is open */
-  open: boolean;
-
-  /** Callback to set open state */
-  setOpen: React.Dispatch<React.SetStateAction<ComboboxProps["open"]>>;
 
   /** Whether the combobox is loading */
   loading?: boolean;
@@ -51,8 +42,6 @@ export const SetSectionTypeCombobox: React.FC<SetSectionTypeComboboxProps> = ({
   options,
   value,
   onChange,
-  open,
-  setOpen,
   loading = false,
   disabled = false,
   organizationId,
@@ -60,11 +49,18 @@ export const SetSectionTypeCombobox: React.FC<SetSectionTypeComboboxProps> = ({
   placeholder = "Add a set section",
   onCreateSuccess,
 }) => {
+  const [isOpen, setIsOpen] = useState<boolean>(false);
   const [newSetSectionInputValue, setNewSetSectionInputValue] =
     useState<string>("");
 
   const createSetSectionTypeMutation = api.setSectionType.create.useMutation();
   const apiUtils = api.useUtils();
+
+  const {
+    options: setSectionTypesOptions,
+    isLoading: isSetSectionTypesQueryLoading,
+    error: setSectionTypesQueryError,
+  } = useSectionTypesOptions(organizationId);
 
   const handleCreateNewSetSectionType = async () => {
     const trimmedInput = newSetSectionInputValue.trim();
@@ -99,20 +95,20 @@ export const SetSectionTypeCombobox: React.FC<SetSectionTypeComboboxProps> = ({
       },
     );
 
-    setOpen(false);
+    setIsOpen(false);
     setNewSetSectionInputValue("");
   };
 
   return (
     <Combobox
       placeholder={placeholder}
-      options={options}
+      options={options ?? setSectionTypesOptions}
       value={value}
       onChange={onChange}
-      open={open}
-      setOpen={setOpen}
-      loading={loading}
-      disabled={disabled}
+      open={isOpen}
+      setOpen={setIsOpen}
+      loading={loading ?? isSetSectionTypesQueryLoading}
+      disabled={disabled ?? setSectionTypesQueryError}
       textStyles={cn(textStyles)}
     >
       <CommandGroup heading="Create new section type">

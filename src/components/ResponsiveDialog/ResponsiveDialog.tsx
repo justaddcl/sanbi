@@ -154,34 +154,41 @@ export const ResponsiveDialogHeader: React.FC<ResponsiveDialogHeaderProps> = ({
 type ResponsiveDialogTitle = React.PropsWithChildren & {
   dialogProps?: DialogTitleProps;
   drawerProps?: DrawerTitleProps;
+  asChild?: boolean;
 };
 export const ResponsiveDialogTitle: React.FC<ResponsiveDialogTitle> = ({
   dialogProps,
   drawerProps,
+  asChild,
   children,
 }) => {
   const isDesktop = useMediaQuery(DESKTOP_MEDIA_QUERY_STRING);
 
   return isDesktop ? (
-    <DialogTitle {...dialogProps}>{children}</DialogTitle>
+    <DialogTitle asChild={asChild} {...dialogProps}>
+      {children}
+    </DialogTitle>
   ) : (
-    <DrawerTitle {...drawerProps}>{children}</DrawerTitle>
+    <DrawerTitle asChild={asChild} {...drawerProps}>
+      {children}
+    </DrawerTitle>
   );
 };
 
 type ResponsiveDialogDescriptionProps = React.PropsWithChildren & {
   dialogProps?: DialogDescriptionProps;
   drawerProps?: DrawerDescriptionProps;
+  asChild?: boolean
 };
 export const ResponsiveDialogDescription: React.FC<
   ResponsiveDialogDescriptionProps
-> = ({ dialogProps, drawerProps, children }) => {
+> = ({ dialogProps, drawerProps, asChild, children }) => {
   const isDesktop = useMediaQuery(DESKTOP_MEDIA_QUERY_STRING);
 
   return isDesktop ? (
-    <DialogDescription {...dialogProps}>{children}</DialogDescription>
+    <DialogDescription asChild={asChild} {...dialogProps}>{children}</DialogDescription>
   ) : (
-    <DrawerDescription {...drawerProps}>{children}</DrawerDescription>
+    <DrawerDescription asChild={asChild} {...drawerProps}>{children}</DrawerDescription>
   );
 };
 

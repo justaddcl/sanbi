@@ -72,8 +72,6 @@ export const SetSectionCard: FC<SetSectionCardProps> = ({
 
   const [isEditingSectionType, setIsEditingSectionType] =
     useState<boolean>(false);
-  const [isAddSectionComboboxOpen, setIsAddSectionComboboxOpen] =
-    useState<boolean>(false);
 
   const updateSetSectionForm = useForm<UpdateSetSectionFormFields>({
     resolver: zodResolver(updateSetSectionSchema),
@@ -90,7 +88,7 @@ export const SetSectionCard: FC<SetSectionCardProps> = ({
   const changeSetSectionTypeMutation = api.setSection.changeType.useMutation();
   const apiUtils = api.useUtils();
 
-  const { data: userData, isLoading: isUserQueryLoading } = useUserQuery();
+  const { data: userData } = useUserQuery();
 
   const userMembership = userData?.memberships[0];
 
@@ -98,10 +96,9 @@ export const SetSectionCard: FC<SetSectionCardProps> = ({
     redirect("/sign-in");
   }
 
-  const {
-    options: setSectionTypesOptions,
-    isLoading: isSetSectionTypesQueryLoading,
-  } = useSectionTypesOptions(userMembership.organizationId);
+  const { options: setSectionTypesOptions } = useSectionTypesOptions(
+    userMembership.organizationId,
+  );
 
   const handleUpdateSetSection: SubmitHandler<
     UpdateSetSectionFormFields
@@ -142,8 +139,6 @@ export const SetSectionCard: FC<SetSectionCardProps> = ({
 
   const shouldUpdateSectionButtonBeDisabled =
     !isDirty || !isValid || isSubmitting;
-  const isSetSectionTypesListLoading =
-    isUserQueryLoading || isSetSectionTypesQueryLoading;
 
   return (
     <VStack
@@ -217,15 +212,10 @@ export const SetSectionCard: FC<SetSectionCardProps> = ({
                           </FormLabel>
                           <FormControl>
                             <SetSectionTypeCombobox
-                              options={setSectionTypesOptions}
                               value={value}
                               onChange={(selectedValue) => {
                                 field.onChange(selectedValue?.id);
                               }}
-                              open={isAddSectionComboboxOpen}
-                              setOpen={setIsAddSectionComboboxOpen}
-                              loading={isSetSectionTypesListLoading}
-                              disabled={isSetSectionTypesQueryLoading}
                               textStyles={cn("text-slate-700", textSize)}
                               organizationId={userMembership.organizationId}
                               onCreateSuccess={(newSectionType) =>
