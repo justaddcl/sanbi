@@ -135,7 +135,8 @@ export default function SetListPage({ params }: SetListPageProps) {
   const openAddSongDialog = () => {
     const params = new URLSearchParams(searchParams.toString());
     params.set("addSongDialogOpen", "1");
-    window.history.pushState(null, "", `?${params.toString()}`);
+    const queryString = params.toString();
+    window.history.pushState(null, "", `?${queryString}`);
   };
 
   const handleAddSetSection = async () => {
@@ -152,35 +153,36 @@ export default function SetListPage({ params }: SetListPageProps) {
 
     if (setAlreadyHasSelectedSection) {
       toast.error("Section type already exists on this set", { id: toastId });
-    } else {
-      const positionForNewSetSection = setData.sections.length;
-
-      await createSetSectionMutation.mutateAsync(
-        {
-          setId: setData.id,
-          organizationId: userMembership.organizationId,
-          sectionTypeId: newSetSectionType.id,
-          position: positionForNewSetSection,
-        },
-        {
-          async onSuccess() {
-            toast.success(`Section added to set!`, { id: toastId });
-
-            setNewSetSectionType(null);
-
-            await apiUtils.setSection.getSectionsForSet.refetch({
-              organizationId: userMembership.organizationId,
-              setId: setData.id,
-            });
-
-            await apiUtils.set.get.invalidate({
-              setId: setData.id,
-              organizationId: userMembership.organizationId,
-            });
-          },
-        },
-      );
+      return;
     }
+
+    const positionForNewSetSection = setData.sections.length;
+
+    await createSetSectionMutation.mutateAsync(
+      {
+        setId: setData.id,
+        organizationId: userMembership.organizationId,
+        sectionTypeId: newSetSectionType.id,
+        position: positionForNewSetSection,
+      },
+      {
+        async onSuccess() {
+          toast.success(`Section added to set!`, { id: toastId });
+
+          setNewSetSectionType(null);
+
+          await apiUtils.setSection.getSectionsForSet.refetch({
+            organizationId: userMembership.organizationId,
+            setId: setData.id,
+          });
+
+          await apiUtils.set.get.invalidate({
+            setId: setData.id,
+            organizationId: userMembership.organizationId,
+          });
+        },
+      },
+    );
   };
 
   const songCount =
@@ -259,6 +261,7 @@ export default function SetListPage({ params }: SetListPageProps) {
               );
             })}
           </>
+          {/* TODO: extract to separate AddSectionDialog? */}
           <ResponsiveDialog
             onOpenChange={(isOpen) => {
               if (!isOpen) {
@@ -273,16 +276,14 @@ export default function SetListPage({ params }: SetListPageProps) {
             </ResponsiveDialogTrigger>
             <ResponsiveDialogContent className="p-6 lg:p-8">
               <ResponsiveDialogHeader>
-                <VisuallyHidden.Root>
-                  <>
-                    <ResponsiveDialogTitle>
-                      Add section to set
-                    </ResponsiveDialogTitle>
-                    <ResponsiveDialogDescription>
-                      Dialog to add section to set
-                    </ResponsiveDialogDescription>
-                  </>
-                </VisuallyHidden.Root>
+                <ResponsiveDialogTitle asChild>
+                  <VisuallyHidden.Root>Add section to set</VisuallyHidden.Root>
+                </ResponsiveDialogTitle>
+                <ResponsiveDialogDescription asChild>
+                  <VisuallyHidden.Root>
+                    Dialog to add section to set
+                  </VisuallyHidden.Root>
+                </ResponsiveDialogDescription>
               </ResponsiveDialogHeader>
               <ResponsiveDialogTitle>
                 <Text
@@ -312,8 +313,7 @@ export default function SetListPage({ params }: SetListPageProps) {
                       size="sm"
                       onClick={handleAddSetSection}
                       disabled={
-                        !newSetSectionType ||
-                        newSetSectionType.id === "" ||
+                        !newSetSectionType?.id ||
                         createSetSectionMutation.isPending
                       }
                       isLoading={createSetSectionMutation.isPending}
