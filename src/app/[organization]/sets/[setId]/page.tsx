@@ -30,12 +30,10 @@ import { type ComboboxOption } from "@components/ui/combobox";
 import { toast } from "sonner";
 import {
   ResponsiveDialog,
-  ResponsiveDialogClose,
   ResponsiveDialogContent,
   ResponsiveDialogDescription,
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
-  ResponsiveDialogTrigger,
 } from "@components/ResponsiveDialog";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 
@@ -56,6 +54,8 @@ export default function SetListPage({ params }: SetListPageProps) {
     useState<boolean>(false);
   const [newSetSectionType, setNewSetSectionType] =
     useState<ComboboxOption | null>(null);
+  const [isAddSectionDialogOpen, setIsAddSectionDialogOpen] =
+    useState<boolean>(false);
 
   const createSetSectionMutation = api.setSection.create.useMutation();
   const apiUtils = api.useUtils();
@@ -139,7 +139,7 @@ export default function SetListPage({ params }: SetListPageProps) {
     window.history.pushState(null, "", `?${queryString}`);
   };
 
-  const handleAddSetSection = async () => {
+  const handleAddSetSection = () => {
     const toastId = toast.loading("Adding section to set...");
 
     if (!newSetSectionType) {
@@ -158,7 +158,7 @@ export default function SetListPage({ params }: SetListPageProps) {
 
     const positionForNewSetSection = setData.sections.length;
 
-    await createSetSectionMutation.mutateAsync(
+    createSetSectionMutation.mutate(
       {
         setId: setData.id,
         organizationId: userMembership.organizationId,
@@ -223,6 +223,7 @@ export default function SetListPage({ params }: SetListPageProps) {
               setId={params.setId}
               organizationId={userMembership.organizationId}
               archived={setData.isArchived ?? false}
+              setIsAddSectionDialogOpen={setIsAddSectionDialogOpen}
             />
           </HStack>
         </VStack>
@@ -261,73 +262,79 @@ export default function SetListPage({ params }: SetListPageProps) {
               );
             })}
           </>
-          {/* TODO: extract to separate AddSectionDialog? */}
-          <ResponsiveDialog
-            onOpenChange={(isOpen) => {
-              if (!isOpen) {
-                setNewSetSectionType(null);
-              }
-            }}
+          <Button
+            variant="outline"
+            onClick={() => setIsAddSectionDialogOpen(true)}
           >
-            <ResponsiveDialogTrigger asChild>
-              <Button variant="outline">
-                <Plus /> Add another section
-              </Button>
-            </ResponsiveDialogTrigger>
-            <ResponsiveDialogContent className="p-6 lg:p-8">
-              <ResponsiveDialogHeader>
-                <ResponsiveDialogTitle asChild>
-                  <VisuallyHidden.Root>Add section to set</VisuallyHidden.Root>
-                </ResponsiveDialogTitle>
-                <ResponsiveDialogDescription asChild>
-                  <VisuallyHidden.Root>
-                    Dialog to add section to set
-                  </VisuallyHidden.Root>
-                </ResponsiveDialogDescription>
-              </ResponsiveDialogHeader>
-              <ResponsiveDialogTitle>
-                <Text
-                  asElement="h3"
-                  style="header-medium-semibold"
-                  className="flex-wrap text-xl"
-                >
-                  Add section to set
-                </Text>
-              </ResponsiveDialogTitle>
-              <VStack className="mt-4 gap-4 lg:mt-0 lg:gap-8">
-                <SetSectionTypeCombobox
-                  placeholder="Select a section type to add"
-                  value={newSetSectionType}
-                  onChange={setNewSetSectionType}
-                  textStyles={cn("text-slate-700", textSize)}
-                  organizationId={userMembership.organizationId}
-                />
-                <div className="mt-2 flex justify-end gap-2">
-                  <ResponsiveDialogClose asChild>
-                    <Button variant="ghost" size="sm" className={cn(textSize)}>
-                      Cancel
-                    </Button>
-                  </ResponsiveDialogClose>
-                  <ResponsiveDialogClose asChild>
-                    <Button
-                      size="sm"
-                      onClick={handleAddSetSection}
-                      disabled={
-                        !newSetSectionType?.id ||
-                        createSetSectionMutation.isPending
-                      }
-                      isLoading={createSetSectionMutation.isPending}
-                      className={cn(textSize)}
-                    >
-                      Add section to set
-                    </Button>
-                  </ResponsiveDialogClose>
-                </div>
-              </VStack>
-            </ResponsiveDialogContent>
-          </ResponsiveDialog>
+            <Plus /> Add another section
+          </Button>
         </VStack>
       )}
+      {/* TODO: extract to separate AddSectionDialog? */}
+      <ResponsiveDialog
+        open={isAddSectionDialogOpen}
+        onOpenChange={(isOpen) => {
+          setIsAddSectionDialogOpen(isOpen);
+          if (!isOpen) {
+            setNewSetSectionType(null);
+          }
+        }}
+      >
+        <ResponsiveDialogContent className="p-6 lg:p-8">
+          <ResponsiveDialogHeader>
+            <ResponsiveDialogTitle asChild>
+              <VisuallyHidden.Root>Add section to set</VisuallyHidden.Root>
+            </ResponsiveDialogTitle>
+            <ResponsiveDialogDescription asChild>
+              <VisuallyHidden.Root>
+                Dialog to add section to set
+              </VisuallyHidden.Root>
+            </ResponsiveDialogDescription>
+          </ResponsiveDialogHeader>
+          <ResponsiveDialogTitle>
+            <Text
+              asElement="h3"
+              style="header-medium-semibold"
+              className="flex-wrap text-xl"
+            >
+              Add section to set
+            </Text>
+          </ResponsiveDialogTitle>
+          <VStack className="mt-4 gap-4 lg:mt-0 lg:gap-8">
+            <SetSectionTypeCombobox
+              placeholder="Select a section type to add"
+              value={newSetSectionType}
+              onChange={setNewSetSectionType}
+              textStyles={cn("text-slate-700", textSize)}
+              organizationId={userMembership.organizationId}
+            />
+            <div className="mt-2 flex justify-end gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                className={cn(textSize)}
+                onClick={() => setIsAddSectionDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => {
+                  setIsAddSectionDialogOpen(false);
+                  handleAddSetSection();
+                }}
+                disabled={
+                  !newSetSectionType?.id || createSetSectionMutation.isPending
+                }
+                isLoading={createSetSectionMutation.isPending}
+                className={cn(textSize)}
+              >
+                Add section to set
+              </Button>
+            </div>
+          </VStack>
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
 
       <SongSearchDialog
         open={isSongSearchDialogOpen}

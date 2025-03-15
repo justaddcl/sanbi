@@ -11,13 +11,17 @@ import {
 } from "@components/ui/dropdown-menu";
 import { cn } from "@lib/utils";
 import {
+  Archive,
   ArrowDown,
   ArrowLineDown,
   ArrowLineUp,
   ArrowUp,
   Article,
+  BoxArrowUp,
+  Copy,
   DotsThree,
   Pencil,
+  Plus,
   Swap,
   Trash,
 } from "@phosphor-icons/react";
@@ -55,12 +59,16 @@ export const ActionMenu: React.FC<ActionMenuProps> = ({
 };
 
 const iconMap = {
+  Archive,
   ArrowDown,
   ArrowLineDown,
   ArrowLineUp,
   ArrowUp,
   Article,
+  BoxArrowUp,
+  Copy,
   Pencil,
+  Plus,
   Swap,
   Trash,
 } as const;
