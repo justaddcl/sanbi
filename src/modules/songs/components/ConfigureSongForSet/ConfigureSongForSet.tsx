@@ -32,7 +32,6 @@ import { type SetSectionWithSongs } from "@lib/types";
 import { insertSetSectionSongSchema } from "@lib/types/zod";
 import { cn } from "@lib/utils";
 import { SetSectionTypeCombobox } from "@modules/sets/components/SetSectionTypeCombobox";
-import { useSectionTypesOptions } from "@modules/sets/hooks/useSetSectionTypes";
 import { SongListItem } from "@modules/songs/components/SongListItem";
 import { type SongSearchResult } from "@modules/songs/components/SongSearch";
 import { type SongSearchDialogSteps } from "@modules/songs/components/SongSearchDialog";
@@ -92,9 +91,6 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
   const [newSetSectionType, setNewSetSectionType] =
     useState<ComboboxOption | null>(null);
 
-  const [isAddSectionComboboxOpen, setIsAddSectionComboboxOpen] =
-    useState<boolean>(false);
-
   const addSongToSetForm = useForm<AddSongToSetFormFields>({
     // mode: "onBlur",
     resolver: zodResolver(createSetSectionSongsSchema),
@@ -140,11 +136,6 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
   if (!userMembership) {
     redirect("/sign-in");
   }
-
-  const {
-    options: setSectionTypesOptions,
-    isLoading: isSetSectionTypesQueryLoading,
-  } = useSectionTypesOptions(userMembership.organizationId);
 
   const { data: lastPlayInstance, isLoading: isLastPlayInstanceQueryLoading } =
     api.song.getLastPlayInstance.useQuery({
@@ -501,13 +492,8 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
                   <>
                     <SetSectionTypeCombobox
                       placeholder="Add a set section"
-                      options={setSectionTypesOptions}
                       value={newSetSectionType}
                       onChange={setNewSetSectionType}
-                      open={isAddSectionComboboxOpen}
-                      setOpen={setIsAddSectionComboboxOpen}
-                      loading={isSetSectionTypesQueryLoading}
-                      disabled={isSetSectionTypesQueryLoading}
                       textStyles={cn("text-slate-700", textSize)}
                       organizationId={userMembership.organizationId}
                     />

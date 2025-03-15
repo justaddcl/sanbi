@@ -22,6 +22,22 @@ import { HStack } from "@components/HStack";
 import { VStack } from "@components/VStack";
 import { PageContentContainer } from "@components/PageContentContainer";
 import { type ConfigureSongForSetProps } from "@modules/songs/components/ConfigureSongForSet/ConfigureSongForSet";
+import { cn } from "@lib/utils";
+import { SetSectionTypeCombobox } from "@modules/sets/components/SetSectionTypeCombobox";
+import { useMediaQuery } from "usehooks-ts";
+import { DESKTOP_MEDIA_QUERY_STRING } from "@lib/constants";
+import { type ComboboxOption } from "@components/ui/combobox";
+import { toast } from "sonner";
+import {
+  ResponsiveDialog,
+  ResponsiveDialogClose,
+  ResponsiveDialogContent,
+  ResponsiveDialogDescription,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+  ResponsiveDialogTrigger,
+} from "@components/ResponsiveDialog";
+import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 
 type SetListPageProps = {
   params: { organization: string; setId: string };
@@ -31,10 +47,18 @@ type SetListPageProps = {
 export default function SetListPage({ params }: SetListPageProps) {
   const searchParams = useSearchParams();
 
+  const isDesktop = useMediaQuery(DESKTOP_MEDIA_QUERY_STRING);
+  const textSize = isDesktop ? "text-base" : "text-xs";
+
   const [prePopulatedSetSectionId, setPrePopulatedSetSectionId] =
     useState<ConfigureSongForSetProps["prePopulatedSetSectionId"]>(undefined);
   const [isSongSearchDialogOpen, setIsSongSearchDialogOpen] =
     useState<boolean>(false);
+  const [newSetSectionType, setNewSetSectionType] =
+    useState<ComboboxOption | null>(null);
+
+  const createSetSectionMutation = api.setSection.create.useMutation();
+  const apiUtils = api.useUtils();
 
   useEffect(() => {
     const addSongDialogOpen = searchParams.get("addSongDialogOpen");
@@ -108,6 +132,59 @@ export default function SetListPage({ params }: SetListPageProps) {
     redirect(`/`);
   }
 
+  const openAddSongDialog = () => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("addSongDialogOpen", "1");
+    const queryString = params.toString();
+    window.history.pushState(null, "", `?${queryString}`);
+  };
+
+  const handleAddSetSection = async () => {
+    const toastId = toast.loading("Adding section to set...");
+
+    if (!newSetSectionType) {
+      toast.error("Please select a section type", { id: toastId });
+      return;
+    }
+
+    const setAlreadyHasSelectedSection = setData.sections.some(
+      (setSection) => setSection.sectionTypeId === newSetSectionType.id,
+    );
+
+    if (setAlreadyHasSelectedSection) {
+      toast.error("Section type already exists on this set", { id: toastId });
+      return;
+    }
+
+    const positionForNewSetSection = setData.sections.length;
+
+    await createSetSectionMutation.mutateAsync(
+      {
+        setId: setData.id,
+        organizationId: userMembership.organizationId,
+        sectionTypeId: newSetSectionType.id,
+        position: positionForNewSetSection,
+      },
+      {
+        async onSuccess() {
+          toast.success(`Section added to set!`, { id: toastId });
+
+          setNewSetSectionType(null);
+
+          await apiUtils.setSection.getSectionsForSet.refetch({
+            organizationId: userMembership.organizationId,
+            setId: setData.id,
+          });
+
+          await apiUtils.set.get.invalidate({
+            setId: setData.id,
+            organizationId: userMembership.organizationId,
+          });
+        },
+      },
+    );
+  };
+
   const songCount =
     setData?.sections.reduce(
       (total, section) => total + section.songs.length,
@@ -115,8 +192,8 @@ export default function SetListPage({ params }: SetListPageProps) {
     ) ?? 0;
 
   return (
-    <PageContentContainer className="gap-8">
-      <VStack className="gap6">
+    <PageContentContainer className="gap-8 lg:mb-16">
+      <VStack className="gap-6">
         <PageTitle
           title={formatDate(setData.date, { month: "long" })}
           subtitle={setData.eventType.name}
@@ -153,17 +230,14 @@ export default function SetListPage({ params }: SetListPageProps) {
       {(!setData?.sections || setData.sections.length === 0) && (
         <SetEmptyState
           onActionClick={() => {
-            setIsSongSearchDialogOpen(true);
+            openAddSongDialog();
           }}
         />
       )}
       {setData?.sections && setData.sections.length > 0 && (
         <VStack className="gap-8 lg:gap-12">
           <>
-            <Button
-              variant="secondary"
-              onClick={() => setIsSongSearchDialogOpen(true)}
-            >
+            <Button variant="secondary" onClick={openAddSongDialog}>
               <Plus /> Add a song
             </Button>
             {setData.sections.map((section) => {
@@ -187,9 +261,71 @@ export default function SetListPage({ params }: SetListPageProps) {
               );
             })}
           </>
-          <Button variant="outline">
-            <Plus /> Add another section
-          </Button>
+          {/* TODO: extract to separate AddSectionDialog? */}
+          <ResponsiveDialog
+            onOpenChange={(isOpen) => {
+              if (!isOpen) {
+                setNewSetSectionType(null);
+              }
+            }}
+          >
+            <ResponsiveDialogTrigger asChild>
+              <Button variant="outline">
+                <Plus /> Add another section
+              </Button>
+            </ResponsiveDialogTrigger>
+            <ResponsiveDialogContent className="p-6 lg:p-8">
+              <ResponsiveDialogHeader>
+                <ResponsiveDialogTitle asChild>
+                  <VisuallyHidden.Root>Add section to set</VisuallyHidden.Root>
+                </ResponsiveDialogTitle>
+                <ResponsiveDialogDescription asChild>
+                  <VisuallyHidden.Root>
+                    Dialog to add section to set
+                  </VisuallyHidden.Root>
+                </ResponsiveDialogDescription>
+              </ResponsiveDialogHeader>
+              <ResponsiveDialogTitle>
+                <Text
+                  asElement="h3"
+                  style="header-medium-semibold"
+                  className="flex-wrap text-xl"
+                >
+                  Add section to set
+                </Text>
+              </ResponsiveDialogTitle>
+              <VStack className="mt-4 gap-4 lg:mt-0 lg:gap-8">
+                <SetSectionTypeCombobox
+                  placeholder="Select a section type to add"
+                  value={newSetSectionType}
+                  onChange={setNewSetSectionType}
+                  textStyles={cn("text-slate-700", textSize)}
+                  organizationId={userMembership.organizationId}
+                />
+                <div className="mt-2 flex justify-end gap-2">
+                  <ResponsiveDialogClose asChild>
+                    <Button variant="ghost" size="sm" className={cn(textSize)}>
+                      Cancel
+                    </Button>
+                  </ResponsiveDialogClose>
+                  <ResponsiveDialogClose asChild>
+                    <Button
+                      size="sm"
+                      onClick={handleAddSetSection}
+                      disabled={
+                        !newSetSectionType?.id ||
+                        createSetSectionMutation.isPending
+                      }
+                      isLoading={createSetSectionMutation.isPending}
+                      className={cn(textSize)}
+                    >
+                      Add section to set
+                    </Button>
+                  </ResponsiveDialogClose>
+                </div>
+              </VStack>
+            </ResponsiveDialogContent>
+          </ResponsiveDialog>
         </VStack>
       )}
 
