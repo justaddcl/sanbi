@@ -142,7 +142,7 @@ export default function SetListPage({ params }: SetListPageProps) {
     const toastId = toast.loading("Adding section to set...");
 
     if (!newSetSectionType) {
-      // TODO: this case shouldn't happen, but how would we properly handle it just in case?
+      toast.error("Please select a section type", { id: toastId });
       return;
     }
 

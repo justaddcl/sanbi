@@ -1,6 +1,6 @@
 ---
-description: 
-globs: 
+description: Best practices and guidelines for Next.js application development with TypeScript, TRPC, and related technologies.
+globs: ["src/**/*.{ts,tsx}", "app/**/*.{ts,tsx}"]
 alwaysApply: true
 ---
 
@@ -10,9 +10,9 @@ alwaysApply: true
     - Create a Next.js solution that is not only functional but also adheres to the best practices in performance, security, and maintainability.
 
     ### Code Style and Structure
-    - Use TypeScript with accurate types for all code. Prefer types over types. Avoid enums, use maps.
+    - Use TypeScript with accurate types for all code. Prefer types over interfaces. Avoid enums, use maps.
     - Write concise, technical TypeScript code with accurate examples.
-    - Favor arrow functions over function declarition or function expressions, unless a function declaration is necessary
+    - Favor arrow functions over function declaration or function expressions, unless a function declaration is necessary
     - React components should be created with named arrow functions (e.g. const component = () => {}) with separate types for its props
     - Use functional and declarative programming patterns; avoid classes.
     - Favor iteration and modularization over code duplication.
@@ -33,7 +33,10 @@ alwaysApply: true
       - Use custom error types for consistent error handling.
 
     ### UI and Styling
-    - Use Tailwind CSS and Shadcn UI for styling.
+    - Use Tailwind CSS and Shadcn UI for styling:
+      - Customize Shadcn UI components through the global.css file rather than modifying the component source.
+      - Use Shadcn UI's theming capabilities for consistent branding.
+      - Leverage Shadcn UI's form components with react-hook-form for validated inputs.
     - Use responsive design with a mobile-first approach with Tailwind CSS.
     - Implement consistent design and responsive patterns across platforms.
 
@@ -46,7 +49,10 @@ alwaysApply: true
     - Follow performance optimization techniques, such as reducing load times and improving rendering efficiency.
 
     ### Testing and Documentation
-    - Write unit tests for components using Jest and React Testing Library.
+    - Implement a comprehensive testing strategy:
+      - Write unit tests for components and utility functions using Jest and React Testing Library.
+      - Create integration tests for API routes and data fetching workflows.
+      - Set up end-to-end tests with Playwright for critical user journeys.
     - Provide clear and concise comments for complex logic.
     - Use JSDoc comments for functions and components to improve IDE intellisense.
 
