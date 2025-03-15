@@ -1,7 +1,4 @@
-import { type Organization } from "@/lib/types";
-import { getOrganization } from "@/server/queries";
 import { auth } from "@clerk/nextjs/server";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { validate as uuidValidate } from "uuid";
 

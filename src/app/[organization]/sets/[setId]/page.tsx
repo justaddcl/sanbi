@@ -192,8 +192,8 @@ export default function SetListPage({ params }: SetListPageProps) {
     ) ?? 0;
 
   return (
-    <PageContentContainer className="gap-8">
-      <VStack className="gap6">
+    <PageContentContainer className="gap-8 lg:mb-16">
+      <VStack className="gap-6">
         <PageTitle
           title={formatDate(setData.date, { month: "long" })}
           subtitle={setData.eventType.name}
