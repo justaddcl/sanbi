@@ -6,18 +6,23 @@ import { Button } from "@components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  type DropdownMenuContentProps,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@components/ui/dropdown-menu";
 import { cn } from "@lib/utils";
 import {
+  Archive,
   ArrowDown,
   ArrowLineDown,
   ArrowLineUp,
   ArrowUp,
   Article,
+  BoxArrowUp,
+  Copy,
   DotsThree,
   Pencil,
+  Plus,
   Swap,
   Trash,
 } from "@phosphor-icons/react";
@@ -33,11 +38,19 @@ type ActionMenuProps = PropsWithChildren & {
 
   /** callback to set open/closed state of the menu */
   setIsOpen: Dispatch<SetStateAction<boolean>>;
+
+  /** The preferred alignment against the trigger. May change when collisions occur. */
+  align?: DropdownMenuContentProps["align"];
+
+  /** The preferred side of the trigger to render against when open. Will be reversed when collisions occur and avoidCollisions is enabled. */
+  side?: DropdownMenuContentProps["side"];
 };
 
 export const ActionMenu: React.FC<ActionMenuProps> = ({
   isOpen,
   setIsOpen,
+  align = "end",
+  side = "bottom",
   children,
 }) => {
   return (
@@ -47,7 +60,7 @@ export const ActionMenu: React.FC<ActionMenuProps> = ({
           <DotsThree className="text-slate-900" size={16} />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent avoidCollisions align="end" side="bottom">
+      <DropdownMenuContent avoidCollisions align={align} side={side}>
         {children}
       </DropdownMenuContent>
     </DropdownMenu>
@@ -55,12 +68,16 @@ export const ActionMenu: React.FC<ActionMenuProps> = ({
 };
 
 const iconMap = {
+  Archive,
   ArrowDown,
   ArrowLineDown,
   ArrowLineUp,
   ArrowUp,
   Article,
+  BoxArrowUp,
+  Copy,
   Pencil,
+  Plus,
   Swap,
   Trash,
 } as const;

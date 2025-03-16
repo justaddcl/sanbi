@@ -1,19 +1,9 @@
 "use client";
 
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
+  type DropdownMenuContentProps,
   DropdownMenuSeparator,
-  DropdownMenuTrigger,
 } from "@components/ui/dropdown-menu";
-import {
-  Archive,
-  BoxArrowUp,
-  DotsThree,
-  Trash,
-} from "@phosphor-icons/react/dist/ssr";
-import { Text } from "@components/Text";
 import { api } from "@/trpc/react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -26,19 +16,24 @@ import {
   AlertDialogTitle,
 } from "@components/ui/alert-dialog";
 import { AlertDialogDescription } from "@radix-ui/react-alert-dialog";
-import { useState } from "react";
+import { type SetStateAction, type Dispatch, useState } from "react";
 import { Button } from "@components/ui/button";
+import { ActionMenu, ActionMenuItem } from "@components/ActionMenu";
 
 type SetActionsMenuProps = {
   setId: string;
   organizationId: string;
   archived: boolean;
+  setIsAddSectionDialogOpen: Dispatch<SetStateAction<boolean>>;
+  align?: DropdownMenuContentProps["align"];
+  side?: DropdownMenuContentProps["side"];
 };
 
 export const SetActionsMenu: React.FC<SetActionsMenuProps> = ({
   setId,
   organizationId,
   archived,
+  setIsAddSectionDialogOpen,
 }) => {
   const router = useRouter();
 
@@ -47,54 +42,69 @@ export const SetActionsMenu: React.FC<SetActionsMenuProps> = ({
   const [isConfirmationDialogOpen, setIsConfirmationDialogOpen] =
     useState<boolean>(false);
 
-  // TODO: move to mutations
   const deleteSetMutation = api.set.delete.useMutation();
-  const deleteSet = (organizationId: string, setId: string) => {
+  const archiveSetMutation = api.set.archive.useMutation();
+  const unarchiveSetMutation = api.set.unarchive.useMutation();
+  const apiUtils = api.useUtils();
+
+  // TODO: move to mutations
+  const deleteSet = () => {
     setIsConfirmationDialogOpen(false);
+    const toastId = toast.loading("Deleting set...");
 
     deleteSetMutation.mutate(
       { organizationId, setId },
       {
         onSuccess() {
-          toast.success("Set deleted");
+          toast.success("Set deleted", { id: toastId });
           router.push(`/${organizationId}`);
         },
         onError(error) {
-          toast.error(`Set could not be deleted: ${error.message}`);
+          toast.error(`Set could not be deleted: ${error.message}`, {
+            id: toastId,
+          });
         },
       },
     );
   };
 
   // TODO: move to mutations
-  const archiveSetMutation = api.set.archive.useMutation();
-  const archiveSet = (organizationId: string, setId: string) => {
+  const archiveSet = () => {
+    setIsSetActionsMenuOpen(false);
+    const toastId = toast.loading("Archiving set...");
+
     archiveSetMutation.mutate(
       { organizationId, setId },
       {
-        onSuccess() {
-          toast.success("Set has been archived");
-          router.refresh();
+        async onSuccess() {
+          toast.success("Set has been archived", { id: toastId });
+          await apiUtils.set.get.invalidate({ setId, organizationId });
         },
         onError(error) {
-          toast.error(`Set could not be archived: ${error.message}`);
+          toast.error(`Set could not be archived: ${error.message}`, {
+            id: toastId,
+          });
         },
       },
     );
   };
 
   // TODO: move to mutations
-  const unarchiveSetMutation = api.set.unarchive.useMutation();
-  const unarchiveSet = (organizationId: string, setId: string) => {
+  const unarchiveSet = () => {
+    setIsSetActionsMenuOpen(false);
+    const toastId = toast.loading("Unarchiving set...");
+
     unarchiveSetMutation.mutate(
       { organizationId, setId },
       {
-        onSuccess() {
-          toast.success("Set has been unarchived");
-          router.refresh();
+        async onSuccess() {
+          toast.success("Set has been unarchived", { id: toastId });
+          await apiUtils.set.get.invalidate({ setId, organizationId });
         },
         onError(error) {
-          toast.error(`Set could not be unarchived: ${error.message}`);
+          toast.error(`Set could not be unarchived: ${error.message}`, {
+            id: toastId,
+          });
         },
       },
     );
@@ -102,40 +112,46 @@ export const SetActionsMenu: React.FC<SetActionsMenuProps> = ({
 
   return (
     <>
-      <DropdownMenu
-        open={isSetActionsMenuOpen}
-        onOpenChange={setIsSetActionsMenuOpen}
+      <ActionMenu
+        isOpen={isSetActionsMenuOpen}
+        setIsOpen={setIsSetActionsMenuOpen}
+        align="center"
       >
-        <DropdownMenuTrigger>
-          <Button variant="outline" size="sm">
-            <DotsThree className="text-slate-900" size={12} />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent>
-          <DropdownMenuItem
-            className="gap-1"
-            onSelect={() =>
-              archived
-                ? unarchiveSet(organizationId, setId)
-                : archiveSet(organizationId, setId)
-            }
-          >
-            {archived ? <BoxArrowUp /> : <Archive />}
-            <Text>{archived ? "Unarchive" : "Archive"} set</Text>
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem
-            className="gap-1 text-slate-400 hover:bg-red-100 hover:text-red-800 active:bg-red-200 active:text-red-900"
-            onSelect={() => {
-              setIsSetActionsMenuOpen(false);
-              setIsConfirmationDialogOpen(true);
-            }}
-          >
-            <Trash />
-            <Text>Delete set</Text>
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+        <ActionMenuItem
+          icon="Plus"
+          label="Add set section"
+          onClick={() => {
+            setIsSetActionsMenuOpen(false);
+            setIsAddSectionDialogOpen(true);
+          }}
+        />
+        <DropdownMenuSeparator />
+        <ActionMenuItem icon="Pencil" label="Edit set details" />
+        <ActionMenuItem icon="Copy" label="Duplicate set" />
+        {archived ? (
+          <ActionMenuItem
+            icon="BoxArrowUp"
+            label="Unarchive set"
+            onClick={unarchiveSet}
+          />
+        ) : (
+          <ActionMenuItem
+            icon="Archive"
+            label="Archive set"
+            onClick={archiveSet}
+          />
+        )}
+        <DropdownMenuSeparator />
+        <ActionMenuItem
+          icon="Trash"
+          label="Delete set"
+          destructive
+          onClick={() => {
+            setIsSetActionsMenuOpen(false);
+            setIsConfirmationDialogOpen(true);
+          }}
+        />
+      </ActionMenu>
       <AlertDialog
         open={isConfirmationDialogOpen}
         onOpenChange={setIsConfirmationDialogOpen}
@@ -156,10 +172,7 @@ export const SetActionsMenu: React.FC<SetActionsMenuProps> = ({
             >
               Cancel
             </AlertDialogCancel>
-            <Button
-              variant="destructive"
-              onClick={() => deleteSet(organizationId, setId)}
-            >
+            <Button variant="destructive" onClick={() => deleteSet()}>
               Delete set
             </Button>
           </AlertDialogFooter>
