@@ -1,6 +1,9 @@
 "use client";
 
-import { DropdownMenuSeparator } from "@components/ui/dropdown-menu";
+import {
+  type DropdownMenuContentProps,
+  DropdownMenuSeparator,
+} from "@components/ui/dropdown-menu";
 import { api } from "@/trpc/react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -22,6 +25,8 @@ type SetActionsMenuProps = {
   organizationId: string;
   archived: boolean;
   setIsAddSectionDialogOpen: Dispatch<SetStateAction<boolean>>;
+  align?: DropdownMenuContentProps["align"];
+  side?: DropdownMenuContentProps["side"];
 };
 
 export const SetActionsMenu: React.FC<SetActionsMenuProps> = ({
@@ -110,6 +115,7 @@ export const SetActionsMenu: React.FC<SetActionsMenuProps> = ({
       <ActionMenu
         isOpen={isSetActionsMenuOpen}
         setIsOpen={setIsSetActionsMenuOpen}
+        align="center"
       >
         <ActionMenuItem
           icon="Plus"
