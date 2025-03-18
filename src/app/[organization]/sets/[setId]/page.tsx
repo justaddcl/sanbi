@@ -2,7 +2,7 @@
 import { pluralize } from "@lib/string";
 import { PageTitle } from "@components/PageTitle";
 import { Text } from "@components/Text";
-import { Archive, Note, Plus } from "@phosphor-icons/react/dist/ssr";
+import { Archive, Plus } from "@phosphor-icons/react/dist/ssr";
 import { redirect, useSearchParams } from "next/navigation";
 import { SetActionsMenu } from "@modules/sets/components/SetActionsMenu";
 import { SetEmptyState } from "@modules/sets/components/SetEmptyState";
@@ -36,6 +36,7 @@ import {
   ResponsiveDialogTitle,
 } from "@components/ResponsiveDialog";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
+import { SetNotes } from "@modules/sets/components/SetNotes";
 
 type SetListPageProps = {
   params: { organization: string; setId: string };
@@ -194,39 +195,39 @@ export default function SetListPage({ params }: SetListPageProps) {
   return (
     <PageContentContainer className="gap-8 lg:mb-16">
       <VStack className="gap-6">
-        <PageTitle
-          title={formatDate(setData.date, { month: "long" })}
-          subtitle={setData.eventType.name}
-          details={`${songCount} ${pluralize(songCount, { singular: "song", plural: "songs" })}`}
-        />
+        <HStack className="items-start justify-between">
+          <PageTitle
+            title={formatDate(setData.date, { month: "long" })}
+            subtitle={setData.eventType.name}
+            details={`${songCount} ${pluralize(songCount, { singular: "song", plural: "songs" })}`}
+          />
+          <HStack className="gap-2">
+            <SetActionsMenu
+              setId={params.setId}
+              organizationId={userMembership.organizationId}
+              archived={setData.isArchived ?? false}
+              setIsAddSectionDialogOpen={setIsAddSectionDialogOpen}
+              align="end"
+            />
+            {setData?.sections && setData.sections.length > 0 && (
+              <Button onClick={openAddSongDialog} className="hidden md:flex">
+                <Plus /> Add a song
+              </Button>
+            )}
+          </HStack>
+        </HStack>
         {setData.isArchived && (
           <HStack className="flex items-center gap-1 uppercase text-slate-500">
             <Archive />
             <Text>Set is archived</Text>
           </HStack>
         )}
-        <VStack className="gap-6">
-          {setData.notes && (
-            <VStack className="gap-2">
-              <Text style="header-small-semibold" className="text-slate-500">
-                Set notes
-              </Text>
-              <Text>{setData.notes}</Text>
-            </VStack>
-          )}
-          <HStack className="flex gap-2">
-            <Button variant="outline" size="sm">
-              <Note />
-              {setData.notes ? "Edit notes" : "Add set notes"}
-            </Button>
-            <SetActionsMenu
-              setId={params.setId}
-              organizationId={userMembership.organizationId}
-              archived={setData.isArchived ?? false}
-              setIsAddSectionDialogOpen={setIsAddSectionDialogOpen}
-            />
-          </HStack>
-        </VStack>
+        <SetNotes value={setData.notes} />
+        {setData?.sections && setData.sections.length > 0 && (
+          <Button onClick={openAddSongDialog} className="md:hidden">
+            <Plus /> Add a song
+          </Button>
+        )}
       </VStack>
       {(!setData?.sections || setData.sections.length === 0) && (
         <SetEmptyState
@@ -238,9 +239,6 @@ export default function SetListPage({ params }: SetListPageProps) {
       {setData?.sections && setData.sections.length > 0 && (
         <VStack className="gap-8 lg:gap-12">
           <>
-            <Button variant="secondary" onClick={openAddSongDialog}>
-              <Plus /> Add a song
-            </Button>
             {setData.sections.map((section) => {
               let sectionStartIndex = 1;
               for (
