@@ -222,7 +222,11 @@ export default function SetListPage({ params }: SetListPageProps) {
             <Text>Set is archived</Text>
           </HStack>
         )}
-        <SetNotes value={setData.notes} />
+        <SetNotes
+          setId={params.setId}
+          value={setData.notes}
+          organizationId={userMembership.organizationId}
+        />
         {setData?.sections && setData.sections.length > 0 && (
           <Button onClick={openAddSongDialog} className="md:hidden">
             <Plus /> Add a song
