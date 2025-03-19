@@ -34,6 +34,8 @@ export const SetActionsMenu: React.FC<SetActionsMenuProps> = ({
   organizationId,
   archived,
   setIsAddSectionDialogOpen,
+  align,
+  side,
 }) => {
   const router = useRouter();
 
@@ -115,7 +117,8 @@ export const SetActionsMenu: React.FC<SetActionsMenuProps> = ({
       <ActionMenu
         isOpen={isSetActionsMenuOpen}
         setIsOpen={setIsSetActionsMenuOpen}
-        align="center"
+        align={align ?? "center"}
+        side={side ?? "bottom"}
       >
         <ActionMenuItem
           icon="Plus"
