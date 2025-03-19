@@ -7,7 +7,7 @@ import { VStack } from "@components/VStack";
 import { sanitizeInput } from "@lib/string/sanitizeInput";
 import { useState } from "react";
 import { toast } from "sonner";
-import unescape from "validator/es/lib/unescape";
+import unescapeHTML from "validator/es/lib/unescape";
 
 type SetNotesProps = {
   setId: string;
@@ -59,7 +59,7 @@ export const SetNotes: React.FC<SetNotesProps> = ({
       {isEditingNotes && (
         <VStack className="gap-4">
           <Textarea
-            value={unescape(notes)}
+            value={unescapeHTML(notes)}
             onChange={(changeEvent) => {
               setNotes(changeEvent.target.value);
             }}
@@ -85,8 +85,18 @@ export const SetNotes: React.FC<SetNotesProps> = ({
       )}
       {!isEditingNotes &&
         (value ? (
-          <div onClick={() => setIsEditingNotes(true)}>
-            <Text>{unescape(value)}</Text>
+          <div
+            onClick={() => setIsEditingNotes(true)}
+            onKeyDown={(keyDownEvent) => {
+              if (keyDownEvent.key === "Enter" || keyDownEvent.key === " ") {
+                setIsEditingNotes(true);
+              }
+            }}
+            role="button"
+            tabIndex={0}
+            aria-label="Edit notes"
+          >
+            <Text>{unescapeHTML(value)}</Text>
           </div>
         ) : (
           <div onClick={() => setIsEditingNotes(true)}>
