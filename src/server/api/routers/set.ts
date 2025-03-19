@@ -12,6 +12,7 @@ import {
   getSetSchema,
   insertSetSchema,
   unarchiveSetSchema,
+  updateSetNotesSchema,
 } from "@lib/types/zod";
 import { TRPCError } from "@trpc/server";
 
@@ -160,5 +161,50 @@ export const setRouter = createTRPCRouter({
           `🤖 - [set/delete] - Set ID ${input.setId} could not be deleted`,
         );
       }
+    }),
+
+  updateNotes: organizationProcedure
+    .input(updateSetNotesSchema)
+    .mutation(async ({ ctx, input }) => {
+      console.log(
+        `🤖 - [set/updateNotes] - attempting to updates notes for set ${input.setId}`,
+        { ...input },
+      );
+
+      const setToUpdate = await ctx.db.query.sets.findFirst({
+        where: eq(sets.id, input.setId),
+      });
+
+      if (!setToUpdate) {
+        console.error(
+          `🤖 - [set/updateNotes] - could not find set ${input.setId}`,
+        );
+
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Could not find set",
+        });
+      }
+
+      if (ctx.user.membership.organizationId !== setToUpdate.organizationId) {
+        console.error(
+          `🤖 - [set/updateNotes] - User ${ctx.user.id} not authorized to update set ${setToUpdate.id}`,
+        );
+
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "User not authorized to update set",
+        });
+      }
+
+      await ctx.db
+        .update(sets)
+        .set({ notes: input.notes === "" ? null : input.notes })
+        .where(eq(sets.id, setToUpdate.id));
+
+      console.log(
+        `🤖 - [set/updateNotes] - set notes updated for ${input.setId}`,
+        { notes: input.notes },
+      );
     }),
 });

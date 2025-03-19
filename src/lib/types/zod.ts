@@ -48,6 +48,10 @@ export const unarchiveSetSchema = setIdSchema;
 
 export const deleteSetSchema = setIdSchema;
 
+export const updateSetNotesSchema = setIdSchema.extend({
+  notes: z.string().trim(),
+});
+
 /**
  * Song schemas
  */
