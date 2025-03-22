@@ -57,7 +57,10 @@ export const SetEventTypeSelectFormField: React.FC = () => {
         <FormItem className="flex flex-col gap-2">
           <FormLabel>Event type *</FormLabel>
           <FormControl>
-            <Select value={field.value} onValueChange={field.onChange}>
+            <Select
+              value={field.value as string} // asserting the type since TS can't tell due to the form context
+              onValueChange={field.onChange}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Select event type" />
               </SelectTrigger>

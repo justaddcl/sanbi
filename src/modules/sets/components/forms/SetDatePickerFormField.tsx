@@ -29,7 +29,8 @@ export const SetDatePickerFormField: React.FC = () => {
             <DatePicker
               {...field}
               presets={datePresets}
-              initialDate={field.value}
+              initialDate={field.value as Date} // technically, this is a string, but this satisfies TS and works..
+              // also, asserting the type since TS can't tell since we're using form context
             />
           </FormControl>
         </FormItem>

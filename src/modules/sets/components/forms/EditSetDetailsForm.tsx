@@ -41,7 +41,9 @@ export const EditSetDetailsForm: React.FC<EditSetDetailsFormProps> = ({
 
   const isSubmitDisabled = !isDirty || !isValid;
 
-  const handleEditSetDetails = () => {};
+  const handleEditSetDetails = (formValues: EditSetDetailsFields) => {
+    // TODO: update the set db record with the form values
+  };
 
   return (
     <FormProvider {...editSetDetailsForm}>
