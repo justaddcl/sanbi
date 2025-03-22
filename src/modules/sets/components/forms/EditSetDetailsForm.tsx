@@ -1,23 +1,20 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import { type SetWithSectionsSongsAndEventType } from "@lib/types";
-import { FormProvider, useForm } from "react-hook-form";
-import { type CreateSetFormFields } from "@modules/sets/components/CreateSetForm";
-import { insertSetSchema } from "@lib/types/zod";
-import { SetDatePickerFormField } from "@modules/sets/components/forms/SetDatePickerFormField";
-import { VStack } from "@components/VStack";
+import { api } from "@/trpc/react";
 import { HStack } from "@components/HStack";
 import { Button } from "@components/ui/button";
-import { type Dispatch, type SetStateAction } from "react";
-import { SetEventTypeSelectFormField } from "./SetEventTypeSelectFormField";
+import { VStack } from "@components/VStack";
 import { DevTool } from "@hookform/devtools";
-import { api } from "@/trpc/react";
-import { toast } from "sonner";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { type SetWithSectionsSongsAndEventType } from "@lib/types";
+import { updateSetDetailsSchema } from "@lib/types/zod";
+import { type CreateSetFormFields } from "@modules/sets/components/CreateSetForm";
+import { SetDatePickerFormField } from "@modules/sets/components/forms/SetDatePickerFormField";
 import { useUserQuery } from "@modules/users/api/queries";
+import { type Dispatch, type SetStateAction } from "react";
+import { FormProvider, useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { SetEventTypeSelectFormField } from "./SetEventTypeSelectFormField";
 
-const editSetDetailsFormSchema = insertSetSchema.pick({
-  date: true,
-  eventTypeId: true,
-});
+const editSetDetailsFormSchema = updateSetDetailsSchema;
 
 export type EditSetDetailsFields = Omit<CreateSetFormFields, "notes">;
 
@@ -50,6 +47,7 @@ export const EditSetDetailsForm: React.FC<EditSetDetailsFormProps> = ({
   });
 
   if (!!userQueryError || !userData || !userMembership) {
+    // FIXME: show an error here instead?
     return;
   }
 
