@@ -37,17 +37,16 @@ export const insertOrganizationMembershipSchema = createInsertSchema(
  */
 export const getSetSchema = z.object({ setId: z.string().uuid() });
 export const insertSetSchema = createInsertSchema(sets);
-
 const setIdSchema = z.object({
   setId: z.string().uuid(),
 });
-
 export const archiveSetSchema = setIdSchema;
-
 export const unarchiveSetSchema = setIdSchema;
-
 export const deleteSetSchema = setIdSchema;
-
+export const updateSetDetailsSchema = setIdSchema.extend({
+  date: z.string().date(),
+  eventTypeId: z.string().uuid(),
+});
 export const updateSetNotesSchema = setIdSchema.extend({
   notes: z.string().trim(),
 });
