@@ -37,6 +37,7 @@ import {
 } from "@components/ResponsiveDialog";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { SetNotes } from "@modules/sets/components/SetNotes";
+import { SetDetails } from "@modules/sets/components/SetDetails";
 
 type SetListPageProps = {
   params: { organization: string; setId: string };
@@ -49,6 +50,8 @@ export default function SetListPage({ params }: SetListPageProps) {
   const isDesktop = useMediaQuery(DESKTOP_MEDIA_QUERY_STRING);
   const textSize = isDesktop ? "text-base" : "text-xs";
 
+  const [isEditingSetDetails, setIsEditingSetDetails] =
+    useState<boolean>(false);
   const [prePopulatedSetSectionId, setPrePopulatedSetSectionId] =
     useState<ConfigureSongForSetProps["prePopulatedSetSectionId"]>(undefined);
   const [isSongSearchDialogOpen, setIsSongSearchDialogOpen] =
@@ -186,20 +189,14 @@ export default function SetListPage({ params }: SetListPageProps) {
     );
   };
 
-  const songCount =
-    setData?.sections.reduce(
-      (total, section) => total + section.songs.length,
-      0,
-    ) ?? 0;
-
   return (
     <PageContentContainer className="gap-8 lg:mb-16">
       <VStack className="gap-6">
         <HStack className="items-start justify-between">
-          <PageTitle
-            title={formatDate(setData.date, { month: "long" })}
-            subtitle={setData.eventType.name}
-            details={`${songCount} ${pluralize(songCount, { singular: "song", plural: "songs" })}`}
+          <SetDetails
+            set={setData}
+            isEditing={isEditingSetDetails}
+            setIsEditing={setIsEditingSetDetails}
           />
           <HStack className="gap-2">
             <SetActionsMenu
@@ -207,6 +204,7 @@ export default function SetListPage({ params }: SetListPageProps) {
               organizationId={userMembership.organizationId}
               archived={setData.isArchived ?? false}
               setIsAddSectionDialogOpen={setIsAddSectionDialogOpen}
+              setIsEditingSetDetails={setIsEditingSetDetails}
               align="end"
             />
             {setData?.sections && setData.sections.length > 0 && (

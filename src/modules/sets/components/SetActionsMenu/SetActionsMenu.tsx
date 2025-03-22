@@ -27,6 +27,7 @@ type SetActionsMenuProps = {
   setIsAddSectionDialogOpen: Dispatch<SetStateAction<boolean>>;
   align?: DropdownMenuContentProps["align"];
   side?: DropdownMenuContentProps["side"];
+  setIsEditingSetDetails: Dispatch<SetStateAction<boolean>>;
 };
 
 export const SetActionsMenu: React.FC<SetActionsMenuProps> = ({
@@ -36,6 +37,7 @@ export const SetActionsMenu: React.FC<SetActionsMenuProps> = ({
   setIsAddSectionDialogOpen,
   align,
   side,
+  setIsEditingSetDetails,
 }) => {
   const router = useRouter();
 
@@ -129,7 +131,14 @@ export const SetActionsMenu: React.FC<SetActionsMenuProps> = ({
           }}
         />
         <DropdownMenuSeparator />
-        <ActionMenuItem icon="Pencil" label="Edit set details" />
+        <ActionMenuItem
+          icon="Pencil"
+          label="Edit set details"
+          onClick={() => {
+            setIsSetActionsMenuOpen(false);
+            setIsEditingSetDetails(true);
+          }}
+        />
         <ActionMenuItem icon="Copy" label="Duplicate set" />
         {archived ? (
           <ActionMenuItem
