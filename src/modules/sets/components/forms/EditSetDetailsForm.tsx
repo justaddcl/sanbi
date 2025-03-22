@@ -10,6 +10,9 @@ import { Button } from "@components/ui/button";
 import { type Dispatch, type SetStateAction } from "react";
 import { SetEventTypeSelectFormField } from "./SetEventTypeSelectFormField";
 import { DevTool } from "@hookform/devtools";
+import { api } from "@/trpc/react";
+import { toast } from "sonner";
+import { useUserQuery } from "@modules/users/api/queries";
 
 const editSetDetailsFormSchema = insertSetSchema.pick({
   date: true,
@@ -27,6 +30,17 @@ export const EditSetDetailsForm: React.FC<EditSetDetailsFormProps> = ({
   set,
   setIsEditing,
 }) => {
+  const updateSetDetailsMutation = api.set.updateDetails.useMutation();
+  const apiUtils = api.useUtils();
+
+  const {
+    data: userData,
+    error: userQueryError,
+    isLoading: userQueryLoading,
+    isAuthLoaded,
+  } = useUserQuery();
+  const userMembership = userData?.memberships[0];
+
   const editSetDetailsForm = useForm<EditSetDetailsFields>({
     resolver: zodResolver(editSetDetailsFormSchema),
     defaultValues: {
@@ -35,20 +49,50 @@ export const EditSetDetailsForm: React.FC<EditSetDetailsFormProps> = ({
     },
   });
 
+  if (!!userQueryError || !userData || !userMembership) {
+    return;
+  }
+
   const {
     formState: { isDirty, isValid },
   } = editSetDetailsForm;
 
-  const isSubmitDisabled = !isDirty || !isValid;
+  const isSubmitDisabled =
+    !isDirty || !isValid || userQueryLoading || !isAuthLoaded;
 
   const handleEditSetDetails = (formValues: EditSetDetailsFields) => {
-    // TODO: update the set db record with the form values
+    const { date, eventTypeId } = formValues;
+    const toastId = toast("Updating set details...");
+
+    updateSetDetailsMutation.mutate(
+      {
+        organizationId: userMembership.organizationId,
+        setId: set.id,
+        date,
+        eventTypeId,
+      },
+      {
+        async onSuccess() {
+          setIsEditing(false);
+          toast.success("Updated set details!", { id: toastId });
+          await apiUtils.set.get.invalidate({
+            setId: set.id,
+            organizationId: userMembership.organizationId,
+          });
+        },
+        onError(updateError) {
+          toast.error(`Could not update set details: ${updateError.message}`, {
+            id: toastId,
+          });
+        },
+      },
+    );
   };
 
   return (
     <FormProvider {...editSetDetailsForm}>
       <form onSubmit={editSetDetailsForm.handleSubmit(handleEditSetDetails)}>
-        <VStack className="gap-6">
+        <VStack className="mx-6 gap-6">
           <SetDatePickerFormField />
           <SetEventTypeSelectFormField />
           <HStack className="justify-end gap-2">
