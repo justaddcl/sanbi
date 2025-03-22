@@ -45,7 +45,9 @@ export const SetNotes: React.FC<SetNotesProps> = ({
         },
 
         onError(updateError) {
-          toast.error(`Could not update set notes: ${updateError.message}`);
+          toast.error(`Could not update set notes: ${updateError.message}`, {
+            id: toastId,
+          });
         },
       },
     );
@@ -65,6 +67,12 @@ export const SetNotes: React.FC<SetNotesProps> = ({
             }}
             className="px-2"
             autoFocus
+            onKeyDown={(keyDownEvent) => {
+              if (keyDownEvent.key === "Escape") {
+                setIsEditingNotes(false);
+                setNotes(value ?? "");
+              }
+            }}
           />
           <HStack className="justify-end gap-2">
             <Button
@@ -99,7 +107,17 @@ export const SetNotes: React.FC<SetNotesProps> = ({
             <Text>{unescapeHTML(value)}</Text>
           </div>
         ) : (
-          <div onClick={() => setIsEditingNotes(true)}>
+          <div
+            onClick={() => setIsEditingNotes(true)}
+            onKeyDown={(keyDownEvent) => {
+              if (keyDownEvent.key === "Enter" || keyDownEvent.key === " ") {
+                setIsEditingNotes(true);
+              }
+            }}
+            role="button"
+            tabIndex={0}
+            aria-label="Add notes"
+          >
             <Text style="body-small" className="text-slate-500">
               Add notes
             </Text>
