@@ -14,7 +14,10 @@ import { FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { SetEventTypeSelectFormField } from "./SetEventTypeSelectFormField";
 
-const editSetDetailsFormSchema = updateSetDetailsSchema;
+const editSetDetailsFormSchema = updateSetDetailsSchema.pick({
+  date: true,
+  eventTypeId: true,
+});
 
 export type EditSetDetailsFields = Omit<CreateSetFormFields, "notes">;
 
@@ -44,6 +47,7 @@ export const EditSetDetailsForm: React.FC<EditSetDetailsFormProps> = ({
       date: set.date,
       eventTypeId: set.eventTypeId,
     },
+    mode: "onChange",
   });
 
   if (!!userQueryError || !userData || !userMembership) {
