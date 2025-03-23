@@ -59,8 +59,9 @@ export const EditSetDetailsForm: React.FC<EditSetDetailsFormProps> = ({
     formState: { isDirty, isValid },
   } = editSetDetailsForm;
 
+  const isLoading = updateSetDetailsMutation.isPending;
   const isSubmitDisabled =
-    !isDirty || !isValid || userQueryLoading || !isAuthLoaded;
+    !isDirty || !isValid || userQueryLoading || !isAuthLoaded || isLoading;
 
   const handleEditSetDetails = (formValues: EditSetDetailsFields) => {
     const { date, eventTypeId } = formValues;
@@ -108,7 +109,12 @@ export const EditSetDetailsForm: React.FC<EditSetDetailsFormProps> = ({
             >
               Cancel
             </Button>
-            <Button type="submit" size="sm" disabled={isSubmitDisabled}>
+            <Button
+              type="submit"
+              size="sm"
+              disabled={isSubmitDisabled}
+              isLoading={isLoading}
+            >
               Save details
             </Button>
           </HStack>
