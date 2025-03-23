@@ -31,8 +31,13 @@ export const SetDetails: React.FC<SetDetailsProps> = ({
     set.sections.reduce((total, section) => total + section.songs.length, 0) ??
     0;
 
-  if (isEditing) {
-    return (
+  return (
+    <>
+      <PageTitle
+        title={formatDate(set.date, { month: "long" })}
+        subtitle={set.eventType.name}
+        details={`${songCount} ${pluralize(songCount, { singular: "song", plural: "songs" })}`}
+      />
       <ResponsiveDialog open={isEditing} onOpenChange={setIsEditing}>
         <ResponsiveDialogContent>
           <ResponsiveDialogHeader>
@@ -46,14 +51,6 @@ export const SetDetails: React.FC<SetDetailsProps> = ({
           <EditSetDetailsForm set={set} setIsEditing={setIsEditing} />
         </ResponsiveDialogContent>
       </ResponsiveDialog>
-    );
-  }
-
-  return (
-    <PageTitle
-      title={formatDate(set.date, { month: "long" })}
-      subtitle={set.eventType.name}
-      details={`${songCount} ${pluralize(songCount, { singular: "song", plural: "songs" })}`}
-    />
+    </>
   );
 };

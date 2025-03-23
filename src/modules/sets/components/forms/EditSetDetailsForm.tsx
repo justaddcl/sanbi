@@ -120,7 +120,6 @@ export const EditSetDetailsForm: React.FC<EditSetDetailsFormProps> = ({
           </HStack>
         </VStack>
       </form>
-      <DevTool control={editSetDetailsForm.control} />
     </FormProvider>
   );
 };
