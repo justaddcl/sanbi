@@ -94,7 +94,7 @@ export const EditSetDetailsForm: React.FC<EditSetDetailsFormProps> = ({
   return (
     <FormProvider {...editSetDetailsForm}>
       <form onSubmit={editSetDetailsForm.handleSubmit(handleEditSetDetails)}>
-        <VStack className="mx-6 gap-6">
+        <VStack className="mx-6 gap-6 p-8">
           <SetDatePickerFormField />
           <SetEventTypeSelectFormField />
           <HStack className="justify-end gap-2">
