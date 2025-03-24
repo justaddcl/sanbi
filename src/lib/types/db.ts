@@ -42,6 +42,10 @@ export type SongTag = typeof songTags.$inferSelect;
 
 export type NewSet = typeof sets.$inferInsert;
 export type SetType = typeof sets.$inferSelect; // have to have the "Type" suffix since Set is a reserved keyword
+export type SetWithSectionsSongsAndEventType = SetType & {
+  eventType: SetSectionTypeType;
+  sections: SetSectionWithSongs[];
+};
 
 export type NewSetSection = typeof setSections.$inferInsert;
 export type SetSection = typeof setSections.$inferSelect;

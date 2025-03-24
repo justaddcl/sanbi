@@ -3,7 +3,7 @@ import {
   createTRPCRouter,
   organizationProcedure,
 } from "@server/api/trpc";
-import { sets } from "@server/db/schema";
+import { eventTypes, sets } from "@server/db/schema";
 import { type NewSet } from "@lib/types";
 import { eq } from "drizzle-orm";
 import {
@@ -12,6 +12,7 @@ import {
   getSetSchema,
   insertSetSchema,
   unarchiveSetSchema,
+  updateSetDetailsSchema,
   updateSetNotesSchema,
 } from "@lib/types/zod";
 import { TRPCError } from "@trpc/server";
@@ -163,6 +164,96 @@ export const setRouter = createTRPCRouter({
       }
     }),
 
+  updateDetails: organizationProcedure
+    .input(updateSetDetailsSchema)
+    .mutation(async ({ ctx, input }) => {
+      console.log(
+        `🤖 - [set/updateDetails] - attempting to updates details for set ${input.setId}`,
+        { ...input },
+      );
+
+      const { setId, date, eventTypeId, organizationId } = input;
+
+      return await ctx.db.transaction(async (updateTransaction) => {
+        const setToUpdate = await updateTransaction.query.sets.findFirst({
+          where: eq(sets.id, setId),
+        });
+
+        if (!setToUpdate) {
+          console.error(
+            `🤖 - [set/updateDetails] - could not find set ${setId}`,
+          );
+
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Could not find set",
+          });
+        }
+
+        if (setToUpdate.organizationId !== ctx.user.membership.organizationId) {
+          console.error(
+            `🤖 - [set/updateDetails] - User ${ctx.user.id} not authorized to update set ${setId}`,
+          );
+
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "User is not authorized to update this set",
+          });
+        }
+
+        const updatedEventType =
+          await updateTransaction.query.eventTypes.findFirst({
+            where: eq(eventTypes.id, eventTypeId),
+          });
+
+        if (!updatedEventType) {
+          console.error(
+            `🤖 - [set/updateDetails] - could not find event type ${eventTypeId}`,
+          );
+
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Could not find event type",
+          });
+        }
+
+        if (
+          updatedEventType.organizationId !== ctx.user.membership.organizationId
+        ) {
+          console.error(
+            `🤖 - [set/updateDetails] - User ${ctx.user.id} not authorized to use an event type from a different organization`,
+            {
+              eventTypeId: updatedEventType.id,
+              eventOrganizationId: updatedEventType.organizationId,
+            },
+          );
+
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "User is not authorized to use event type",
+          });
+        }
+
+        await updateTransaction
+          .update(sets)
+          .set({
+            date,
+            eventTypeId,
+          })
+          .where(eq(sets.id, setId));
+
+        console.info(
+          `🤖 - [set/updateDetails] - Successfully updated set ${setId}'s details:`,
+          { date, eventTypeId },
+        );
+
+        return {
+          success: true,
+          date,
+          eventTypeId,
+        };
+      });
+    }),
   updateNotes: organizationProcedure
     .input(updateSetNotesSchema)
     .mutation(async ({ ctx, input }) => {

@@ -1,5 +1,15 @@
 "use client";
 
+import { api } from "@/trpc/react";
+import { useAuth } from "@clerk/nextjs";
+import { Text } from "@components/Text";
+import { Button } from "@components/ui/button";
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+} from "@components/ui/form";
 import {
   Select,
   SelectContent,
@@ -7,26 +17,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@components/ui/select";
-import { Text } from "@components/Text";
-import { Button } from "@components/ui/button";
-import { DatePicker, type DatePickerPreset } from "@components/ui/datePicker";
-import { useForm } from "react-hook-form";
-import { insertSetSchema } from "@lib/types/zod";
-import { type z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-} from "@components/ui/form";
-import { api } from "@/trpc/react";
-import { useAuth } from "@clerk/nextjs";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
-import { skipToken } from "@tanstack/react-query";
 import { Textarea } from "@components/ui/textarea";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { insertSetSchema } from "@lib/types/zod";
+import { skipToken } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
+import { FormProvider, useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { type z } from "zod";
+import { SetDatePickerFormField } from "../forms/SetDatePickerFormField";
+import { SetEventTypeSelectFormField } from "../forms/SetEventTypeSelectFormField";
 
 const createSetFormSchema = insertSetSchema.pick({
   date: true,
@@ -78,6 +78,7 @@ export const CreateSetForm: React.FC<CreateSetFormProps> = ({ onSubmit }) => {
   );
 
   const handleCreateSetSubmit = async (formValues: CreateSetFormFields) => {
+    const toastId = toast.loading("Creating set...");
     const { date, eventTypeId, notes } = formValues;
 
     if (!isError && userData) {
@@ -100,14 +101,16 @@ export const CreateSetForm: React.FC<CreateSetFormProps> = ({ onSubmit }) => {
             console.log("🤖 [createSetMutation/onSuccess] ~ data:", data);
             const [newSet] = data;
 
-            toast.success("Set was created");
+            toast.success("Set was created", { id: toastId });
             router.push(
               `/${organizationMembership.organizationId}/sets/${newSet?.id}`,
             );
           },
           onError(error) {
             console.log("🤖 [createSetMutation/onError] ~ error:", error);
-            toast.error(`Could not create set: ${error.message}`);
+            toast.error(`Could not create set: ${error.message}`, {
+              id: toastId,
+            });
           },
         },
       );
@@ -121,69 +124,14 @@ export const CreateSetForm: React.FC<CreateSetFormProps> = ({ onSubmit }) => {
 
   const shouldSubmitBeDisabled = !isDirty || !isValid || isSubmitting;
 
-  // TODO: finalize what the presets should be
-  // upcoming Sunday?
-  const datePresets: DatePickerPreset[] = [
-    {
-      value: "0",
-      label: "Today",
-    },
-    { value: "1", label: "Tomorrow" },
-  ];
-
   return (
-    <Form {...createSetForm}>
+    <FormProvider {...createSetForm}>
       <form
         onSubmit={createSetForm.handleSubmit(handleCreateSetSubmit)}
         className="mx-6 flex flex-col gap-8 pb-8 min-[1025px]:mx-0"
       >
-        <FormField
-          control={createSetForm.control}
-          name="date"
-          render={({ field }) => (
-            <FormItem className="flex flex-col gap-2">
-              <FormLabel>Set date *</FormLabel>
-              <FormControl>
-                <DatePicker {...field} presets={datePresets} />
-              </FormControl>
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={createSetForm.control}
-          name="eventTypeId"
-          render={({ field }) => (
-            <FormItem className="flex flex-col gap-2">
-              <FormLabel>Event type *</FormLabel>
-              <FormControl>
-                <>
-                  {/* TODO: add skeleton when still fetching event types */}
-                  {isEventTypeQueryFetching && (
-                    <Text>Loading event types...</Text>
-                  )}
-                  {isEventTypeQueryFetched && (
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {!eventTypeQueryError &&
-                          eventTypeData?.map((eventType) => (
-                            <SelectItem key={eventType.id} value={eventType.id}>
-                              {eventType.name}
-                            </SelectItem>
-                          ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                </>
-              </FormControl>
-            </FormItem>
-          )}
-        />
+        <SetDatePickerFormField />
+        <SetEventTypeSelectFormField />
         <FormField
           control={createSetForm.control}
           name="notes"
@@ -222,6 +170,6 @@ export const CreateSetForm: React.FC<CreateSetFormProps> = ({ onSubmit }) => {
           Create set
         </Button>
       </form>
-    </Form>
+    </FormProvider>
   );
 };
