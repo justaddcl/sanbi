@@ -27,6 +27,7 @@ import { toast } from "sonner";
 import { type z } from "zod";
 import { SetDatePickerFormField } from "../forms/SetDatePickerFormField";
 import { SetEventTypeSelectFormField } from "../forms/SetEventTypeSelectFormField";
+import { TextareaFormField } from "@components/TextareaFormField";
 
 const createSetFormSchema = insertSetSchema.pick({
   date: true,
@@ -132,18 +133,7 @@ export const CreateSetForm: React.FC<CreateSetFormProps> = ({ onSubmit }) => {
       >
         <SetDatePickerFormField />
         <SetEventTypeSelectFormField />
-        <FormField
-          control={createSetForm.control}
-          name="notes"
-          render={({ field }) => (
-            <FormItem className="">
-              <FormLabel>Set notes</FormLabel>
-              <FormControl>
-                <Textarea {...field} />
-              </FormControl>
-            </FormItem>
-          )}
-        />
+        <TextareaFormField name="notes" label="Set notes" />
         {/* TODO: this was for proof of concept, but we should figure out if we want to implement it */}
         {/* <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between">
