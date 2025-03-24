@@ -16,6 +16,7 @@ import { Form } from "@components/ui/form";
 import { api } from "@/trpc/react";
 import { toast } from "sonner";
 import { useUserQuery } from "@modules/users/api/queries";
+import { cn } from "@lib/utils";
 
 type BaseSongItemProps = {
   /** set section song object */
@@ -32,6 +33,9 @@ type BaseSongItemProps = {
 
   /** should the song item show the action menu? */
   withActionsMenu?: boolean;
+
+  /** should this be displayed more compact? */
+  small?: boolean;
 };
 
 export type SongItemWithActionsMenuProps = BaseSongItemProps & {
@@ -75,6 +79,7 @@ export const SongItem: React.FC<SongItemProps> = ({
   setId,
   index,
   setSectionType,
+  small,
   ...props
 }) => {
   const [isEditingDetails, setIsEditingDetails] = useState<boolean>(false);
@@ -152,7 +157,12 @@ export const SongItem: React.FC<SongItemProps> = ({
           handleUpdateSetSectionSong,
         )}
       >
-        <VStack className="gap-4 rounded-lg px-6 py-3 shadow lg:py-4">
+        <VStack
+          className={cn(
+            [small && "p-1"],
+            [!small && "rounded-lg px-6 py-3 shadow lg:py-4"],
+          )}
+        >
           <HStack className="items-baseline justify-between">
             <SongContent
               setSectionSong={setSectionSong}
