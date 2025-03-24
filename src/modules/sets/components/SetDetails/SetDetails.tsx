@@ -39,7 +39,7 @@ export const SetDetails: React.FC<SetDetailsProps> = ({
         details={`${songCount} ${pluralize(songCount, { singular: "song", plural: "songs" })}`}
       />
       <ResponsiveDialog open={isEditing} onOpenChange={setIsEditing}>
-        <ResponsiveDialogContent>
+        <ResponsiveDialogContent className="mx-6 gap-2 p-6 lg:gap-6 lg:p-8">
           <ResponsiveDialogHeader>
             <ResponsiveDialogTitle>Edit set details</ResponsiveDialogTitle>
             <VisuallyHidden.Root>
