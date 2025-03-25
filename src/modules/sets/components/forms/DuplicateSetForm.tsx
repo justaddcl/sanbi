@@ -23,6 +23,8 @@ import { useSetQuery } from "@modules/sets/api";
 import { SetSectionCard } from "@modules/sets/components/SetSectionCard";
 import { type SetSectionWithSongs } from "@lib/types";
 import { SetSectionList } from "../SetSectionList/SetSectionList";
+import { useMediaQuery } from "usehooks-ts";
+import { DESKTOP_MEDIA_QUERY_STRING } from "@lib/constants";
 
 const duplicateSetFormSchema = insertSetSchema.pick({
   date: true,
@@ -41,8 +43,10 @@ export const DuplicateSetForm: React.FC<DuplicateSetFormProps> = ({
   setToDuplicateId,
   setIsDuplicateSetDialogOpen,
 }) => {
-  const [isSectionsAndSongsOpen, setIsSectionsAndSongsOpen] =
-    useState<boolean>(true);
+  const isDesktop = useMediaQuery(DESKTOP_MEDIA_QUERY_STRING);
+  const [isSectionsAndSongsOpen, setIsSectionsAndSongsOpen] = useState<boolean>(
+    isDesktop ?? false,
+  );
 
   const updateSetDetailsMutation = api.set.updateDetails.useMutation();
   const apiUtils = api.useUtils();
