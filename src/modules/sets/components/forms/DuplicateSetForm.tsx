@@ -20,11 +20,12 @@ import {
 import { Text } from "@components/Text";
 import { CaretDown, CaretUp } from "@phosphor-icons/react/dist/ssr";
 import { useSetQuery } from "@modules/sets/api";
-import { SetSectionCard } from "@modules/sets/components/SetSectionCard";
 import { type SetSectionWithSongs } from "@lib/types";
 import { SetSectionList } from "../SetSectionList/SetSectionList";
 import { useMediaQuery } from "usehooks-ts";
 import { DESKTOP_MEDIA_QUERY_STRING } from "@lib/constants";
+import { sanitizeInput } from "@lib/string";
+import { useRouter } from "next/navigation";
 
 const duplicateSetFormSchema = insertSetSchema.pick({
   date: true,
@@ -48,8 +49,9 @@ export const DuplicateSetForm: React.FC<DuplicateSetFormProps> = ({
     isDesktop ?? false,
   );
 
-  const updateSetDetailsMutation = api.set.updateDetails.useMutation();
-  const apiUtils = api.useUtils();
+  const router = useRouter();
+
+  const duplicateSetMutation = api.set.duplicate.useMutation();
 
   const {
     data: userData,
@@ -87,13 +89,35 @@ export const DuplicateSetForm: React.FC<DuplicateSetFormProps> = ({
     formState: { isDirty, isValid },
   } = editSetDetailsForm;
 
-  const isLoading = updateSetDetailsMutation.isPending;
+  const isLoading = duplicateSetMutation.isPending;
   const isSubmitDisabled =
     !isDirty || !isValid || userQueryLoading || !isAuthLoaded || isLoading;
 
   const handleDuplicateSet = (formValues: DuplicateSetFields) => {
     const { date, eventTypeId, notes } = formValues;
     const toastId = toast.loading("Duplicating set...");
+
+    duplicateSetMutation.mutate(
+      {
+        setToDuplicateId,
+        date,
+        eventTypeId,
+        notes: sanitizeInput(notes),
+        organizationId: userMembership.organizationId,
+      },
+      {
+        async onSuccess({ newSet }) {
+          toast.success("Set duplicated!", { id: toastId });
+
+          router.push(`/${userMembership.organizationId}/sets/${newSet.id}`);
+        },
+        onError(duplicateError) {
+          toast.error(`Could not duplicate set: ${duplicateError.message}`, {
+            id: toastId,
+          });
+        },
+      },
+    );
   };
 
   return (
@@ -102,7 +126,7 @@ export const DuplicateSetForm: React.FC<DuplicateSetFormProps> = ({
         <VStack className="gap-6">
           <SetDatePickerFormField />
           <SetEventTypeSelectFormField />
-          <TextareaFormField name="name" label="Set notes" />
+          <TextareaFormField name="notes" label="Set notes" />
           {setData && setData.sections.length > 0 && (
             <Collapsible
               open={isSectionsAndSongsOpen}
