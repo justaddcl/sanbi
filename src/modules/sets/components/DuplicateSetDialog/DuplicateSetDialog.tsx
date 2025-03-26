@@ -36,7 +36,7 @@ export const DuplicateSetDialog: React.FC<DuplicateSetDialogProps> = ({
 
   return (
     <ResponsiveDialog open={isOpen} onOpenChange={setIsOpen}>
-      <ResponsiveDialogContent className="mx-6 max-h-[90%] gap-2 p-6 lg:max-h-[80%] lg:gap-6 lg:p-8">
+      <ResponsiveDialogContent className="mx-6 max-h-[90%] gap-2 lg:max-h-[80%] lg:gap-6">
         <ResponsiveDialogHeader>
           <ResponsiveDialogTitle>Duplicate set</ResponsiveDialogTitle>
           <VisuallyHidden.Root>
