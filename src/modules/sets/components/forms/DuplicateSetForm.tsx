@@ -45,9 +45,8 @@ export const DuplicateSetForm: React.FC<DuplicateSetFormProps> = ({
   setIsDuplicateSetDialogOpen,
 }) => {
   const isDesktop = useMediaQuery(DESKTOP_MEDIA_QUERY_STRING);
-  const [isSectionsAndSongsOpen, setIsSectionsAndSongsOpen] = useState<boolean>(
-    isDesktop ?? false,
-  );
+  const [isSectionsAndSongsOpen, setIsSectionsAndSongsOpen] =
+    useState<boolean>(isDesktop);
 
   const router = useRouter();
 

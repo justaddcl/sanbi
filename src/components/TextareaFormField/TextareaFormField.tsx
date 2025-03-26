@@ -27,7 +27,10 @@ export const TextareaFormField: React.FC<TextareaFormFieldProps> = ({
         <FormItem className="">
           <FormLabel>{label}</FormLabel>
           <FormControl>
-            <Textarea {...field} value={unescapeHTML(field.value as string)} />
+            <Textarea
+              {...field}
+              value={unescapeHTML((field.value as string) ?? "")}
+            />
           </FormControl>
         </FormItem>
       )}

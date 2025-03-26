@@ -342,6 +342,32 @@ export const setRouter = createTRPCRouter({
           });
         }
 
+        const eventType = await duplicateTransaction.query.eventTypes.findFirst(
+          { where: eq(eventTypes.id, input.eventTypeId) },
+        );
+
+        if (!eventType) {
+          console.error(
+            `🤖 - [set/duplicate] - could not find event type ${input.eventTypeId}`,
+          );
+
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Could not find event type",
+          });
+        }
+
+        if (eventType.organizationId !== ctx.user.membership.organizationId) {
+          console.error(
+            `🤖 - [set/duplicate] - User ${ctx.user.id} not authorized to use event type ${input.eventTypeId}`,
+          );
+
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "User not authorized to use event type",
+          });
+        }
+
         const newSetValues: NewSet = {
           date: input.date,
           eventTypeId: input.eventTypeId,
