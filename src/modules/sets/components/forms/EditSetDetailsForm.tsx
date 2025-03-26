@@ -2,7 +2,6 @@ import { api } from "@/trpc/react";
 import { HStack } from "@components/HStack";
 import { Button } from "@components/ui/button";
 import { VStack } from "@components/VStack";
-import { DevTool } from "@hookform/devtools";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { type SetWithSectionsSongsAndEventType } from "@lib/types";
 import { updateSetDetailsSchema } from "@lib/types/zod";
@@ -65,7 +64,7 @@ export const EditSetDetailsForm: React.FC<EditSetDetailsFormProps> = ({
 
   const handleEditSetDetails = (formValues: EditSetDetailsFields) => {
     const { date, eventTypeId } = formValues;
-    const toastId = toast("Updating set details...");
+    const toastId = toast.loading("Updating set details...");
 
     updateSetDetailsMutation.mutate(
       {

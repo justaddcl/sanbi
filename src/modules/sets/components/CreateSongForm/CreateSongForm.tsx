@@ -25,6 +25,7 @@ import { useAuth } from "@clerk/nextjs";
 import { api } from "@/trpc/react";
 import { toast } from "sonner";
 import { formatSongKey } from "@/lib/string/formatSongKey";
+import { sanitizeInput } from "@lib/string";
 
 const createSongFormSchema = insertSongSchema
   .pick({
@@ -71,6 +72,7 @@ export const CreateSongForm: React.FC<CreateSongFormProps> = ({ onSubmit }) => {
     });
 
   const handleCreateSongSubmit = async (formValues: CreateSongFormFields) => {
+    const toastId = toast.loading("Creating song...");
     const { name, preferredKey, notes } = formValues;
 
     // attempt to create song
@@ -84,7 +86,7 @@ export const CreateSongForm: React.FC<CreateSongFormProps> = ({ onSubmit }) => {
         {
           name,
           preferredKey,
-          notes,
+          notes: sanitizeInput(notes ?? "") || null,
           organizationId: organizationMembership.organizationId,
           createdBy: userData.id,
           isArchived: false,
@@ -94,14 +96,16 @@ export const CreateSongForm: React.FC<CreateSongFormProps> = ({ onSubmit }) => {
             console.log("🤖 [createSongMutation/onSuccess] ~ data:", data);
             const [newSong] = data;
 
-            toast.success("Song was created");
+            toast.success("Song was created", { id: toastId });
             router.push(
               `/${organizationMembership.organizationId}/songs/${newSong?.id}`,
             );
           },
           onError(error) {
             console.log("🤖 [createSongMutation/onError] ~ error:", error);
-            toast.error(`Could not create song: ${error.message}`);
+            toast.error(`Could not create song: ${error.message}`, {
+              id: toastId,
+            });
           },
         },
       );
