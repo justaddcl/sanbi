@@ -3,12 +3,18 @@ import {
   createTRPCRouter,
   organizationProcedure,
 } from "@server/api/trpc";
-import { eventTypes, sets } from "@server/db/schema";
+import {
+  eventTypes,
+  sets,
+  setSections,
+  setSectionSongs,
+} from "@server/db/schema";
 import { type NewSet } from "@lib/types";
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import {
   archiveSetSchema,
   deleteSetSchema,
+  duplicateSetSchema,
   getSetSchema,
   insertSetSchema,
   unarchiveSetSchema,
@@ -172,7 +178,7 @@ export const setRouter = createTRPCRouter({
         { ...input },
       );
 
-      const { setId, date, eventTypeId, organizationId } = input;
+      const { setId, date, eventTypeId } = input;
 
       return await ctx.db.transaction(async (updateTransaction) => {
         const setToUpdate = await updateTransaction.query.sets.findFirst({
@@ -297,5 +303,248 @@ export const setRouter = createTRPCRouter({
         `🤖 - [set/updateNotes] - set notes updated for ${input.setId}`,
         { notes: input.notes },
       );
+    }),
+
+  duplicate: organizationProcedure
+    .input(duplicateSetSchema)
+    .mutation(async ({ ctx, input }) => {
+      console.log(
+        `🤖 - [set/duplicate] - attempting to duplicate set ${input.setToDuplicateId}`,
+        { ...input },
+      );
+
+      return await ctx.db.transaction(async (duplicateTransaction) => {
+        const setToDuplicate = await duplicateTransaction.query.sets.findFirst({
+          where: eq(sets.id, input.setToDuplicateId),
+        });
+
+        if (!setToDuplicate) {
+          console.error(
+            `🤖 - [set/duplicate] - could not find target set ${input.setToDuplicateId}`,
+          );
+
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Could not find set to duplicate",
+          });
+        }
+
+        if (
+          setToDuplicate.organizationId !== ctx.user.membership.organizationId
+        ) {
+          console.error(
+            `🤖 - [set/duplicate] - User ${ctx.user.id} not authorized to duplicate set ${input.setToDuplicateId}`,
+          );
+
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "User not authorized to duplicate set",
+          });
+        }
+
+        const eventType = await duplicateTransaction.query.eventTypes.findFirst(
+          { where: eq(eventTypes.id, input.eventTypeId) },
+        );
+
+        if (!eventType) {
+          console.error(
+            `🤖 - [set/duplicate] - could not find event type ${input.eventTypeId}`,
+          );
+
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Could not find event type",
+          });
+        }
+
+        if (eventType.organizationId !== ctx.user.membership.organizationId) {
+          console.error(
+            `🤖 - [set/duplicate] - User ${ctx.user.id} not authorized to use event type ${input.eventTypeId}`,
+          );
+
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "User not authorized to use event type",
+          });
+        }
+
+        const newSetValues: NewSet = {
+          date: input.date,
+          eventTypeId: input.eventTypeId,
+          organizationId: setToDuplicate.organizationId,
+          notes: input.notes,
+          isArchived: false,
+        };
+
+        const [newSet] = await duplicateTransaction
+          .insert(sets)
+          .values(newSetValues)
+          .returning();
+
+        if (!newSet) {
+          console.error(
+            `🤖 - [set/duplicate] - Could not create new set with inputs:`,
+            { ...input },
+          );
+
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Could not create new set",
+          });
+        }
+
+        const originalSetSections =
+          await duplicateTransaction.query.setSections.findMany({
+            where: eq(setSections.setId, setToDuplicate.id),
+          });
+
+        if (!originalSetSections || originalSetSections.length === 0) {
+          return {
+            success: true,
+            newSet,
+          };
+        }
+
+        const duplicatedSectionValues = originalSetSections.map((section) => ({
+          setId: newSet.id,
+          position: section.position,
+          sectionTypeId: section.sectionTypeId,
+          organizationId: section.organizationId,
+        }));
+
+        const newSetSections = await duplicateTransaction
+          .insert(setSections)
+          .values(duplicatedSectionValues)
+          .returning();
+
+        if (!newSetSections) {
+          console.error(
+            `🤖 - [set/duplicate] - Could not duplicate set sections from set ${input.setToDuplicateId}:`,
+            { ...duplicatedSectionValues },
+          );
+
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Could not duplicate the set sections from the target set",
+          });
+        }
+
+        if (newSetSections.length !== originalSetSections.length) {
+          console.error(
+            `🤖 - [set/duplicate] - Mismatch between original and new set sections count:`,
+            {
+              originalSetSectionsCount: originalSetSections.length,
+              newSetSectionsCount: newSetSections.length,
+              originalSetSections,
+              newSetSections,
+            },
+          );
+
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message:
+              "Could not duplicate all the set sections from the target set",
+          });
+        }
+
+        /**
+         * Build a mapping from original section id to new section id to know which set section to add the
+         * duplicated set section songs to in the next step.
+         */
+        const sectionIdMapping = new Map<string, string>();
+        for (let i = 0; i < originalSetSections.length; i++) {
+          const originalSection = originalSetSections[i];
+          const newSection = newSetSections[i];
+          if (!originalSection || !newSection) {
+            throw new TRPCError({
+              code: "INTERNAL_SERVER_ERROR",
+              message: `Undefined section encountered at index ${i}.`,
+            });
+          }
+          sectionIdMapping.set(originalSection.id, newSection.id);
+        }
+
+        const originalSetSectionIds = originalSetSections.map(
+          (section) => section.id,
+        );
+        const originalSetSectionSongs =
+          await duplicateTransaction.query.setSectionSongs.findMany({
+            where: inArray(setSectionSongs.setSectionId, originalSetSectionIds),
+          });
+
+        if (!originalSetSectionSongs) {
+          console.error(
+            `🤖 - [set/duplicate] - Could not duplicate set section songs from set ${input.setToDuplicateId}:`,
+            { originalSetSectionIds },
+          );
+
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message:
+              "Could not duplicate the set section songs from the target set",
+          });
+        }
+
+        const duplicatedSetSectionSongsValues = originalSetSectionSongs.map(
+          (song) => ({
+            songId: song.songId,
+            key: song.key,
+            position: song.position,
+            notes: song.notes,
+            setSectionId: sectionIdMapping.get(song.setSectionId)!,
+            organizationId: song.organizationId,
+          }),
+        );
+
+        if (
+          !duplicatedSetSectionSongsValues ||
+          duplicatedSetSectionSongsValues.length === 0
+        ) {
+          return {
+            success: true,
+            newSet,
+            newSetSections,
+          };
+        }
+
+        const newSetSectionSongs = await duplicateTransaction
+          .insert(setSectionSongs)
+          .values(duplicatedSetSectionSongsValues)
+          .returning();
+
+        if (newSetSectionSongs.length !== originalSetSectionSongs.length) {
+          console.error(
+            `🤖 - [set/duplicate] - Mismatch between original and new set section songs count:`,
+            {
+              originalSetSectionSongsCount: originalSetSectionSongs.length,
+              newSetSectionSongsCount: newSetSectionSongs.length,
+              originalSetSectionSongs,
+              newSetSectionSongs,
+            },
+          );
+
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message:
+              "Could not duplicate all the set section songs from the target set",
+          });
+        }
+
+        console.info(
+          `🤖 - [set/duplicate] - Successfully duplicated set ${input.setToDuplicateId}:`,
+          {
+            newSet,
+            newSetSections,
+            newSetSectionSongs,
+          },
+        );
+
+        return {
+          success: true,
+          newSet,
+          newSetSections,
+          newSetSectionSongs,
+        };
+      });
     }),
 });

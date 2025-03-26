@@ -50,6 +50,15 @@ export const updateSetDetailsSchema = setIdSchema.extend({
 export const updateSetNotesSchema = setIdSchema.extend({
   notes: z.string().trim(),
 });
+export const duplicateSetSchema = insertSetSchema
+  .pick({
+    date: true,
+    eventTypeId: true,
+    notes: true,
+  })
+  .extend({
+    setToDuplicateId: z.string().uuid(),
+  });
 
 /**
  * Song schemas

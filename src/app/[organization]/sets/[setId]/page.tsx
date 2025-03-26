@@ -1,33 +1,8 @@
 "use client";
-import { pluralize } from "@lib/string";
-import { PageTitle } from "@components/PageTitle";
-import { Text } from "@components/Text";
-import { Archive, Plus } from "@phosphor-icons/react/dist/ssr";
-import { redirect, useSearchParams } from "next/navigation";
-import { SetActionsMenu } from "@modules/sets/components/SetActionsMenu";
-import { SetEmptyState } from "@modules/sets/components/SetEmptyState";
-import { Button } from "@components/ui/button";
-import { formatDate } from "@lib/date";
-import { SongSearchDialog } from "@modules/songs/components/SongSearchDialog";
-import { useState, useCallback, useEffect } from "react";
 import { api } from "@/trpc/react";
-import { validate as uuidValidate } from "uuid";
 import { useAuth } from "@clerk/nextjs";
-import { SetSectionCard } from "@modules/sets/components/SetSectionCard";
-import { type SetSectionWithSongs } from "@lib/types";
-import { useSetQuery } from "@modules/sets/api";
-import { SetPageLoadingState } from "@modules/sets/components/SetLoadingState";
-import { SetPageErrorState } from "@modules/sets/components/SetErrorState";
 import { HStack } from "@components/HStack";
-import { VStack } from "@components/VStack";
 import { PageContentContainer } from "@components/PageContentContainer";
-import { type ConfigureSongForSetProps } from "@modules/songs/components/ConfigureSongForSet/ConfigureSongForSet";
-import { cn } from "@lib/utils";
-import { SetSectionTypeCombobox } from "@modules/sets/components/SetSectionTypeCombobox";
-import { useMediaQuery } from "usehooks-ts";
-import { DESKTOP_MEDIA_QUERY_STRING } from "@lib/constants";
-import { type ComboboxOption } from "@components/ui/combobox";
-import { toast } from "sonner";
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -35,9 +10,31 @@ import {
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
 } from "@components/ResponsiveDialog";
-import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
-import { SetNotes } from "@modules/sets/components/SetNotes";
+import { Text } from "@components/Text";
+import { Button } from "@components/ui/button";
+import { type ComboboxOption } from "@components/ui/combobox";
+import { VStack } from "@components/VStack";
+import { DESKTOP_MEDIA_QUERY_STRING } from "@lib/constants";
+import { type SetSectionWithSongs } from "@lib/types";
+import { cn } from "@lib/utils";
+import { useSetQuery } from "@modules/sets/api";
+import { SetActionsMenu } from "@modules/sets/components/SetActionsMenu";
 import { SetDetails } from "@modules/sets/components/SetDetails";
+import { SetEmptyState } from "@modules/sets/components/SetEmptyState";
+import { SetPageErrorState } from "@modules/sets/components/SetErrorState";
+import { SetPageLoadingState } from "@modules/sets/components/SetLoadingState";
+import { SetNotes } from "@modules/sets/components/SetNotes";
+import { SetSectionCard } from "@modules/sets/components/SetSectionCard";
+import { SetSectionTypeCombobox } from "@modules/sets/components/SetSectionTypeCombobox";
+import { type ConfigureSongForSetProps } from "@modules/songs/components/ConfigureSongForSet/ConfigureSongForSet";
+import { SongSearchDialog } from "@modules/songs/components/SongSearchDialog";
+import { Archive, Plus } from "@phosphor-icons/react/dist/ssr";
+import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
+import { redirect, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
+import { useMediaQuery } from "usehooks-ts";
+import { validate as uuidValidate } from "uuid";
 
 type SetListPageProps = {
   params: { organization: string; setId: string };

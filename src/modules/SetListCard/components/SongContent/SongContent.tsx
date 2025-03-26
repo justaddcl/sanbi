@@ -1,10 +1,6 @@
 import { HStack } from "@components/HStack";
 import { SongKey } from "@components/SongKey";
 import { Text } from "@components/Text";
-import { VStack } from "@components/VStack";
-import { type SetSectionSongWithSongData } from "@lib/types";
-import { type UseFormReturn } from "react-hook-form";
-import { type UpdateSetSectionSongFormFields } from "../SongItem";
 import {
   FormControl,
   FormField,
@@ -18,10 +14,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@components/ui/select";
+import { Textarea } from "@components/ui/textarea";
+import { VStack } from "@components/VStack";
 import { songKeys } from "@lib/constants";
 import { formatSongKey } from "@lib/string/formatSongKey";
+import { type SetSectionSongWithSongData } from "@lib/types";
 import { cn } from "@lib/utils";
-import { Textarea } from "@components/ui/textarea";
+import { type UseFormReturn } from "react-hook-form";
+import unescapeHTML from "validator/es/lib/unescape";
+import { type UpdateSetSectionSongFormFields } from "../SongItem";
 
 export type SongContentProps = {
   /** The set section song object containing song details and metadata */
@@ -102,7 +103,11 @@ export const SongContent: React.FC<SongContentProps> = ({
                     Song notes
                   </FormLabel>
                   <FormControl>
-                    <Textarea {...field} className="font-normal" />
+                    <Textarea
+                      {...field}
+                      value={unescapeHTML(field.value)}
+                      className="font-normal"
+                    />
                   </FormControl>
                 </FormItem>
               )}
@@ -131,7 +136,7 @@ export const SongContent: React.FC<SongContentProps> = ({
         </HStack>
         {setSectionSong.notes ? (
           <Text style="small" color="slate-700">
-            {setSectionSong.notes}
+            {unescapeHTML(setSectionSong.notes)}
           </Text>
         ) : null}
       </VStack>
