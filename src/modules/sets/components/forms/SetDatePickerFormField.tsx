@@ -5,14 +5,35 @@ import {
   FormItem,
   FormLabel,
 } from "@components/ui/form";
+import { getFirstSundayOfNextMonth } from "@lib/date/getFirstSundayOfNextMonth";
+import { addWeeks, differenceInCalendarDays, nextSunday } from "date-fns";
 import { useFormContext } from "react-hook-form";
+
+const upcomingSunday = nextSunday(new Date());
+const upcomingSundayInDays = differenceInCalendarDays(
+  upcomingSunday,
+  new Date(),
+);
+const sundayAfterNextInDays = differenceInCalendarDays(
+  addWeeks(upcomingSunday, 1),
+  new Date(),
+);
+
+const firstSundayOfNextMonthInDays = differenceInCalendarDays(
+  getFirstSundayOfNextMonth(),
+  new Date(),
+);
 
 const datePresets: DatePickerPreset[] = [
   {
-    value: "0",
-    label: "Today",
+    value: `${upcomingSundayInDays}`,
+    label: "Upcoming Sunday",
   },
-  { value: "1", label: "Tomorrow" },
+  { value: `${sundayAfterNextInDays}`, label: "Sunday After Next" },
+  {
+    value: `${firstSundayOfNextMonthInDays}`,
+    label: "First Sunday of Next Month",
+  },
 ];
 
 export const SetDatePickerFormField: React.FC = () => {
