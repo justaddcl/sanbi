@@ -1,11 +1,4 @@
 import { PageTitle } from "@components/PageTitle";
-import { formatDate } from "@lib/date/formatDate";
-import { pluralize } from "@lib/string/pluralize";
-import { type SetWithSectionsSongsAndEventType } from "@lib/types";
-import {
-  EditSetDetailsForm,
-  type EditSetDetailsFormProps,
-} from "../forms/EditSetDetailsForm";
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -13,8 +6,14 @@ import {
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
 } from "@components/ResponsiveDialog";
+import { formatDate } from "@lib/date/formatDate";
+import { pluralize } from "@lib/string/pluralize";
+import { type SetWithSectionsSongsAndEventType } from "@lib/types";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
-import { Text } from "@components/Text";
+import {
+  EditSetDetailsForm,
+  type EditSetDetailsFormProps,
+} from "@modules/sets/components/forms/EditSetDetailsForm";
 
 type SetDetailsProps = {
   set: SetWithSectionsSongsAndEventType;
@@ -39,7 +38,7 @@ export const SetDetails: React.FC<SetDetailsProps> = ({
         details={`${songCount} ${pluralize(songCount, { singular: "song", plural: "songs" })}`}
       />
       <ResponsiveDialog open={isEditing} onOpenChange={setIsEditing}>
-        <ResponsiveDialogContent>
+        <ResponsiveDialogContent className="mx-6 gap-2 p-6 lg:gap-6 lg:p-8">
           <ResponsiveDialogHeader>
             <ResponsiveDialogTitle>Edit set details</ResponsiveDialogTitle>
             <VisuallyHidden.Root>

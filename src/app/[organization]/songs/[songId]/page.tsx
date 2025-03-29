@@ -1,3 +1,4 @@
+import { SongActionsMenu } from "@/modules/songs/components/SongActionsMenu";
 import { db } from "@/server/db";
 import {
   eventTypes,
@@ -7,10 +8,15 @@ import {
   sets,
   songs,
 } from "@/server/db/schema";
+import { api } from "@/trpc/server";
+import { auth } from "@clerk/nextjs/server";
 import { Badge } from "@components/Badge";
+import { HStack } from "@components/HStack";
+import { PageContentContainer } from "@components/PageContentContainer";
 import { PageTitle } from "@components/PageTitle";
 import { SongKey } from "@components/SongKey";
 import { Text } from "@components/Text";
+import { VStack } from "@components/VStack";
 import { PlayHistoryItem, ResourceCard } from "@modules/SetListCard";
 import {
   Archive,
@@ -22,15 +28,10 @@ import {
   MusicNotesSimple,
   TagSimple,
 } from "@phosphor-icons/react/dist/ssr";
-import { asc, desc, eq } from "drizzle-orm";
 import { formatDistanceToNow, isPast } from "date-fns";
-import { SongActionsMenu } from "@/modules/songs/components/SongActionsMenu";
-import { auth } from "@clerk/nextjs/server";
+import { asc, desc, eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
-import { api } from "@/trpc/server";
-import { VStack } from "@components/VStack";
-import { HStack } from "@components/HStack";
-import { PageContentContainer } from "@components/PageContentContainer";
+import unescapeHTML from "validator/es/lib/unescape";
 
 export default async function SetListPage({
   params,
@@ -195,7 +196,7 @@ export default async function SetListPage({
           <Text asElement="h3" style="header-small-semibold">
             Notes
           </Text>
-          <Text style="body-small">{songData.notes}</Text>
+          <Text style="body-small">{unescapeHTML(songData.notes)}</Text>
         </VStack>
       )}
       <HStack as="section" className="justify-between gap-2">

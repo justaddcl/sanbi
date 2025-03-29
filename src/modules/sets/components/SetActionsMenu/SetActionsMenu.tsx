@@ -19,8 +19,9 @@ import { AlertDialogDescription } from "@radix-ui/react-alert-dialog";
 import { type SetStateAction, type Dispatch, useState } from "react";
 import { Button } from "@components/ui/button";
 import { ActionMenu, ActionMenuItem } from "@components/ActionMenu";
+import { DuplicateSetDialog } from "../DuplicateSetDialog/DuplicateSetDialog";
 
-type SetActionsMenuProps = {
+export type SetActionsMenuProps = {
   setId: string;
   organizationId: string;
   archived: boolean;
@@ -45,6 +46,7 @@ export const SetActionsMenu: React.FC<SetActionsMenuProps> = ({
     useState<boolean>(false);
   const [isConfirmationDialogOpen, setIsConfirmationDialogOpen] =
     useState<boolean>(false);
+  const [isDuplicatingSet, setIsDuplicatingSet] = useState<boolean>(false);
 
   const deleteSetMutation = api.set.delete.useMutation();
   const archiveSetMutation = api.set.archive.useMutation();
@@ -139,7 +141,14 @@ export const SetActionsMenu: React.FC<SetActionsMenuProps> = ({
             setIsEditingSetDetails(true);
           }}
         />
-        <ActionMenuItem icon="Copy" label="Duplicate set" />
+        <ActionMenuItem
+          icon="Copy"
+          label="Duplicate set"
+          onClick={() => {
+            setIsSetActionsMenuOpen(false);
+            setIsDuplicatingSet(true);
+          }}
+        />
         {archived ? (
           <ActionMenuItem
             icon="BoxArrowUp"
@@ -190,6 +199,11 @@ export const SetActionsMenu: React.FC<SetActionsMenuProps> = ({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <DuplicateSetDialog
+        setId={setId}
+        isOpen={isDuplicatingSet}
+        setIsOpen={setIsDuplicatingSet}
+      />
     </>
   );
 };
