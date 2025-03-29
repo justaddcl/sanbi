@@ -29,11 +29,13 @@ export type DatePickerPreset = {
 type DatePickerProps = ControllerRenderProps<{ date: string }, "date"> & {
   presets?: DatePickerPreset[];
   initialDate?: Date;
+  presetSelectPlaceholder?: string;
 };
 
 export const DatePicker: React.FC<DatePickerProps> = ({
   presets,
   initialDate,
+  presetSelectPlaceholder = "Quick select date",
   ...props
 }) => {
   const [date, setDate] = React.useState<Date | undefined>(initialDate);
@@ -71,12 +73,12 @@ export const DatePicker: React.FC<DatePickerProps> = ({
             onValueChange={(value) => {
               const presetOffset = parseInt(value);
               const selectedDate = addDays(new Date(), presetOffset);
-              setViewMonth(selectedDate);
               onDateChange(selectedDate);
+              setViewMonth(selectedDate);
             }}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Select" />
+              <SelectValue placeholder={presetSelectPlaceholder} />
             </SelectTrigger>
             <SelectContent position="popper">
               {presets?.map((preset) => (
