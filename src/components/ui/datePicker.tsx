@@ -26,33 +26,35 @@ export type DatePickerPreset = {
   label: string;
 };
 
-// TODO: add closeAfterSelect boolean prop
-type DatePickerProps = ControllerRenderProps<
-  {
-    date: string;
-  },
-  "date"
-> & {
+type DatePickerProps = ControllerRenderProps<{ date: string }, "date"> & {
   presets?: DatePickerPreset[];
   initialDate?: Date;
+  presetSelectPlaceholder?: string;
 };
 
 export const DatePicker: React.FC<DatePickerProps> = ({
   presets,
   initialDate,
+  presetSelectPlaceholder = "Quick select date",
   ...props
 }) => {
   const [date, setDate] = React.useState<Date | undefined>(initialDate);
+  const [open, setOpen] = React.useState(false);
+  const [viewMonth, setViewMonth] = React.useState<Date>(
+    initialDate ?? new Date(),
+  );
 
-  const onDateChange = (selectedDate: Date | undefined) => {
+  const onDateChange = (selectedDate: Date | undefined, closePicker = true) => {
     const formattedDate = selectedDate?.toLocaleDateString("en-CA");
     setDate(selectedDate);
     props.onChange?.(formattedDate);
-    // TODO: if closeAfterSelect, close the popover after date is selected
+    if (closePicker) {
+      setOpen(false);
+    }
   };
 
   return (
-    <Popover>
+    <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
           variant={"outline"}
@@ -69,12 +71,14 @@ export const DatePicker: React.FC<DatePickerProps> = ({
         {!!presets && (
           <Select
             onValueChange={(value) => {
-              const selectedDate = addDays(new Date(), parseInt(value));
-              return onDateChange(selectedDate);
+              const presetOffset = parseInt(value);
+              const selectedDate = addDays(new Date(), presetOffset);
+              onDateChange(selectedDate);
+              setViewMonth(selectedDate);
             }}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Select" />
+              <SelectValue placeholder={presetSelectPlaceholder} />
             </SelectTrigger>
             <SelectContent position="popper">
               {presets?.map((preset) => (
@@ -86,7 +90,13 @@ export const DatePicker: React.FC<DatePickerProps> = ({
           </Select>
         )}
         <div className="rounded-md border">
-          <Calendar mode="single" selected={date} onSelect={onDateChange} />
+          <Calendar
+            mode="single"
+            selected={date}
+            onSelect={(selectedDate) => onDateChange(selectedDate)}
+            month={viewMonth}
+            onMonthChange={setViewMonth}
+          />
         </div>
       </PopoverContent>
     </Popover>
