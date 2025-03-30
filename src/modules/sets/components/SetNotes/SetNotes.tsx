@@ -55,7 +55,7 @@ export const SetNotes: React.FC<SetNotesProps> = ({
 
   return (
     <VStack className={isEditingNotes ? "gap-4" : "gap-2"}>
-      <Text style="header-small-semibold" className="text-slate-500">
+      <Text style="header-small-semibold" className="text-slate-700">
         Set notes
       </Text>
       {isEditingNotes && (

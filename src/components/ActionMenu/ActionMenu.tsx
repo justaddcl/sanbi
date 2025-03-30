@@ -2,7 +2,7 @@
 
 import { HStack } from "@components/HStack";
 import { Text } from "@components/Text";
-import { Button } from "@components/ui/button";
+import { Button, type buttonVariants } from "@components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,6 +26,7 @@ import {
   Swap,
   Trash,
 } from "@phosphor-icons/react";
+import { type VariantProps } from "class-variance-authority";
 import React, {
   type Dispatch,
   type PropsWithChildren,
@@ -44,6 +45,9 @@ type ActionMenuProps = PropsWithChildren & {
 
   /** The preferred side of the trigger to render against when open. Will be reversed when collisions occur and avoidCollisions is enabled. */
   side?: DropdownMenuContentProps["side"];
+
+  /** Which button variant should be used for the action menu trigger? */
+  buttonVariant?: VariantProps<typeof buttonVariants>["variant"];
 };
 
 export const ActionMenu: React.FC<ActionMenuProps> = ({
@@ -51,12 +55,13 @@ export const ActionMenu: React.FC<ActionMenuProps> = ({
   setIsOpen,
   align = "end",
   side = "bottom",
+  buttonVariant,
   children,
 }) => {
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
       <DropdownMenuTrigger>
-        <Button variant="ghost" size="sm">
+        <Button variant={buttonVariant ?? "outline"} size="sm">
           <DotsThree className="text-slate-900" size={16} />
         </Button>
       </DropdownMenuTrigger>

@@ -141,17 +141,14 @@ export const SetSectionCard: FC<SetSectionCardProps> = ({
     !isDirty || !isValid || isSubmitting;
 
   return (
-    <VStack
-      key={id}
-      className="gap-4 rounded-lg border p-4 shadow lg:gap-8 lg:p-8"
-    >
-      <VStack as="header" className="gap-4 lg:gap-6">
+    <VStack key={id} className="gap-4 rounded-lg border p-4 lg:gap-4 lg:p-6">
+      <VStack as="header" className="gap-4">
         <Form {...updateSetSectionForm}>
           <form
             onSubmit={updateSetSectionForm.handleSubmit(handleUpdateSetSection)}
           >
             {!isEditingSectionType && (
-              <HStack className="flex-wrap items-baseline justify-between gap-4 lg:gap-16">
+              <HStack className="flex-wrap items-baseline justify-between gap-4 pr-4 lg:gap-16">
                 <Text
                   asElement="h3"
                   style="header-medium-semibold"
@@ -162,7 +159,7 @@ export const SetSectionCard: FC<SetSectionCardProps> = ({
                 <HStack className="flex items-start gap-2">
                   <Button
                     size="sm"
-                    variant="outline"
+                    variant="ghost"
                     onClick={(clickEvent) => {
                       clickEvent.preventDefault();
                       openAddSongDialogWithPrePopulatedSection();
@@ -256,7 +253,7 @@ export const SetSectionCard: FC<SetSectionCardProps> = ({
         </Form>
         <hr className="bg-slate-100" />
       </VStack>
-      <VStack className="gap-y-4">
+      <VStack>
         {songs &&
           songs.length > 0 &&
           section.songs.map((setSectionSong) => (

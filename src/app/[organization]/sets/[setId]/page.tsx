@@ -220,6 +220,11 @@ export default function SetListPage({ params }: SetListPageProps) {
             setIsEditing={setIsEditingSetDetails}
           />
           <HStack className="gap-2">
+            {setData?.sections && setData.sections.length > 0 && (
+              <Button onClick={openAddSongDialog} className="hidden md:flex">
+                <Plus /> Add a song
+              </Button>
+            )}
             <SetActionsMenu
               setId={params.setId}
               organizationId={userMembership.organizationId}
@@ -228,11 +233,6 @@ export default function SetListPage({ params }: SetListPageProps) {
               setIsEditingSetDetails={setIsEditingSetDetails}
               align="end"
             />
-            {setData?.sections && setData.sections.length > 0 && (
-              <Button onClick={openAddSongDialog} className="hidden md:flex">
-                <Plus /> Add a song
-              </Button>
-            )}
           </HStack>
         </HStack>
         {setData.isArchived && (
@@ -279,7 +279,7 @@ export default function SetListPage({ params }: SetListPageProps) {
         />
       )}
       {setData?.sections && setData.sections.length > 0 && (
-        <VStack className="gap-8 lg:gap-12">
+        <VStack className="gap-8">
           <>
             {setData.sections.map((section) => {
               let sectionStartIndex = 1;
