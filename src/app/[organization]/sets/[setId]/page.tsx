@@ -211,7 +211,7 @@ export default function SetListPage({ params }: SetListPageProps) {
   };
 
   return (
-    <PageContentContainer className="gap-8 lg:mb-16">
+    <PageContentContainer className="gap-6 lg:mb-16">
       <VStack className="gap-6">
         <HStack className="items-start justify-between">
           <SetDetails
@@ -279,7 +279,7 @@ export default function SetListPage({ params }: SetListPageProps) {
         />
       )}
       {setData?.sections && setData.sections.length > 0 && (
-        <VStack className="gap-8">
+        <VStack className="gap-6">
           <>
             {setData.sections.map((section) => {
               let sectionStartIndex = 1;

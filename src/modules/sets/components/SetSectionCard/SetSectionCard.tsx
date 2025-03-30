@@ -145,25 +145,31 @@ export const SetSectionCard: FC<SetSectionCardProps> = ({
     !isDirty || !isValid || isSubmitting;
 
   return (
-    <VStack key={id} className="gap-4 rounded-lg border p-4 lg:gap-4 lg:p-6">
+    <VStack key={id} className="gap-4 rounded-lg border p-4 md:gap-4 lg:p-6">
       <VStack as="header" className="gap-4">
         <Form {...updateSetSectionForm}>
           <form
             onSubmit={updateSetSectionForm.handleSubmit(handleUpdateSetSection)}
           >
             {!isEditingSectionType && (
-              <HStack className="flex-wrap items-baseline justify-between gap-4 pr-4 lg:gap-16">
-                <HStack className="gap-4">
+              <HStack className="flex-wrap items-baseline justify-between gap-4 lg:gap-16 lg:pr-4">
+                <HStack className="gap-2 lg:gap-4">
                   <Text
                     asElement="h3"
                     style="header-medium-semibold"
-                    className="flex-wrap text-xl"
+                    className="text-l flex-wrap md:text-xl"
                   >
                     {type.name}
                   </Text>
                   {!isSectionExpanded ? (
                     <Badge variant="secondary">
-                      {`${section.songs.length} ${pluralize(section.songs.length, { singular: "song", plural: "songs" })}`}
+                      <span>{section.songs.length}</span>
+                      <span className="hidden md:ml-1 md:inline-block">
+                        {pluralize(section.songs.length, {
+                          singular: "song",
+                          plural: "songs",
+                        })}
+                      </span>
                     </Badge>
                   ) : null}
                 </HStack>
