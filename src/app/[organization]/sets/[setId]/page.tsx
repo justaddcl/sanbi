@@ -11,6 +11,7 @@ import {
   ResponsiveDialogTitle,
 } from "@components/ResponsiveDialog";
 import { Text } from "@components/Text";
+import { Alert, AlertDescription, AlertTitle } from "@components/ui/alert";
 import { Button } from "@components/ui/button";
 import { type ComboboxOption } from "@components/ui/combobox";
 import { VStack } from "@components/VStack";
@@ -59,6 +60,7 @@ export default function SetListPage({ params }: SetListPageProps) {
     useState<boolean>(false);
 
   const createSetSectionMutation = api.setSection.create.useMutation();
+  const unarchiveSetMutation = api.set.unarchive.useMutation();
   const apiUtils = api.useUtils();
 
   useEffect(() => {
@@ -140,6 +142,28 @@ export default function SetListPage({ params }: SetListPageProps) {
     window.history.pushState(null, "", `?${queryString}`);
   };
 
+  const unarchiveSet = () => {
+    const toastId = toast.loading("Unarchiving set...");
+
+    unarchiveSetMutation.mutate(
+      { organizationId: setData.organizationId, setId: setData.id },
+      {
+        async onSuccess() {
+          toast.success("Set has been unarchived", { id: toastId });
+          await apiUtils.set.get.invalidate({
+            organizationId: setData.organizationId,
+            setId: setData.id,
+          });
+        },
+        onError(error) {
+          toast.error(`Set could not be unarchived: ${error.message}`, {
+            id: toastId,
+          });
+        },
+      },
+    );
+  };
+
   const handleAddSetSection = () => {
     const toastId = toast.loading("Adding section to set...");
 
@@ -212,10 +236,29 @@ export default function SetListPage({ params }: SetListPageProps) {
           </HStack>
         </HStack>
         {setData.isArchived && (
-          <HStack className="flex items-center gap-1 uppercase text-slate-500">
-            <Archive />
-            <Text>Set is archived</Text>
-          </HStack>
+          <Alert className="border-amber-200 bg-amber-50 ">
+            <Archive color="#78350f" />
+            <AlertTitle className="text-amber-900">Set is archived</AlertTitle>
+            <AlertDescription>
+              <VStack className="justify-start gap-3">
+                <VStack className="gap-1">
+                  <Text className="text-amber-700">
+                    This means this set won&apos;t show up on the sets list page
+                    or in searches by default. However, all set history and data
+                    are preserved and you can find it in the archived section.
+                  </Text>
+                </VStack>
+                <Button
+                  variant="link"
+                  size="sm"
+                  className="self-start p-0 text-amber-900"
+                  onClick={unarchiveSet}
+                >
+                  Unarchive this set
+                </Button>
+              </VStack>
+            </AlertDescription>
+          </Alert>
         )}
         <SetNotes
           setId={params.setId}
