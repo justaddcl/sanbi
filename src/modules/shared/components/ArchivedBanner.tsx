@@ -22,7 +22,7 @@ export const ArchivedBanner: React.FC<ArchivedBannerProps> = ({
   const [isExpanded, setIsExpanded] = useState<boolean>(true);
 
   return (
-    <Alert className="border-amber-200 bg-amber-50 ">
+    <Alert className="border-amber-200 bg-amber-50 p-2 md:p-4">
       <HStack className="items-start gap-2">
         <div className="grid h-9 w-6 shrink-0 place-items-center">
           <Archive color={AMBER_900} />

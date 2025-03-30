@@ -22,7 +22,7 @@ export const PageTitle: React.FC<PageTitleProps> = ({
   badge,
 }) => {
   return (
-    <VStack as="header" className="flex flex-col gap-1 pb-2">
+    <VStack as="header" className="flex flex-col gap-1">
       <HStack className="items-center gap-4">
         <Text
           asElement="h1"
