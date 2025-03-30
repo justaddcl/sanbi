@@ -27,6 +27,7 @@ import { SetPageLoadingState } from "@modules/sets/components/SetLoadingState";
 import { SetNotes } from "@modules/sets/components/SetNotes";
 import { SetSectionCard } from "@modules/sets/components/SetSectionCard";
 import { SetSectionTypeCombobox } from "@modules/sets/components/SetSectionTypeCombobox";
+import { ArchivedBanner } from "@modules/shared/components";
 import { type ConfigureSongForSetProps } from "@modules/songs/components/ConfigureSongForSet/ConfigureSongForSet";
 import { SongSearchDialog } from "@modules/songs/components/SongSearchDialog";
 import { CaretDown, CaretUp } from "@phosphor-icons/react";
@@ -37,8 +38,6 @@ import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useMediaQuery } from "usehooks-ts";
 import { validate as uuidValidate } from "uuid";
-
-const amber900 = "#78350f";
 
 type SetListPageProps = {
   params: { organization: string; setId: string };
@@ -51,8 +50,6 @@ export default function SetListPage({ params }: SetListPageProps) {
   const isDesktop = useMediaQuery(DESKTOP_MEDIA_QUERY_STRING);
   const textSize = isDesktop ? "text-base" : "text-xs";
 
-  const [isArchivedBannerExpanded, setIsArchivedBannerExpanded] =
-    useState<boolean>(true);
   const [isEditingSetDetails, setIsEditingSetDetails] =
     useState<boolean>(false);
   const [prePopulatedSetSectionId, setPrePopulatedSetSectionId] =
@@ -241,56 +238,7 @@ export default function SetListPage({ params }: SetListPageProps) {
           </HStack>
         </HStack>
         {setData.isArchived && (
-          <Alert className="border-amber-200 bg-amber-50 ">
-            <HStack className="items-start gap-2">
-              <div className="grid size-9 shrink-0 place-items-center">
-                <Archive color={amber900} />
-              </div>
-              <VStack className="w-full">
-                <HStack className="items-center justify-between">
-                  <AlertTitle className="mb-0 text-amber-900">
-                    Set is archived
-                  </AlertTitle>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="hover:bg-amber-100"
-                    onClick={() => {
-                      setIsArchivedBannerExpanded((isExpanded) => !isExpanded);
-                    }}
-                  >
-                    {isArchivedBannerExpanded ? (
-                      <CaretUp color={amber900} />
-                    ) : (
-                      <CaretDown color={amber900} />
-                    )}
-                  </Button>
-                </HStack>
-                {isArchivedBannerExpanded && (
-                  <AlertDescription>
-                    <VStack className="justify-start gap-3">
-                      <VStack className="gap-1">
-                        <Text className="text-amber-700">
-                          This means this set won&apos;t show up on the sets
-                          list page or in searches by default. However, all set
-                          history and data are preserved and you can find it in
-                          the archived section.
-                        </Text>
-                      </VStack>
-                      <Button
-                        variant="link"
-                        size="sm"
-                        className="self-start p-0 text-amber-900"
-                        onClick={unarchiveSet}
-                      >
-                        Unarchive this set
-                      </Button>
-                    </VStack>
-                  </AlertDescription>
-                )}
-              </VStack>
-            </HStack>
-          </Alert>
+          <ArchivedBanner itemType="set" onCtaClick={unarchiveSet} />
         )}
         <SetNotes
           setId={params.setId}
