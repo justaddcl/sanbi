@@ -101,6 +101,9 @@ export const organizationMemberships = createTable(
 export const tags = createTable("tags", {
   id: uuid("id").primaryKey().defaultRandom(),
   tag: varchar("tag", { length: 256 }).notNull().unique(),
+  organizationId: uuid("organization_id")
+    .references(() => organizations.id)
+    .notNull(),
   createdAt: timestamp("created_at", { withTimezone: true })
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),
@@ -251,6 +254,7 @@ export const organizationsRelations = relations(organizations, ({ many }) => ({
   sets: many(sets),
   setSectionSongs: many(setSectionSongs),
   eventTypes: many(eventTypes),
+  tags: many(tags),
 }));
 
 export const organizationMembersRelations = relations(
@@ -296,8 +300,12 @@ export const songTagsRelations = relations(songTags, ({ one }) => ({
   }),
 }));
 
-export const tagsRelations = relations(tags, ({ many }) => ({
+export const tagsRelations = relations(tags, ({ one, many }) => ({
   songTags: many(songTags),
+  organization: one(organizations, {
+    fields: [tags.organizationId],
+    references: [organizations.id],
+  }),
 }));
 
 export const setSectionSongsRelations = relations(
