@@ -1,3 +1,5 @@
+"use client";
+
 import { HStack } from "@components/HStack";
 import { Text } from "@components/Text";
 import { Button } from "@components/ui/button";
@@ -26,7 +28,7 @@ type CardPropsWithoutHeader = BaseCardProps & {
   collapsible?: boolean;
   externalIsExpanded?: never;
   initialIsExpanded?: boolean;
-  buttonLabel?: React.ReactElement;
+  buttonLabel?: React.ReactNode;
   buttonOnClick?: () => void;
   actionMenu?: React.ReactElement;
 };
@@ -37,7 +39,7 @@ export const Card: React.FC<CardProps> = ({
   header,
   title,
   badge,
-  collapsible,
+  collapsible: isCollapsible,
   externalIsExpanded,
   initialIsExpanded,
   buttonLabel,
@@ -48,6 +50,10 @@ export const Card: React.FC<CardProps> = ({
   const [isExpanded, setIsExpanded] = useState<boolean>(
     initialIsExpanded ?? true,
   );
+
+  const hasButton = !!buttonLabel && !!buttonOnClick;
+  const shouldShowChildren =
+    (isCollapsible && isExpanded) ?? externalIsExpanded ?? !isCollapsible;
 
   return (
     <VStack className="gap-4 rounded-lg border p-4 md:gap-4 lg:p-6">
@@ -65,36 +71,40 @@ export const Card: React.FC<CardProps> = ({
                 {title}
               </Text>
               {!!badge && badge}
-            </HStack>
-            <HStack className="flex items-start gap-2">
-              {collapsible && (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={(clickEvent) => {
-                    clickEvent.preventDefault();
-                    setIsExpanded((isExpanded) => !isExpanded);
-                  }}
-                >
-                  {isExpanded ? <CaretUp /> : <CaretDown />}
-                </Button>
+              {(!!isCollapsible || hasButton) && (
+                <HStack className="flex items-start gap-2">
+                  {isCollapsible && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={(clickEvent) => {
+                        clickEvent.preventDefault();
+                        setIsExpanded((isExpanded) => !isExpanded);
+                      }}
+                    >
+                      {isExpanded ? <CaretUp /> : <CaretDown />}
+                    </Button>
+                  )}
+                  {hasButton && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={(clickEvent) => {
+                        clickEvent.preventDefault();
+                        buttonOnClick?.();
+                      }}
+                    >
+                      {buttonLabel}
+                    </Button>
+                  )}
+                  {!!actionMenu && actionMenu}
+                </HStack>
               )}
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={(clickEvent) => {
-                  clickEvent.preventDefault();
-                  buttonOnClick?.();
-                }}
-              >
-                {buttonLabel}
-              </Button>
-              {!!actionMenu && actionMenu}
             </HStack>
           </>
         )}
       </VStack>
-      {((collapsible && isExpanded) ?? externalIsExpanded) && (
+      {shouldShowChildren && (
         <VStack>
           <hr className="mb-4 bg-slate-100" />
           {children}
