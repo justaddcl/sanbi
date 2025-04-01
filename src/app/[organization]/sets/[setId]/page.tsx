@@ -11,6 +11,7 @@ import {
   ResponsiveDialogTitle,
 } from "@components/ResponsiveDialog";
 import { Text } from "@components/Text";
+import { Alert, AlertDescription, AlertTitle } from "@components/ui/alert";
 import { Button } from "@components/ui/button";
 import { type ComboboxOption } from "@components/ui/combobox";
 import { VStack } from "@components/VStack";
@@ -26,8 +27,10 @@ import { SetPageLoadingState } from "@modules/sets/components/SetLoadingState";
 import { SetNotes } from "@modules/sets/components/SetNotes";
 import { SetSectionCard } from "@modules/sets/components/SetSectionCard";
 import { SetSectionTypeCombobox } from "@modules/sets/components/SetSectionTypeCombobox";
+import { ArchivedBanner } from "@modules/shared/components";
 import { type ConfigureSongForSetProps } from "@modules/songs/components/ConfigureSongForSet/ConfigureSongForSet";
 import { SongSearchDialog } from "@modules/songs/components/SongSearchDialog";
+import { CaretDown, CaretUp } from "@phosphor-icons/react";
 import { Archive, Plus } from "@phosphor-icons/react/dist/ssr";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { redirect, useSearchParams } from "next/navigation";
@@ -59,6 +62,7 @@ export default function SetListPage({ params }: SetListPageProps) {
     useState<boolean>(false);
 
   const createSetSectionMutation = api.setSection.create.useMutation();
+  const unarchiveSetMutation = api.set.unarchive.useMutation();
   const apiUtils = api.useUtils();
 
   useEffect(() => {
@@ -140,6 +144,28 @@ export default function SetListPage({ params }: SetListPageProps) {
     window.history.pushState(null, "", `?${queryString}`);
   };
 
+  const unarchiveSet = () => {
+    const toastId = toast.loading("Unarchiving set...");
+
+    unarchiveSetMutation.mutate(
+      { organizationId: setData.organizationId, setId: setData.id },
+      {
+        async onSuccess() {
+          toast.success("Set has been unarchived", { id: toastId });
+          await apiUtils.set.get.invalidate({
+            organizationId: setData.organizationId,
+            setId: setData.id,
+          });
+        },
+        onError(error) {
+          toast.error(`Set could not be unarchived: ${error.message}`, {
+            id: toastId,
+          });
+        },
+      },
+    );
+  };
+
   const handleAddSetSection = () => {
     const toastId = toast.loading("Adding section to set...");
 
@@ -188,7 +214,7 @@ export default function SetListPage({ params }: SetListPageProps) {
 
   return (
     <PageContentContainer className="gap-8 lg:mb-16">
-      <VStack className="gap-6">
+      <VStack className="gap-4">
         <HStack className="items-start justify-between">
           <SetDetails
             set={setData}
@@ -196,6 +222,11 @@ export default function SetListPage({ params }: SetListPageProps) {
             setIsEditing={setIsEditingSetDetails}
           />
           <HStack className="gap-2">
+            {setData?.sections && setData.sections.length > 0 && (
+              <Button onClick={openAddSongDialog} className="hidden md:flex">
+                <Plus /> Add a song
+              </Button>
+            )}
             <SetActionsMenu
               setId={params.setId}
               organizationId={userMembership.organizationId}
@@ -204,18 +235,10 @@ export default function SetListPage({ params }: SetListPageProps) {
               setIsEditingSetDetails={setIsEditingSetDetails}
               align="end"
             />
-            {setData?.sections && setData.sections.length > 0 && (
-              <Button onClick={openAddSongDialog} className="hidden md:flex">
-                <Plus /> Add a song
-              </Button>
-            )}
           </HStack>
         </HStack>
         {setData.isArchived && (
-          <HStack className="flex items-center gap-1 uppercase text-slate-500">
-            <Archive />
-            <Text>Set is archived</Text>
-          </HStack>
+          <ArchivedBanner itemType="set" onCtaClick={unarchiveSet} />
         )}
         <SetNotes
           setId={params.setId}
@@ -236,7 +259,7 @@ export default function SetListPage({ params }: SetListPageProps) {
         />
       )}
       {setData?.sections && setData.sections.length > 0 && (
-        <VStack className="gap-8 lg:gap-12">
+        <VStack className="gap-6">
           <>
             {setData.sections.map((section) => {
               let sectionStartIndex = 1;

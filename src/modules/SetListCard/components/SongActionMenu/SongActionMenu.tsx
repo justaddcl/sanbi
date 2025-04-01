@@ -199,6 +199,7 @@ export const SongActionMenu: React.FC<SongActionMenuProps> = ({
       <ActionMenu
         isOpen={isSongActionMenuOpen}
         setIsOpen={setIsSongActionMenuOpen}
+        buttonVariant="ghost"
       >
         <ActionMenuItem
           icon="Article"

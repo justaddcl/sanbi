@@ -159,8 +159,11 @@ export const SongItem: React.FC<SongItemProps> = ({
       >
         <VStack
           className={cn(
+            "gap-4 rounded-lg",
             [small && "p-1"],
-            [!small && "rounded-lg px-6 py-3 shadow lg:py-4"],
+            [!small && "py-3 pl-2 md:px-4"],
+            [isEditingDetails && "border border-slate-200 bg-slate-50 p-6"],
+            [!isEditingDetails && "py-2 hover:bg-slate-50 md:px-4"],
           )}
         >
           <HStack className="items-baseline justify-between">

@@ -188,7 +188,11 @@ export const SetSectionActionMenu: React.FC<SetSectionActionMenuProps> = ({
 
   return (
     <>
-      <ActionMenu isOpen={isActionMenuOpen} setIsOpen={setIsActionMenuOpen}>
+      <ActionMenu
+        isOpen={isActionMenuOpen}
+        setIsOpen={setIsActionMenuOpen}
+        buttonVariant="ghost"
+      >
         <ActionMenuItem
           icon="Swap"
           label="Change section type"

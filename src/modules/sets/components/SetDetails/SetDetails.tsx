@@ -6,14 +6,16 @@ import {
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
 } from "@components/ResponsiveDialog";
+import { Badge } from "@components/ui/badge";
 import { formatDate } from "@lib/date/formatDate";
 import { pluralize } from "@lib/string/pluralize";
 import { type SetWithSectionsSongsAndEventType } from "@lib/types";
-import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import {
   EditSetDetailsForm,
   type EditSetDetailsFormProps,
 } from "@modules/sets/components/forms/EditSetDetailsForm";
+import { Archive } from "@phosphor-icons/react";
+import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 
 type SetDetailsProps = {
   set: SetWithSectionsSongsAndEventType;
@@ -36,6 +38,14 @@ export const SetDetails: React.FC<SetDetailsProps> = ({
         title={formatDate(set.date, { month: "long" })}
         subtitle={set.eventType.name}
         details={`${songCount} ${pluralize(songCount, { singular: "song", plural: "songs" })}`}
+        badge={
+          set.isArchived ? (
+            <Badge variant="warn" className="gap-1">
+              <Archive />
+              Archived
+            </Badge>
+          ) : undefined
+        }
       />
       <ResponsiveDialog open={isEditing} onOpenChange={setIsEditing}>
         <ResponsiveDialogContent className="mx-6 gap-2 p-6 lg:gap-6 lg:p-8">

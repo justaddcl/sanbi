@@ -1,6 +1,7 @@
 import { api } from "@/trpc/react";
 import { HStack } from "@components/HStack";
 import { Text } from "@components/Text";
+import { Badge } from "@components/ui/badge";
 import { Button } from "@components/ui/button";
 import { type ComboboxOption } from "@components/ui/combobox";
 import {
@@ -13,6 +14,7 @@ import {
 import { VStack } from "@components/VStack";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { DESKTOP_MEDIA_QUERY_STRING } from "@lib/constants";
+import { pluralize } from "@lib/string";
 import { type SetSectionWithSongs } from "@lib/types";
 import { insertSetSectionSchema } from "@lib/types/zod";
 import { cn } from "@lib/utils";
@@ -21,6 +23,7 @@ import { SetSectionActionMenu } from "@modules/SetListCard/components/SetSection
 import { SetSectionTypeCombobox } from "@modules/sets/components/SetSectionTypeCombobox";
 import { useSectionTypesOptions } from "@modules/sets/hooks/useSetSectionTypes";
 import { useUserQuery } from "@modules/users/api/queries";
+import { CaretDown, CaretUp } from "@phosphor-icons/react";
 import { Plus } from "@phosphor-icons/react/dist/ssr";
 import { redirect, useSearchParams } from "next/navigation";
 import { useState, type FC } from "react";
@@ -70,6 +73,7 @@ export const SetSectionCard: FC<SetSectionCardProps> = ({
   const isDesktop = useMediaQuery(DESKTOP_MEDIA_QUERY_STRING);
   const textSize = isDesktop ? "text-base" : "text-xs";
 
+  const [isSectionExpanded, setIsSectionExpanded] = useState<boolean>(true);
   const [isEditingSectionType, setIsEditingSectionType] =
     useState<boolean>(false);
 
@@ -141,28 +145,48 @@ export const SetSectionCard: FC<SetSectionCardProps> = ({
     !isDirty || !isValid || isSubmitting;
 
   return (
-    <VStack
-      key={id}
-      className="gap-4 rounded-lg border p-4 shadow lg:gap-8 lg:p-8"
-    >
-      <VStack as="header" className="gap-4 lg:gap-6">
+    <VStack key={id} className="gap-4 rounded-lg border p-4 md:gap-4 lg:p-6">
+      <VStack as="header" className="gap-4">
         <Form {...updateSetSectionForm}>
           <form
             onSubmit={updateSetSectionForm.handleSubmit(handleUpdateSetSection)}
           >
             {!isEditingSectionType && (
-              <HStack className="flex-wrap items-baseline justify-between gap-4 lg:gap-16">
-                <Text
-                  asElement="h3"
-                  style="header-medium-semibold"
-                  className="flex-wrap text-xl"
-                >
-                  {type.name}
-                </Text>
+              <HStack className="flex-wrap items-baseline justify-between gap-4 lg:gap-16 lg:pr-4">
+                <HStack className="gap-2 lg:gap-4">
+                  <Text
+                    asElement="h3"
+                    style="header-medium-semibold"
+                    className="text-l flex-wrap md:text-xl"
+                  >
+                    {type.name}
+                  </Text>
+                  {!isSectionExpanded ? (
+                    <Badge variant="secondary">
+                      <span>{section.songs.length}</span>
+                      <span className="hidden md:ml-1 md:inline-block">
+                        {pluralize(section.songs.length, {
+                          singular: "song",
+                          plural: "songs",
+                        })}
+                      </span>
+                    </Badge>
+                  ) : null}
+                </HStack>
                 <HStack className="flex items-start gap-2">
                   <Button
                     size="sm"
-                    variant="outline"
+                    variant="ghost"
+                    onClick={(clickEvent) => {
+                      clickEvent.preventDefault();
+                      setIsSectionExpanded((isExpanded) => !isExpanded);
+                    }}
+                  >
+                    {isSectionExpanded ? <CaretUp /> : <CaretDown />}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
                     onClick={(clickEvent) => {
                       clickEvent.preventDefault();
                       openAddSongDialogWithPrePopulatedSection();
@@ -254,26 +278,30 @@ export const SetSectionCard: FC<SetSectionCardProps> = ({
             )}
           </form>
         </Form>
-        <hr className="bg-slate-100" />
       </VStack>
-      <VStack className="gap-y-4">
-        {songs &&
-          songs.length > 0 &&
-          section.songs.map((setSectionSong) => (
-            <SongItem
-              key={setSectionSong.id}
-              setSectionSong={setSectionSong}
-              index={sectionStartIndex + setSectionSong.position}
-              setId={setId}
-              setSectionType={type.name}
-              isInFirstSection={isFirstSection}
-              isInLastSection={isLastSection}
-              isFirstSong={setSectionSong.position === 0}
-              isLastSong={setSectionSong.position === section.songs.length - 1}
-              withActionsMenu
-            />
-          ))}
-      </VStack>
+      {isSectionExpanded && (
+        <VStack>
+          <hr className="mb-4 bg-slate-100" />
+          {songs &&
+            songs.length > 0 &&
+            section.songs.map((setSectionSong) => (
+              <SongItem
+                key={setSectionSong.id}
+                setSectionSong={setSectionSong}
+                index={sectionStartIndex + setSectionSong.position}
+                setId={setId}
+                setSectionType={type.name}
+                isInFirstSection={isFirstSection}
+                isInLastSection={isLastSection}
+                isFirstSong={setSectionSong.position === 0}
+                isLastSong={
+                  setSectionSong.position === section.songs.length - 1
+                }
+                withActionsMenu
+              />
+            ))}
+        </VStack>
+      )}
     </VStack>
   );
 };
