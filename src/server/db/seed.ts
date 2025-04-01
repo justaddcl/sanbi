@@ -92,16 +92,6 @@ const seedUser: NewUser = {
   lastName: faker.person.lastName(),
 };
 
-const seedTags: NewTag[] = [
-  { tag: "God's love" },
-  { tag: "God's sovereignty" },
-  { tag: "Easter" },
-  { tag: "Christmas" },
-  { tag: "The cross" },
-  { tag: "Grace" },
-  { tag: "Forgiveness" },
-];
-
 /**
  * We disable the @typescript-eslint/no-unsafe-argument rule for seeding
  * since using the inferred drizzle insert types leads to "Unsafe argument
@@ -180,6 +170,15 @@ const seed = async () => {
 
   /** seed the tags table */
   await db.execute(sql`TRUNCATE TABLE sanbi_tags CASCADE`);
+  const seedTags: NewTag[] = [
+    { tag: "God's love", organizationId: organization!.id },
+    { tag: "God's sovereignty", organizationId: organization!.id },
+    { tag: "Easter", organizationId: organization!.id },
+    { tag: "Christmas", organizationId: organization!.id },
+    { tag: "The cross", organizationId: organization!.id },
+    { tag: "Grace", organizationId: organization!.id },
+    { tag: "Forgiveness", organizationId: organization!.id },
+  ];
   const seededTags = await db.insert(tags).values(seedTags).returning();
   console.log("🚀 ~ seed ~ seededTags:", seededTags);
 
