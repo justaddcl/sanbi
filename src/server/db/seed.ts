@@ -118,18 +118,26 @@ const seed = async () => {
     .values(seedOrganization)
     .onConflictDoNothing()
     .returning();
+
+  if (!organization) {
+    throw new Error("Failed to create seed organization");
+  }
   console.log("🚀 ~ seed ~ organization:", organization);
+  const organizationId = organization.id;
 
   /** seed the users table */
   await db.execute(sql`TRUNCATE TABLE sanbi_users CASCADE`);
   const [user] = await db.insert(users).values(seedUser).returning();
+  if (!user) {
+    throw new Error("Failed to create seed user");
+  }
   console.log("🚀 ~ seed ~ user:", user);
 
   /** seed the organisation members table */
   await db.execute(sql`TRUNCATE TABLE sanbi_organization_memberships CASCADE`);
   const newOrgMembership: NewOrganizationMembership = {
-    userId: user!.id,
-    organizationId: organization!.id,
+    userId: user.id,
+    organizationId: organization.id,
     permissionType: "admin",
   };
   const orgMembership = await db
@@ -141,9 +149,9 @@ const seed = async () => {
 
   /** seed the event types table */
   const seedEventTypes: NewEventType[] = [
-    { name: "Sunday service", organizationId: organization!.id },
-    { name: "Team Stoneway", organizationId: organization!.id },
-    { name: "Discipleship Community", organizationId: organization!.id },
+    { name: "Sunday service", organizationId },
+    { name: "Team Stoneway", organizationId },
+    { name: "Discipleship Community", organizationId },
   ];
 
   await db.execute(sql`TRUNCATE TABLE sanbi_event_types CASCADE`);
@@ -156,9 +164,9 @@ const seed = async () => {
 
   /** seed the section types table */
   const seedSetSectionTypes: NewSetSectionType[] = [
-    { name: "Full band", organizationId: organization!.id },
-    { name: "Prayer", organizationId: organization!.id },
-    { name: `Lord's Supper`, organizationId: organization!.id },
+    { name: "Full band", organizationId },
+    { name: "Prayer", organizationId },
+    { name: `Lord's Supper`, organizationId },
   ];
   await db.execute(sql`TRUNCATE TABLE sanbi_set_section_types CASCADE`);
   const seededSectionTypes = await db
@@ -171,13 +179,13 @@ const seed = async () => {
   /** seed the tags table */
   await db.execute(sql`TRUNCATE TABLE sanbi_tags CASCADE`);
   const seedTags: NewTag[] = [
-    { tag: "God's love", organizationId: organization!.id },
-    { tag: "God's sovereignty", organizationId: organization!.id },
-    { tag: "Easter", organizationId: organization!.id },
-    { tag: "Christmas", organizationId: organization!.id },
-    { tag: "The cross", organizationId: organization!.id },
-    { tag: "Grace", organizationId: organization!.id },
-    { tag: "Forgiveness", organizationId: organization!.id },
+    { tag: "God's love", organizationId },
+    { tag: "God's sovereignty", organizationId },
+    { tag: "Easter", organizationId },
+    { tag: "Christmas", organizationId },
+    { tag: "The cross", organizationId },
+    { tag: "Grace", organizationId },
+    { tag: "Forgiveness", organizationId },
   ];
   const seededTags = await db.insert(tags).values(seedTags).returning();
   console.log("🚀 ~ seed ~ seededTags:", seededTags);
@@ -190,15 +198,15 @@ const seed = async () => {
       preferredKey: "b",
       notes:
         "Play in the key of B to make it easier for the backup vocalist to harmonize with.",
-      createdBy: user!.id,
-      organizationId: organization!.id,
+      createdBy: user.id,
+      organizationId,
       isArchived: false,
     },
     {
       name: "Such An Awesome God",
       preferredKey: "a",
-      createdBy: user!.id,
-      organizationId: organization!.id,
+      createdBy: user.id,
+      organizationId,
       isArchived: false,
     },
     {
@@ -206,52 +214,52 @@ const seed = async () => {
       preferredKey: "g",
       notes:
         "Song is best with only vocals, guitar, and keys. Feels powerful with only vocals on the last chorus.",
-      createdBy: user!.id,
-      organizationId: organization!.id,
+      createdBy: user.id,
+      organizationId,
       isArchived: false,
     },
     {
       name: "Refuge",
       preferredKey: "g",
-      createdBy: user!.id,
-      organizationId: organization!.id,
+      createdBy: user.id,
+      organizationId,
       isArchived: false,
     },
     {
       name: "Son Of Suffering",
       preferredKey: "g",
       notes: "Don't play the second chorus or chorus 2.",
-      createdBy: user!.id,
-      organizationId: organization!.id,
+      createdBy: user.id,
+      organizationId,
       isArchived: false,
     },
     {
       name: "Draw Me Close To You",
       preferredKey: "c",
-      createdBy: user!.id,
-      organizationId: organization!.id,
+      createdBy: user.id,
+      organizationId,
       isArchived: false,
     },
     {
       name: "Romans 2:4",
       preferredKey: "g",
-      createdBy: user!.id,
-      organizationId: organization!.id,
+      createdBy: user.id,
+      organizationId,
       isArchived: false,
     },
     {
       name: "Only Jesus",
       preferredKey: "g",
       notes: "Skip the tag if not playing with full band.",
-      createdBy: user!.id,
-      organizationId: organization!.id,
+      createdBy: user.id,
+      organizationId,
       isArchived: false,
     },
     {
       name: "God Over Everything",
       preferredKey: "g",
-      createdBy: user!.id,
-      organizationId: organization!.id,
+      createdBy: user.id,
+      organizationId,
       isArchived: false,
     },
   ];
@@ -288,11 +296,14 @@ const seed = async () => {
       from: SET_DATE_FROM_BOUNDARY,
       to: SET_DATE_TO_BOUNDARY,
     });
+    if (!randomEventType) {
+      throw new Error("Failed to create seed random event type");
+    }
     const formattedFakeDate = fakeDate.toLocaleDateString("en-CA"); // en-CA is a locale that uses the 'YYYY-MM-DD' format
     return {
-      eventTypeId: randomEventType!.id,
+      eventTypeId: randomEventType.id,
       date: formattedFakeDate,
-      organizationId: organization!.id,
+      organizationId,
       isArchived: false,
     };
   });
@@ -312,7 +323,7 @@ const seed = async () => {
         setId: set.id,
         position: index,
         sectionTypeId: sectionType.id,
-        organizationId: organization!.id,
+        organizationId,
       }),
     );
 
@@ -347,7 +358,7 @@ const seed = async () => {
           songId: song.id,
           position: index,
           key: randomKey,
-          organizationId: organization!.id,
+          organizationId,
         };
       },
     );
