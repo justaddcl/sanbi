@@ -22,7 +22,7 @@ import { SetSectionTypeCombobox } from "@modules/sets/components/SetSectionTypeC
 import { useSectionTypesOptions } from "@modules/sets/hooks/useSetSectionTypes";
 import { useUserQuery } from "@modules/users/api/queries";
 import { CaretDown, CaretUp, Plus } from "@phosphor-icons/react";
-import { redirect, useSearchParams } from "next/navigation";
+import { redirect, useRouter, useSearchParams } from "next/navigation";
 import React, { useState, type Dispatch, type SetStateAction } from "react";
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { toast } from "sonner";
@@ -58,6 +58,7 @@ export const EditSetSectionTypeForm: React.FC<EditSetSectionTypeFormProps> = ({
 
   const [isEditing, setIsEditing] = useState<boolean>(false);
 
+  const router = useRouter();
   const searchParams = useSearchParams();
 
   const changeSetSectionTypeMutation = api.setSection.changeType.useMutation();
@@ -91,7 +92,8 @@ export const EditSetSectionTypeForm: React.FC<EditSetSectionTypeFormProps> = ({
     const params = new URLSearchParams(searchParams.toString());
     params.set("addSongDialogOpen", "1");
     params.set("setSectionId", section.id);
-    window.history.pushState(null, "", `?${params.toString()}`);
+
+    router.push(`?${params.toString()}`);
   };
 
   const shouldUpdateSectionButtonBeDisabled =
