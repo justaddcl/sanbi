@@ -9,6 +9,10 @@ jest.mock("usehooks-ts", () => ({
 }));
 
 describe("useResponsive", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it("should return desktop values when on desktop viewport", () => {
     // Mock the useMediaQuery to return true (desktop viewport)
     (useMediaQuery as jest.Mock).mockReturnValue(true);
