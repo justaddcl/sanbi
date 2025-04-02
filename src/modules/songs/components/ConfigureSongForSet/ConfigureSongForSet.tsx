@@ -26,7 +26,7 @@ import { Textarea } from "@components/ui/textarea";
 import { VStack } from "@components/VStack";
 import { DevTool } from "@hookform/devtools";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { DESKTOP_MEDIA_QUERY_STRING, songKeys } from "@lib/constants";
+import { songKeys } from "@lib/constants";
 import { formatSongKey } from "@lib/string/formatSongKey";
 import { type SetSectionWithSongs } from "@lib/types";
 import { insertSetSectionSongSchema } from "@lib/types/zod";
@@ -47,8 +47,8 @@ import { redirect } from "next/navigation";
 import { type Dispatch, type SetStateAction, useEffect, useState } from "react";
 import { type SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { useMediaQuery } from "usehooks-ts";
 import { z } from "zod";
+import { useResponsive } from "@/hooks/useResponsive";
 
 const createSetSectionSongsSchema = insertSetSectionSongSchema
   .pick({
@@ -85,8 +85,7 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
   setId,
   prePopulatedSetSectionId,
 }) => {
-  const isDesktop = useMediaQuery(DESKTOP_MEDIA_QUERY_STRING);
-  const textSize = isDesktop ? "text-base" : "text-xs";
+  const { textSize, isDesktop } = useResponsive();
 
   const [newSetSectionType, setNewSetSectionType] =
     useState<ComboboxOption | null>(null);

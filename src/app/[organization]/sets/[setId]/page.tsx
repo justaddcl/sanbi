@@ -15,7 +15,6 @@ import { Alert, AlertDescription, AlertTitle } from "@components/ui/alert";
 import { Button } from "@components/ui/button";
 import { type ComboboxOption } from "@components/ui/combobox";
 import { VStack } from "@components/VStack";
-import { DESKTOP_MEDIA_QUERY_STRING } from "@lib/constants";
 import { type SetSectionWithSongs } from "@lib/types";
 import { cn } from "@lib/utils";
 import { useSetQuery } from "@modules/sets/api";
@@ -36,8 +35,8 @@ import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { redirect, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { useMediaQuery } from "usehooks-ts";
 import { validate as uuidValidate } from "uuid";
+import { useResponsive } from "@/hooks/useResponsive";
 
 type SetListPageProps = {
   params: { organization: string; setId: string };
@@ -47,8 +46,7 @@ type SetListPageProps = {
 export default function SetListPage({ params }: SetListPageProps) {
   const searchParams = useSearchParams();
 
-  const isDesktop = useMediaQuery(DESKTOP_MEDIA_QUERY_STRING);
-  const textSize = isDesktop ? "text-base" : "text-xs";
+  const { textSize } = useResponsive();
 
   const [isEditingSetDetails, setIsEditingSetDetails] =
     useState<boolean>(false);
