@@ -53,7 +53,7 @@ export const Card: React.FC<CardProps> = ({
 
   const hasButton = !!buttonLabel && !!buttonOnClick;
   const shouldShowChildren =
-    (isCollapsible && isExpanded) ?? externalIsExpanded ?? !isCollapsible;
+    externalIsExpanded ?? (isCollapsible ? isExpanded : true);
 
   return (
     <VStack className="gap-4 rounded-lg border p-4 md:gap-4 lg:p-6">

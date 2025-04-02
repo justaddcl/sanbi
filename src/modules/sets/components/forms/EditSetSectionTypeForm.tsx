@@ -1,4 +1,10 @@
+import { useResponsive } from "@/hooks/useResponsive";
 import { api } from "@/trpc/react";
+import { HStack } from "@components/HStack";
+import { Text } from "@components/Text";
+import { Badge } from "@components/ui/badge";
+import { Button } from "@components/ui/button";
+import { type ComboboxOption } from "@components/ui/combobox";
 import {
   Form,
   FormControl,
@@ -6,30 +12,22 @@ import {
   FormItem,
   FormLabel,
 } from "@components/ui/form";
+import { VStack } from "@components/VStack";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { pluralize } from "@lib/string";
 import { insertSetSectionSchema } from "@lib/types/zod";
+import { cn } from "@lib/utils";
+import { SetSectionActionMenu } from "@modules/SetListCard/components/SetSectionActionMenu";
+import { SetSectionTypeCombobox } from "@modules/sets/components/SetSectionTypeCombobox";
 import { useSectionTypesOptions } from "@modules/sets/hooks/useSetSectionTypes";
 import { useUserQuery } from "@modules/users/api/queries";
+import { CaretDown, CaretUp, Plus } from "@phosphor-icons/react";
 import { redirect, useSearchParams } from "next/navigation";
 import React, { useState, type Dispatch, type SetStateAction } from "react";
-import { type SubmitHandler, useForm } from "react-hook-form";
+import { useForm, type SubmitHandler } from "react-hook-form";
 import { toast } from "sonner";
 import { type z } from "zod";
 import { type SetSectionCardProps } from "../SetSectionCard";
-import { useMediaQuery } from "usehooks-ts";
-import { DESKTOP_MEDIA_QUERY_STRING } from "@lib/constants";
-import { VStack } from "@components/VStack";
-import { HStack } from "@components/HStack";
-import { pluralize } from "@lib/string";
-import { Text } from "@components/Text";
-import { CaretDown, CaretUp, Plus } from "@phosphor-icons/react";
-import { type ComboboxOption } from "@components/ui/combobox";
-import { SetSectionTypeCombobox } from "@modules/sets/components/SetSectionTypeCombobox";
-import { Button } from "@components/ui/button";
-import { Badge } from "@components/ui/badge";
-import { cn } from "@lib/utils";
-import { SetSectionActionMenu } from "@modules/SetListCard/components/SetSectionActionMenu";
-import { useResponsive } from "@/hooks/useResponsive";
 
 const updateSetSectionSchema = insertSetSectionSchema.pick({
   sectionTypeId: true,

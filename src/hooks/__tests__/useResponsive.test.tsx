@@ -36,6 +36,6 @@ describe("useResponsive", () => {
 
     renderHook(() => useResponsive());
 
-    expect(useMediaQuery).toHaveBeenCalledWith("(min-width: 1025px)");
+    expect(useMediaQuery).toHaveBeenCalledWith(DESKTOP_MEDIA_QUERY_STRING);
   });
 });
