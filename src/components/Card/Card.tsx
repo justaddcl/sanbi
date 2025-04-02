@@ -58,7 +58,7 @@ export const Card: React.FC<CardProps> = ({
   return (
     <VStack className="gap-4 rounded-lg border p-4 md:gap-4 lg:p-6">
       <VStack as="header" className="gap-4">
-        {!!header ? (
+        {header ? (
           header
         ) : (
           <>
