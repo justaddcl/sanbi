@@ -43,6 +43,15 @@ type SetListPageProps = {
   searchParams: Record<string, string | string[] | undefined>;
 };
 
+/**
+ * Renders a page for managing a musical set's details, including its sections and songs.
+ *
+ * This component validates route parameters, ensures user authentication, and fetches set and membership data.
+ * It handles loading and error states, provides dialogs for adding songs and sections, and supports unarchiving archived sets.
+ * Responsive design is managed via the `useResponsive` hook.
+ *
+ * @param params - An object containing route parameters, including organization and set IDs.
+ */
 export default function SetListPage({ params }: SetListPageProps) {
   const searchParams = useSearchParams();
 
