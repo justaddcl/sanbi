@@ -26,7 +26,7 @@ import { Textarea } from "@components/ui/textarea";
 import { VStack } from "@components/VStack";
 import { DevTool } from "@hookform/devtools";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { DESKTOP_MEDIA_QUERY_STRING, songKeys } from "@lib/constants";
+import { songKeys } from "@lib/constants";
 import { formatSongKey } from "@lib/string/formatSongKey";
 import { type SetSectionWithSongs } from "@lib/types";
 import { insertSetSectionSongSchema } from "@lib/types/zod";
@@ -47,8 +47,8 @@ import { redirect } from "next/navigation";
 import { type Dispatch, type SetStateAction, useEffect, useState } from "react";
 import { type SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { useMediaQuery } from "usehooks-ts";
 import { z } from "zod";
+import { useResponsive } from "@/hooks/useResponsive";
 
 const createSetSectionSongsSchema = insertSetSectionSongSchema
   .pick({
@@ -85,8 +85,7 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
   setId,
   prePopulatedSetSectionId,
 }) => {
-  const isDesktop = useMediaQuery(DESKTOP_MEDIA_QUERY_STRING);
-  const textSize = isDesktop ? "text-base" : "text-xs";
+  const { textSize } = useResponsive();
 
   const [newSetSectionType, setNewSetSectionType] =
     useState<ComboboxOption | null>(null);
@@ -301,7 +300,7 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
               lastPlayed={selectedSong?.lastPlayedDate}
               tags={selectedSong?.tags}
               hidePreferredKey
-              size={isDesktop ? "md" : "sm"}
+              size={textSize === "text-base" ? "md" : "sm"}
             />
           </div>
           <Form {...addSongToSetForm}>
@@ -358,7 +357,9 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
                 <div className="flex gap-2 text-slate-500">
                   <div className="flex items-center gap-1">
                     <Heart />
-                    <Text style={isDesktop ? "body-small" : "small"}>
+                    <Text
+                      style={textSize === "text-base" ? "body-small" : "small"}
+                    >
                       Preferred key: {formatSongKey(selectedSong.preferredKey!)}
                       {/* used the non-null assertion since all songs should have a selected key */}
                     </Text>
@@ -366,7 +367,11 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
                   <div className="flex items-center gap-1">
                     <ClockCounterClockwise />
                     <HStack className="items-center">
-                      <Text style={isDesktop ? "body-small" : "small"}>
+                      <Text
+                        style={
+                          textSize === "text-base" ? "body-small" : "small"
+                        }
+                      >
                         Last played:
                       </Text>
                       {isLastPlayInstanceQueryLoading && (
@@ -375,7 +380,11 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
                             size={12}
                             className="mr-2 h-4 w-4 animate-spin"
                           />
-                          <Text style={isDesktop ? "body-small" : "small"}>
+                          <Text
+                            style={
+                              textSize === "text-base" ? "body-small" : "small"
+                            }
+                          >
                             Looking up last time {selectedSong.name} was
                             played...
                           </Text>
@@ -384,7 +393,9 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
                       {!isLastPlayInstanceQueryLoading &&
                         lastPlayInstance?.song.key && (
                           <Text
-                            style={isDesktop ? "body-small" : "small"}
+                            style={
+                              textSize === "text-base" ? "body-small" : "small"
+                            }
                             className="ml-1"
                           >
                             {formatSongKey(lastPlayInstance.song.key)}
@@ -480,7 +491,7 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
                     size="sm"
                     variant="ghost"
                     className={cn("border border-dashed", [
-                      !isDesktop && "h-8",
+                      textSize === "text-xs" && "h-8",
                     ])}
                     onClick={() => setIsAddingSection(true)}
                   >

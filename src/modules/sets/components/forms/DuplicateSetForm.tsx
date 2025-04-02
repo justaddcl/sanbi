@@ -22,10 +22,9 @@ import { CaretDown, CaretUp } from "@phosphor-icons/react/dist/ssr";
 import { useSetQuery } from "@modules/sets/api";
 import { type SetSectionWithSongs } from "@lib/types";
 import { SetSectionList } from "../SetSectionList/SetSectionList";
-import { useMediaQuery } from "usehooks-ts";
-import { DESKTOP_MEDIA_QUERY_STRING } from "@lib/constants";
 import { sanitizeInput } from "@lib/string";
 import { useRouter } from "next/navigation";
+import { useResponsive } from "@/hooks/useResponsive";
 
 const duplicateSetFormSchema = insertSetSchema.pick({
   date: true,
@@ -44,7 +43,7 @@ export const DuplicateSetForm: React.FC<DuplicateSetFormProps> = ({
   setToDuplicateId,
   setIsDuplicateSetDialogOpen,
 }) => {
-  const isDesktop = useMediaQuery(DESKTOP_MEDIA_QUERY_STRING);
+  const { isDesktop } = useResponsive();
   const [isSectionsAndSongsOpen, setIsSectionsAndSongsOpen] =
     useState<boolean>(isDesktop);
 

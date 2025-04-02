@@ -29,6 +29,7 @@ import { Button } from "@components/ui/button";
 import { Badge } from "@components/ui/badge";
 import { cn } from "@lib/utils";
 import { SetSectionActionMenu } from "@modules/SetListCard/components/SetSectionActionMenu";
+import { useResponsive } from "@/hooks/useResponsive";
 
 const updateSetSectionSchema = insertSetSectionSchema.pick({
   sectionTypeId: true,
@@ -55,8 +56,7 @@ export const EditSetSectionTypeForm: React.FC<EditSetSectionTypeFormProps> = ({
   isFirstSection,
   isLastSection,
 }) => {
-  const isDesktop = useMediaQuery(DESKTOP_MEDIA_QUERY_STRING);
-  const textSize = isDesktop ? "text-base" : "text-xs";
+  const { textSize } = useResponsive();
 
   const [isEditing, setIsEditing] = useState<boolean>(false);
 
