@@ -1,5 +1,4 @@
 import type React from "react";
-import { useMediaQuery } from "usehooks-ts";
 import {
   Dialog,
   DialogClose,
@@ -36,7 +35,7 @@ import {
   DrawerTrigger,
   type DrawerTriggerProps,
 } from "@components/ui/drawer";
-import { DESKTOP_MEDIA_QUERY_STRING } from "@lib/constants/mediaQueries";
+import { useResponsive } from "@/hooks/useResponsive";
 
 type ResponsiveDialogProps = React.PropsWithChildren & {
   open?: boolean;
@@ -51,7 +50,7 @@ export const ResponsiveDialog: React.FC<ResponsiveDialogProps> = ({
   children,
   ...sharedProps
 }) => {
-  const isDesktop = useMediaQuery(DESKTOP_MEDIA_QUERY_STRING);
+  const { isDesktop } = useResponsive();
 
   return isDesktop ? (
     <Dialog {...sharedProps} {...dialogProps}>
@@ -73,7 +72,7 @@ type ResponsiveDialogTriggerProps = React.PropsWithChildren & {
 export const ResponsiveDialogTrigger: React.FC<
   ResponsiveDialogTriggerProps
 > = ({ dialogProps, drawerProps, children, ...sharedProps }) => {
-  const isDesktop = useMediaQuery(DESKTOP_MEDIA_QUERY_STRING);
+  const { isDesktop } = useResponsive();
   return isDesktop ? (
     <DialogTrigger {...sharedProps} {...dialogProps}>
       {children}
@@ -97,7 +96,7 @@ export const ResponsiveDialogClose: React.FC<ResponsiveDialogCloseProps> = ({
   children,
   ...sharedProps
 }) => {
-  const isDesktop = useMediaQuery(DESKTOP_MEDIA_QUERY_STRING);
+  const { isDesktop } = useResponsive();
 
   return isDesktop ? (
     <DialogClose {...sharedProps} {...dialogProps}>
@@ -119,7 +118,7 @@ type ResponsiveDialogContentProps = React.PropsWithChildren & {
 export const ResponsiveDialogContent: React.FC<
   ResponsiveDialogContentProps
 > = ({ dialogProps, drawerProps, children, ...sharedProps }) => {
-  const isDesktop = useMediaQuery(DESKTOP_MEDIA_QUERY_STRING);
+  const { isDesktop } = useResponsive();
 
   return isDesktop ? (
     <DialogContent {...sharedProps} {...dialogProps}>
@@ -142,7 +141,7 @@ export const ResponsiveDialogHeader: React.FC<ResponsiveDialogHeaderProps> = ({
   drawerProps,
   children,
 }) => {
-  const isDesktop = useMediaQuery(DESKTOP_MEDIA_QUERY_STRING);
+  const { isDesktop } = useResponsive();
 
   return isDesktop ? (
     <DialogHeader {...dialogProps}>{children}</DialogHeader>
@@ -162,7 +161,7 @@ export const ResponsiveDialogTitle: React.FC<ResponsiveDialogTitle> = ({
   asChild,
   children,
 }) => {
-  const isDesktop = useMediaQuery(DESKTOP_MEDIA_QUERY_STRING);
+  const { isDesktop } = useResponsive();
 
   return isDesktop ? (
     <DialogTitle asChild={asChild} {...dialogProps}>
@@ -178,17 +177,21 @@ export const ResponsiveDialogTitle: React.FC<ResponsiveDialogTitle> = ({
 type ResponsiveDialogDescriptionProps = React.PropsWithChildren & {
   dialogProps?: DialogDescriptionProps;
   drawerProps?: DrawerDescriptionProps;
-  asChild?: boolean
+  asChild?: boolean;
 };
 export const ResponsiveDialogDescription: React.FC<
   ResponsiveDialogDescriptionProps
 > = ({ dialogProps, drawerProps, asChild, children }) => {
-  const isDesktop = useMediaQuery(DESKTOP_MEDIA_QUERY_STRING);
+  const { isDesktop } = useResponsive();
 
   return isDesktop ? (
-    <DialogDescription asChild={asChild} {...dialogProps}>{children}</DialogDescription>
+    <DialogDescription asChild={asChild} {...dialogProps}>
+      {children}
+    </DialogDescription>
   ) : (
-    <DrawerDescription asChild={asChild} {...drawerProps}>{children}</DrawerDescription>
+    <DrawerDescription asChild={asChild} {...drawerProps}>
+      {children}
+    </DrawerDescription>
   );
 };
 
@@ -201,7 +204,7 @@ export const ResponsiveDialogFooter: React.FC<ResponsiveDialogFooterProps> = ({
   drawerProps,
   children,
 }) => {
-  const isDesktop = useMediaQuery(DESKTOP_MEDIA_QUERY_STRING);
+  const { isDesktop } = useResponsive();
 
   return isDesktop ? (
     <DialogFooter {...dialogProps}>{children}</DialogFooter>
