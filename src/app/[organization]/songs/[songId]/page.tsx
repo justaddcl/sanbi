@@ -37,87 +37,92 @@ import { redirect } from "next/navigation";
 import unescapeHTML from "validator/es/lib/unescape";
 import { SongDetailsLabel } from "@modules/songs/components";
 import { SongDetailsItem } from "@modules/songs/components/SongDetailsItem/SongDetailsItem";
+import { toast } from "sonner";
+import { ArchivedBanner } from "@modules/shared/components";
+import { useUserQuery } from "@modules/users/api/queries";
+import { validate as uuidValidate } from "uuid";
 
 export default async function SetListPage({
   params,
 }: {
   params: { songId: string };
 }) {
-  // FIXME: move query to db/queries
-  const songData = await db.query.songs.findFirst({
-    where: eq(songs.id, params.songId),
-    with: {
-      tags: {
-        with: {
-          tag: true,
-        },
-      },
-    },
-  });
-
-  /**
-   * We have to use the sql-like API since we can't properly use the `orderBy`
-   * sorting when using `findMany`
-   */
-  const playHistory = await db
-    .select()
-    .from(setSectionSongs)
-    .leftJoin(setSections, eq(setSectionSongs.setSectionId, setSections.id))
-    .leftJoin(
-      setSectionTypes,
-      eq(setSections.sectionTypeId, setSectionTypes.id),
-    )
-    .leftJoin(sets, eq(sets.id, setSections.setId))
-    .leftJoin(eventTypes, eq(eventTypes.id, sets.eventTypeId))
-    .orderBy(desc(sets.date), asc(setSections.position))
-    .where(eq(setSectionSongs.songId, params.songId));
   const dateFormatter = new Intl.DateTimeFormat("en-US");
-
-  const lastPlayed =
-    playHistory.length > 0
-      ? playHistory.find((playInstance) => isPast(playInstance.sets!.date))
-      : null;
 
   const { userId } = auth();
 
-  if (!userId || !songData) {
-    redirect(`/`);
+  if (!userId) {
+    redirect("/");
   }
 
   const userData = await api.user.getUser({ userId });
   const userMembership = userData?.memberships[0];
 
-  if (!userMembership) {
-    redirect(`/`);
+  const song = await api.song.get({
+    organizationId: userMembership!.organizationId,
+    songId: params.songId,
+  });
+
+  const playHistory = await api.song.getPlayHistory({
+    organizationId: userMembership!.organizationId,
+    songId: params.songId,
+  });
+
+  if (!userData) {
+    return <Text>Loading user data...</Text>;
   }
+
+  if (!song) {
+    return <Text>Loading...</Text>;
+  }
+
+  const lastPlayInstance =
+    playHistory && playHistory.length > 0 ? playHistory[0] : undefined;
+
+  // const unarchiveSong = () => {
+  //   unarchiveSongMutation.mutate(
+  //     { organizationId: userMembership!.organizationId, songId: params.songId },
+  //     {
+  //       onSuccess() {
+  //         toast.success("Song has been unarchived");
+  //         // TODO: invalidate song query
+  //         // router.refresh();
+  //       },
+  //       onError(error) {
+  //         toast.error(`Song could not be unarchived: ${error.message}`);
+  //       },
+  //     },
+  //   );
+  // };
 
   return (
     <PageContentContainer>
-      <PageTitle title={songData.name} />
-      {songData.isArchived && (
-        // <ArchivedBanner itemType="set" onCtaClick={unarchiveSet} />
-        <HStack className="items-center gap-1  text-slate-500">
-          <Archive />
-          <Text>Song is archived</Text>
-        </HStack>
-      )}
+      <PageTitle title={song?.name ?? "Loading song..."} />
+      {/* {song?.isArchived && (
+        <ArchivedBanner
+          itemType="song"
+          onCtaClick={() => {
+            return;
+          }}
+        />
+      )} */}
       <Card title="Song details" collapsible>
         <VStack as="dl" className="gap-4 md:gap-6">
           <SongDetailsItem icon="MusicNoteSimple" label="Preferred Key">
             <dd>
-              <SongKey songKey={songData.preferredKey} size="large" />
+              <SongKey songKey={song?.preferredKey ?? null} size="large" />
             </dd>
           </SongDetailsItem>
           <SongDetailsItem icon="ClockCounterClockwise" label="Last Played">
             <dd>
-              {lastPlayed ? (
+              {lastPlayInstance ? (
                 <HStack className="gap-[3px] leading-4">
                   <Text
                     asElement="span"
                     style="body-small"
                     className="text-slate-700"
                   >
-                    {formatDistanceToNow(lastPlayed.sets!.date, {
+                    {formatDistanceToNow(lastPlayInstance.set.date, {
                       addSuffix: true,
                       includeSeconds: false,
                     })}
@@ -134,7 +139,7 @@ export default async function SetListPage({
                     style="body-small"
                     className="text-slate-700"
                   >
-                    {lastPlayed.event_types?.name}
+                    {lastPlayInstance?.set.eventType}
                   </Text>
                 </HStack>
               ) : (
@@ -144,18 +149,18 @@ export default async function SetListPage({
               )}
             </dd>
           </SongDetailsItem>
-          {songData?.tags && (
+          {song?.tags && (
             <SongDetailsItem icon="Tag" label="Tags">
               <HStack as="dd" className="gap-2">
-                {songData?.tags.map((tag) => (
+                {song?.tags.map((tag) => (
                   <Badge key={tag.tagId} label={tag.tag.tag} />
                 ))}
               </HStack>
             </SongDetailsItem>
           )}
-          {songData?.notes && (
+          {song?.notes && (
             <SongDetailsItem icon="NotePencil" label="Notes">
-              <Text style="body-small">{unescapeHTML(songData.notes)}</Text>
+              <Text style="body-small">{unescapeHTML(song.notes)}</Text>
             </SongDetailsItem>
           )}
         </VStack>
@@ -176,8 +181,8 @@ export default async function SetListPage({
         </button>
         <SongActionsMenu
           songId={params.songId}
-          organizationId={userMembership.organizationId}
-          archived={songData.isArchived ?? false}
+          organizationId={userMembership!.organizationId}
+          archived={!!song?.isArchived}
         />
       </HStack>
       <Card
@@ -194,26 +199,26 @@ export default async function SetListPage({
         //   console.log("🤖 - song details page - buttonOnClick");
         // }}
       >
-          <div className="grid grid-cols-[repeat(auto-fill,_124px)] grid-rows-[repeat(auto-fill,_92px)] gap-2">
-            <ResourceCard title="In My Place" url="theworshipinitiative.com" />
-            <ResourceCard title="In My Place" url="open.spotify.com" />
-          </div>
+        <div className="grid grid-cols-[repeat(auto-fill,_124px)] grid-rows-[repeat(auto-fill,_92px)] gap-2">
+          <ResourceCard title="In My Place" url="theworshipinitiative.com" />
+          <ResourceCard title="In My Place" url="open.spotify.com" />
+        </div>
       </Card>
       <Card title="Play history" collapsible>
-          <div className="grid grid-cols-[16px_1fr] gap-y-4">
-            {playHistory.length > 0 &&
-              playHistory.map((playInstance) => (
-                <PlayHistoryItem
-                  key={`${playInstance.sets?.id}-${playInstance.set_sections?.position}`}
-                  date={dateFormatter.format(new Date(playInstance.sets!.date))}
-                  eventType={playInstance.event_types!.name}
-                  songKey={playInstance.set_section_songs.key}
-                  setSection={playInstance.set_section_types!.name}
-                  setId={playInstance.sets!.id}
-                />
-              ))}
-            <PlayHistoryItem date={dateFormatter.format(songData?.createdAt)} />
-          </div>
+        <div className="grid grid-cols-[16px_1fr] gap-y-4">
+          {playHistory.length > 0 &&
+            playHistory.map((playInstance) => (
+              <PlayHistoryItem
+                key={`${playInstance.set.id}-${playInstance.section.position}`}
+                date={dateFormatter.format(new Date(playInstance.set.date))}
+                eventType={playInstance.set.eventType}
+                songKey={playInstance.song.key}
+                setSection={playInstance.section.typeName}
+                setId={playInstance.set.id}
+              />
+            ))}
+          <PlayHistoryItem date={dateFormatter.format(song?.createdAt)} />
+        </div>
       </Card>
     </PageContentContainer>
   );
