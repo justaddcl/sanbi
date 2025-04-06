@@ -1,13 +1,4 @@
 import { SongActionsMenu } from "@/modules/songs/components/SongActionsMenu";
-import { db } from "@/server/db";
-import {
-  eventTypes,
-  setSectionSongs,
-  setSectionTypes,
-  setSections,
-  sets,
-  songs,
-} from "@/server/db/schema";
 import { api } from "@/trpc/server";
 import { auth } from "@clerk/nextjs/server";
 import { Badge } from "@components/Badge";
@@ -17,35 +8,18 @@ import { PageContentContainer } from "@components/PageContentContainer";
 import { PageTitle } from "@components/PageTitle";
 import { SongKey } from "@components/SongKey";
 import { Text } from "@components/Text";
+import { Badge as ShadCNBadge } from "@components/ui/badge";
+import { Button } from "@components/ui/button";
+import { Skeleton } from "@components/ui/skeleton";
 import { VStack } from "@components/VStack";
 import { PlayHistoryItem, ResourceCard } from "@modules/SetListCard";
-import {
-  Archive,
-  ClockCounterClockwise,
-  DotsThree,
-  Heart,
-  ListPlus,
-  Metronome,
-  MusicNotesSimple,
-  Plus,
-  Tag,
-  TagSimple,
-} from "@phosphor-icons/react/dist/ssr";
-import { formatDistanceToNow, isPast } from "date-fns";
-import { asc, desc, eq } from "drizzle-orm";
+import { ArchivedBanner } from "@modules/shared/components";
+import { SongDetailsPageLoading } from "@modules/songs/components";
+import { SongDetailsItem } from "@modules/songs/components/SongDetailsItem/SongDetailsItem";
+import { Archive, Heart, Plus } from "@phosphor-icons/react/dist/ssr";
+import { formatDistanceToNow } from "date-fns";
 import { redirect } from "next/navigation";
 import unescapeHTML from "validator/es/lib/unescape";
-import {
-  SongDetailsPageLoading,
-  SongDetailsLabel,
-} from "@modules/songs/components";
-import { SongDetailsItem } from "@modules/songs/components/SongDetailsItem/SongDetailsItem";
-import { toast } from "sonner";
-import { ArchivedBanner } from "@modules/shared/components";
-import { useUserQuery } from "@modules/users/api/queries";
-import { validate as uuidValidate } from "uuid";
-import { Skeleton } from "@components/ui/skeleton";
-import { cn } from "@lib/utils";
 
 export default async function SetListPage({
   params,
@@ -86,8 +60,36 @@ export default async function SetListPage({
 
   return (
     <PageContentContainer>
-      <PageTitle title={song.name} />
+      <HStack className="justify-between gap-4">
+        <PageTitle
+          title={song.name}
+          badge={
+            song.isArchived ? (
+              <ShadCNBadge variant="warn" className="gap-1">
+                <Archive />
+                Archived
+              </ShadCNBadge>
+            ) : undefined
+          }
+        />
+        <HStack className="items-start gap-2">
+          <Button variant="outline" className="hidden md:flex">
+            <Heart />
+          </Button>
+          <Button className="hidden md:flex">
+            <Plus /> Add to a set
+          </Button>
+          <SongActionsMenu
+            songId={params.songId}
+            organizationId={userMembership!.organizationId}
+            archived={!!song.isArchived}
+          />
+        </HStack>
+      </HStack>
       {song?.isArchived && <ArchivedBanner itemType="song" songId={song.id} />}
+      <Button className="md:hidden">
+        <Plus /> Add to a set
+      </Button>
       <Card title="Song details" collapsible>
         <VStack as="dl" className="gap-4 md:gap-6">
           <SongDetailsItem icon="MusicNoteSimple" label="Preferred Key">
@@ -153,26 +155,6 @@ export default async function SetListPage({
           )}
         </VStack>
       </Card>
-      <HStack as="section" className="justify-between gap-2">
-        <button className="flex w-full items-center justify-center gap-2 rounded border border-slate-300 px-3 text-slate-700">
-          <ListPlus size={12} />
-          <Text
-            asElement="span"
-            style="header-small-semibold"
-            className="text-slate-700"
-          >
-            Add to set
-          </Text>
-        </button>
-        <button className="flex h-6 w-6 place-content-center rounded border border-slate-300 p-[6px]">
-          <Heart className="text-slate-900" size={12} />
-        </button>
-        <SongActionsMenu
-          songId={params.songId}
-          organizationId={userMembership!.organizationId}
-          archived={!!song.isArchived}
-        />
-      </HStack>
       <Card
         title="Resources"
         collapsible
