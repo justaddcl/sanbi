@@ -35,12 +35,17 @@ import { formatDistanceToNow, isPast } from "date-fns";
 import { asc, desc, eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import unescapeHTML from "validator/es/lib/unescape";
-import { SongDetailsLabel } from "@modules/songs/components";
+import {
+  SongDetailsPageLoading,
+  SongDetailsLabel,
+} from "@modules/songs/components";
 import { SongDetailsItem } from "@modules/songs/components/SongDetailsItem/SongDetailsItem";
 import { toast } from "sonner";
 import { ArchivedBanner } from "@modules/shared/components";
 import { useUserQuery } from "@modules/users/api/queries";
 import { validate as uuidValidate } from "uuid";
+import { Skeleton } from "@components/ui/skeleton";
+import { cn } from "@lib/utils";
 
 export default async function SetListPage({
   params,
@@ -72,10 +77,6 @@ export default async function SetListPage({
     return <Text>Loading user data...</Text>;
   }
 
-  if (!song) {
-    return <Text>Loading...</Text>;
-  }
-
   const lastPlayInstance =
     playHistory && playHistory.length > 0 ? playHistory[0] : undefined;
 
@@ -95,9 +96,13 @@ export default async function SetListPage({
   //   );
   // };
 
+  if (!song) {
+    return <SongDetailsPageLoading />;
+  }
+
   return (
     <PageContentContainer>
-      <PageTitle title={song?.name ?? "Loading song..."} />
+      <PageTitle title={song.name} />
       {/* {song?.isArchived && (
         <ArchivedBanner
           itemType="song"
@@ -110,12 +115,13 @@ export default async function SetListPage({
         <VStack as="dl" className="gap-4 md:gap-6">
           <SongDetailsItem icon="MusicNoteSimple" label="Preferred Key">
             <dd>
-              <SongKey songKey={song?.preferredKey ?? null} size="large" />
+              <SongKey songKey={song.preferredKey} size="large" />
             </dd>
           </SongDetailsItem>
           <SongDetailsItem icon="ClockCounterClockwise" label="Last Played">
             <dd>
-              {lastPlayInstance ? (
+              {!playHistory && <Skeleton className="h-4 w-[250px]" />}
+              {playHistory && lastPlayInstance ? (
                 <HStack className="gap-[3px] leading-4">
                   <Text
                     asElement="span"
@@ -149,16 +155,21 @@ export default async function SetListPage({
               )}
             </dd>
           </SongDetailsItem>
-          {song?.tags && (
-            <SongDetailsItem icon="Tag" label="Tags">
-              <HStack as="dd" className="gap-2">
-                {song?.tags.map((tag) => (
-                  <Badge key={tag.tagId} label={tag.tag.tag} />
-                ))}
-              </HStack>
-            </SongDetailsItem>
-          )}
-          {song?.notes && (
+          <SongDetailsItem icon="Tag" label="Tags">
+            <HStack as="dd" className="gap-2">
+              {!song && (
+                <>
+                  <Skeleton className="h-5 w-20" />
+                  <Skeleton className="h-5 w-16" />
+                  <Skeleton className="h-5 w-24" />
+                </>
+              )}
+              {song.tags?.map((tag) => (
+                <Badge key={tag.tagId} label={tag.tag.tag} />
+              ))}
+            </HStack>
+          </SongDetailsItem>
+          {song.notes && (
             <SongDetailsItem icon="NotePencil" label="Notes">
               <Text style="body-small">{unescapeHTML(song.notes)}</Text>
             </SongDetailsItem>
@@ -182,7 +193,7 @@ export default async function SetListPage({
         <SongActionsMenu
           songId={params.songId}
           organizationId={userMembership!.organizationId}
-          archived={!!song?.isArchived}
+          archived={!!song.isArchived}
         />
       </HStack>
       <Card
@@ -217,7 +228,7 @@ export default async function SetListPage({
                 setId={playInstance.set.id}
               />
             ))}
-          <PlayHistoryItem date={dateFormatter.format(song?.createdAt)} />
+          <PlayHistoryItem date={dateFormatter.format(song.createdAt)} />
         </div>
       </Card>
     </PageContentContainer>
