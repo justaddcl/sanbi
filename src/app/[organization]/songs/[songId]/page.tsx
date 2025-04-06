@@ -80,22 +80,6 @@ export default async function SetListPage({
   const lastPlayInstance =
     playHistory && playHistory.length > 0 ? playHistory[0] : undefined;
 
-  // const unarchiveSong = () => {
-  //   unarchiveSongMutation.mutate(
-  //     { organizationId: userMembership!.organizationId, songId: params.songId },
-  //     {
-  //       onSuccess() {
-  //         toast.success("Song has been unarchived");
-  //         // TODO: invalidate song query
-  //         // router.refresh();
-  //       },
-  //       onError(error) {
-  //         toast.error(`Song could not be unarchived: ${error.message}`);
-  //       },
-  //     },
-  //   );
-  // };
-
   if (!song) {
     return <SongDetailsPageLoading />;
   }
@@ -103,14 +87,7 @@ export default async function SetListPage({
   return (
     <PageContentContainer>
       <PageTitle title={song.name} />
-      {/* {song?.isArchived && (
-        <ArchivedBanner
-          itemType="song"
-          onCtaClick={() => {
-            return;
-          }}
-        />
-      )} */}
+      {song?.isArchived && <ArchivedBanner itemType="song" songId={song.id} />}
       <Card title="Song details" collapsible>
         <VStack as="dl" className="gap-4 md:gap-6">
           <SongDetailsItem icon="MusicNoteSimple" label="Preferred Key">

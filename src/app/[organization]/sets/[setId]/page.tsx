@@ -60,7 +60,6 @@ export default function SetListPage({ params }: SetListPageProps) {
     useState<boolean>(false);
 
   const createSetSectionMutation = api.setSection.create.useMutation();
-  const unarchiveSetMutation = api.set.unarchive.useMutation();
   const apiUtils = api.useUtils();
 
   useEffect(() => {
@@ -142,28 +141,6 @@ export default function SetListPage({ params }: SetListPageProps) {
     window.history.pushState(null, "", `?${queryString}`);
   };
 
-  const unarchiveSet = () => {
-    const toastId = toast.loading("Unarchiving set...");
-
-    unarchiveSetMutation.mutate(
-      { organizationId: setData.organizationId, setId: setData.id },
-      {
-        async onSuccess() {
-          toast.success("Set has been unarchived", { id: toastId });
-          await apiUtils.set.get.invalidate({
-            organizationId: setData.organizationId,
-            setId: setData.id,
-          });
-        },
-        onError(error) {
-          toast.error(`Set could not be unarchived: ${error.message}`, {
-            id: toastId,
-          });
-        },
-      },
-    );
-  };
-
   const handleAddSetSection = () => {
     const toastId = toast.loading("Adding section to set...");
 
@@ -236,7 +213,7 @@ export default function SetListPage({ params }: SetListPageProps) {
           </HStack>
         </HStack>
         {setData.isArchived && (
-          <ArchivedBanner itemType="set" onCtaClick={unarchiveSet} />
+          <ArchivedBanner itemType="set" setId={setData.id} />
         )}
         <SetNotes
           setId={params.setId}
