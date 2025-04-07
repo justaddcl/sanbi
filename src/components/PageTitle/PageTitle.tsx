@@ -1,6 +1,7 @@
 import { HStack } from "@components/HStack";
 import { Text } from "@components/Text";
 import { VStack } from "@components/VStack";
+import { cn } from "@lib/utils";
 
 export type PageTitleProps = {
   /** title */
@@ -23,17 +24,17 @@ export const PageTitle: React.FC<PageTitleProps> = ({
 }) => {
   return (
     <VStack as="header" className="flex flex-col gap-1">
-      <HStack className="items-center gap-4">
+      <div>
         <Text
           asElement="h1"
           style="header-large"
-          className="text-2xl lg:text-4xl"
+          className={cn("text-2xl lg:text-3xl", [!!badge && "mr-4 inline"])}
         >
           {/* TODO: format the date to match locale */}
           {title}
         </Text>
         {!!badge && badge}
-      </HStack>
+      </div>
       {subtitle && (
         <Text
           asElement="h2"

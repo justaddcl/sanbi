@@ -28,6 +28,7 @@ import {
 import { AlertDialogDescription } from "@radix-ui/react-alert-dialog";
 import { useState } from "react";
 import { Button } from "@components/ui/button";
+import { ActionMenu, ActionMenuItem } from "@components/ActionMenu";
 
 type SongActionsMenuProps = {
   songId: string;
@@ -102,40 +103,30 @@ export const SongActionsMenu: React.FC<SongActionsMenuProps> = ({
 
   return (
     <>
-      <DropdownMenu
-        open={isSongActionsMenuOpen}
-        onOpenChange={setIsSongActionsMenuOpen}
+      <ActionMenu
+        isOpen={isSongActionsMenuOpen}
+        setIsOpen={setIsSongActionsMenuOpen}
       >
-        <DropdownMenuTrigger>
-          <button className="flex h-6 w-6 place-content-center rounded border border-slate-300 p-[6px]">
-            <DotsThree className="text-slate-900" size={12} />
-          </button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent>
-          <DropdownMenuItem
-            className="gap-1"
-            onSelect={() =>
-              archived
-                ? unarchiveSong(organizationId, songId)
-                : archiveSong(organizationId, songId)
-            }
-          >
-            {archived ? <BoxArrowUp /> : <Archive />}
-            <Text>{archived ? "Unarchive" : "Archive"} song</Text>
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem
-            className="gap-1 text-slate-400 hover:bg-red-100 hover:text-red-800 active:bg-red-200 active:text-red-900"
-            onSelect={() => {
-              setIsSongActionsMenuOpen(false);
-              setIsConfirmationDialogOpen(true);
-            }}
-          >
-            <Trash />
-            <Text>Delete song</Text>
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+        <ActionMenuItem
+          icon={archived ? "BoxArrowUp" : "Archive"}
+          label={archived ? "Unarchive" : "Archive"}
+          onClick={() =>
+            archived
+              ? unarchiveSong(organizationId, songId)
+              : archiveSong(organizationId, songId)
+          }
+        />
+        <DropdownMenuSeparator />
+        <ActionMenuItem
+          icon="Trash"
+          label="Delete song"
+          destructive
+          onClick={() => {
+            setIsSongActionsMenuOpen(false);
+            setIsConfirmationDialogOpen(true);
+          }}
+        />
+      </ActionMenu>
       <AlertDialog
         open={isConfirmationDialogOpen}
         onOpenChange={setIsConfirmationDialogOpen}

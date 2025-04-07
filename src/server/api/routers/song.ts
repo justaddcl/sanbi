@@ -6,6 +6,8 @@ import {
   insertSongSchema,
   searchSongSchema,
   unarchiveSongSchema,
+  getSongSchema,
+  songGetPlayHistorySchema,
 } from "@lib/types/zod";
 import {
   eventTypes,
@@ -28,6 +30,65 @@ import { eq, sql, desc, lte, and, asc } from "drizzle-orm";
 const TRIGRAM_SIMILARITY_THRESHOLD = 0.1;
 
 export const songRouter = createTRPCRouter({
+  get: organizationProcedure
+    .input(getSongSchema)
+    .query(async ({ ctx, input }) => {
+      console.log(`🤖 - [song/get] - attempting to get song ${input.songId}`);
+
+      const { user } = ctx;
+
+      if (user.membership.organizationId !== input.organizationId) {
+        console.error(
+          `🤖 - [song/get] - User's organization ID does not match the input organization ID`,
+          { user, queryInput: { ...input } },
+        );
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `Organization ID does not match authenticated user's team ID`,
+        });
+      }
+
+      const song = await ctx.db.query.songs.findFirst({
+        where: eq(songs.id, input.songId),
+        with: {
+          tags: {
+            with: {
+              tag: true,
+            },
+          },
+        },
+      });
+
+      if (!song) {
+        console.error(`🤖 - [song/get] - Could not find song ${input.songId}`, {
+          queryInput: { ...input },
+        });
+
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Could not find song",
+        });
+      }
+
+      if (song.organizationId !== user.membership.organizationId) {
+        console.error(
+          `🤖 - [song/get] - user ${user.id} is not authorized to get ${song.id}`,
+          { song, queryInput: { ...input } },
+        );
+
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "User not authorized to get song",
+        });
+      }
+
+      console.info(
+        `🤖 - [song/get] - successfully retrieved song ${input.songId}`,
+        { song },
+      );
+
+      return song;
+    }),
   create: organizationProcedure
     .input(insertSongSchema)
     .mutation(async ({ ctx, input }) => {
@@ -242,5 +303,92 @@ export const songRouter = createTRPCRouter({
       );
 
       return lastPlayInstance;
+    }),
+
+  getPlayHistory: organizationProcedure
+    .input(songGetPlayHistorySchema)
+    .query(async ({ ctx, input }) => {
+      console.log(
+        `🤖 - [song/getPlayHistory] - getting last play instance for ${input.songId}`,
+      );
+
+      return await ctx.db.transaction(async (queryTransaction) => {
+        const song = await queryTransaction.query.songs.findFirst({
+          where: eq(songs.id, input.songId),
+        });
+
+        if (!song) {
+          console.error(
+            `🤖 - [song/getPlayHistory] - could not find song ${input.songId}`,
+            { queryInput: { ...input } },
+          );
+
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Song not found",
+          });
+        }
+
+        if (song.organizationId !== ctx.user.membership.organizationId) {
+          console.error(
+            `🤖 - [song/getPlayHistory] - user ${ctx.user.id} is not authorized to get ${song.id}`,
+            { song, queryInput: { ...input } },
+          );
+
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "User not authorized to get song",
+          });
+        }
+
+        const playHistory = await ctx.db
+          .select({
+            set: {
+              id: sets.id,
+              date: sets.date,
+              eventTypeId: eventTypes.id,
+              eventType: eventTypes.name,
+            },
+            section: {
+              id: setSections.id,
+              typeName: setSectionTypes.name,
+              typeId: setSectionTypes.id,
+              position: setSections.position,
+            },
+            song: {
+              id: setSectionSongs.songId,
+              name: songs.name,
+              key: setSectionSongs.key,
+              position: setSectionSongs.position,
+              notes: setSectionSongs.notes,
+            },
+          })
+          .from(setSectionSongs)
+          .innerJoin(
+            setSections,
+            eq(setSectionSongs.setSectionId, setSections.id),
+          )
+          .innerJoin(sets, eq(setSections.setId, sets.id))
+          .innerJoin(
+            setSectionTypes,
+            eq(setSections.sectionTypeId, setSectionTypes.id),
+          )
+          .innerJoin(eventTypes, eq(sets.eventTypeId, eventTypes.id))
+          .innerJoin(songs, eq(setSectionSongs.songId, songs.id))
+          .where(
+            and(
+              eq(setSectionSongs.songId, input.songId),
+              lte(sets.date, new Date().toLocaleDateString("en-CA")), // en-CA is a locale that uses the 'YYYY-MM-DD' format
+            ),
+          )
+          .orderBy(desc(sets.date), desc(setSections.position));
+
+        console.log(
+          `🤖 - [song/getPlayHistory] - play history ${input.songId}`,
+          playHistory,
+        );
+
+        return playHistory;
+      });
     }),
 });

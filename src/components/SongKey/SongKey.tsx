@@ -1,4 +1,6 @@
 import { type Song } from "@/lib/types";
+import { cn } from "@lib/utils";
+import { Text } from "@components/Text";
 
 export type SongKeyProps = SongKeyGeneralProps &
   (SongKeyFlatProps | SongKeySharpProps);
@@ -9,7 +11,7 @@ type SongKeyGeneralProps = {
   songKey: Song["preferredKey"];
 
   /** size variant */
-  size?: "small" | "medium";
+  size?: "small" | "medium" | "large";
 };
 
 // FIXME: update types to no longer include sharp/flat since that will come from the db type
@@ -35,18 +37,41 @@ export const SongKey: React.FC<SongKeyProps> = ({
   // flat,
   // sharp,
 }) => {
-  const badgeSize = size === "small" ? "h-4 w-4" : "h-5 w-5";
   const [songKeyLetter, occidental] = songKey!.split("_");
   const flat = occidental === "flat";
   const sharp = occidental === "sharp";
 
   return (
-    <span
-      className={`flex ${badgeSize} flex-none items-center justify-center rounded bg-slate-200 text-xs/3 font-medium not-italic text-slate-900`}
+    <Text
+      className={cn(
+        `flex flex-none items-center justify-center rounded bg-slate-200  not-italic text-slate-900`,
+        [size !== "large" && "text-xs/3 font-medium"],
+        [size === "small" && "size-4"],
+        [size === "medium" && "size-5"],
+        [size === "large" && "size-9 font-semibold"],
+      )}
     >
       <span>{songKeyLetter?.toUpperCase()}</span>
-      {flat && <span className="relative bottom-[2px] text-[10px]">♭</span>}
-      {sharp && <span className="relative bottom-[2px] text-[8px]">♯</span>}
-    </span>
+      {flat && (
+        <span
+          className={cn(
+            "relative bottom-[2px]",
+            [size !== "large" && "text-[10px]"],
+            [size === "large" && "text"],
+          )}
+        >
+          ♭
+        </span>
+      )}
+      {sharp && (
+        <span
+          className={cn("relative bottom-[2px]", [
+            size !== "large" && "text-[8px]",
+          ])}
+        >
+          ♯
+        </span>
+      )}
+    </Text>
   );
 };

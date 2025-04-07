@@ -1,35 +1,22 @@
 import { SongActionsMenu } from "@/modules/songs/components/SongActionsMenu";
-import { db } from "@/server/db";
-import {
-  eventTypes,
-  setSectionSongs,
-  setSectionTypes,
-  setSections,
-  sets,
-  songs,
-} from "@/server/db/schema";
 import { api } from "@/trpc/server";
 import { auth } from "@clerk/nextjs/server";
 import { Badge } from "@components/Badge";
+import { Card } from "@components/Card/Card";
 import { HStack } from "@components/HStack";
-import { PageContentContainer } from "@components/PageContentContainer";
 import { PageTitle } from "@components/PageTitle";
 import { SongKey } from "@components/SongKey";
 import { Text } from "@components/Text";
+import { Badge as ShadCNBadge } from "@components/ui/badge";
+import { Button } from "@components/ui/button";
+import { Skeleton } from "@components/ui/skeleton";
 import { VStack } from "@components/VStack";
 import { PlayHistoryItem, ResourceCard } from "@modules/SetListCard";
-import {
-  Archive,
-  ClockCounterClockwise,
-  DotsThree,
-  Heart,
-  ListPlus,
-  Metronome,
-  MusicNotesSimple,
-  TagSimple,
-} from "@phosphor-icons/react/dist/ssr";
-import { formatDistanceToNow, isPast } from "date-fns";
-import { asc, desc, eq } from "drizzle-orm";
+import { ArchivedBanner } from "@modules/shared/components";
+import { SongDetailsPageLoading } from "@modules/songs/components";
+import { SongDetailsItem } from "@modules/songs/components/SongDetailsItem/SongDetailsItem";
+import { Archive, Heart, Plus } from "@phosphor-icons/react/dist/ssr";
+import { formatDistanceToNow } from "date-fns";
 import { redirect } from "next/navigation";
 import unescapeHTML from "validator/es/lib/unescape";
 
@@ -38,89 +25,92 @@ export default async function SetListPage({
 }: {
   params: { songId: string };
 }) {
-  // FIXME: move query to db/queries
-  const songData = await db.query.songs.findFirst({
-    where: eq(songs.id, params.songId),
-    with: {
-      tags: {
-        with: {
-          tag: true,
-        },
-      },
-    },
-  });
-
-  /**
-   * We have to use the sql-like API since we can't properly use the `orderBy`
-   * sorting when using `findMany`
-   */
-  const playHistory = await db
-    .select()
-    .from(setSectionSongs)
-    .leftJoin(setSections, eq(setSectionSongs.setSectionId, setSections.id))
-    .leftJoin(
-      setSectionTypes,
-      eq(setSections.sectionTypeId, setSectionTypes.id),
-    )
-    .leftJoin(sets, eq(sets.id, setSections.setId))
-    .leftJoin(eventTypes, eq(eventTypes.id, sets.eventTypeId))
-    .orderBy(desc(sets.date), asc(setSections.position))
-    .where(eq(setSectionSongs.songId, params.songId));
   const dateFormatter = new Intl.DateTimeFormat("en-US");
-
-  const lastPlayed =
-    playHistory.length > 0
-      ? playHistory.find((playInstance) => isPast(playInstance.sets!.date))
-      : null;
 
   const { userId } = auth();
 
-  if (!userId || !songData) {
-    redirect(`/`);
+  if (!userId) {
+    redirect("/");
   }
 
   const userData = await api.user.getUser({ userId });
   const userMembership = userData?.memberships[0];
 
   if (!userMembership) {
-    redirect(`/`);
+    redirect("/");
+  }
+
+  const song = await api.song.get({
+    organizationId: userMembership.organizationId,
+    songId: params.songId,
+  });
+
+  const playHistory = await api.song.getPlayHistory({
+    organizationId: userMembership.organizationId,
+    songId: params.songId,
+  });
+
+  if (!userData) {
+    return <Text>Loading user data...</Text>;
+  }
+
+  const lastPlayInstance =
+    playHistory && playHistory.length > 0 ? playHistory[0] : undefined;
+
+  if (!song) {
+    return <SongDetailsPageLoading />;
   }
 
   return (
-    <PageContentContainer>
-      <PageTitle title={songData.name} />
-      <section>
-        {/* FIXME: refactor definition list into reusable components */}
+    <>
+      <HStack className="justify-between gap-4">
+        <PageTitle
+          title={song.name}
+          badge={
+            song.isArchived ? (
+              <ShadCNBadge variant="warn" className="gap-1">
+                <Archive />
+                Archived
+              </ShadCNBadge>
+            ) : undefined
+          }
+        />
+        <HStack className="items-start gap-2">
+          <Button variant="outline" className="hidden md:flex">
+            <Heart />
+          </Button>
+          <Button className="hidden md:flex">
+            <Plus /> Add to a set
+          </Button>
+          <SongActionsMenu
+            songId={params.songId}
+            organizationId={userMembership.organizationId}
+            archived={!!song.isArchived}
+          />
+        </HStack>
+      </HStack>
+      {song?.isArchived && <ArchivedBanner itemType="song" songId={song.id} />}
+      <Button className="md:hidden">
+        <Plus /> Add to a set
+      </Button>
+      <Card title="Song details" collapsible>
         <VStack as="dl" className="gap-4 md:gap-6">
-          <VStack className="gap-2">
-            <HStack
-              as="dt"
-              className="items-center gap-2 text-xs uppercase text-slate-500"
-            >
-              <MusicNotesSimple className="text-slate-400" size={12} />
-              <Text className="text-sm">Preferred Key</Text>
-            </HStack>
+          <SongDetailsItem icon="MusicNoteSimple" label="Preferred Key">
             <dd>
-              <SongKey songKey={songData.preferredKey} size="medium" />
+              <SongKey songKey={song.preferredKey} size="large" />
             </dd>
-          </VStack>
-          <VStack className="gap-2">
-            <HStack
-              as="dt"
-              className="items-center gap-2 text-xs uppercase text-slate-500"
-            >
-              <ClockCounterClockwise className="text-slate-400" size={12} />
-              <Text className="text-sm">Last Played</Text>
-            </HStack>
+          </SongDetailsItem>
+          <SongDetailsItem icon="ClockCounterClockwise" label="Last Played">
             <dd>
-              {lastPlayed ? (
+              {!playHistory && <Skeleton className="h-4 w-[250px]" />}
+              {playHistory && lastPlayInstance ? (
                 <HStack className="gap-[3px] leading-4">
                   <Text
                     asElement="span"
                     style="body-small"
                     className="text-slate-700"
                   >
-                    {formatDistanceToNow(lastPlayed.sets!.date, {
+                    {formatDistanceToNow(lastPlayInstance.set.date, {
                       addSuffix: true,
                       includeSeconds: false,
                     })}
@@ -137,7 +127,7 @@ export default async function SetListPage({
                     style="body-small"
                     className="text-slate-700"
                   >
-                    {lastPlayed.event_types?.name}
+                    {lastPlayInstance?.set.eventType}
                   </Text>
                 </HStack>
               ) : (
@@ -146,125 +136,63 @@ export default async function SetListPage({
                 </Text>
               )}
             </dd>
-          </VStack>
-          {songData?.tags && (
-            <VStack className="gap-2">
-              <HStack
-                as="dt"
-                className="items-center gap-2 text-xs uppercase text-slate-500"
-              >
-                <TagSimple className="text-slate-400" size={12} />
-                <Text className="text-sm">Tags</Text>
-              </HStack>
-              <HStack as="dd" className="gap-2">
-                {songData?.tags.map((tag) => (
-                  <Badge key={tag.tagId} label={tag.tag.tag} />
-                ))}
-              </HStack>
-            </VStack>
-          )}
-          {songData?.tempo && (
-            <>
-              <HStack
-                as="dt"
-                className="items-center gap-2 text-xs uppercase text-slate-500"
-              >
-                <Metronome className="text-slate-400" size={12} />
-                <Text className="text-sm">Tempo</Text>
-              </HStack>
-              <dd>
-                <Text
-                  asElement="span"
-                  style="body-small"
-                  className="text-slate-700"
-                >
-                  {songData.tempo}
-                </Text>
-              </dd>
-            </>
-          )}
-        </VStack>
-      </section>
-      {songData.isArchived && (
-        <HStack className="items-center gap-1 uppercase text-slate-500">
-          <Archive />
-          <Text>Song is archived</Text>
-        </HStack>
-      )}
-      {songData?.notes && (
-        <VStack as="section" className="gap-4 text-xs">
-          <Text asElement="h3" style="header-small-semibold">
-            Notes
-          </Text>
-          <Text style="body-small">{unescapeHTML(songData.notes)}</Text>
-        </VStack>
-      )}
-      <HStack as="section" className="justify-between gap-2">
-        <button className="flex w-full items-center justify-center gap-2 rounded border border-slate-300 px-3 text-slate-700">
-          <ListPlus size={12} />
-          <Text
-            asElement="span"
-            style="header-small-semibold"
-            color="slate-700"
-          >
-            Add to set
-          </Text>
-        </button>
-        <button className="flex h-6 w-6 place-content-center rounded border border-slate-300 p-[6px]">
-          <Heart className="text-slate-900" size={12} />
-        </button>
-        <SongActionsMenu
-          songId={params.songId}
-          organizationId={userMembership.organizationId}
-          archived={songData.isArchived ?? false}
-        />
-      </HStack>
-      <VStack className="gap-8">
-        {/* FIXME: refactor this markup to be reusable components */}
-        <VStack className="gap-4 rounded border border-slate-200 p-4 shadow">
-          <VStack as="header" className="flex flex-col gap-2">
-            <HStack className="flex justify-between">
-              <Text asElement="h3" style="header-medium-semibold">
-                Resources
-              </Text>
-              <button className="flex h-6 w-6 place-content-center rounded border border-slate-300 p-[6px]">
-                <DotsThree className="text-slate-900" size={12} />
-              </button>
-            </HStack>
-            <hr className="bg-slate-100" />
-          </VStack>
-          {/* TODO: add resources db set up and data */}
-          <div className="grid grid-cols-[repeat(auto-fill,_124px)] grid-rows-[repeat(auto-fill,_92px)] gap-2">
-            <ResourceCard title="In My Place" url="theworshipinitiative.com" />
-            <ResourceCard title="In My Place" url="open.spotify.com" />
-          </div>
-        </VStack>
-        <VStack className="gap-4 rounded border border-slate-200 p-4 shadow">
-          <VStack as="header" className="gap-2">
-            <HStack className="flex justify-between">
-              <h3 className="text-base font-semibold">Play history</h3>
-              <button className="flex h-6 w-6 place-content-center rounded border border-slate-300 p-[6px]">
-                <DotsThree className="text-slate-900" size={12} />
-              </button>
-            </HStack>
-            <hr className="bg-slate-100" />
-          </VStack>
-          <div className="grid grid-cols-[16px_1fr] gap-y-4">
-            {playHistory.length > 0 &&
-              playHistory.map((playInstance) => (
-                <PlayHistoryItem
-                  key={`${playInstance.sets?.id}-${playInstance.set_sections?.position}`}
-                  date={dateFormatter.format(new Date(playInstance.sets!.date))}
-                  eventType={playInstance.event_types!.name}
-                  songKey={playInstance.set_section_songs.key}
-                  setSection={playInstance.set_section_types!.name}
-                  setId={playInstance.sets!.id}
-                />
+          </SongDetailsItem>
+          <SongDetailsItem icon="Tag" label="Tags">
+            <HStack as="dd" className="gap-2">
+              {!song && (
+                <>
+                  <Skeleton className="h-5 w-20" />
+                  <Skeleton className="h-5 w-16" />
+                  <Skeleton className="h-5 w-24" />
+                </>
+              )}
+              {song.tags?.map((tag) => (
+                <Badge key={tag.tagId} label={tag.tag.tag} />
               ))}
-            <PlayHistoryItem date={dateFormatter.format(songData?.createdAt)} />
-          </div>
+            </HStack>
+          </SongDetailsItem>
+          {song.notes && (
+            <SongDetailsItem icon="NotePencil" label="Notes">
+              <Text style="body-small">{unescapeHTML(song.notes)}</Text>
+            </SongDetailsItem>
+          )}
         </VStack>
-      </VStack>
-    </PageContentContainer>
+      </Card>
+      <Card
+        title="Resources"
+        collapsible
+        // buttonLabel={
+        //   <>
+        //     <Plus />
+        //     Add resource
+        //   </>
+        // }
+        // buttonOnClick={async () => {
+        //   "use server";
+        //   console.log("🤖 - song details page - buttonOnClick");
+        // }}
+      >
+        <div className="grid grid-cols-[repeat(auto-fill,_124px)] grid-rows-[repeat(auto-fill,_92px)] gap-2">
+          <ResourceCard title="In My Place" url="theworshipinitiative.com" />
+          <ResourceCard title="In My Place" url="open.spotify.com" />
+        </div>
+      </Card>
+      <Card title="Play history" collapsible>
+        <div className="grid grid-cols-[16px_1fr] gap-y-4">
+          {playHistory.length > 0 &&
+            playHistory.map((playInstance) => (
+              <PlayHistoryItem
+                key={`${playInstance.set.id}-${playInstance.section.position}`}
+                date={dateFormatter.format(new Date(playInstance.set.date))}
+                eventType={playInstance.set.eventType}
+                songKey={playInstance.song.key}
+                setSection={playInstance.section.typeName}
+                setId={playInstance.set.id}
+              />
+            ))}
+          <PlayHistoryItem date={dateFormatter.format(song.createdAt)} />
+        </div>
+      </Card>
+    </>
   );
 }

@@ -63,23 +63,19 @@ export const duplicateSetSchema = insertSetSchema
 /**
  * Song schemas
  */
-export const insertSongSchema = createInsertSchema(songs);
-
 export const songIdSchema = z.object({
   songId: z.string().uuid(),
 });
-
+export const getSongSchema = songIdSchema;
+export const insertSongSchema = createInsertSchema(songs);
 export const archiveSongSchema = songIdSchema;
-
 export const unarchiveSongSchema = songIdSchema;
-
 export const deleteSongSchema = songIdSchema;
-
 export const searchSongSchema = z.object({
   searchInput: z.string().min(2),
 });
-
 export const songGetLastPlayInstanceSchema = songIdSchema;
+export const songGetPlayHistorySchema = songIdSchema;
 
 /**
  * Set section type schemas
