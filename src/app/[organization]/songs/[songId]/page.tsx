@@ -36,14 +36,14 @@ export default async function SetListPage({
   const userData = await api.user.getUser({ userId });
   const userMembership = userData?.memberships[0];
 
-  const song = await api.song.get({
-    organizationId: userMembership!.organizationId,
-    songId: params.songId,
-  });
-
   if (!userMembership) {
     redirect("/");
   }
+
+  const song = await api.song.get({
+    organizationId: userMembership.organizationId,
+    songId: params.songId,
+  });
 
   const playHistory = await api.song.getPlayHistory({
     organizationId: userMembership.organizationId,
