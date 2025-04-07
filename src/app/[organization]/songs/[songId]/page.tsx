@@ -4,7 +4,6 @@ import { auth } from "@clerk/nextjs/server";
 import { Badge } from "@components/Badge";
 import { Card } from "@components/Card/Card";
 import { HStack } from "@components/HStack";
-import { PageContentContainer } from "@components/PageContentContainer";
 import { PageTitle } from "@components/PageTitle";
 import { SongKey } from "@components/SongKey";
 import { Text } from "@components/Text";
@@ -59,7 +58,7 @@ export default async function SetListPage({
   }
 
   return (
-    <PageContentContainer>
+    <>
       <HStack className="justify-between gap-4">
         <PageTitle
           title={song.name}
@@ -190,6 +189,6 @@ export default async function SetListPage({
           <PlayHistoryItem date={dateFormatter.format(song.createdAt)} />
         </div>
       </Card>
-    </PageContentContainer>
+    </>
   );
 }
