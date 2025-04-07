@@ -41,10 +41,10 @@ export const ArchivedBanner: React.FC<ArchivedBannerProps> = ({
   const router = useRouter();
 
   const { data: userData, error: userQueryError } = api.user.getUser.useQuery(
-    { userId: userId! },
-    { enabled: !!userId },
-  ); // we use a non-null assertion here since the query will be disabled if userId is falsy
-  const userMembership = userData?.memberships[0];
+    { userId: userId ?? "" },
+    { enabled: Boolean(userId) },
+  );
+  const userMembership = userData?.memberships?.[0];
 
   const unarchiveSetMutation = api.set.unarchive.useMutation();
   const unarchiveSongMutation = api.song.unarchive.useMutation();
@@ -128,7 +128,7 @@ export const ArchivedBanner: React.FC<ArchivedBannerProps> = ({
                   <Text className="text-amber-700">
                     This means this {itemType} won&apos;t show up in your
                     library or in your searches by default. However, all{" "}
-                    {itemType} history and data are preserved and you can find
+                    {itemType} history and data are preserved, and you can find
                     it in the archived section.
                   </Text>
                 </VStack>

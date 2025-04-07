@@ -4,11 +4,11 @@ import {
   type SongDetailsLabelProps,
 } from "../SongDetailsLabel/SongDetailsLabel";
 
-type SongDetailsItem = React.PropsWithChildren & {
+type SongDetailsItemProps = React.PropsWithChildren & {
   icon: SongDetailsLabelProps["icon"];
   label: SongDetailsLabelProps["label"];
 };
-export const SongDetailsItem: React.FC<SongDetailsItem> = ({
+export const SongDetailsItem: React.FC<SongDetailsItemProps> = ({
   icon,
   label,
   children,

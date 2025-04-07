@@ -41,8 +41,12 @@ export default async function SetListPage({
     songId: params.songId,
   });
 
+  if (!userMembership) {
+    redirect("/");
+  }
+
   const playHistory = await api.song.getPlayHistory({
-    organizationId: userMembership!.organizationId,
+    organizationId: userMembership.organizationId,
     songId: params.songId,
   });
 
@@ -80,7 +84,7 @@ export default async function SetListPage({
           </Button>
           <SongActionsMenu
             songId={params.songId}
-            organizationId={userMembership!.organizationId}
+            organizationId={userMembership.organizationId}
             archived={!!song.isArchived}
           />
         </HStack>
