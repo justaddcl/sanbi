@@ -1,21 +1,21 @@
-import { SongActionsMenu } from "@/modules/songs/components/SongActionsMenu";
 import { api } from "@/trpc/server";
 import { auth } from "@clerk/nextjs/server";
 import { Badge } from "@components/Badge";
 import { Card } from "@components/Card/Card";
 import { HStack } from "@components/HStack";
-import { PageTitle } from "@components/PageTitle";
 import { SongKey } from "@components/SongKey";
 import { Text } from "@components/Text";
-import { Badge as ShadCNBadge } from "@components/ui/badge";
 import { Button } from "@components/ui/button";
 import { Skeleton } from "@components/ui/skeleton";
 import { VStack } from "@components/VStack";
 import { PlayHistoryItem, ResourceCard } from "@modules/SetListCard";
 import { ArchivedBanner } from "@modules/shared/components";
-import { SongDetailsPageLoading } from "@modules/songs/components";
+import {
+  SongDetailsPageHeader,
+  SongDetailsPageLoading,
+} from "@modules/songs/components";
 import { SongDetailsItem } from "@modules/songs/components/SongDetailsItem/SongDetailsItem";
-import { Archive, Heart, Plus } from "@phosphor-icons/react/dist/ssr";
+import { Plus } from "@phosphor-icons/react/dist/ssr";
 import { formatDistanceToNow } from "date-fns";
 import { redirect } from "next/navigation";
 import unescapeHTML from "validator/es/lib/unescape";
@@ -63,32 +63,7 @@ export default async function SetListPage({
 
   return (
     <>
-      <HStack className="justify-between gap-4">
-        <PageTitle
-          title={song.name}
-          badge={
-            song.isArchived ? (
-              <ShadCNBadge variant="warn" className="gap-1">
-                <Archive />
-                Archived
-              </ShadCNBadge>
-            ) : undefined
-          }
-        />
-        <HStack className="items-start gap-2">
-          <Button variant="outline" className="hidden md:flex">
-            <Heart />
-          </Button>
-          <Button className="hidden md:flex">
-            <Plus /> Add to a set
-          </Button>
-          <SongActionsMenu
-            songId={params.songId}
-            organizationId={userMembership.organizationId}
-            archived={!!song.isArchived}
-          />
-        </HStack>
-      </HStack>
+      <SongDetailsPageHeader song={song} userMembership={userMembership} />
       {song?.isArchived && <ArchivedBanner itemType="song" songId={song.id} />}
       <Button className="md:hidden">
         <Plus /> Add to a set

@@ -26,7 +26,7 @@ import {
   AlertDialogTitle,
 } from "@components/ui/alert-dialog";
 import { AlertDialogDescription } from "@radix-ui/react-alert-dialog";
-import { useState } from "react";
+import { type Dispatch, type SetStateAction, useState } from "react";
 import { Button } from "@components/ui/button";
 import { ActionMenu, ActionMenuItem } from "@components/ActionMenu";
 
@@ -34,12 +34,14 @@ type SongActionsMenuProps = {
   songId: string;
   organizationId: string;
   archived: boolean;
+  setIsEditingName: Dispatch<SetStateAction<boolean>>;
 };
 
 export const SongActionsMenu: React.FC<SongActionsMenuProps> = ({
   songId,
   organizationId,
   archived,
+  setIsEditingName,
 }) => {
   const router = useRouter();
 
@@ -70,6 +72,7 @@ export const SongActionsMenu: React.FC<SongActionsMenuProps> = ({
   // TODO: move to mutations
   const archiveSongMutation = api.song.archive.useMutation();
   const archiveSong = (organizationId: string, songId: string) => {
+    setIsSongActionsMenuOpen(false);
     archiveSongMutation.mutate(
       { organizationId, songId },
       {
@@ -87,6 +90,7 @@ export const SongActionsMenu: React.FC<SongActionsMenuProps> = ({
   // TODO: move to mutations
   const unarchiveSongMutation = api.song.unarchive.useMutation();
   const unarchiveSong = (organizationId: string, songId: string) => {
+    setIsSongActionsMenuOpen(false);
     unarchiveSongMutation.mutate(
       { organizationId, songId },
       {
@@ -107,6 +111,14 @@ export const SongActionsMenu: React.FC<SongActionsMenuProps> = ({
         isOpen={isSongActionsMenuOpen}
         setIsOpen={setIsSongActionsMenuOpen}
       >
+        <ActionMenuItem
+          icon="Pencil"
+          label="Edit song name"
+          onClick={() => {
+            setIsSongActionsMenuOpen(false);
+            setIsEditingName(true);
+          }}
+        />
         <ActionMenuItem
           icon={archived ? "BoxArrowUp" : "Archive"}
           label={archived ? "Unarchive" : "Archive"}
