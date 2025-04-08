@@ -11,7 +11,7 @@ import { SongActionsMenu } from "@modules/songs/components/SongActionsMenu";
 import { Archive, Heart, Plus } from "@phosphor-icons/react";
 import { type AppRouter } from "@server/api/root";
 import { type inferProcedureOutput } from "@trpc/server";
-import React, { useLayoutEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 
 // TODO: move to a more appropriate location
 type UserData = inferProcedureOutput<AppRouter["user"]["getUser"]>;
@@ -28,19 +28,6 @@ export const SongDetailsPageHeader: React.FC<SongDetailsPageHeaderProps> = ({
   const [isEditingName, setIsEditingName] = useState<boolean>(false);
   const [songName, setSongName] = useState<string>(song.name);
   const songNameInputRef = useRef<HTMLTextAreaElement>(null);
-
-  const resizeTextarea = (textarea: HTMLTextAreaElement) => {
-    textarea.style.height = "auto";
-    textarea.style.height = `${textarea.scrollHeight + 8}px`;
-  };
-
-  useLayoutEffect(() => {
-    if (songNameInputRef.current && isEditingName) {
-      if (songNameInputRef.current) {
-        resizeTextarea(songNameInputRef.current);
-      }
-    }
-  }, [isEditingName]);
 
   const onEditNameCancel = () => {
     setIsEditingName(false);
@@ -59,14 +46,12 @@ export const SongDetailsPageHeader: React.FC<SongDetailsPageHeaderProps> = ({
     changeEvent: React.ChangeEvent<HTMLTextAreaElement>,
   ) => {
     setSongName(changeEvent.target.value);
-
-    if (songNameInputRef.current) resizeTextarea(songNameInputRef.current);
   };
 
   return (
     <HStack className="justify-between gap-4">
       {isEditingName ? (
-        <VStack className="flex-1 gap-2">
+        <VStack className="flex-1 gap-3">
           <Textarea
             rows={1}
             className={cn(
