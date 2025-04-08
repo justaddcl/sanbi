@@ -403,7 +403,7 @@ export const songRouter = createTRPCRouter({
 
       const trimmedName = input.name.trim();
 
-      if (!input.name || trimmedName === "") {
+      if (trimmedName === "") {
         console.error(
           `🤖 - [song/updateName] - New song name must not be blank`,
         );
