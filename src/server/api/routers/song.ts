@@ -8,6 +8,7 @@ import {
   unarchiveSongSchema,
   getSongSchema,
   songGetPlayHistorySchema,
+  songUpdateNameSchema,
 } from "@lib/types/zod";
 import {
   eventTypes,
@@ -389,6 +390,65 @@ export const songRouter = createTRPCRouter({
         );
 
         return playHistory;
+      });
+    }),
+
+  updateName: organizationProcedure
+    .input(songUpdateNameSchema)
+    .mutation(async ({ ctx, input }) => {
+      console.log(
+        `🤖 - [song/updateName] - attempting to update song name for ${input.songId}:`,
+        { mutationInput: { ...input } },
+      );
+
+      if (!input.name || input.name === "") {
+        console.error(
+          `🤖 - [song/updateName] - New song name must not be blank`,
+        );
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "New song name must not be blank",
+        });
+      }
+
+      return await ctx.db.transaction(async (updateTransaction) => {
+        const songToUpdate = await updateTransaction.query.songs.findFirst({
+          where: eq(songs.id, input.songId),
+        });
+
+        if (!songToUpdate) {
+          console.error(
+            `🤖 - [song/updateName] - could not find song ${input.songId}`,
+          );
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Could not find song",
+          });
+        }
+
+        if (
+          songToUpdate.organizationId !== ctx.user.membership.organizationId
+        ) {
+          console.error(
+            `🤖 - [song/updateName] - user ${ctx.user.id} is not authorized to update song ${input.songId}`,
+          );
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "User is not authorized to update song",
+          });
+        }
+
+        const [updatedSong] = await updateTransaction
+          .update(songs)
+          .set({ name: input.name })
+          .where(eq(songs.id, input.songId))
+          .returning();
+
+        return {
+          success: true,
+          updatedSong,
+          mutationInput: { ...input },
+        };
       });
     }),
 });

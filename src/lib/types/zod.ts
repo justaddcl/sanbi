@@ -76,6 +76,9 @@ export const searchSongSchema = z.object({
 });
 export const songGetLastPlayInstanceSchema = songIdSchema;
 export const songGetPlayHistorySchema = songIdSchema;
+export const songUpdateNameSchema = songIdSchema.extend({
+  name: z.string(),
+});
 
 /**
  * Set section type schemas
