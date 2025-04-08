@@ -1,5 +1,6 @@
 "use client";
 
+import { api } from "@/trpc/react";
 import { HStack } from "@components/HStack";
 import { PageTitle } from "@components/PageTitle";
 import { Badge as ShadCNBadge } from "@components/ui/badge";
@@ -11,7 +12,9 @@ import { SongActionsMenu } from "@modules/songs/components/SongActionsMenu";
 import { Archive, Heart, Plus } from "@phosphor-icons/react";
 import { type AppRouter } from "@server/api/root";
 import { type inferProcedureOutput } from "@trpc/server";
+import { useRouter } from "next/navigation";
 import React, { useRef, useState } from "react";
+import { toast } from "sonner";
 
 // TODO: move to a more appropriate location
 type UserData = inferProcedureOutput<AppRouter["user"]["getUser"]>;
@@ -29,8 +32,41 @@ export const SongDetailsPageHeader: React.FC<SongDetailsPageHeaderProps> = ({
   const [songName, setSongName] = useState<string>(song.name);
   const songNameInputRef = useRef<HTMLTextAreaElement>(null);
 
+  const router = useRouter();
+
+  const updateSongNameMutation = api.song.updateName.useMutation();
+  const apiUtils = api.useUtils();
+
   const onEditNameCancel = () => {
     setIsEditingName(false);
+  };
+
+  const updateSongName = () => {
+    const toastId = toast.loading("Updating song name...");
+    updateSongNameMutation.mutate(
+      {
+        organizationId: userMembership.organizationId,
+        songId: song.id,
+        name: songName,
+      },
+      {
+        async onSuccess() {
+          toast.success("Song name updated", { id: toastId });
+          setIsEditingName(false);
+
+          await apiUtils.song.get.invalidate({
+            organizationId: userMembership.organizationId,
+            songId: song.id,
+          });
+          router.refresh();
+        },
+        onError(updateError) {
+          toast.error(`Could not update song name: ${updateError.message}`, {
+            id: toastId,
+          });
+        },
+      },
+    );
   };
 
   const handleKeyDown = (keyDownEvent: React.KeyboardEvent) => {
@@ -66,7 +102,14 @@ export const SongDetailsPageHeader: React.FC<SongDetailsPageHeaderProps> = ({
             <Button size="sm" variant="outline" onClick={onEditNameCancel}>
               Cancel
             </Button>
-            <Button size="sm">Save</Button>
+            <Button
+              size="sm"
+              disabled={updateSongNameMutation.isPending}
+              isLoading={updateSongNameMutation.isPending}
+              onClick={updateSongName}
+            >
+              Save
+            </Button>
           </HStack>
         </VStack>
       ) : (
