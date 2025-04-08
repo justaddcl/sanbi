@@ -1,25 +1,18 @@
 "use client";
 
-import { api } from "@/trpc/react";
 import { HStack } from "@components/HStack";
-import { PageTitle } from "@components/PageTitle";
-import { Badge as ShadCNBadge } from "@components/ui/badge";
 import { Button } from "@components/ui/button";
-import { Textarea } from "@components/ui/textarea";
-import { VStack } from "@components/VStack";
-import { cn } from "@lib/utils";
 import { SongActionsMenu } from "@modules/songs/components/SongActionsMenu";
-import { Archive, Heart, Plus } from "@phosphor-icons/react";
+import { Heart, Plus } from "@phosphor-icons/react";
 import { type AppRouter } from "@server/api/root";
 import { type inferProcedureOutput } from "@trpc/server";
-import { useRouter } from "next/navigation";
-import React, { useRef, useState } from "react";
-import { toast } from "sonner";
+import React, { useState } from "react";
+import { SongDetailsPageName } from "../SongDetailsPageSongName/SongDetailsPageSongName";
 
 // TODO: move to a more appropriate location
 type UserData = inferProcedureOutput<AppRouter["user"]["getUser"]>;
 
-type SongDetailsPageHeaderProps = {
+export type SongDetailsPageHeaderProps = {
   song: inferProcedureOutput<AppRouter["song"]["get"]>;
   userMembership: NonNullable<UserData>["memberships"][number];
 };
@@ -29,102 +22,15 @@ export const SongDetailsPageHeader: React.FC<SongDetailsPageHeaderProps> = ({
   userMembership,
 }) => {
   const [isEditingName, setIsEditingName] = useState<boolean>(false);
-  const [songName, setSongName] = useState<string>(song.name);
-  const songNameInputRef = useRef<HTMLTextAreaElement>(null);
-
-  const router = useRouter();
-
-  const updateSongNameMutation = api.song.updateName.useMutation();
-  const apiUtils = api.useUtils();
-
-  const onEditNameCancel = () => {
-    setIsEditingName(false);
-  };
-
-  const updateSongName = () => {
-    const toastId = toast.loading("Updating song name...");
-    updateSongNameMutation.mutate(
-      {
-        organizationId: userMembership.organizationId,
-        songId: song.id,
-        name: songName,
-      },
-      {
-        async onSuccess() {
-          toast.success("Song name updated", { id: toastId });
-          setIsEditingName(false);
-
-          await apiUtils.song.get.invalidate({
-            organizationId: userMembership.organizationId,
-            songId: song.id,
-          });
-          router.refresh();
-        },
-        onError(updateError) {
-          toast.error(`Could not update song name: ${updateError.message}`, {
-            id: toastId,
-          });
-        },
-      },
-    );
-  };
-
-  const handleKeyDown = (keyDownEvent: React.KeyboardEvent) => {
-    if (keyDownEvent.key === "Enter" && !keyDownEvent.shiftKey) {
-      keyDownEvent.preventDefault();
-      // handleSave();
-    } else if (keyDownEvent.key === "Escape") {
-      onEditNameCancel();
-    }
-  };
-
-  const handleOnNameChange = (
-    changeEvent: React.ChangeEvent<HTMLTextAreaElement>,
-  ) => {
-    setSongName(changeEvent.target.value);
-  };
 
   return (
     <HStack className="justify-between gap-4">
-      {isEditingName ? (
-        <VStack className="flex-1 gap-3">
-          <Textarea
-            rows={1}
-            className={cn(
-              "resize-none text-2xl font-semibold leading-tight tracking-tighter lg:text-3xl",
-            )}
-            ref={songNameInputRef}
-            onChange={handleOnNameChange}
-            onKeyDown={handleKeyDown}
-            value={songName}
-          />
-          <HStack className="justify-end gap-2">
-            <Button size="sm" variant="outline" onClick={onEditNameCancel}>
-              Cancel
-            </Button>
-            <Button
-              size="sm"
-              disabled={updateSongNameMutation.isPending}
-              isLoading={updateSongNameMutation.isPending}
-              onClick={updateSongName}
-            >
-              Save
-            </Button>
-          </HStack>
-        </VStack>
-      ) : (
-        <PageTitle
-          title={song.name}
-          badge={
-            song.isArchived ? (
-              <ShadCNBadge variant="warn" className="gap-1">
-                <Archive />
-                Archived
-              </ShadCNBadge>
-            ) : undefined
-          }
-        />
-      )}
+      <SongDetailsPageName
+        song={song}
+        userMembership={userMembership}
+        isEditing={isEditingName}
+        setIsEditing={setIsEditingName}
+      />
       <HStack className="items-start gap-2">
         <Button variant="outline" className="hidden md:flex">
           <Heart />
