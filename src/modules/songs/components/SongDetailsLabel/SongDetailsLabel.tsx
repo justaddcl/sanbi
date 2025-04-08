@@ -1,6 +1,3 @@
-"use client";
-
-import { useResponsive } from "@/hooks/useResponsive";
 import { HStack } from "@components/HStack";
 import { Text } from "@components/Text";
 import { cn } from "@lib/utils";
@@ -9,7 +6,7 @@ import {
   MusicNoteSimple,
   NotePencil,
   Tag,
-} from "@phosphor-icons/react";
+} from "@phosphor-icons/react/dist/ssr";
 
 const iconMap = {
   ClockCounterClockwise,
@@ -27,12 +24,11 @@ export const SongDetailsLabel: React.FC<SongDetailsLabelProps> = ({
   label,
 }) => {
   const Icon = iconMap[icon];
-  const { textSize, isDesktop } = useResponsive();
 
   return (
     <HStack as="dt" className="items-center gap-2  text-slate-500">
-      <Icon className="text-slate-400" size={isDesktop ? 16 : 12} />
-      <Text className={cn(textSize)}>{label}</Text>
+      <Icon className="text-slate-400" size={16} />
+      <Text className={cn("text-base")}>{label}</Text>
     </HStack>
   );
 };
