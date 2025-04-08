@@ -7,6 +7,7 @@ import { Badge as ShadCNBadge } from "@components/ui/badge";
 import { Button } from "@components/ui/button";
 import { Textarea } from "@components/ui/textarea";
 import { VStack } from "@components/VStack";
+import { sanitizeInput } from "@lib/string";
 import { cn } from "@lib/utils";
 import { type SongDetailsPageHeaderProps } from "@modules/songs/components/";
 import { Archive } from "@phosphor-icons/react";
@@ -14,10 +15,12 @@ import { useRouter } from "next/navigation";
 import React, {
   type Dispatch,
   type SetStateAction,
+  useEffect,
   useRef,
   useState,
 } from "react";
 import { toast } from "sonner";
+import unescapeHTML from "validator/es/lib/unescape";
 
 type SongDetailsPageNameProps = {
   song: SongDetailsPageHeaderProps["song"];
@@ -40,13 +43,14 @@ export const SongDetailsPageName: React.FC<SongDetailsPageNameProps> = ({
   const updateSongNameMutation = api.song.updateName.useMutation();
   const apiUtils = api.useUtils();
 
+  useEffect(() => {
+    setSongName(song.name);
+  }, [song.name]);
+
   const onEditNameCancel = () => {
     setIsEditing(false);
+    setSongName(song.name);
   };
-
-  if (!userMembership) {
-    return <p>No user membership...</p>;
-  }
 
   const updateSongName = () => {
     const toastId = toast.loading("Updating song name...");
@@ -54,7 +58,7 @@ export const SongDetailsPageName: React.FC<SongDetailsPageNameProps> = ({
       {
         organizationId: userMembership.organizationId,
         songId: song.id,
-        name: songName,
+        name: sanitizeInput(songName),
       },
       {
         async onSuccess() {
@@ -101,7 +105,7 @@ export const SongDetailsPageName: React.FC<SongDetailsPageNameProps> = ({
         ref={songNameInputRef}
         onChange={handleOnNameChange}
         onKeyDown={handleKeyDown}
-        value={songName}
+        value={unescapeHTML(songName)}
       />
       <HStack className="justify-end gap-2">
         <Button size="sm" variant="outline" onClick={onEditNameCancel}>

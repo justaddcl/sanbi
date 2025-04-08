@@ -401,7 +401,9 @@ export const songRouter = createTRPCRouter({
         { mutationInput: { ...input } },
       );
 
-      if (!input.name || input.name === "") {
+      const trimmedName = input.name.trim();
+
+      if (!input.name || trimmedName === "") {
         console.error(
           `🤖 - [song/updateName] - New song name must not be blank`,
         );
@@ -440,7 +442,7 @@ export const songRouter = createTRPCRouter({
 
         const [updatedSong] = await updateTransaction
           .update(songs)
-          .set({ name: input.name })
+          .set({ name: trimmedName })
           .where(eq(songs.id, input.songId))
           .returning();
 

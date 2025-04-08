@@ -9,7 +9,7 @@ export const useUserQuery = () => {
 
   const user = api.user.getUser.useQuery(
     {
-      userId: userId ?? "", // using non-null assertion as the query will not be enabled if the userId is null
+      userId: userId ?? "", // providing empty string fallback as the query will not be enabled if the userId is null
     },
     {
       enabled: isQueryEnabled && !!userId,

@@ -8,9 +8,9 @@ import { type AppRouter } from "@server/api/root";
 import { type inferProcedureOutput } from "@trpc/server";
 import React, { useState } from "react";
 import { SongDetailsPageName } from "../SongDetailsPageSongName/SongDetailsPageSongName";
+import { type UserData } from "@lib/types/api";
 
 // TODO: move to a more appropriate location
-type UserData = inferProcedureOutput<AppRouter["user"]["getUser"]>;
 
 export type SongDetailsPageHeaderProps = {
   song: inferProcedureOutput<AppRouter["song"]["get"]>;

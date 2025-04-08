@@ -135,7 +135,7 @@ export const songs = createTable(
   "songs",
   {
     id: uuid("id").primaryKey().defaultRandom(),
-    name: varchar("name", { length: 256 }).notNull().unique(),
+    name: varchar("name", { length: 256 }).notNull(),
     preferredKey: songKeyEnum("preferred_song_key"),
     notes: text("notes"),
     tempo: varchar("tempo", { length: 256 }),
