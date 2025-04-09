@@ -7,7 +7,7 @@ import { Badge as ShadCNBadge } from "@components/ui/badge";
 import { Button } from "@components/ui/button";
 import { Textarea } from "@components/ui/textarea";
 import { VStack } from "@components/VStack";
-import { sanitizeInput } from "@lib/string";
+import { songNameSchema } from "@lib/types/zod";
 import { cn } from "@lib/utils";
 import { type SongDetailsPageHeaderProps } from "@modules/songs/components/";
 import { Archive } from "@phosphor-icons/react";
@@ -20,7 +20,6 @@ import React, {
   useState,
 } from "react";
 import { toast } from "sonner";
-import unescapeHTML from "validator/es/lib/unescape";
 
 type SongDetailsPageNameProps = {
   song: SongDetailsPageHeaderProps["song"];
@@ -54,11 +53,20 @@ export const SongDetailsPageName: React.FC<SongDetailsPageNameProps> = ({
 
   const updateSongName = () => {
     const toastId = toast.loading("Updating song name...");
+
+    const validationResult = songNameSchema.safeParse(songName);
+
+    if (!validationResult.success) {
+      const [formattedError] = validationResult.error.format()._errors;
+      toast.error(`${formattedError}`, { id: toastId });
+      return;
+    }
+
     updateSongNameMutation.mutate(
       {
         organizationId: userMembership.organizationId,
         songId: song.id,
-        name: sanitizeInput(songName),
+        name: validationResult.data,
       },
       {
         async onSuccess() {
@@ -105,7 +113,7 @@ export const SongDetailsPageName: React.FC<SongDetailsPageNameProps> = ({
         ref={songNameInputRef}
         onChange={handleOnNameChange}
         onKeyDown={handleKeyDown}
-        value={unescapeHTML(songName)}
+        value={songName}
       />
       <HStack className="justify-end gap-2">
         <Button size="sm" variant="outline" onClick={onEditNameCancel}>
@@ -113,7 +121,7 @@ export const SongDetailsPageName: React.FC<SongDetailsPageNameProps> = ({
         </Button>
         <Button
           size="sm"
-          disabled={updateSongNameMutation.isPending}
+          disabled={songName === song.name || updateSongNameMutation.isPending}
           isLoading={updateSongNameMutation.isPending}
           onClick={updateSongName}
         >

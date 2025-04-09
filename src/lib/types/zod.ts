@@ -1,3 +1,4 @@
+import { songNameRegex } from "@lib/constants/regex";
 import {
   organizationMemberships,
   organizations,
@@ -63,6 +64,29 @@ export const duplicateSetSchema = insertSetSchema
 /**
  * Song schemas
  */
+
+export const songNameSchema = z
+  .string()
+  .min(1)
+  .max(100)
+  .superRefine((val, ctx) => {
+    // If the entire string passes the full regex, we're fine.
+    if (songNameRegex.test(val)) return;
+
+    // Otherwise, iterate and report the first character that doesn't match.
+    for (const char of val) {
+      if (!songNameRegex.test(char)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `Invalid song name character: ${char}`,
+          fatal: true,
+        });
+
+        return z.NEVER;
+      }
+    }
+  });
+
 export const songIdSchema = z.object({
   songId: z.string().uuid(),
 });
@@ -77,7 +101,7 @@ export const searchSongSchema = z.object({
 export const songGetLastPlayInstanceSchema = songIdSchema;
 export const songGetPlayHistorySchema = songIdSchema;
 export const songUpdateNameSchema = songIdSchema.extend({
-  name: z.string(),
+  name: songNameSchema,
 });
 
 /**

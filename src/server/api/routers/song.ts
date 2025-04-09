@@ -2,14 +2,19 @@ import { type NewSong } from "@lib/types/db";
 import {
   archiveSongSchema,
   deleteSongSchema,
-  songGetLastPlayInstanceSchema,
+  getSongSchema,
   insertSongSchema,
   searchSongSchema,
-  unarchiveSongSchema,
-  getSongSchema,
+  songGetLastPlayInstanceSchema,
   songGetPlayHistorySchema,
   songUpdateNameSchema,
+  unarchiveSongSchema,
 } from "@lib/types/zod";
+import {
+  adminProcedure,
+  createTRPCRouter,
+  organizationProcedure,
+} from "@server/api/trpc";
 import {
   eventTypes,
   sets,
@@ -20,13 +25,8 @@ import {
   songTags,
   tags,
 } from "@server/db/schema";
-import {
-  adminProcedure,
-  createTRPCRouter,
-  organizationProcedure,
-} from "@server/api/trpc";
 import { TRPCError } from "@trpc/server";
-import { eq, sql, desc, lte, and, asc } from "drizzle-orm";
+import { and, asc, desc, eq, lte, sql } from "drizzle-orm";
 
 const TRIGRAM_SIMILARITY_THRESHOLD = 0.1;
 
@@ -90,6 +90,7 @@ export const songRouter = createTRPCRouter({
 
       return song;
     }),
+
   create: organizationProcedure
     .input(insertSongSchema)
     .mutation(async ({ ctx, input }) => {
