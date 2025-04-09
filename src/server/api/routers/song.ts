@@ -2,13 +2,19 @@ import { type NewSong } from "@lib/types/db";
 import {
   archiveSongSchema,
   deleteSongSchema,
-  songGetLastPlayInstanceSchema,
+  getSongSchema,
   insertSongSchema,
   searchSongSchema,
-  unarchiveSongSchema,
-  getSongSchema,
+  songGetLastPlayInstanceSchema,
   songGetPlayHistorySchema,
+  songUpdateNameSchema,
+  unarchiveSongSchema,
 } from "@lib/types/zod";
+import {
+  adminProcedure,
+  createTRPCRouter,
+  organizationProcedure,
+} from "@server/api/trpc";
 import {
   eventTypes,
   sets,
@@ -19,13 +25,8 @@ import {
   songTags,
   tags,
 } from "@server/db/schema";
-import {
-  adminProcedure,
-  createTRPCRouter,
-  organizationProcedure,
-} from "@server/api/trpc";
 import { TRPCError } from "@trpc/server";
-import { eq, sql, desc, lte, and, asc } from "drizzle-orm";
+import { and, asc, desc, eq, lte, sql } from "drizzle-orm";
 
 const TRIGRAM_SIMILARITY_THRESHOLD = 0.1;
 
@@ -89,6 +90,7 @@ export const songRouter = createTRPCRouter({
 
       return song;
     }),
+
   create: organizationProcedure
     .input(insertSongSchema)
     .mutation(async ({ ctx, input }) => {
@@ -389,6 +391,67 @@ export const songRouter = createTRPCRouter({
         );
 
         return playHistory;
+      });
+    }),
+
+  updateName: organizationProcedure
+    .input(songUpdateNameSchema)
+    .mutation(async ({ ctx, input }) => {
+      console.log(
+        `🤖 - [song/updateName] - attempting to update song name for ${input.songId}:`,
+        { mutationInput: { ...input } },
+      );
+
+      const trimmedName = input.name.trim();
+
+      if (trimmedName === "") {
+        console.error(
+          `🤖 - [song/updateName] - New song name must not be blank`,
+        );
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "New song name must not be blank",
+        });
+      }
+
+      return await ctx.db.transaction(async (updateTransaction) => {
+        const songToUpdate = await updateTransaction.query.songs.findFirst({
+          where: eq(songs.id, input.songId),
+        });
+
+        if (!songToUpdate) {
+          console.error(
+            `🤖 - [song/updateName] - could not find song ${input.songId}`,
+          );
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Could not find song",
+          });
+        }
+
+        if (
+          songToUpdate.organizationId !== ctx.user.membership.organizationId
+        ) {
+          console.error(
+            `🤖 - [song/updateName] - user ${ctx.user.id} is not authorized to update song ${input.songId}`,
+          );
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "User is not authorized to update song",
+          });
+        }
+
+        const [updatedSong] = await updateTransaction
+          .update(songs)
+          .set({ name: trimmedName })
+          .where(eq(songs.id, input.songId))
+          .returning();
+
+        return {
+          success: true,
+          updatedSong,
+          mutationInput: { ...input },
+        };
       });
     }),
 });

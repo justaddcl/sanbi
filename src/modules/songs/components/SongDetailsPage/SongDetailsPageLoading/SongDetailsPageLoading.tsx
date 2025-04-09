@@ -4,11 +4,10 @@ import { PageContentContainer } from "@components/PageContentContainer";
 import { Skeleton } from "@components/ui/skeleton";
 import { VStack } from "@components/VStack";
 import { SongDetailsItem } from "@modules/songs/components";
-import { PageTitle } from "@components/PageTitle";
 
 export const SongDetailsPageLoading: React.FC = () => (
   <PageContentContainer>
-    <PageTitle title={"Loading song..."} />
+    <Skeleton className="h-8 w-full" />
     <Card title="Song details" collapsible>
       <VStack as="dl" className="gap-4 md:gap-6">
         <SongDetailsItem icon="MusicNoteSimple" label="Preferred Key">
