@@ -70,10 +70,6 @@ export const songNameSchema = z
   .min(1)
   .max(100)
   .superRefine((val, ctx) => {
-    // If the entire string passes the full regex, we're fine.
-    if (songNameRegex.test(val)) return;
-
-    // Otherwise, iterate and report the first character that doesn't match.
     for (const char of val) {
       if (!songNameRegex.test(char)) {
         ctx.addIssue({
