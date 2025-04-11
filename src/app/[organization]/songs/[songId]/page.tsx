@@ -81,7 +81,11 @@ export default async function SetListPage({
         <VStack as="dl" className="gap-4 md:gap-6">
           <SongDetailsItem icon="MusicNoteSimple" label="Preferred Key">
             <dd>
-              <SongKeySelect preferredKey={song.preferredKey} />
+              <SongKeySelect
+                songId={song.id}
+                preferredKey={song.preferredKey}
+                userMembership={userMembership}
+              />
             </dd>
           </SongDetailsItem>
           <SongDetailsItem icon="ClockCounterClockwise" label="Last Played">
