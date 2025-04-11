@@ -1,3 +1,4 @@
+import { songKeys } from "@lib/constants";
 import { songNameRegex } from "@lib/constants/regex";
 import {
   organizationMemberships,
@@ -98,6 +99,9 @@ export const songGetLastPlayInstanceSchema = songIdSchema;
 export const songGetPlayHistorySchema = songIdSchema;
 export const songUpdateNameSchema = songIdSchema.extend({
   name: songNameSchema,
+});
+export const songUpdatePreferredKeySchema = songIdSchema.extend({
+  preferredKey: z.enum(songKeys),
 });
 
 /**
