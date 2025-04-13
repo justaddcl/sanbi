@@ -121,6 +121,7 @@ export const songRouter = createTRPCRouter({
         notes,
         isArchived,
         createdBy,
+        favoritedAt: null,
       };
 
       console.log(`🤖 - [song/create] - new song`, newSong);
