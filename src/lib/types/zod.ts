@@ -103,6 +103,9 @@ export const songUpdateNameSchema = songIdSchema.extend({
 export const songUpdatePreferredKeySchema = songIdSchema.extend({
   preferredKey: z.enum(songKeys),
 });
+export const songUpdateFavoriteSchema = songIdSchema.extend({
+  isFavorite: z.boolean(),
+});
 
 /**
  * Set section type schemas

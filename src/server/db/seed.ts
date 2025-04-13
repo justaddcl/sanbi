@@ -201,6 +201,7 @@ const seed = async () => {
       createdBy: user.id,
       organizationId,
       isArchived: false,
+      favoritedAt: null,
     },
     {
       name: "Such An Awesome God",
@@ -208,6 +209,7 @@ const seed = async () => {
       createdBy: user.id,
       organizationId,
       isArchived: false,
+      favoritedAt: null,
     },
     {
       name: "I Love You Lord/What A Beautiful Name (mash up)",
@@ -217,6 +219,7 @@ const seed = async () => {
       createdBy: user.id,
       organizationId,
       isArchived: false,
+      favoritedAt: null,
     },
     {
       name: "Refuge",
@@ -224,6 +227,7 @@ const seed = async () => {
       createdBy: user.id,
       organizationId,
       isArchived: false,
+      favoritedAt: null,
     },
     {
       name: "Son Of Suffering",
@@ -232,6 +236,7 @@ const seed = async () => {
       createdBy: user.id,
       organizationId,
       isArchived: false,
+      favoritedAt: null,
     },
     {
       name: "Draw Me Close To You",
@@ -239,6 +244,7 @@ const seed = async () => {
       createdBy: user.id,
       organizationId,
       isArchived: false,
+      favoritedAt: null,
     },
     {
       name: "Romans 2:4",
@@ -246,6 +252,7 @@ const seed = async () => {
       createdBy: user.id,
       organizationId,
       isArchived: false,
+      favoritedAt: null,
     },
     {
       name: "Only Jesus",
@@ -254,6 +261,7 @@ const seed = async () => {
       createdBy: user.id,
       organizationId,
       isArchived: false,
+      favoritedAt: null,
     },
     {
       name: "God Over Everything",
@@ -261,6 +269,7 @@ const seed = async () => {
       createdBy: user.id,
       organizationId,
       isArchived: false,
+      favoritedAt: null,
     },
   ];
 

@@ -149,6 +149,7 @@ export const songs = createTable(
       .references(() => organizations.id)
       .notNull(),
     isArchived: boolean("is_archived").notNull(),
+    favoritedAt: timestamp("favorited_at"),
     updatedAt,
   },
   (songsTable) => {
