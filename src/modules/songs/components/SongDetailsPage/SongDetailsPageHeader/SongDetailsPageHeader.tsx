@@ -38,7 +38,7 @@ export const SongDetailsPageHeader: React.FC<SongDetailsPageHeaderProps> = ({
       {
         organizationId: userMembership.organizationId,
         songId: song.id,
-        isFavorite: song.favoritedAt ? false : true,
+        isFavorite: !song.favoritedAt,
       },
       {
         onSuccess() {
