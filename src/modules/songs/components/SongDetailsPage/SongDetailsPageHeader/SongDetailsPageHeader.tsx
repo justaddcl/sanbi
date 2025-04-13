@@ -69,9 +69,9 @@ export const SongDetailsPageHeader: React.FC<SongDetailsPageHeaderProps> = ({
       <HStack className="items-start gap-2">
         <Button
           variant="outline"
-          className="hidden md:flex"
           onClick={updateSongFavoriteStatus}
           disabled={updateSongFavoriteStatusMutation.isPending}
+          size="sm"
         >
           <Heart weight={song.favoritedAt ? "fill" : "regular"} />
         </Button>
