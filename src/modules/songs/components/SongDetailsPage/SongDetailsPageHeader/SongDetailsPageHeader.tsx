@@ -11,7 +11,7 @@ import { type inferProcedureOutput } from "@trpc/server";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { toast } from "sonner";
-import { SongDetailsPageName } from "@modules/songs/components/";
+import { SongDetailsPageName } from "@modules/songs/components";
 
 export type SongDetailsPageHeaderProps = {
   song: inferProcedureOutput<AppRouter["song"]["get"]>;
@@ -31,7 +31,7 @@ export const SongDetailsPageHeader: React.FC<SongDetailsPageHeaderProps> = ({
 
   const updateSongFavoriteStatus = () => {
     const toastId = toast.loading(
-      `${!!song.favoritedAt ? "Unfavoriting" : "Favoriting"} song...`,
+      `${song.favoritedAt ? "Unfavoriting" : "Favoriting"} song...`,
     );
 
     updateSongFavoriteStatusMutation.mutate(
@@ -43,14 +43,14 @@ export const SongDetailsPageHeader: React.FC<SongDetailsPageHeaderProps> = ({
       {
         onSuccess() {
           toast.success(
-            `Song ${!!song.favoritedAt ? "unfavorited" : "favorited"}`,
+            `Song ${song.favoritedAt ? "unfavorited" : "favorited"}`,
             { id: toastId },
           );
           router.refresh();
         },
         onError(updateError) {
           toast.error(
-            `Song could not be ${!!song.favoritedAt ? "unfavorited" : "favorited"}: ${updateError.message}`,
+            `Song could not be ${song.favoritedAt ? "unfavorited" : "favorited"}: ${updateError.message}`,
             { id: toastId },
           );
         },
@@ -73,7 +73,7 @@ export const SongDetailsPageHeader: React.FC<SongDetailsPageHeaderProps> = ({
           onClick={updateSongFavoriteStatus}
           disabled={updateSongFavoriteStatusMutation.isPending}
         >
-          <Heart weight={!!song.favoritedAt ? "fill" : "regular"} />
+          <Heart weight={song.favoritedAt ? "fill" : "regular"} />
         </Button>
         <Button className="hidden md:flex">
           <Plus /> Add to a set
