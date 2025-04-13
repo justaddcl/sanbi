@@ -33,6 +33,7 @@ export const SongDetailsPageHeader: React.FC<SongDetailsPageHeaderProps> = ({
     const toastId = toast.loading(
       `${song.favoritedAt ? "Unfavoriting" : "Favoriting"} song...`,
     );
+    // TODO: for future enhancement - add optimistic update?
 
     updateSongFavoriteStatusMutation.mutate(
       {
