@@ -7,6 +7,7 @@ import {
   searchSongSchema,
   songGetLastPlayInstanceSchema,
   songGetPlayHistorySchema,
+  songUpdateFavoriteSchema,
   songUpdateNameSchema,
   songUpdatePreferredKeySchema,
   unarchiveSongSchema,
@@ -495,6 +496,57 @@ export const songRouter = createTRPCRouter({
         const [updatedSong] = await updateTransaction
           .update(songs)
           .set({ preferredKey: input.preferredKey })
+          .where(eq(songs.id, input.songId))
+          .returning();
+
+        return {
+          success: true,
+          updatedSong,
+          mutationInput: { ...input },
+        };
+      });
+    }),
+
+  updateFavoriteStatus: organizationProcedure
+    .input(songUpdateFavoriteSchema)
+    .mutation(async ({ ctx, input }) => {
+      console.log(
+        `🤖 - [song/updateFavoriteStatus] - attempting to update favorite status for ${input.songId}:`,
+        { mutationInput: { ...input } },
+      );
+
+      return await ctx.db.transaction(async (updateTransaction) => {
+        const songToUpdate = await updateTransaction.query.songs.findFirst({
+          where: eq(songs.id, input.songId),
+        });
+
+        if (!songToUpdate) {
+          console.error(
+            `🤖 - [song/updateFavoriteStatus] - could not find song ${input.songId}`,
+          );
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Could not find song",
+          });
+        }
+
+        if (
+          songToUpdate.organizationId !== ctx.user.membership.organizationId
+        ) {
+          console.error(
+            `🤖 - [song/updateFavoriteStatus] - user ${ctx.user.id} is not authorized to update song ${input.songId}`,
+          );
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "User is not authorized to update song",
+          });
+        }
+
+        const favoritedAt = input.isFavorite ? new Date() : null;
+
+        const [updatedSong] = await updateTransaction
+          .update(songs)
+          .set({ favoritedAt })
           .where(eq(songs.id, input.songId))
           .returning();
 
