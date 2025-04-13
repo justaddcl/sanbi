@@ -471,7 +471,7 @@ export const songRouter = createTRPCRouter({
 
         if (!songToUpdate) {
           console.error(
-            `🤖 - [song/updateName] - could not find song ${input.songId}`,
+            `🤖 - [song/updatePreferredKey] - could not find song ${input.songId}`,
           );
           throw new TRPCError({
             code: "NOT_FOUND",
@@ -483,7 +483,7 @@ export const songRouter = createTRPCRouter({
           songToUpdate.organizationId !== ctx.user.membership.organizationId
         ) {
           console.error(
-            `🤖 - [song/updateName] - user ${ctx.user.id} is not authorized to update song ${input.songId}`,
+            `🤖 - [song/updatePreferredKey] - user ${ctx.user.id} is not authorized to update song ${input.songId}`,
           );
           throw new TRPCError({
             code: "FORBIDDEN",

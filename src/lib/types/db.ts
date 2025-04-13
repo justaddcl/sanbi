@@ -20,9 +20,15 @@ export type NewOrganizationMembership =
   typeof organizationMemberships.$inferInsert;
 export type OrganizationMembership =
   typeof organizationMemberships.$inferSelect;
+export type OrganizationMembershipWithOrganization = OrganizationMembership & {
+  organization: Organization;
+};
 
 export type NewUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
+export type UserWithMembership = User & {
+  membership: OrganizationMembershipWithOrganization;
+};
 export type UserWithMemberships = RouterOutputs["user"]["getUser"];
 
 export type NewEventType = typeof eventTypes.$inferInsert;

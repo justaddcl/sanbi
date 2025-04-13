@@ -31,7 +31,9 @@ export const SongKeySelect: React.FC<SongKeySelectProps> = ({
   const updateSongPreferredKeyMutation =
     api.song.updatePreferredKey.useMutation();
   const router = useRouter();
-  const [songKey, setSongKey] = useState<Song["preferredKey"]>(preferredKey);
+  const [songKey, setSongKey] = useState<Song["preferredKey"]>(
+    preferredKey ?? null,
+  );
 
   const updateSongPreferredKey = (newKey: SongKeyType) => {
     if (!newKey) {
@@ -64,6 +66,7 @@ export const SongKeySelect: React.FC<SongKeySelectProps> = ({
 
   const handleKeySelect = (newKey: SongKeyType) => {
     setSongKey(newKey);
+    // TODO: possibly worth looking into if a debounced update might be worth adding here
     updateSongPreferredKey(newKey);
   };
 
