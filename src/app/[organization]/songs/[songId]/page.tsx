@@ -6,8 +6,16 @@ import { HStack } from "@components/HStack";
 import { SongKey } from "@components/SongKey";
 import { Text } from "@components/Text";
 import { Button } from "@components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+} from "@components/ui/select";
 import { Skeleton } from "@components/ui/skeleton";
 import { VStack } from "@components/VStack";
+import { songKeys } from "@lib/constants";
+import { formatSongKey } from "@lib/string/formatSongKey";
 import { PlayHistoryItem, ResourceCard } from "@modules/SetListCard";
 import { ArchivedBanner } from "@modules/shared/components";
 import {
@@ -15,6 +23,7 @@ import {
   SongDetailsPageLoading,
 } from "@modules/songs/components";
 import { SongDetailsItem } from "@modules/songs/components/SongDetailsItem/SongDetailsItem";
+import { SongKeySelect } from "@modules/songs/components/SongKeySelect/SongKeySelect";
 import { Plus } from "@phosphor-icons/react/dist/ssr";
 import { formatDistanceToNow } from "date-fns";
 import { redirect } from "next/navigation";
@@ -72,7 +81,11 @@ export default async function SetListPage({
         <VStack as="dl" className="gap-4 md:gap-6">
           <SongDetailsItem icon="MusicNoteSimple" label="Preferred Key">
             <dd>
-              <SongKey songKey={song.preferredKey} size="large" />
+              <SongKeySelect
+                songId={song.id}
+                preferredKey={song.preferredKey}
+                userMembership={userMembership}
+              />
             </dd>
           </SongDetailsItem>
           <SongDetailsItem icon="ClockCounterClockwise" label="Last Played">

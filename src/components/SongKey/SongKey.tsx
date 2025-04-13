@@ -1,6 +1,6 @@
 import { type Song } from "@/lib/types";
-import { cn } from "@lib/utils";
 import { Text } from "@components/Text";
+import { cn } from "@lib/utils";
 
 export type SongKeyProps = SongKeyGeneralProps &
   (SongKeyFlatProps | SongKeySharpProps);
