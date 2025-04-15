@@ -24,6 +24,7 @@ import {
 } from "@modules/songs/components";
 import { SongDetailsItem } from "@modules/songs/components/SongDetailsItem/SongDetailsItem";
 import { SongKeySelect } from "@modules/songs/components/SongKeySelect/SongKeySelect";
+import { SongTags } from "@modules/songs/components/SongTags/SongTags";
 import { Plus } from "@phosphor-icons/react/dist/ssr";
 import { formatDistanceToNow } from "date-fns";
 import { redirect } from "next/navigation";
@@ -126,18 +127,7 @@ export default async function SetListPage({
             </dd>
           </SongDetailsItem>
           <SongDetailsItem icon="Tag" label="Tags">
-            <HStack as="dd" className="gap-2">
-              {!song && (
-                <>
-                  <Skeleton className="h-5 w-20" />
-                  <Skeleton className="h-5 w-16" />
-                  <Skeleton className="h-5 w-24" />
-                </>
-              )}
-              {song.tags?.map((tag) => (
-                <Badge key={tag.tagId} label={tag.tag.tag} />
-              ))}
-            </HStack>
+            <SongTags tags={song.tags} isLoading={!song} />
           </SongDetailsItem>
           {song.notes && (
             <SongDetailsItem icon="NotePencil" label="Notes">
