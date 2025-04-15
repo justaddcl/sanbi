@@ -154,3 +154,10 @@ export const updateSetSectionSongSchema = insertSetSectionSongSchema
     setSectionId: true,
     songId: true,
   });
+
+/**
+ * Tag schemas
+ */
+export const getTagsByOrganizationSchema = z.object({
+  organizationId: z.string().uuid(),
+});

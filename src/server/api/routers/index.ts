@@ -7,3 +7,4 @@ export * from "./song";
 export * from "./setSectionType";
 export * from "./setSectionSong";
 export * from "./setSection";
+export * from "./tag";
