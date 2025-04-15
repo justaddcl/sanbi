@@ -33,7 +33,7 @@ import unescapeHTML from "validator/es/lib/unescape";
 export default async function SetListPage({
   params,
 }: {
-  params: { songId: string };
+  params: { organization: string; songId: string };
 }) {
   const dateFormatter = new Intl.DateTimeFormat("en-US");
 
@@ -127,7 +127,11 @@ export default async function SetListPage({
             </dd>
           </SongDetailsItem>
           <SongDetailsItem icon="Tag" label="Tags">
-            <SongTags tags={song.tags} isLoading={!song} />
+            <SongTags
+              songTags={song.songTags}
+              organizationId={params.organization}
+              isLoading={!song}
+            />
           </SongDetailsItem>
           {song.notes && (
             <SongDetailsItem icon="NotePencil" label="Notes">

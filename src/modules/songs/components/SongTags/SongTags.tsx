@@ -1,14 +1,22 @@
+"use client";
+
 import { type RouterOutputs } from "@/trpc/react";
-import { Badge } from "@components/Badge";
 import { HStack } from "@components/HStack";
+import { Badge } from "@components/ui/badge";
 import { Skeleton } from "@components/ui/skeleton";
+import { SongTagSelector } from "../SongTagSelector/SongTagSelector";
 
 type SongTagsProps = {
-  tags: RouterOutputs["song"]["get"]["tags"];
+  songTags: RouterOutputs["song"]["get"]["songTags"];
+  organizationId: string;
   isLoading?: boolean;
 };
 
-export const SongTags: React.FC<SongTagsProps> = ({ tags, isLoading }) => {
+export const SongTags: React.FC<SongTagsProps> = ({
+  songTags,
+  organizationId,
+  isLoading,
+}) => {
   return (
     <HStack as="dd" className="gap-2">
       {isLoading && (
@@ -19,7 +27,13 @@ export const SongTags: React.FC<SongTagsProps> = ({ tags, isLoading }) => {
         </>
       )}
       {!isLoading &&
-        tags?.map((tag) => <Badge key={tag.tagId} label={tag.tag.tag} />)}
+        songTags?.map((tag) => (
+          // TODO: make these badges have a remove cue and onClick delete songTag mutation
+          <Badge variant="secondary" key={tag.tagId}>
+            {tag.tag.tag}
+          </Badge>
+        ))}
+      <SongTagSelector songTags={songTags} organizationId={organizationId} />
     </HStack>
   );
 };
