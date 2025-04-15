@@ -286,7 +286,7 @@ export const songsRelations = relations(songs, ({ one, many }) => ({
     fields: [songs.organizationId],
     references: [organizations.id],
   }),
-  tags: many(songTags),
+  songTags: many(songTags),
   sets: many(setSectionSongs),
 }));
 
