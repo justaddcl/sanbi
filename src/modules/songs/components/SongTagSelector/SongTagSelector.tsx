@@ -135,18 +135,12 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
   const handleKeyDown: KeyboardEventHandler<HTMLInputElement> = (
     keyDownEvent,
   ) => {
-    // Get all selectable items (suggested tags + filtered tags + create option)
-    const selectableItems = [
-      // ...(showSuggestedTags ? suggestedTags : []),
-      ...filteredTags.filter((tag) => !isTagSelected(tag.id)),
-    ];
-
     // Only show create option if there are no matching unselected tags
     const hasUnselectedMatches = filteredTags.some(
       (tag) => !isTagSelected(tag.id),
     );
     const hasCreateOption = search.trim() !== "" && !hasUnselectedMatches;
-    const totalItems = selectableItems.length + (hasCreateOption ? 1 : 0);
+    const totalItems = filteredTags.length + (hasCreateOption ? 1 : 0);
 
     switch (keyDownEvent.key) {
       case "ArrowDown":
@@ -162,8 +156,8 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
       case "Enter":
         keyDownEvent.preventDefault();
         if (highlightedIndex >= 0) {
-          if (highlightedIndex < selectableItems.length) {
-            handleSelectTag(selectableItems[highlightedIndex]);
+          if (highlightedIndex < filteredTags.length) {
+            handleSelectTag(filteredTags[highlightedIndex]);
           } else if (hasCreateOption) {
             handleCreateTag();
           }
@@ -183,25 +177,27 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
         } else {
           // Close dropdown only if search is empty
           setOpen(false);
+          setHighlightedIndex(-1);
         }
         break;
     }
   };
 
-  // FIXME: this isn't working
+  // TODO: is this needed since we can set the auto-focus on the PopoverContent?
   // Focus input when popover opens
-  useEffect(() => {
-    if (open && inputRef.current) {
-      setTimeout(() => {
-        inputRef.current?.focus();
-      }, 100);
-    } else {
-      setHighlightedIndex(-1);
-    }
-  }, [open]);
+  // useEffect(() => {
+  //   if (open && inputRef.current) {
+  //     setTimeout(() => {
+  //       inputRef.current?.focus();
+  //     }, 100);
+  //   } else {
+  //     setHighlightedIndex(-1);
+  //   }
+  // }, [open]);
 
   const showCreateOption = search.trim() !== "" && filteredTags.length === 0;
 
+  // TODO: remove the desktop styles that are applied
   if (!isDesktop) {
     return (
       <Dialog>
@@ -299,14 +295,10 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
                             onClick={() => !isSelected && handleSelectTag(tag)}
                             className={cn(
                               "mx-1 flex items-center justify-between rounded-lg px-3 text-sm transition-colors",
-                              isSelected
-                                ? "cursor-default opacity-90"
-                                : "cursor-pointer",
-                              highlightedIndex === index && !isSelected
-                                ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                                : !isSelected
-                                  ? "hover:bg-secondary/50"
-                                  : "",
+                              "cursor-pointer",
+                              highlightedIndex === index
+                                ? "bg-primary text-primary-foreground hover:bg-slate-200"
+                                : "hover:bg-secondary/50",
                             )}
                             data-index={!isSelected ? index : undefined}
                           >
@@ -349,7 +341,16 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
   }
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover
+      open={open}
+      onOpenChange={(open: boolean) => {
+        setOpen(open);
+
+        if (!open) {
+          setHighlightedIndex(-1);
+        }
+      }}
+    >
       <PopoverTrigger asChild>
         <Button
           variant="outline"
@@ -362,13 +363,13 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
       </PopoverTrigger>
       <PopoverContent
         ref={popoverRef}
-        className="w-[320px] overflow-hidden rounded-lg border-none p-0 shadow-lg"
+        className="w-[320px] overflow-hidden rounded-lg border-slate-300 p-0 shadow-lg"
         align="start"
         sideOffset={5}
         onEscapeKeyDown={(escKeyEvent) => escKeyEvent.preventDefault()}
       >
         <div className="flex max-h-[400px] flex-col bg-gradient-to-br from-background to-background/95 backdrop-blur-sm">
-          <div className="flex items-center border-b border-border/50 px-3 py-2">
+          <div className="flex items-center border-b border-slate-300 px-3 py-2">
             <MagnifyingGlass className="mr-2 h-4 w-4 text-muted-foreground" />
             <input
               ref={inputRef}
@@ -428,9 +429,8 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
                   onClick={handleCreateTag}
                   className={cn(
                     "flex w-full cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors",
-                    highlightedIndex === 0
-                      ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                      : "hover:bg-secondary/50",
+                    "hover:bg-slate-100",
+                    highlightedIndex === 0 && "bg-slate-100",
                   )}
                   data-index={0}
                 >
@@ -460,7 +460,7 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
                 </HStack>
               </VStack>
             ) : (
-              <ScrollArea className="max-h-[600px] flex-1 px-1 py-1">
+              <ScrollArea className="max-h-[600px] flex-1 px-1 py-2">
                 {filteredTags.length > 0 &&
                   filteredTags.map((tag, index) => {
                     // Adjust index based on whether suggested tags are shown
@@ -475,27 +475,15 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
                         onClick={() => !isSelected && handleSelectTag(tag)}
                         className={cn(
                           "mx-1 flex items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors",
-                          isSelected
-                            ? "cursor-default opacity-90"
-                            : "cursor-pointer",
-                          highlightedIndex === index && !isSelected
-                            ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                            : !isSelected
-                              ? "hover:bg-secondary/50"
-                              : "",
+                          "cursor-pointer",
+                          "hover:bg-slate-100",
+                          highlightedIndex === index && "bg-slate-100",
                         )}
                         data-index={!isSelected ? index : undefined}
                       >
                         <div className="flex items-center gap-3">
                           {isSelected && (
-                            <Check
-                              className={cn(
-                                "h-4 w-4",
-                                highlightedIndex === index
-                                  ? "text-primary-foreground"
-                                  : "text-primary",
-                              )}
-                            />
+                            <Check className={cn("h-4 w-4", "text-primary")} />
                           )}
                           <span className={isSelected ? "ml-0" : "ml-7"}>
                             {tag.tag}
@@ -517,7 +505,7 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
               </ScrollArea>
             )}
 
-            <div className="flex items-center justify-between border-t px-3 py-2 text-xs text-muted-foreground">
+            <div className="flex items-center justify-between border-t border-slate-300 px-3 py-2 text-xs text-muted-foreground">
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-1">
                   <ArrowSquareUp className="h-3 w-3" />
