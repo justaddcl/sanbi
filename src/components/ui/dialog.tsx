@@ -70,6 +70,11 @@ const DialogContent = React.forwardRef<
         {
           "max-w-lg": !fixed,
         },
+        // TODO: add prop to control this or should this be default?
+        {
+          "p-2": true,
+          "rounded-lg": true,
+        },
         className,
       )}
       {...props}
@@ -84,11 +89,18 @@ const DialogContent = React.forwardRef<
 ));
 DialogContent.displayName = DialogPrimitive.Content.displayName;
 
-export type DialogHeaderProps = React.HTMLAttributes<HTMLDivElement>;
-const DialogHeader = ({ className, ...props }: DialogHeaderProps) => (
+export type DialogHeaderProps = React.HTMLAttributes<HTMLDivElement> & {
+  align?: "center" | "left";
+};
+const DialogHeader = ({
+  align = "center",
+  className,
+  ...props
+}: DialogHeaderProps) => (
   <div
     className={cn(
-      "flex flex-col space-y-1.5 text-center sm:text-left",
+      "flex flex-col space-y-1.5 sm:text-left",
+      [align === "center" && "text-center"],
       className,
     )}
     {...props}
@@ -110,15 +122,19 @@ DialogFooter.displayName = "DialogFooter";
 
 export type DialogTitleProps = React.ComponentPropsWithoutRef<
   typeof DialogPrimitive.Title
->;
+> & {
+  size?: "md" | "lg";
+};
 const DialogTitle = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Title>,
   DialogTitleProps
->(({ className, ...props }, ref) => (
+>(({ size = "lg", className, ...props }, ref) => (
   <DialogPrimitive.Title
     ref={ref}
     className={cn(
-      "text-lg font-semibold leading-none tracking-tight",
+      "font-semibold leading-none tracking-tight",
+      [size === "md" && "text-base"],
+      [size === "lg" && "text-lg"],
       className,
     )}
     {...props}

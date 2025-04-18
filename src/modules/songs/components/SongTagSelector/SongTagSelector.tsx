@@ -4,6 +4,13 @@ import { HStack } from "@components/HStack";
 import { Text } from "@components/Text";
 import { Button } from "@components/ui/button";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@components/ui/dialog";
+import {
   Popover,
   PopoverContent,
   PopoverTrigger,
@@ -195,6 +202,152 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
 
   const showCreateOption = search.trim() !== "" && filteredTags.length === 0;
 
+  if (!isDesktop) {
+    return (
+      <Dialog>
+        <DialogTrigger asChild>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 gap-1.5 rounded-full border-dashed text-muted-foreground hover:text-foreground"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            Add Tag
+          </Button>
+        </DialogTrigger>
+        <DialogContent fixed className="py-6">
+          <DialogHeader align="left">
+            <DialogTitle size="md" className="ml-4">
+              Song tags
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex max-h-[400px] flex-col bg-gradient-to-br from-background to-background/95 backdrop-blur-sm">
+            <VStack className="gap-4">
+              <div className="flex items-center rounded-md bg-slate-100 px-3 py-2">
+                <MagnifyingGlass className="mr-2 h-4 w-4 text-muted-foreground" />
+                <input
+                  ref={inputRef}
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Search tags..."
+                  className="flex-1 border-0 bg-transparent text-sm outline-none placeholder:text-muted-foreground focus:outline-none focus:ring-0"
+                />
+                {search && (
+                  <button
+                    type="button"
+                    onClick={handleClearSearch}
+                    className="h-5 w-5 rounded-full text-muted-foreground transition-colors hover:text-foreground"
+                  >
+                    <X className="h-4 w-4" />
+                    <span className="sr-only">Clear search</span>
+                  </button>
+                )}
+              </div>
+
+              {showCreateOption ? (
+                <div className="px-3 py-3">
+                  <button
+                    onClick={handleCreateTag}
+                    className={cn(
+                      "flex w-full cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors",
+                      highlightedIndex === 0
+                        ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                        : "hover:bg-secondary/50",
+                    )}
+                    data-index={0}
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                    <span>Create new tag: &quot;{search}&quot;</span>
+                  </button>
+                </div>
+              ) : isOrganizationTagsQueryLoading ? (
+                <VStack className="gap-6 p-5">
+                  <HStack className="h-5 justify-between">
+                    <HStack className="gap-3">
+                      <Skeleton className="w-4" />
+                      <Skeleton className="w-24" />
+                    </HStack>
+                    <Skeleton className="w-5" />
+                  </HStack>
+                  <HStack className="h-5 justify-between">
+                    <HStack className="gap-3">
+                      <Skeleton className="w-4" />
+                      <Skeleton className="w-16" />
+                    </HStack>
+                    <Skeleton className="w-5" />
+                  </HStack>
+                  <HStack className="h-5 justify-between pl-[28px]">
+                    <Skeleton className="w-36" />
+                    <Skeleton className="w-5" />
+                  </HStack>
+                </VStack>
+              ) : (
+                <ScrollArea className="max-h-[600px] flex-1 px-1 py-1">
+                  <VStack className="gap-6">
+                    {filteredTags.length > 0 &&
+                      filteredTags.map((tag, index: number) => {
+                        // Adjust index based on whether suggested tags are shown
+                        // const adjustedIndex = showSuggestedTags
+                        //   ? index + suggestedTags.length
+                        //   : index;
+                        const isSelected = isTagSelected(tag.id);
+
+                        return (
+                          <div
+                            key={tag.id}
+                            onClick={() => !isSelected && handleSelectTag(tag)}
+                            className={cn(
+                              "mx-1 flex items-center justify-between rounded-lg px-3 text-sm transition-colors",
+                              isSelected
+                                ? "cursor-default opacity-90"
+                                : "cursor-pointer",
+                              highlightedIndex === index && !isSelected
+                                ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                                : !isSelected
+                                  ? "hover:bg-secondary/50"
+                                  : "",
+                            )}
+                            data-index={!isSelected ? index : undefined}
+                          >
+                            <div className="flex items-center gap-3">
+                              {isSelected && (
+                                <Check
+                                  className={cn(
+                                    "h-4 w-4",
+                                    highlightedIndex === index
+                                      ? "text-primary-foreground"
+                                      : "text-primary",
+                                  )}
+                                />
+                              )}
+                              <span className={isSelected ? "ml-0" : "ml-7"}>
+                                {tag.tag}
+                              </span>
+                            </div>
+                            {/* <span
+                          className={cn(
+                            "text-xs",
+                            highlightedIndex === index
+                              ? "text-primary-foreground/70"
+                              : "text-muted-foreground",
+                          )}
+                        >
+                          {tag.count}
+                        </span> */}
+                          </div>
+                        );
+                      })}
+                  </VStack>
+                </ScrollArea>
+              )}
+            </VStack>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -364,26 +517,23 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
               </ScrollArea>
             )}
 
-            {/* Keyboard shortcuts legend - only show on desktop */}
-            {isDesktop && (
-              <div className="flex items-center justify-between border-t px-3 py-2 text-xs text-muted-foreground">
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-1">
-                    <ArrowSquareUp className="h-3 w-3" />
-                    <ArrowSquareDown className="h-3 w-3" />
-                    <span>Navigate</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <KeyReturn className="h-3 w-3" />
-                    <span>Select</span>
-                  </div>
+            <div className="flex items-center justify-between border-t px-3 py-2 text-xs text-muted-foreground">
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-1">
+                  <ArrowSquareUp className="h-3 w-3" />
+                  <ArrowSquareDown className="h-3 w-3" />
+                  <span>Navigate</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <Text>ESC</Text>
-                  <span>Esc to clear/close</span>
+                  <KeyReturn className="h-3 w-3" />
+                  <span>Select</span>
                 </div>
               </div>
-            )}
+              <div className="flex items-center gap-1">
+                <Text>ESC</Text>
+                <span>Esc to clear/close</span>
+              </div>
+            </div>
           </div>
         </div>
       </PopoverContent>
