@@ -193,12 +193,7 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
     }
   }, [open]);
 
-  // Check if we should show the create option
-  // Only show create option if there are no matching unselected tags
-  const hasUnselectedMatches = filteredTags.some(
-    (tag) => !isTagSelected(tag.id),
-  );
-  const showCreateOption = search.trim() !== "" && !hasUnselectedMatches;
+  const showCreateOption = search.trim() !== "" && filteredTags.length === 0;
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -217,7 +212,6 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
         className="w-[320px] overflow-hidden rounded-lg border-none p-0 shadow-lg"
         align="start"
         sideOffset={5}
-        onOpenAutoFocus={(e) => e.preventDefault()}
         onEscapeKeyDown={(escKeyEvent) => escKeyEvent.preventDefault()}
       >
         <div className="flex max-h-[400px] flex-col bg-gradient-to-br from-background to-background/95 backdrop-blur-sm">
@@ -314,7 +308,7 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
               </VStack>
             ) : (
               <ScrollArea className="max-h-[600px] flex-1 px-1 py-1">
-                {filteredTags.length > 0 ? (
+                {filteredTags.length > 0 &&
                   filteredTags.map((tag, index) => {
                     // Adjust index based on whether suggested tags are shown
                     // const adjustedIndex = showSuggestedTags
@@ -366,16 +360,7 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
                         </span> */}
                       </div>
                     );
-                  })
-                ) : search ? (
-                  <div className="py-6 text-center text-sm text-muted-foreground">
-                    No matching tags found
-                  </div>
-                ) : (
-                  <div className="py-6 text-center text-sm text-muted-foreground">
-                    Type to search or create tags
-                  </div>
-                )}
+                  })}
               </ScrollArea>
             )}
 
