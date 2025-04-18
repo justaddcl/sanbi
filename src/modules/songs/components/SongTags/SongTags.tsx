@@ -18,7 +18,7 @@ export const SongTags: React.FC<SongTagsProps> = ({
   isLoading,
 }) => {
   return (
-    <HStack as="dd" className="gap-2">
+    <HStack as="dd" className="flex-wrap gap-2">
       {isLoading && (
         <>
           <Skeleton className="h-5 w-20" />
