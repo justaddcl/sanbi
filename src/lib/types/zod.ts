@@ -166,7 +166,11 @@ export const getTagsByOrganizationSchema = z.object({
 /**
  * Song tag schemas
  */
-export const createSongTagSchema = createInsertSchema(songTags);
 export const getSongTagsBySongIdSchema = z.object({
   songId: z.string().uuid(),
+});
+export const createSongTagSchema = createInsertSchema(songTags);
+export const deleteSongTagSchema = z.object({
+  songId: z.string().uuid(),
+  tagId: z.string().uuid(),
 });
