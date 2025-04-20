@@ -1,11 +1,12 @@
 "use client";
 
-import { type RouterOutputs } from "@/trpc/react";
+import { api, type RouterOutputs } from "@/trpc/react";
 import { HStack } from "@components/HStack";
 import { Badge } from "@components/ui/badge";
 import { Skeleton } from "@components/ui/skeleton";
 import { SongTagSelector } from "../SongTagSelector/SongTagSelector";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 type SongTagsProps = {
   songTags: RouterOutputs["song"]["get"]["songTags"];
@@ -23,6 +24,45 @@ export const SongTags: React.FC<SongTagsProps> = ({
   refreshOnTagUpdate,
 }) => {
   const router = useRouter();
+
+  const deleteSongTagMutation = api.songTag.delete.useMutation();
+  const apiUtils = api.useUtils();
+
+  const onTagUpdate = refreshOnTagUpdate ? () => router.refresh() : undefined;
+
+  const deleteSongTag = (tagId: string) => {
+    const toastId = toast.loading("Removing tag...");
+
+    deleteSongTagMutation.mutate(
+      {
+        organizationId,
+        songId,
+        tagId,
+      },
+      {
+        async onSuccess() {
+          toast.success("Tag removed", { id: toastId });
+
+          await apiUtils.songTag.getBySongId.invalidate({
+            songId,
+            organizationId,
+          });
+          await apiUtils.song.get.invalidate({
+            songId,
+            organizationId,
+          });
+
+          onTagUpdate?.();
+        },
+        onError(deleteError) {
+          toast.error(`Could not remove tag: ${deleteError.message}`, {
+            id: toastId,
+          });
+        },
+      },
+    );
+  };
+
   return (
     <HStack as="dd" className="flex-wrap gap-2">
       {isLoading && (
@@ -35,15 +75,22 @@ export const SongTags: React.FC<SongTagsProps> = ({
       {!isLoading &&
         // TODO: sort these tags alphabetically
         songTags?.map((tag) => (
-          // TODO: make these badges have a remove cue and onClick delete songTag mutation
-          <Badge variant="secondary" key={tag.tagId}>
+          <Badge
+            variant="secondary"
+            key={tag.tagId}
+            dismissable
+            onClose={() => {
+              deleteSongTag(tag.tagId);
+            }}
+            onClosePending={deleteSongTagMutation.isPending}
+          >
             {tag.tag.tag}
           </Badge>
         ))}
       <SongTagSelector
         songId={songId}
         organizationId={organizationId}
-        onTagUpdate={refreshOnTagUpdate ? () => router.refresh() : undefined}
+        onTagUpdate={onTagUpdate}
       />
     </HStack>
   );
