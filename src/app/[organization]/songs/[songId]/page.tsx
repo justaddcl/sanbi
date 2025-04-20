@@ -129,8 +129,10 @@ export default async function SetListPage({
           <SongDetailsItem icon="Tag" label="Tags">
             <SongTags
               songTags={song.songTags}
+              songId={song.id}
               organizationId={params.organization}
               isLoading={!song}
+              refreshOnTagUpdate={true}
             />
           </SongDetailsItem>
           {song.notes && (

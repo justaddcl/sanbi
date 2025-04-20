@@ -29,18 +29,23 @@ import {
   X,
 } from "@phosphor-icons/react";
 import { type KeyboardEventHandler, useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 
 type SongTag = RouterOutputs["song"]["get"]["songTags"];
 type OrganizationTag = RouterOutputs["tag"]["getByOrganization"][number];
 
 type SongTagSelectorProps = {
   songTags: SongTag;
+  songId: string;
   organizationId: string;
+  onTagUpdate?: () => void;
 };
 
 export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
   songTags,
+  songId,
   organizationId,
+  onTagUpdate,
 }) => {
   const [selectedTags, setSelectedTags] =
     useState<SongTagSelectorProps["songTags"]>(songTags);
@@ -54,6 +59,9 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
   const popoverRef = useRef<HTMLDivElement>(null);
 
   const { isDesktop } = useResponsive();
+
+  const createSongTagMutation = api.songTag.create.useMutation();
+  const apiUtils = api.useUtils();
 
   const {
     data: organizationTags,
@@ -84,7 +92,7 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
 
   const showCreateOption = search.trim() !== "" && filteredTags.length === 0;
 
-  const handleSelectTag = (tag: OrganizationTag | undefined) => {
+  const handleAddTag = (tag: OrganizationTag | undefined) => {
     // If tag is already selected, do nothing
     if (!tag || isTagSelected(tag.id)) return;
 
@@ -93,8 +101,36 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
     // const updatedTags = [...selectedTags, tag];
     // setSelectedTags(updatedTags);
     // onTagsChange?.(updatedTags);
-    setSearch("");
-    setHighlightedIndex(-1);
+
+    const toastId = toast.loading("Adding tag to song...");
+
+    createSongTagMutation.mutate(
+      {
+        songId,
+        tagId: tag.id,
+        organizationId,
+      },
+      {
+        async onSuccess() {
+          toast.success("Tag added to song", { id: toastId });
+
+          await apiUtils.song.get.invalidate({
+            songId,
+            organizationId,
+          });
+          onTagUpdate?.();
+
+          setSearch("");
+          setHighlightedIndex(-1);
+        },
+        onError(createError) {
+          toast.error(
+            `Tag could not be added to song: ${createError.message}`,
+            { id: toastId },
+          );
+        },
+      },
+    );
   };
 
   const handleRemoveTag = (tagId: string) => {
@@ -158,7 +194,7 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
         keyDownEvent.preventDefault();
         if (highlightedIndex >= 0) {
           if (highlightedIndex < filteredTags.length) {
-            handleSelectTag(filteredTags[highlightedIndex]);
+            handleAddTag(filteredTags[highlightedIndex]);
           } else if (showCreateOption) {
             handleCreateTag();
           }
@@ -291,7 +327,7 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
                       return (
                         <HStack
                           key={tag.id}
-                          onClick={() => !isSelected && handleSelectTag(tag)}
+                          onClick={() => !isSelected && handleAddTag(tag)}
                           className={cn(
                             "items-center justify-between rounded-lg px-3 py-3 text-sm transition-colors",
                             "cursor-pointer",
@@ -465,7 +501,7 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
                     return (
                       <HStack
                         key={tag.id}
-                        onClick={() => !isSelected && handleSelectTag(tag)}
+                        onClick={() => !isSelected && handleAddTag(tag)}
                         className={cn(
                           "mx-1 items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors",
                           "cursor-pointer",
