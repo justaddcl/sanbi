@@ -31,24 +31,19 @@ import {
 import { type KeyboardEventHandler, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
-type SongTag = RouterOutputs["song"]["get"]["songTags"];
 type OrganizationTag = RouterOutputs["tag"]["getByOrganization"][number];
 
 type SongTagSelectorProps = {
-  songTags: SongTag;
   songId: string;
   organizationId: string;
   onTagUpdate?: () => void;
 };
 
 export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
-  songTags,
   songId,
   organizationId,
   onTagUpdate,
 }) => {
-  const [selectedTags, setSelectedTags] =
-    useState<SongTagSelectorProps["songTags"]>(songTags);
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   // const [isTagsDialogOpen, setIsTagsDialogOpen] = useState(false);
@@ -71,8 +66,17 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
     organizationId,
   });
 
+  const {
+    data: songTags,
+    isLoading: isSongTagsQueryLoading,
+    error: songTagsQueryError,
+  } = api.songTag.getBySongId.useQuery({
+    songId,
+    organizationId,
+  });
+
   const isTagSelected = (tagId: OrganizationTag["id"]) => {
-    return selectedTags.some((songTag) => songTag.tag.id === tagId);
+    return songTags?.some((songTag) => songTag.tag.id === tagId);
   };
 
   // Filter tags based on search - ALWAYS include already selected tags in search results
@@ -96,12 +100,6 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
     // If tag is already selected, do nothing
     if (!tag || isTagSelected(tag.id)) return;
 
-    // TODO: create songTag mutation
-
-    // const updatedTags = [...selectedTags, tag];
-    // setSelectedTags(updatedTags);
-    // onTagsChange?.(updatedTags);
-
     const toastId = toast.loading("Adding tag to song...");
 
     createSongTagMutation.mutate(
@@ -113,7 +111,12 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
       {
         async onSuccess() {
           toast.success("Tag added to song", { id: toastId });
+          setOpen(false);
 
+          await apiUtils.songTag.getBySongId.invalidate({
+            songId,
+            organizationId,
+          });
           await apiUtils.song.get.invalidate({
             songId,
             organizationId,
@@ -142,7 +145,7 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
 
   const handleCreateTag = () => {
     if (!search.trim()) return;
-    // TODO: create songTag mutation
+    // TODO: create tag mutation
 
     // const newTag = {
     //   id: search.toLowerCase().replace(/\s+/g, "-"),
@@ -220,6 +223,10 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
     }
   };
 
+  // TODO: add error state
+
+  // TODO: add loading state
+
   // TODO: is this needed since we can set the auto-focus on the PopoverContent?
   // Focus input when popover opens
   // useEffect(() => {
@@ -235,7 +242,7 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
   // TODO: remove the desktop styles that are applied
   if (!isDesktop) {
     return (
-      <Dialog>
+      <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
           <Button
             variant="outline"

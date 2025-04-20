@@ -41,7 +41,6 @@ export const SongTags: React.FC<SongTagsProps> = ({
           </Badge>
         ))}
       <SongTagSelector
-        songTags={songTags}
         songId={songId}
         organizationId={organizationId}
         onTagUpdate={refreshOnTagUpdate ? () => router.refresh() : undefined}
