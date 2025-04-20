@@ -8,6 +8,7 @@ import {
   setSectionSongs,
   setSectionTypes,
   songs,
+  songTags,
 } from "@server/db/schema";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -161,3 +162,8 @@ export const updateSetSectionSongSchema = insertSetSectionSongSchema
 export const getTagsByOrganizationSchema = z.object({
   organizationId: z.string().uuid(),
 });
+
+/**
+ * Song tag schemas
+ */
+export const createSongTagSchema = createInsertSchema(songTags);

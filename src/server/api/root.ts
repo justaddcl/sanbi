@@ -10,6 +10,7 @@ import {
   setSectionSongRouter,
   setSectionRouter,
   tagRouter,
+  songTagRouter,
 } from "@server/api/routers";
 
 /**
@@ -27,6 +28,7 @@ export const appRouter = createTRPCRouter({
   setSectionType: setSectionTypeRouter,
   setSectionSong: setSectionSongRouter,
   setSection: setSectionRouter,
+  songTag: songTagRouter,
   tag: tagRouter,
 });
 
