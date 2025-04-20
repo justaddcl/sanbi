@@ -110,7 +110,7 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
       },
       {
         async onSuccess() {
-          toast.success("Tag added to song", { id: toastId });
+          toast.success("Tag added", { id: toastId });
           setOpen(false);
 
           await apiUtils.songTag.getBySongId.invalidate({
@@ -128,7 +128,7 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
         },
         onError(createError) {
           toast.error(
-            `Tag could not be added to song: ${createError.message}`,
+            `Tag could not be added: ${createError.message}`,
             { id: toastId },
           );
         },
