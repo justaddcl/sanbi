@@ -18,6 +18,7 @@ import {
 import { ScrollArea } from "@components/ui/scroll-area";
 import { Skeleton } from "@components/ui/skeleton";
 import { VStack } from "@components/VStack";
+import { tagNameSchema } from "@lib/types/zod";
 import { cn } from "@lib/utils";
 import {
   ArrowSquareDown,
@@ -56,6 +57,15 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
   const { isDesktop } = useResponsive();
 
   const createSongTagMutation = api.songTag.create.useMutation();
+  const createTagMutation = api.tag.create.useMutation({
+    onSuccess: (newTag) => {
+      createSongTagMutation.mutate({
+        songId,
+        tagId: newTag.id,
+        organizationId,
+      });
+    },
+  });
   const apiUtils = api.useUtils();
 
   const {
@@ -96,6 +106,23 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
 
   const showCreateOption = search.trim() !== "" && filteredTags.length === 0;
 
+  const resetSelectorOnSuccess = async () => {
+    setOpen(false);
+
+    await apiUtils.songTag.getBySongId.invalidate({
+      songId,
+      organizationId,
+    });
+    await apiUtils.song.get.invalidate({
+      songId,
+      organizationId,
+    });
+    onTagUpdate?.();
+
+    setSearch("");
+    setHighlightedIndex(-1);
+  };
+
   const handleAddTag = (tag: OrganizationTag | undefined) => {
     // If tag is already selected, do nothing
     if (!tag || isTagSelected(tag.id)) return;
@@ -111,20 +138,7 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
       {
         async onSuccess() {
           toast.success("Tag added", { id: toastId });
-          setOpen(false);
-
-          await apiUtils.songTag.getBySongId.invalidate({
-            songId,
-            organizationId,
-          });
-          await apiUtils.song.get.invalidate({
-            songId,
-            organizationId,
-          });
-          onTagUpdate?.();
-
-          setSearch("");
-          setHighlightedIndex(-1);
+          await resetSelectorOnSuccess();
         },
         onError(createError) {
           toast.error(`Tag could not be added: ${createError.message}`, {
@@ -143,27 +157,43 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
   };
 
   const handleCreateTag = () => {
-    if (!search.trim()) return;
-    // TODO: create tag mutation
+    const trimmedTag = search
+      .trim()
+      .normalize("NFC")
+      .replace(/\u00A0/g, " "); // NBSP -> normal space
 
-    // const newTag = {
-    //   id: search.toLowerCase().replace(/\s+/g, "-"),
-    //   name: search.trim(),
-    // };
+    if (!trimmedTag) return;
 
-    // // Check if tag already exists
-    // if (
-    //   selectedTags.some((tag) => tag.id === newTag.id) ||
-    //   availableTags.some((tag) => tag.id === newTag.id)
-    // ) {
-    //   return;
-    // }
+    const validationResult = tagNameSchema.safeParse(trimmedTag);
 
-    // const updatedTags = [...selectedTags, newTag];
-    // setSelectedTags(updatedTags);
-    // onTagsChange?.(updatedTags);
-    // setSearch("");
-    // setHighlightedIndex(-1);
+    if (!validationResult.success) {
+      const [formattedError] = validationResult.error.format()._errors;
+      toast.error(formattedError);
+      return;
+    }
+
+    const toastId = toast.loading("Creating tag...");
+
+    createTagMutation.mutate(
+      {
+        tag: validationResult.data,
+        organizationId,
+      },
+      {
+        async onSuccess() {
+          toast.success("Created tag", { id: toastId });
+          await apiUtils.tag.getByOrganization.invalidate({
+            organizationId,
+          });
+          await resetSelectorOnSuccess();
+        },
+        onError(createError) {
+          toast.error(`Tag could not be created: ${createError.message}`, {
+            id: toastId,
+          });
+        },
+      },
+    );
   };
 
   const handleClearSearch = () => {
