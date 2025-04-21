@@ -100,7 +100,7 @@ const DialogHeader = ({
   <div
     className={cn(
       "flex flex-col space-y-1.5 sm:text-left",
-      [align === "center" && "text-center"],
+      { "text-center": align === "center" },
       className,
     )}
     {...props}

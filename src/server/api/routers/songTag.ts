@@ -32,6 +32,10 @@ export const songTagRouter = createTRPCRouter({
         console.error(
           `🤖 - [songTag/getBySongId] - user ${ctx.user.id} is not authorized to query song ${songToQuery.id}`,
         );
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "User is not authorized to query song",
+        });
       }
 
       const tags = await ctx.db.query.songTags.findMany({
@@ -100,7 +104,7 @@ export const songTagRouter = createTRPCRouter({
           tagId,
         };
 
-        const [songTag] = await ctx.db
+        const [songTag] = await createMutation
           .insert(songTags)
           .values(newSongTag)
           .onConflictDoNothing()
@@ -157,13 +161,7 @@ export const songTagRouter = createTRPCRouter({
           });
         }
 
-        const { songId, tagId } = input;
-        const newSongTag: NewSongTag = {
-          songId,
-          tagId,
-        };
-
-        const [deletedSongTag] = await ctx.db
+        const [deletedSongTag] = await deleteMutation
           .delete(songTags)
           .where(
             and(

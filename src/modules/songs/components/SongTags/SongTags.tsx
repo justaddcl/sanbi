@@ -7,6 +7,7 @@ import { Skeleton } from "@components/ui/skeleton";
 import { SongTagSelector } from "../SongTagSelector/SongTagSelector";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { useCallback, useState } from "react";
 
 type SongTagsProps = {
   songTags: RouterOutputs["song"]["get"]["songTags"];
@@ -25,13 +26,23 @@ export const SongTags: React.FC<SongTagsProps> = ({
 }) => {
   const router = useRouter();
 
+  const [tagIdPendingDeletion, setTagIdPendingDeletion] = useState<
+    string | null
+  >(null);
+
   const deleteSongTagMutation = api.songTag.delete.useMutation();
   const apiUtils = api.useUtils();
 
-  const onTagUpdate = refreshOnTagUpdate ? () => router.refresh() : undefined;
+  const onTagUpdate = useCallback(() => {
+    if (refreshOnTagUpdate) {
+      router.refresh();
+    }
+  }, [refreshOnTagUpdate, router]);
 
   const deleteSongTag = (tagId: string) => {
     const toastId = toast.loading("Removing tag...");
+
+    setTagIdPendingDeletion(tagId);
 
     deleteSongTagMutation.mutate(
       {
@@ -59,6 +70,9 @@ export const SongTags: React.FC<SongTagsProps> = ({
             id: toastId,
           });
         },
+        onSettled() {
+          setTagIdPendingDeletion(null);
+        },
       },
     );
   };
@@ -82,7 +96,7 @@ export const SongTags: React.FC<SongTagsProps> = ({
             onClose={() => {
               deleteSongTag(tag.tagId);
             }}
-            onClosePending={deleteSongTagMutation.isPending}
+            onClosePending={tagIdPendingDeletion === tag.tagId}
           >
             {tag.tag.tag}
           </Badge>

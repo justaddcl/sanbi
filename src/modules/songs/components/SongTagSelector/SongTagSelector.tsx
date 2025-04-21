@@ -127,10 +127,9 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
           setHighlightedIndex(-1);
         },
         onError(createError) {
-          toast.error(
-            `Tag could not be added: ${createError.message}`,
-            { id: toastId },
-          );
+          toast.error(`Tag could not be added: ${createError.message}`, {
+            id: toastId,
+          });
         },
       },
     );
@@ -227,18 +226,6 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
 
   // TODO: add loading state
 
-  // TODO: is this needed since we can set the auto-focus on the PopoverContent?
-  // Focus input when popover opens
-  // useEffect(() => {
-  //   if (open && inputRef.current) {
-  //     setTimeout(() => {
-  //       inputRef.current?.focus();
-  //     }, 100);
-  //   } else {
-  //     setHighlightedIndex(-1);
-  //   }
-  // }, [open]);
-
   // TODO: remove the desktop styles that are applied
   if (!isDesktop) {
     return (
@@ -286,6 +273,7 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
               {showCreateOption ? (
                 <div className="px-3 py-3">
                   <button
+                    type="button"
                     onClick={handleCreateTag}
                     className={cn(
                       "flex w-full cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors",
@@ -462,6 +450,7 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
             {showCreateOption ? (
               <div className="px-3 py-3">
                 <button
+                  type="button"
                   onClick={handleCreateTag}
                   className={cn(
                     "flex w-full cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors",

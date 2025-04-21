@@ -46,6 +46,7 @@ function Badge({
       {children}
       {dismissable && onClose && (
         <button
+          type="button"
           onClick={(closeEvent) => {
             closeEvent.stopPropagation();
             onClose();
