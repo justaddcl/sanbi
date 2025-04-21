@@ -1,6 +1,7 @@
 import { useResponsive } from "@/hooks/useResponsive";
 import { api, type RouterOutputs } from "@/trpc/react";
 import { HStack } from "@components/HStack";
+import { KeyboardShortcut } from "@components/KeyboardShortcut";
 import { Text } from "@components/Text";
 import { Button } from "@components/ui/button";
 import {
@@ -21,8 +22,10 @@ import { VStack } from "@components/VStack";
 import { tagNameSchema } from "@lib/types/zod";
 import { cn } from "@lib/utils";
 import {
+  ArrowDown,
   ArrowSquareDown,
   ArrowSquareUp,
+  ArrowUp,
   Check,
   KeyReturn,
   MagnifyingGlass,
@@ -416,7 +419,7 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
       </PopoverTrigger>
       <PopoverContent
         ref={popoverRef}
-        className="w-[320px] overflow-hidden rounded-lg border-slate-300 p-0 shadow-lg"
+        className="w-[400px] overflow-hidden rounded-lg border-slate-300 p-0 shadow-lg"
         align="start"
         sideOffset={5}
         onEscapeKeyDown={(escKeyEvent) => escKeyEvent.preventDefault()}
@@ -560,22 +563,20 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
               </ScrollArea>
             )}
 
-            <HStack className="flex items-center justify-between border-t border-slate-300 px-3 py-2 text-xs text-muted-foreground">
-              <HStack className="flex items-center gap-3">
-                <HStack className="flex items-center gap-1">
-                  <ArrowSquareUp className="h-3 w-3" />
-                  <ArrowSquareDown className="h-3 w-3" />
-                  <span>Navigate</span>
-                </HStack>
-                <HStack className="flex items-center gap-1">
-                  <KeyReturn className="h-3 w-3" />
-                  <span>Select</span>
-                </HStack>
-              </HStack>
-              <HStack className="flex items-center gap-1">
-                <Text>ESC</Text>
-                <span>Esc to clear/close</span>
-              </HStack>
+            <HStack className="flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-slate-300 px-3 py-2 text-xs text-muted-foreground">
+              <KeyboardShortcut
+                primaryKey={<ArrowUp className="h-3 w-3" />}
+                secondaryKey={<ArrowDown className="h-3 w-3" />}
+                label="Select tag"
+              />
+              <KeyboardShortcut
+                primaryKey={<KeyReturn className="h-3 w-3" />}
+                label="Add tag"
+              />
+              <KeyboardShortcut
+                primaryKey={<span>Esc</span>}
+                label="Clear filter/close"
+              />
             </HStack>
           </div>
         </VStack>
