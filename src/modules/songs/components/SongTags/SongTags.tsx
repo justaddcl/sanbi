@@ -9,8 +9,13 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useCallback, useState } from "react";
 
+type SongTag = RouterOutputs["song"]["get"]["songTags"][number];
+
+const compareSongTags = (songTagA: SongTag, songTagB: SongTag) =>
+  songTagA.tag.tag.localeCompare(songTagB.tag.tag);
+
 type SongTagsProps = {
-  songTags: RouterOutputs["song"]["get"]["songTags"];
+  songTags: SongTag[];
   songId: RouterOutputs["song"]["get"]["id"];
   organizationId: string;
   isLoading?: boolean;
@@ -78,7 +83,7 @@ export const SongTags: React.FC<SongTagsProps> = ({
   };
 
   return (
-    <HStack as="dd" className="flex-wrap gap-2">
+    <HStack as="dd" className="flex-wrap items-start gap-2">
       {isLoading && (
         <>
           <Skeleton className="h-5 w-20" />
@@ -88,7 +93,7 @@ export const SongTags: React.FC<SongTagsProps> = ({
       )}
       {!isLoading &&
         // TODO: sort these tags alphabetically
-        songTags?.map((tag) => (
+        songTags?.sort(compareSongTags).map((tag) => (
           <Badge
             variant="secondary"
             key={tag.tagId}
