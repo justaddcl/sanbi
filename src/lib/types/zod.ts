@@ -1,5 +1,5 @@
 import { songKeys } from "@lib/constants";
-import { songNameRegex } from "@lib/constants/regex";
+import { songNameRegex, tagRegex } from "@lib/constants/regex";
 import {
   organizationMemberships,
   organizations,
@@ -9,6 +9,7 @@ import {
   setSectionTypes,
   songs,
   songTags,
+  tags,
 } from "@server/db/schema";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -159,9 +160,34 @@ export const updateSetSectionSongSchema = insertSetSectionSongSchema
 /**
  * Tag schemas
  */
+export const tagNameSchema = z
+  .string()
+  .min(1)
+  .max(30)
+  .superRefine((val, ctx) => {
+    for (const char of val) {
+      if (!tagRegex.test(char)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `Tag contains invalid character: ${char}. Tags may only contain letters, numbers, spaces, underscores (_), hyphens (-), apostrophes (') or emojis.`,
+          fatal: true,
+        });
+
+        return z.NEVER;
+      }
+    }
+  });
+
 export const getTagsByOrganizationSchema = z.object({
   organizationId: z.string().uuid(),
 });
+export const createTagSchema = createInsertSchema(tags)
+  .omit({
+    tag: true,
+  })
+  .extend({
+    tag: tagNameSchema,
+  });
 
 /**
  * Song tag schemas
