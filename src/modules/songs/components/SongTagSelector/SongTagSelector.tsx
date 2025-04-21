@@ -388,7 +388,7 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
                             "cursor-pointer",
                             "hover:bg-slate-100",
                           )}
-                          data-index={!isSelected ? index : undefined}
+                          data-index={index}
                         >
                           <HStack className="items-center gap-3">
                             {isSelected && (
