@@ -2,7 +2,6 @@ import { useResponsive } from "@/hooks/useResponsive";
 import { api, type RouterOutputs } from "@/trpc/react";
 import { HStack } from "@components/HStack";
 import { KeyboardShortcut } from "@components/KeyboardShortcut";
-import { Text } from "@components/Text";
 import { Button } from "@components/ui/button";
 import {
   Dialog,
@@ -23,8 +22,6 @@ import { tagNameSchema } from "@lib/types/zod";
 import { cn } from "@lib/utils";
 import {
   ArrowDown,
-  ArrowSquareDown,
-  ArrowSquareUp,
   ArrowUp,
   Check,
   KeyReturn,
@@ -32,7 +29,7 @@ import {
   Plus,
   X,
 } from "@phosphor-icons/react";
-import { type KeyboardEventHandler, useEffect, useRef, useState } from "react";
+import { type KeyboardEventHandler, useRef, useState } from "react";
 import { toast } from "sonner";
 
 type OrganizationTag = RouterOutputs["tag"]["getByOrganization"][number];
@@ -50,11 +47,8 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
 }) => {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
-  // const [isTagsDialogOpen, setIsTagsDialogOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
-  // const [isMobile, setIsMobile] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  const listRef = useRef<HTMLDivElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
 
   const { isDesktop } = useResponsive();
@@ -69,43 +63,29 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
       });
     },
   });
+  const deleteSongTagMutation = api.songTag.delete.useMutation();
   const apiUtils = api.useUtils();
 
-  const {
-    data: organizationTags,
-    isLoading: isOrganizationTagsQueryLoading,
-    error: organizationTagsQueryError,
-  } = api.tag.getByOrganization.useQuery({
-    organizationId,
-  });
+  const { data: organizationTags, isLoading: isOrganizationTagsQueryLoading } =
+    api.tag.getByOrganization.useQuery({
+      organizationId,
+    });
 
-  const {
-    data: songTags,
-    isLoading: isSongTagsQueryLoading,
-    error: songTagsQueryError,
-  } = api.songTag.getBySongId.useQuery({
-    songId,
-    organizationId,
-  });
+  const { data: songTags, isLoading: isSongTagsQueryLoading } =
+    api.songTag.getBySongId.useQuery({
+      songId,
+      organizationId,
+    });
+
+  const isLoading = isOrganizationTagsQueryLoading || isSongTagsQueryLoading;
 
   const isTagSelected = (tagId: OrganizationTag["id"]) => {
     return songTags?.some((songTag) => songTag.tag.id === tagId);
   };
 
-  // Filter tags based on search - ALWAYS include already selected tags in search results
   const filteredTags = (organizationTags ?? []).filter((tag) =>
     tag.tag.toLowerCase().includes(search.toLowerCase()),
   );
-  // .sort((a, b) => {
-  //   // First sort by selection status (selected tags first)
-  //   const aSelected = isTagSelected(a.id);
-  //   const bSelected = isTagSelected(b.id);
-  //   if (aSelected && !bSelected) return -1;
-  //   if (!aSelected && bSelected) return 1;
-
-  //   // Then sort by count (most used first)
-  //   return b.count - a.count;
-  // });
 
   const showCreateOption = search.trim() !== "" && filteredTags.length === 0;
 
@@ -127,7 +107,6 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
   };
 
   const handleAddTag = (tag: OrganizationTag | undefined) => {
-    // If tag is already selected, do nothing
     if (!tag || isTagSelected(tag.id)) return;
 
     const toastId = toast.loading("Adding tag to song...");
@@ -153,10 +132,27 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
   };
 
   const handleRemoveTag = (tagId: string) => {
-    // TODO: delete songTag mutation
-    // const updatedTags = selectedTags.filter((tag) => tag.id !== tagId);
-    // setSelectedTags(updatedTags);
-    // onTagsChange?.(updatedTags);
+    const toastId = toast.loading("Removing tag...");
+
+    deleteSongTagMutation.mutate(
+      {
+        organizationId,
+        songId,
+        tagId,
+      },
+      {
+        async onSuccess() {
+          toast.success("Tag removed", { id: toastId });
+
+          await resetSelectorOnSuccess();
+        },
+        onError(deleteError) {
+          toast.error(`Could not remove tag: ${deleteError.message}`, {
+            id: toastId,
+          });
+        },
+      },
+    );
   };
 
   const handleCreateTag = () => {
@@ -199,6 +195,18 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
     );
   };
 
+  const handleTagSelect = (tag: OrganizationTag | undefined) => {
+    if (!tag) {
+      return;
+    }
+
+    if (isTagSelected(tag.id)) {
+      handleRemoveTag(tag.id);
+    } else {
+      handleAddTag(tag);
+    }
+  };
+
   const handleClearSearch = () => {
     setSearch("");
     setHighlightedIndex(-1);
@@ -217,19 +225,45 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
     switch (keyDownEvent.key) {
       case "ArrowDown":
         keyDownEvent.preventDefault();
-        setHighlightedIndex((prev) => (prev < totalItems - 1 ? prev + 1 : 0));
+        setHighlightedIndex((prev) => {
+          const nextIndex = prev < totalItems - 1 ? prev + 1 : 0;
+          // Use requestAnimationFrame to ensure the DOM has updated
+          requestAnimationFrame(() => {
+            const element = document.querySelector(
+              `[data-index="${nextIndex}"]`,
+            );
+            element?.scrollIntoView({
+              block: "nearest",
+              behavior: "smooth",
+            });
+          });
+          return nextIndex;
+        });
         break;
 
       case "ArrowUp":
         keyDownEvent.preventDefault();
-        setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : totalItems - 1));
+        setHighlightedIndex((prev) => {
+          const nextIndex = prev > 0 ? prev - 1 : totalItems - 1;
+          // Use requestAnimationFrame to ensure the DOM has updated
+          requestAnimationFrame(() => {
+            const element = document.querySelector(
+              `[data-index="${nextIndex}"]`,
+            );
+            element?.scrollIntoView({
+              block: "nearest",
+              behavior: "smooth",
+            });
+          });
+          return nextIndex;
+        });
         break;
 
       case "Enter":
         keyDownEvent.preventDefault();
         if (highlightedIndex >= 0) {
           if (highlightedIndex < filteredTags.length) {
-            handleAddTag(filteredTags[highlightedIndex]);
+            handleTagSelect(filteredTags[highlightedIndex]);
           } else if (showCreateOption) {
             handleCreateTag();
           }
@@ -244,10 +278,8 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
         keyDownEvent.stopPropagation();
 
         if (search) {
-          // Only clear search, don't close dropdown
           handleClearSearch();
         } else {
-          // Close dropdown only if search is empty
           setOpen(false);
           setHighlightedIndex(-1);
         }
@@ -257,9 +289,6 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
 
   // TODO: add error state
 
-  // TODO: add loading state
-
-  // TODO: remove the desktop styles that are applied
   if (!isDesktop) {
     return (
       <Dialog open={open} onOpenChange={setOpen}>
@@ -279,9 +308,9 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
               Song tags
             </DialogTitle>
           </DialogHeader>
-          <VStack className="flex max-h-[400px] flex-col bg-gradient-to-br from-background to-background/95 backdrop-blur-sm">
+          <VStack className="max-h-[400px]">
             <VStack className="gap-2">
-              <HStack className="flex items-center rounded-md bg-slate-100 px-3 py-2">
+              <HStack className="items-center rounded-md bg-slate-100 px-3 py-2">
                 <MagnifyingGlass className="mr-2 h-4 w-4 text-muted-foreground" />
                 <input
                   ref={inputRef}
@@ -317,10 +346,13 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
                     data-index={0}
                   >
                     <Plus className="h-3.5 w-3.5" />
-                    <span>Create new tag: &quot;{search}&quot;</span>
+                    <span className="text-slate-600">
+                      Create new tag: &quot;
+                      <span className="text-slate-900">{search}</span>&quot;
+                    </span>
                   </button>
                 </div>
-              ) : isOrganizationTagsQueryLoading ? (
+              ) : isLoading ? (
                 <VStack className="gap-6 p-5">
                   <HStack className="h-5 justify-between">
                     <HStack className="gap-3">
@@ -343,19 +375,14 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
                 </VStack>
               ) : (
                 <ScrollArea className="max-h-[600px] flex-1 px-1 py-2">
-                  {/* <VStack className="gap-6"> */}
                   {filteredTags.length > 0 &&
                     filteredTags.map((tag, index: number) => {
-                      // Adjust index based on whether suggested tags are shown
-                      // const adjustedIndex = showSuggestedTags
-                      //   ? index + suggestedTags.length
-                      //   : index;
                       const isSelected = isTagSelected(tag.id);
 
                       return (
                         <HStack
                           key={tag.id}
-                          onClick={() => !isSelected && handleAddTag(tag)}
+                          onClick={() => handleTagSelect(tag)}
                           className={cn(
                             "items-center justify-between rounded-lg px-3 py-3 text-sm transition-colors",
                             "cursor-pointer",
@@ -363,7 +390,7 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
                           )}
                           data-index={!isSelected ? index : undefined}
                         >
-                          <HStack className="flex items-center gap-3">
+                          <HStack className="items-center gap-3">
                             {isSelected && (
                               <Check
                                 className={cn("h-4 w-4", "text-primary")}
@@ -373,20 +400,9 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
                               {tag.tag}
                             </span>
                           </HStack>
-                          {/* <span
-                          className={cn(
-                            "text-xs",
-                            highlightedIndex === index
-                              ? "text-primary-foreground/70"
-                              : "text-muted-foreground",
-                          )}
-                        >
-                          {tag.count}
-                        </span> */}
                         </HStack>
                       );
                     })}
-                  {/* </VStack> */}
                 </ScrollArea>
               )}
             </VStack>
@@ -419,13 +435,13 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
       </PopoverTrigger>
       <PopoverContent
         ref={popoverRef}
-        className="w-[400px] overflow-hidden rounded-lg border-slate-300 p-0 shadow-lg"
+        className="w-[400px] rounded-lg border-slate-300 p-0 shadow-lg"
         align="start"
         sideOffset={5}
         onEscapeKeyDown={(escKeyEvent) => escKeyEvent.preventDefault()}
       >
-        <VStack className="flex max-h-[400px] flex-col bg-gradient-to-br from-background to-background/95 backdrop-blur-sm">
-          <HStack className="flex items-center border-b border-slate-300 px-3 py-2">
+        <VStack className="h-[400px]">
+          <HStack className="items-center border-b border-slate-300 px-3 py-2">
             <MagnifyingGlass className="mr-2 h-4 w-4 text-muted-foreground" />
             <input
               ref={inputRef}
@@ -447,8 +463,7 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
             )}
           </HStack>
 
-          {/* FIXME: using `div` since HStack/VSTack */}
-          <div className="flex min-h-0 flex-1 flex-col" ref={listRef}>
+          <VStack className="min-h-0 flex-1">
             {/* {showSuggestedTags && (
               <div className="mx-2 mb-1 mt-2 rounded-lg bg-secondary/25 px-3 py-3">
                 <div className="mb-2 flex items-center gap-2 text-xs font-medium">
@@ -479,24 +494,27 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
                 </div>
               </div>
             )} */}
-
             {showCreateOption ? (
-              <div className="px-3 py-3">
+              <div className="mx-2 mb-1 mt-2 rounded-lg bg-secondary/25 px-3 py-3">
                 <button
                   type="button"
                   onClick={handleCreateTag}
                   className={cn(
                     "flex w-full cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors",
-                    "hover:bg-slate-100",
-                    highlightedIndex === 0 && "bg-slate-100",
+                    highlightedIndex === 0
+                      ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                      : "hover:bg-secondary/50",
                   )}
                   data-index={0}
                 >
                   <Plus className="h-3.5 w-3.5" />
-                  <span>Create new tag: &quot;{search}&quot;</span>
+                  <span className="text-slate-600">
+                    Create new tag: &quot;
+                    <span className="text-slate-900">{search}</span>&quot;
+                  </span>
                 </button>
               </div>
-            ) : isOrganizationTagsQueryLoading ? (
+            ) : isLoading ? (
               <VStack className="gap-4 p-5">
                 <HStack className="h-5 justify-between">
                   <HStack className="gap-3">
@@ -518,67 +536,57 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
                 </HStack>
               </VStack>
             ) : (
-              <ScrollArea className="max-h-[600px] flex-1 px-1 py-2">
-                {filteredTags.length > 0 &&
-                  filteredTags.map((tag, index) => {
-                    // Adjust index based on whether suggested tags are shown
-                    // const adjustedIndex = showSuggestedTags
-                    //   ? index + suggestedTags.length
-                    //   : index;
-                    const isSelected = isTagSelected(tag.id);
+              <ScrollArea className="h-full px-3">
+                <div className="py-2">
+                  {filteredTags.length > 0 &&
+                    filteredTags.map((tag, index) => {
+                      const isSelected = isTagSelected(tag.id);
 
-                    return (
-                      <HStack
-                        key={tag.id}
-                        onClick={() => !isSelected && handleAddTag(tag)}
-                        className={cn(
-                          "mx-1 items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors",
-                          "cursor-pointer",
-                          "hover:bg-slate-100",
-                          highlightedIndex === index && "bg-slate-100",
-                        )}
-                        data-index={!isSelected ? index : undefined}
-                      >
-                        <HStack className="items-center gap-3">
-                          {isSelected && (
-                            <Check className={cn("h-4 w-4", "text-primary")} />
-                          )}
-                          <span className={isSelected ? "ml-0" : "ml-7"}>
-                            {tag.tag}
-                          </span>
-                        </HStack>
-                        {/* <span
+                      return (
+                        <HStack
+                          key={tag.id}
+                          onClick={() => handleTagSelect(tag)}
                           className={cn(
-                            "text-xs",
-                            highlightedIndex === index
-                              ? "text-primary-foreground/70"
-                              : "text-muted-foreground",
+                            "mx-1 items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors",
+                            "cursor-pointer",
+                            "hover:bg-slate-100",
+                            highlightedIndex === index && "bg-slate-100",
                           )}
+                          data-index={index}
                         >
-                          {tag.count}
-                        </span> */}
-                      </HStack>
-                    );
-                  })}
+                          <HStack className="items-center gap-3">
+                            {isSelected && (
+                              <Check
+                                className={cn("h-4 w-4", "text-primary")}
+                              />
+                            )}
+                            <span className={isSelected ? "ml-0" : "ml-7"}>
+                              {tag.tag}
+                            </span>
+                          </HStack>
+                        </HStack>
+                      );
+                    })}
+                </div>
               </ScrollArea>
             )}
+          </VStack>
 
-            <HStack className="flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-slate-300 px-3 py-2 text-xs text-muted-foreground">
-              <KeyboardShortcut
-                primaryKey={<ArrowUp className="h-3 w-3" />}
-                secondaryKey={<ArrowDown className="h-3 w-3" />}
-                label="Select tag"
-              />
-              <KeyboardShortcut
-                primaryKey={<KeyReturn className="h-3 w-3" />}
-                label="Add tag"
-              />
-              <KeyboardShortcut
-                primaryKey={<span>Esc</span>}
-                label="Clear filter/close"
-              />
-            </HStack>
-          </div>
+          <HStack className="flex-wrap items-center gap-x-6 gap-y-2 border-t border-slate-300 px-3 py-2 text-xs text-muted-foreground">
+            <KeyboardShortcut
+              primaryKey={<ArrowUp className="h-3 w-3" />}
+              secondaryKey={<ArrowDown className="h-3 w-3" />}
+              label="Select tag"
+            />
+            <KeyboardShortcut
+              primaryKey={<KeyReturn className="h-3 w-3" />}
+              label="Add tag"
+            />
+            <KeyboardShortcut
+              primaryKey={<span>Esc</span>}
+              label="Clear filter/close"
+            />
+          </HStack>
         </VStack>
       </PopoverContent>
     </Popover>
