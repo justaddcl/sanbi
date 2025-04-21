@@ -100,7 +100,7 @@ export const organizationMemberships = createTable(
 
 export const tags = createTable("tags", {
   id: uuid("id").primaryKey().defaultRandom(),
-  tag: varchar("tag", { length: 256 }).notNull().unique(),
+  tag: varchar("tag", { length: 256 }).notNull(),
   organizationId: uuid("organization_id")
     .references(() => organizations.id)
     .notNull(),

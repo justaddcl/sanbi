@@ -5,7 +5,7 @@ import {
   getSongTagsBySongIdSchema,
 } from "@lib/types/zod";
 import { createTRPCRouter, organizationProcedure } from "@server/api/trpc";
-import { songs, songTags } from "@server/db/schema";
+import { songs, songTags, tags } from "@server/db/schema";
 import { TRPCError } from "@trpc/server";
 import { and, eq } from "drizzle-orm";
 
@@ -98,6 +98,30 @@ export const songTagRouter = createTRPCRouter({
           });
         }
 
+        const tagToAttach = await createMutation.query.tags.findFirst({
+          where: eq(tags.id, input.tagId),
+        });
+
+        if (!tagToAttach) {
+          console.error(
+            `🤖 - [songTag/create] - could not find tag ${input.tagId}`,
+          );
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Could not find target tag",
+          });
+        }
+
+        if (tagToAttach.organizationId !== ctx.user.membership.organizationId) {
+          console.error(
+            `🤖 - [songTag/create] - user ${ctx.user.id} is not authorized to use tag ${tagToAttach.id}`,
+          );
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "User not authorized to use target tag",
+          });
+        }
+
         const { songId, tagId } = input;
         const newSongTag: NewSongTag = {
           songId,
@@ -109,6 +133,16 @@ export const songTagRouter = createTRPCRouter({
           .values(newSongTag)
           .onConflictDoNothing()
           .returning();
+
+        if (!songTag) {
+          console.error(
+            `🤖 - [songTag/create] - tag ${input.tagId} already attached to song ${input.songId}`,
+          );
+          throw new TRPCError({
+            code: "CONFLICT",
+            message: "Tag is already attached to song",
+          });
+        }
 
         console.log(`🤖 - [songTag/create] - new song tag created`, {
           songTag,
@@ -170,6 +204,16 @@ export const songTagRouter = createTRPCRouter({
             ),
           )
           .returning();
+
+        if (!deletedSongTag) {
+          console.error(
+            `🤖 - [songTag/delete] - Tag ${input.tagId} not attached to song ${input.songId} and could not be deleted`,
+          );
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Tag not found on song",
+          });
+        }
 
         console.info(`🤖 - [songTag/delete] - tag removed from song`, {
           deletedSongTag,

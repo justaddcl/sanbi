@@ -66,18 +66,25 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
   const deleteSongTagMutation = api.songTag.delete.useMutation();
   const apiUtils = api.useUtils();
 
-  const { data: organizationTags, isLoading: isOrganizationTagsQueryLoading } =
-    api.tag.getByOrganization.useQuery({
-      organizationId,
-    });
+  const {
+    data: organizationTags,
+    isLoading: isOrganizationTagsQueryLoading,
+    error: organizationTagsQueryError,
+  } = api.tag.getByOrganization.useQuery({
+    organizationId,
+  });
 
-  const { data: songTags, isLoading: isSongTagsQueryLoading } =
-    api.songTag.getBySongId.useQuery({
-      songId,
-      organizationId,
-    });
+  const {
+    data: songTags,
+    isLoading: isSongTagsQueryLoading,
+    error: songTagsQueryError,
+  } = api.songTag.getBySongId.useQuery({
+    songId,
+    organizationId,
+  });
 
   const isLoading = isOrganizationTagsQueryLoading || isSongTagsQueryLoading;
+  const hasError = !!organizationTagsQueryError || !!songTagsQueryError;
 
   const isTagSelected = (tagId: OrganizationTag["id"]) => {
     return songTags?.some((songTag) => songTag.tag.id === tagId);
@@ -287,7 +294,11 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
     }
   };
 
-  // TODO: add error state
+  // TODO: refine error state
+  if (hasError) {
+    toast.error("Unable to load tags");
+    return;
+  }
 
   if (!isDesktop) {
     return (

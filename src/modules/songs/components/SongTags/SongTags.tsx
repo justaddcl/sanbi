@@ -11,7 +11,7 @@ import { useCallback, useState } from "react";
 
 type SongTag = RouterOutputs["song"]["get"]["songTags"][number];
 
-const compareSongTags = (songTagA: SongTag, songTagB: SongTag) =>
+const compareSongTags = (songTagA: SongTag, songTagB: SongTag): number =>
   songTagA.tag.tag.localeCompare(songTagB.tag.tag);
 
 type SongTagsProps = {
@@ -30,6 +30,8 @@ export const SongTags: React.FC<SongTagsProps> = ({
   refreshOnTagUpdate,
 }) => {
   const router = useRouter();
+
+  const sortedSongTags = songTags.toSorted(compareSongTags);
 
   const [tagIdPendingDeletion, setTagIdPendingDeletion] = useState<
     string | null
@@ -92,8 +94,7 @@ export const SongTags: React.FC<SongTagsProps> = ({
         </>
       )}
       {!isLoading &&
-        // TODO: sort these tags alphabetically
-        songTags?.sort(compareSongTags).map((tag) => (
+        sortedSongTags.map((tag: SongTag) => (
           <Badge
             variant="secondary"
             key={tag.tagId}
