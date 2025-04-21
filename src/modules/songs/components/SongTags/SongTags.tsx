@@ -7,7 +7,7 @@ import { Skeleton } from "@components/ui/skeleton";
 import { SongTagSelector } from "../SongTagSelector/SongTagSelector";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 type SongTag = RouterOutputs["song"]["get"]["songTags"][number];
 
@@ -31,7 +31,10 @@ export const SongTags: React.FC<SongTagsProps> = ({
 }) => {
   const router = useRouter();
 
-  const sortedSongTags = songTags.toSorted(compareSongTags);
+  const sortedSongTags = useMemo(
+    () => songTags.toSorted(compareSongTags),
+    [songTags],
+  );
 
   const [tagIdPendingDeletion, setTagIdPendingDeletion] = useState<
     string | null

@@ -297,7 +297,7 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
   // TODO: refine error state
   if (hasError) {
     toast.error("Unable to load tags");
-    return;
+    return null;
   }
 
   if (!isDesktop) {

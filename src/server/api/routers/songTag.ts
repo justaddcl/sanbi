@@ -38,25 +38,30 @@ export const songTagRouter = createTRPCRouter({
         });
       }
 
-      const tags = await ctx.db.query.songTags.findMany({
-        where: eq(songTags.songId, input.songId),
-        columns: {},
-        with: {
+      const songTagsResult = await ctx.db
+        .select({
+          songId: songTags.songId,
+          tagId: songTags.tagId,
           tag: {
-            columns: {
-              id: true,
-              tag: true,
-            },
+            id: tags.id,
+            tag: tags.tag,
           },
-        },
-      });
+        })
+        .from(songTags)
+        .innerJoin(tags, eq(songTags.tagId, tags.id))
+        .where(
+          and(
+            eq(songTags.songId, input.songId),
+            eq(tags.organizationId, ctx.user.membership.organizationId),
+          ),
+        );
 
       console.info(
         `🤖 - [songTags/getBySongId] - song tags for song ${input.songId}:`,
-        tags,
+        songTagsResult,
       );
 
-      return tags;
+      return songTagsResult;
     }),
 
   // Mutations

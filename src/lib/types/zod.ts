@@ -183,6 +183,9 @@ export const getTagsByOrganizationSchema = z.object({
 });
 export const createTagSchema = createInsertSchema(tags)
   .omit({
+    id: true,
+    createdAt: true,
+    updatedAt: true,
     tag: true,
   })
   .extend({
