@@ -29,7 +29,7 @@ import {
   Plus,
   X,
 } from "@phosphor-icons/react";
-import { type KeyboardEventHandler, useRef, useState } from "react";
+import { type KeyboardEventHandler, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 /**
@@ -302,9 +302,16 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
     }
   };
 
+  useEffect(() => {
+    if (songTagsQueryError) {
+      toast.error(
+        `Could not get the tags for your team: ${songTagsQueryError.message}`,
+      );
+    }
+  }, [songTagsQueryError]);
+
   // TODO: refine error state
   if (hasError) {
-    toast.error("Unable to load tags");
     return null;
   }
 
