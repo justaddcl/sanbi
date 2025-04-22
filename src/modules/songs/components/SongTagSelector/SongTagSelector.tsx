@@ -92,7 +92,9 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
     tag.tag.toLowerCase().includes(search.toLowerCase()),
   );
 
-  const showCreateOption = search.trim() !== "" && filteredTags.length === 0;
+  const showCreateOption =
+    search.trim() !== "" &&
+    !filteredTags.some((tag) => tag.tag.toLowerCase() === search.toLowerCase());
 
   const resetSelectorOnSuccess = async () => {
     setOpen(false);
@@ -299,7 +301,17 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
 
   if (!isDesktop) {
     return (
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog
+        open={open}
+        onOpenChange={(open: boolean) => {
+          setOpen(open);
+
+          if (!open) {
+            setHighlightedIndex(-1);
+            setSearch("");
+          }
+        }}
+      >
         <DialogTrigger asChild>
           <Button
             variant="outline"
@@ -340,27 +352,7 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
                 )}
               </HStack>
 
-              {showCreateOption ? (
-                <div className="px-3 py-3">
-                  <button
-                    type="button"
-                    onClick={handleCreateTag}
-                    className={cn(
-                      "flex w-full cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors",
-                      highlightedIndex === 0
-                        ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                        : "hover:bg-secondary/50",
-                    )}
-                    data-index={0}
-                  >
-                    <Plus className="h-3.5 w-3.5" />
-                    <span className="text-slate-600">
-                      Create new tag: &quot;
-                      <span className="text-slate-900">{search}</span>&quot;
-                    </span>
-                  </button>
-                </div>
-              ) : isLoading ? (
+              {isLoading ? (
                 <VStack className="gap-6 p-5">
                   <HStack className="h-5 justify-between">
                     <HStack className="gap-3">
@@ -411,6 +403,27 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
                         </HStack>
                       );
                     })}
+                  {showCreateOption && (
+                    <div className="px-3 py-3">
+                      <button
+                        type="button"
+                        onClick={handleCreateTag}
+                        className={cn(
+                          "flex w-full cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors",
+                          highlightedIndex === 0
+                            ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                            : "hover:bg-secondary/50",
+                        )}
+                        data-index={0}
+                      >
+                        <Plus className="h-3.5 w-3.5" />
+                        <span className="text-slate-600">
+                          Create new tag: &quot;
+                          <span className="text-slate-900">{search}</span>&quot;
+                        </span>
+                      </button>
+                    </div>
+                  )}
                 </ScrollArea>
               )}
             </VStack>
@@ -428,6 +441,7 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
 
         if (!open) {
           setHighlightedIndex(-1);
+          setSearch("");
         }
       }}
     >
@@ -446,7 +460,9 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
         className="w-[400px] rounded-lg border-slate-300 p-0 shadow-lg"
         align="start"
         sideOffset={5}
-        onEscapeKeyDown={(escKeyEvent) => escKeyEvent.preventDefault()}
+        onEscapeKeyDown={(escKeyEvent) => {
+          escKeyEvent.preventDefault();
+        }}
       >
         <VStack className="h-[400px]">
           <HStack className="items-center border-b border-slate-300 px-3 py-2">
@@ -502,27 +518,7 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
                 </div>
               </div>
             )} */}
-            {showCreateOption ? (
-              <div className="mx-2 mb-1 mt-2 rounded-lg bg-secondary/25 px-3 py-3">
-                <button
-                  type="button"
-                  onClick={handleCreateTag}
-                  className={cn(
-                    "flex w-full cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors",
-                    highlightedIndex === 0
-                      ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                      : "hover:bg-secondary/50",
-                  )}
-                  data-index={0}
-                >
-                  <Plus className="h-3.5 w-3.5" />
-                  <span className="text-slate-600">
-                    Create new tag: &quot;
-                    <span className="text-slate-900">{search}</span>&quot;
-                  </span>
-                </button>
-              </div>
-            ) : isLoading ? (
+            {isLoading ? (
               <VStack className="gap-4 p-5">
                 <HStack className="h-5 justify-between">
                   <HStack className="gap-3">
@@ -575,6 +571,28 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
                         </HStack>
                       );
                     })}
+                  {showCreateOption && (
+                    <HStack
+                      onClick={handleCreateTag}
+                      className={cn(
+                        "mx-1 items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors",
+                        "cursor-pointer",
+                        "hover:bg-slate-100",
+                        highlightedIndex === filteredTags.length &&
+                          "bg-slate-100",
+                      )}
+                      data-index={filteredTags.length}
+                    >
+                      <HStack className="ml-7 items-center gap-3">
+                        <Plus className="h-3.5 w-3.5" />
+                        <span className="text-slate-600">
+                          Create new tag: &quot;
+                          <span className="text-slate-900">{search}</span>
+                          &quot;
+                        </span>
+                      </HStack>
+                    </HStack>
+                  )}
                 </div>
               </ScrollArea>
             )}
