@@ -32,6 +32,9 @@ import {
 import { type KeyboardEventHandler, useRef, useState } from "react";
 import { toast } from "sonner";
 
+/**
+ * Type for organization tag returned from the API
+ */
 type OrganizationTag = RouterOutputs["tag"]["getByOrganization"][number];
 
 type SongTagSelectorProps = {
@@ -39,6 +42,13 @@ type SongTagSelectorProps = {
   organizationId: string;
 };
 
+/**
+ * SongTagSelector component
+ *
+ * Provides UI for adding, removing and creating tags for a song.
+ * Adapts to desktop and mobile displays with different UIs.
+ * Includes search, keyboard navigation, and loading states.
+ */
 export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
   songId,
   organizationId,
@@ -413,7 +423,7 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
                             ? "bg-primary text-primary-foreground hover:bg-primary/90"
                             : "hover:bg-secondary/50",
                         )}
-                        data-index={0}
+                        data-index={filteredTags.length}
                       >
                         <Plus className="h-3.5 w-3.5" />
                         <span className="text-slate-600">
