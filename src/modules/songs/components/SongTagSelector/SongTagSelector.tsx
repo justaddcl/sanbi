@@ -413,25 +413,23 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
                       );
                     })}
                   {showCreateOption && (
-                    <div className="px-3 py-3">
-                      <button
-                        type="button"
-                        onClick={handleCreateTag}
-                        className={cn(
-                          "flex w-full cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors",
-                          highlightedIndex === 0
-                            ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                            : "hover:bg-secondary/50",
-                        )}
-                        data-index={filteredTags.length}
-                      >
+                    <HStack
+                      onClick={handleCreateTag}
+                      className={cn(
+                        "items-center justify-between rounded-lg px-3 py-3 text-sm transition-colors",
+                        "cursor-pointer",
+                        "hover:bg-slate-100",
+                      )}
+                      data-index={filteredTags.length}
+                    >
+                      <HStack className="ml-7 items-center gap-3">
                         <Plus className="h-3.5 w-3.5" />
                         <span className="text-slate-600">
                           Create new tag: &quot;
                           <span className="text-slate-900">{search}</span>&quot;
                         </span>
-                      </button>
-                    </div>
+                      </HStack>
+                    </HStack>
                   )}
                 </ScrollArea>
               )}
