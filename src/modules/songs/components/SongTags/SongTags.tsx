@@ -4,7 +4,7 @@ import { api, type RouterOutputs } from "@/trpc/react";
 import { HStack } from "@components/HStack";
 import { Badge } from "@components/ui/badge";
 import { Skeleton } from "@components/ui/skeleton";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { SongTagSelector } from "../SongTagSelector/SongTagSelector";
 
@@ -74,15 +74,16 @@ export const SongTags: React.FC<SongTagsProps> = ({
     );
   };
 
-  if (songTagsQueryError) {
-    toast.error(
-      `Could not the tags for this song: ${songTagsQueryError.message}`,
-    );
-    return null;
-  }
+  useEffect(() => {
+    if (songTagsQueryError) {
+      toast.error(
+        `Could not get the tags for this song: ${songTagsQueryError.message}`,
+      );
+    }
+  }, [songTagsQueryError]);
 
-  if (isSongTagsQueryLoading) {
-    return <HStack className="gap-2"></HStack>;
+  if (songTagsQueryError) {
+    return null;
   }
 
   return (

@@ -1,9 +1,9 @@
 import { type NewTag } from "@lib/types";
 import { createTagSchema, getTagsByOrganizationSchema } from "@lib/types/zod";
 import { createTRPCRouter, organizationProcedure } from "@server/api/trpc";
-import { organizations, songTags, tags } from "@server/db/schema";
+import { songTags, tags } from "@server/db/schema";
 import { TRPCError } from "@trpc/server";
-import { asc, desc, eq, sql } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
 
 export const tagRouter = createTRPCRouter({
   // Queries
@@ -15,31 +15,6 @@ export const tagRouter = createTRPCRouter({
       );
 
       return await ctx.db.transaction(async (queryTransaction) => {
-        const organization =
-          await queryTransaction.query.organizations.findFirst({
-            where: eq(organizations.id, input.organizationId),
-          });
-
-        if (!organization) {
-          console.error(
-            `🤖 - [tag/getByOrganization] - could not find organization ${input.organizationId}`,
-          );
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Could not find organization",
-          });
-        }
-
-        if (organization.id !== ctx.user.membership.organizationId) {
-          console.error(
-            `🤖 - [tag/getByOrganization] - user ${ctx.user.id} is not authorized to query tags for organization ${input.organizationId}`,
-          );
-          throw new TRPCError({
-            code: "FORBIDDEN",
-            message: `User is not authorized to query organization's tags`,
-          });
-        }
-
         const organizationTags = await queryTransaction
           .select({
             id: tags.id,
