@@ -47,7 +47,6 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
   const [search, setSearch] = useState("");
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
-  const popoverRef = useRef<HTMLDivElement>(null);
 
   const { isDesktop } = useResponsive();
 
@@ -456,7 +455,6 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        ref={popoverRef}
         className="w-[400px] rounded-lg border-slate-300 p-0 shadow-lg"
         align="start"
         sideOffset={5}
