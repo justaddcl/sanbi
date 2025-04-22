@@ -8,6 +8,11 @@ import { songs } from "@server/db/schema";
 import { TRPCError } from "@trpc/server";
 import { eq } from "drizzle-orm";
 
+/**
+ * Represents a user with at least one active organization membership.
+ * Used to ensure operations requiring an active organization context have access
+ * to a valid membership.
+ */
 type UserWithActiveMembership = UserWithMemberships & {
   memberships: [OrganizationMembership, ...OrganizationMembership[]];
 };

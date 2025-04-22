@@ -47,6 +47,7 @@ export const tagRouter = createTRPCRouter({
             organizationId: tags.organizationId,
             createdAt: tags.createdAt,
             updatedAt: tags.updatedAt,
+            // TODO: re-add the usage count if it makes tags better to use
             // count: sql<number>`COUNT(${songTags.tagId})`.as("count"),
           })
           .from(tags)
@@ -73,16 +74,6 @@ export const tagRouter = createTRPCRouter({
       console.log(`🤖 - [tag/create] - attempting to create tag`, {
         mutationInput: input,
       });
-
-      if (input.organizationId !== ctx.user.membership.organizationId) {
-        console.error(
-          `🤖 - [tag/create] - user ${ctx.user.id} is not authorized to create a tag for organization ${input.organizationId}`,
-        );
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "User is not authorized to create a tag for this team",
-        });
-      }
 
       return ctx.db.transaction(async (createTransaction) => {
         const { tag, organizationId } = input;

@@ -17,6 +17,11 @@ export const SongTags: React.FC<SongTagsProps> = ({
   songId,
   organizationId,
 }) => {
+  /**
+   * TODO: after the POC is working and we're ready for the last 10% polish
+   * perhaps we can think of changing this to a Set instead of just one string
+   * to enable multiple simultaneous deletions
+   */
   const [tagIdPendingDeletion, setTagIdPendingDeletion] = useState<
     string | null
   >(null);
