@@ -4,38 +4,19 @@ import { api, type RouterOutputs } from "@/trpc/react";
 import { HStack } from "@components/HStack";
 import { Badge } from "@components/ui/badge";
 import { Skeleton } from "@components/ui/skeleton";
-import { SongTagSelector } from "../SongTagSelector/SongTagSelector";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { toast } from "sonner";
-import { useCallback, useMemo, useState } from "react";
-
-type SongTag = RouterOutputs["song"]["get"]["songTags"][number];
-
-const compareSongTags = (songTagA: SongTag, songTagB: SongTag): number =>
-  songTagA.tag.tag.localeCompare(songTagB.tag.tag);
+import { SongTagSelector } from "../SongTagSelector/SongTagSelector";
 
 type SongTagsProps = {
-  songTags: SongTag[];
   songId: RouterOutputs["song"]["get"]["id"];
   organizationId: string;
-  isLoading?: boolean;
-  refreshOnTagUpdate: boolean;
 };
 
 export const SongTags: React.FC<SongTagsProps> = ({
-  songTags,
   songId,
   organizationId,
-  isLoading,
-  refreshOnTagUpdate,
 }) => {
-  const router = useRouter();
-
-  const sortedSongTags = useMemo(
-    () => songTags.toSorted(compareSongTags),
-    [songTags],
-  );
-
   const [tagIdPendingDeletion, setTagIdPendingDeletion] = useState<
     string | null
   >(null);
@@ -43,11 +24,14 @@ export const SongTags: React.FC<SongTagsProps> = ({
   const deleteSongTagMutation = api.songTag.delete.useMutation();
   const apiUtils = api.useUtils();
 
-  const onTagUpdate = useCallback(() => {
-    if (refreshOnTagUpdate) {
-      router.refresh();
-    }
-  }, [refreshOnTagUpdate, router]);
+  const {
+    data: songTags,
+    isLoading: isSongTagsQueryLoading,
+    error: songTagsQueryError,
+  } = api.songTag.getBySongId.useQuery({
+    songId,
+    organizationId,
+  });
 
   const deleteSongTag = (tagId: string) => {
     const toastId = toast.loading("Removing tag...");
@@ -72,8 +56,6 @@ export const SongTags: React.FC<SongTagsProps> = ({
             songId,
             organizationId,
           });
-
-          onTagUpdate?.();
         },
         onError(deleteError) {
           toast.error(`Could not remove tag: ${deleteError.message}`, {
@@ -87,17 +69,28 @@ export const SongTags: React.FC<SongTagsProps> = ({
     );
   };
 
+  if (songTagsQueryError) {
+    toast.error(
+      `Could not the tags for this song: ${songTagsQueryError.message}`,
+    );
+    return null;
+  }
+
+  if (isSongTagsQueryLoading) {
+    return <HStack className="gap-2"></HStack>;
+  }
+
   return (
     <HStack as="dd" className="flex-wrap items-start gap-2">
-      {isLoading && (
+      {isSongTagsQueryLoading && (
         <>
           <Skeleton className="h-5 w-20" />
           <Skeleton className="h-5 w-16" />
           <Skeleton className="h-5 w-24" />
         </>
       )}
-      {!isLoading &&
-        sortedSongTags.map((tag: SongTag) => (
+      {!isSongTagsQueryLoading &&
+        songTags?.map((tag) => (
           <Badge
             variant="secondary"
             key={tag.tagId}
@@ -110,11 +103,7 @@ export const SongTags: React.FC<SongTagsProps> = ({
             {tag.tag.tag}
           </Badge>
         ))}
-      <SongTagSelector
-        songId={songId}
-        organizationId={organizationId}
-        onTagUpdate={onTagUpdate}
-      />
+      <SongTagSelector songId={songId} organizationId={organizationId} />
     </HStack>
   );
 };

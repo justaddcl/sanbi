@@ -37,13 +37,11 @@ type OrganizationTag = RouterOutputs["tag"]["getByOrganization"][number];
 type SongTagSelectorProps = {
   songId: string;
   organizationId: string;
-  onTagUpdate?: () => void;
 };
 
 export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
   songId,
   organizationId,
-  onTagUpdate,
 }) => {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -107,7 +105,6 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
       songId,
       organizationId,
     });
-    onTagUpdate?.();
 
     setSearch("");
     setHighlightedIndex(-1);

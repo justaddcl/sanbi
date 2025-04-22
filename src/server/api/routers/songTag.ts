@@ -7,7 +7,7 @@ import {
 import { createTRPCRouter, organizationProcedure } from "@server/api/trpc";
 import { songs, songTags, tags } from "@server/db/schema";
 import { TRPCError } from "@trpc/server";
-import { and, eq } from "drizzle-orm";
+import { and, eq, asc } from "drizzle-orm";
 
 export const songTagRouter = createTRPCRouter({
   // Queries
@@ -54,7 +54,8 @@ export const songTagRouter = createTRPCRouter({
             eq(songTags.songId, input.songId),
             eq(tags.organizationId, ctx.user.membership.organizationId),
           ),
-        );
+        )
+        .orderBy(asc(tags.tag));
 
       console.info(
         `🤖 - [songTags/getBySongId] - song tags for song ${input.songId}:`,

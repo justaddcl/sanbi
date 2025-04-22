@@ -127,13 +127,7 @@ export default async function SetListPage({
             </dd>
           </SongDetailsItem>
           <SongDetailsItem icon="Tag" label="Tags">
-            <SongTags
-              songTags={song.songTags}
-              songId={song.id}
-              organizationId={params.organization}
-              isLoading={!song}
-              refreshOnTagUpdate={true}
-            />
+            <SongTags songId={song.id} organizationId={params.organization} />
           </SongDetailsItem>
           {song.notes && (
             <SongDetailsItem icon="NotePencil" label="Notes">
