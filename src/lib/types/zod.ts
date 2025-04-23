@@ -1,5 +1,5 @@
 import { songKeys } from "@lib/constants";
-import { songNameRegex } from "@lib/constants/regex";
+import { songNameRegex, tagRegex } from "@lib/constants/regex";
 import {
   organizationMemberships,
   organizations,
@@ -8,6 +8,8 @@ import {
   setSectionSongs,
   setSectionTypes,
   songs,
+  songTags,
+  tags,
 } from "@server/db/schema";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -154,3 +156,77 @@ export const updateSetSectionSongSchema = insertSetSectionSongSchema
     setSectionId: true,
     songId: true,
   });
+
+/**
+ * Tag schemas
+ */
+export const tagNameSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(30)
+  .superRefine((val, ctx) => {
+    // Fast path: validate entire string with one regex test
+    const validPattern =
+      /^(?=.*\S)[\p{L}\p{N}_'\-\p{Extended_Pictographic} ]+$/u;
+    if (validPattern.test(val)) {
+      return; // Valid string, exit early
+    }
+
+    // If we're here, the string is invalid - let's find out why
+
+    // Check if there's at least one non-whitespace character
+    if (!/\S/.test(val)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Tag must contain at least one non-whitespace character.`,
+        fatal: true,
+      });
+      return z.NEVER;
+    }
+
+    // Find the first invalid character (using proper Unicode handling)
+    // This correctly handles surrogate pairs and emojis
+    const chars = Array.from(val);
+    const charPattern = /^[\p{L}\p{N}_'\-\p{Extended_Pictographic} ]$/u;
+
+    for (const char of chars) {
+      if (!charPattern.test(char)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `Tag contains invalid character: ${char}. Tags may only contain letters, numbers, spaces, underscores (_), hyphens (-), apostrophes (') or emojis.`,
+          fatal: true,
+        });
+        return z.NEVER;
+      }
+    }
+  });
+
+export const getTagsByOrganizationSchema = z.object({
+  organizationId: z.string().uuid(),
+});
+export const createTagSchema = createInsertSchema(tags)
+  .omit({
+    id: true,
+    createdAt: true,
+    updatedAt: true,
+    tag: true,
+  })
+  .extend({
+    tag: tagNameSchema,
+  });
+
+/**
+ * Song tag schemas
+ */
+export const getSongTagsBySongIdSchema = z.object({
+  songId: z.string().uuid(),
+});
+export const createSongTagSchema = createInsertSchema(songTags).omit({
+  createdAt: true,
+  updatedAt: true,
+});
+export const deleteSongTagSchema = z.object({
+  songId: z.string().uuid(),
+  tagId: z.string().uuid(),
+});

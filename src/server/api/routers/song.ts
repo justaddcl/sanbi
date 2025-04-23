@@ -53,13 +53,6 @@ export const songRouter = createTRPCRouter({
 
       const song = await ctx.db.query.songs.findFirst({
         where: eq(songs.id, input.songId),
-        with: {
-          tags: {
-            with: {
-              tag: true,
-            },
-          },
-        },
       });
 
       if (!song) {

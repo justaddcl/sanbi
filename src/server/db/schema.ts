@@ -98,17 +98,25 @@ export const organizationMemberships = createTable(
   },
 );
 
-export const tags = createTable("tags", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  tag: varchar("tag", { length: 256 }).notNull().unique(),
-  organizationId: uuid("organization_id")
-    .references(() => organizations.id)
-    .notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .default(sql`CURRENT_TIMESTAMP`)
-    .notNull(),
-  updatedAt,
-});
+export const tags = createTable(
+  "tags",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    tag: varchar("tag", { length: 256 }).notNull(),
+    organizationId: uuid("organization_id")
+      .references(() => organizations.id)
+      .notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+    updatedAt,
+  },
+  (tagsTable) => ({
+    tagOrganizationUniqueIndex: uniqueIndex(
+      "tags_organization_tag_unique_index",
+    ).on(tagsTable.organizationId, tagsTable.tag),
+  }),
+);
 
 export const songTags = createTable(
   "song_tags",
@@ -286,7 +294,7 @@ export const songsRelations = relations(songs, ({ one, many }) => ({
     fields: [songs.organizationId],
     references: [organizations.id],
   }),
-  tags: many(songTags),
+  songTags: many(songTags),
   sets: many(setSectionSongs),
 }));
 
