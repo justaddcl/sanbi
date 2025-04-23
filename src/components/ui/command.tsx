@@ -61,7 +61,8 @@ const CommandDialog: React.FC<CommandDialogProps> = ({
           [hasDialogContentComponentStyling && !minimalPadding && "p-6"],
           {
             "translate-y-0": fixed,
-            "w-[calc(100%_-_24px)]": fixed,
+            "w-[calc(100%_-_24px)]": fixed && !minimalPadding,
+            "w-full": fixed && minimalPadding,
             "mt-3": fixed,
             "top-0": fixed,
             "md:mt-0": fixed,
@@ -69,6 +70,7 @@ const CommandDialog: React.FC<CommandDialogProps> = ({
           },
           className,
         )}
+        minimalPadding={minimalPadding}
       >
         <Command
           loop={loop}

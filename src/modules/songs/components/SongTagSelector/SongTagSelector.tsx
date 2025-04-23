@@ -303,12 +303,13 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
   };
 
   useEffect(() => {
-    if (songTagsQueryError) {
+    if (hasError) {
+      const error = organizationTagsQueryError ?? songTagsQueryError;
       toast.error(
-        `Could not get the tags for your team: ${songTagsQueryError.message}`,
+        `Could not get the tags for your team: ${error?.message ?? "unknown error"}`,
       );
     }
-  }, [songTagsQueryError]);
+  }, [hasError, organizationTagsQueryError, songTagsQueryError]);
 
   // TODO: refine error state
   if (hasError) {

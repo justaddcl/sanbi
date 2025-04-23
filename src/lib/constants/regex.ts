@@ -18,4 +18,5 @@ export const songNameRegex = /^[A-Za-z0-9\s:\/\(\)'"\-_.!?&]+$/;
  *  - spaces
  *  - emojis
  */
-export const tagRegex = /^(?=.*\S)[\p{L}\p{N}_'\-\p{Extended_Pictographic} ]$/u;
+export const tagRegex =
+  /^(?=.*\S)[\p{L}\p{N}_'\-\p{Extended_Pictographic} ]+$/u;
