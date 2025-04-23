@@ -9,6 +9,7 @@ import {
   songGetPlayHistorySchema,
   songUpdateFavoriteSchema,
   songUpdateNameSchema,
+  songUpdateNotesSchema,
   songUpdatePreferredKeySchema,
   unarchiveSongSchema,
 } from "@lib/types/zod";
@@ -441,6 +442,58 @@ export const songRouter = createTRPCRouter({
           .update(songs)
           .set({ name: trimmedName })
           .where(eq(songs.id, input.songId))
+          .returning();
+
+        return {
+          success: true,
+          updatedSong,
+          mutationInput: { ...input },
+        };
+      });
+    }),
+
+  updateNotes: organizationProcedure
+    .input(songUpdateNotesSchema)
+    .mutation(async ({ ctx, input }) => {
+      const { id: songId } = input;
+
+      console.log(
+        `🤖 - [song/updateName] - attempting to update song name for ${songId}:`,
+        { mutationInput: { ...input } },
+      );
+
+      return await ctx.db.transaction(async (updateTransaction) => {
+        const songToUpdate = await updateTransaction.query.songs.findFirst({
+          where: eq(songs.id, songId),
+        });
+
+        if (!songToUpdate) {
+          console.error(
+            `🤖 - [song/updateName] - could not find song ${songId}`,
+          );
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Could not find song",
+          });
+        }
+
+        if (
+          songToUpdate.organizationId !== ctx.user.membership.organizationId
+        ) {
+          console.error(
+            `🤖 - [song/updateName] - user ${ctx.user.id} is not authorized to update song ${songId}`,
+          );
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "User is not authorized to update song",
+          });
+        }
+
+        const [updatedSong] = await updateTransaction
+          .update(songs)
+          // TODO: add input sanitation
+          .set({ notes: input.notes })
+          .where(eq(songs.id, songId))
           .returning();
 
         return {

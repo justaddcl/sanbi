@@ -1,5 +1,5 @@
 import { songKeys } from "@lib/constants";
-import { songNameRegex, tagRegex } from "@lib/constants/regex";
+import { songNameRegex } from "@lib/constants/regex";
 import {
   organizationMemberships,
   organizations,
@@ -11,7 +11,7 @@ import {
   songTags,
   tags,
 } from "@server/db/schema";
-import { createInsertSchema } from "drizzle-zod";
+import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
 
 /**
@@ -102,6 +102,17 @@ export const songGetPlayHistorySchema = songIdSchema;
 export const songUpdateNameSchema = songIdSchema.extend({
   name: songNameSchema,
 });
+export const songUpdateNotesSchema = createSelectSchema(songs)
+  .pick({
+    id: true,
+  })
+  .extend({
+    notes: z.string().trim().max(2000, {
+      message:
+        "Notes are too long. Please shorten to less than 2,000 characters",
+    }),
+    // .transform((notes) => sanitizeInput(notes)),
+  });
 export const songUpdatePreferredKeySchema = songIdSchema.extend({
   preferredKey: z.enum(songKeys),
 });
