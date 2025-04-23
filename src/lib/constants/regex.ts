@@ -5,7 +5,7 @@
  *  - A-Z
  *  - 0-9
  *  - spaces
- *  - the following symbols: : / ( ) ' " - _ . ? ? &
+ *  - the following symbols: : / ( ) ' " - _ . ! ? &
  */
 export const songNameRegex = /^[A-Za-z0-9\s:\/\(\)'"\-_.!?&]+$/;
 
@@ -16,6 +16,7 @@ export const songNameRegex = /^[A-Za-z0-9\s:\/\(\)'"\-_.!?&]+$/;
  *  - any kind of numeric digit
  *  - the following symbols: _ - '
  *  - spaces
+ *  - must contain at least one non-whitespace character (no whitespace-only tags)
  *  - emojis
  */
 export const tagRegex =
