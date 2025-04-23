@@ -21,6 +21,7 @@ import { ArchivedBanner } from "@modules/shared/components";
 import {
   SongDetailsPageHeader,
   SongDetailsPageLoading,
+  SongNotes,
 } from "@modules/songs/components";
 import { SongDetailsItem } from "@modules/songs/components/SongDetailsItem/SongDetailsItem";
 import { SongKeySelect } from "@modules/songs/components/SongKeySelect/SongKeySelect";
@@ -130,9 +131,11 @@ export default async function SetListPage({
             <SongTags songId={song.id} organizationId={params.organization} />
           </SongDetailsItem>
           {song.notes && (
-            <SongDetailsItem icon="NotePencil" label="Notes">
-              <Text style="body-small">{unescapeHTML(song.notes)}</Text>
-            </SongDetailsItem>
+            <SongNotes
+              songId={song.id}
+              songNotes={song.notes}
+              organizationId={params.organization}
+            />
           )}
         </VStack>
       </Card>
