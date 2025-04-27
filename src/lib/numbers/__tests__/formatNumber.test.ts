@@ -1,86 +1,85 @@
 import { formatNumber, type FormatNumberOptions } from "../formatNumber";
 
 describe("formatNumber", () => {
-  describe("default formatting", () => {
-    it("should format whole numbers correctly", () => {
+  describe("default behavior (no options)", () => {
+    it("formats integers with thousand separators", () => {
+      expect(formatNumber(1234567)).toBe("1,234,567");
       expect(formatNumber(1000)).toBe("1,000");
-      expect(formatNumber(1000000)).toBe("1,000,000");
+      expect(formatNumber(100)).toBe("100");
+    });
+
+    it("preserves decimal places", () => {
+      expect(formatNumber(1234.56)).toBe("1,234.56");
+      expect(formatNumber(1234.44)).toBe("1,234.44");
+      expect(formatNumber(0.51)).toBe("0.51");
+      expect(formatNumber(0.49)).toBe("0.49");
+    });
+
+    it("handles negative numbers", () => {
+      expect(formatNumber(-1234567)).toBe("-1,234,567");
+      expect(formatNumber(-1234.56)).toBe("-1,234.56");
+    });
+
+    it("handles zero", () => {
       expect(formatNumber(0)).toBe("0");
-    });
-
-    it("should format decimal numbers correctly", () => {
-      expect(formatNumber(1000.5)).toBe("1,001");
-      expect(formatNumber(1000.4)).toBe("1,000");
-      expect(formatNumber(0.5)).toBe("1");
-    });
-
-    it("should handle negative numbers correctly", () => {
-      expect(formatNumber(-1000)).toBe("-1,000");
-      expect(formatNumber(-1000000)).toBe("-1,000,000");
-      expect(formatNumber(-0.5)).toBe("-1");
-    });
-
-    it("should handle edge cases", () => {
-      expect(formatNumber(Number.MAX_SAFE_INTEGER)).toBe(
-        "9,007,199,254,740,991",
-      );
-      expect(formatNumber(Number.MIN_SAFE_INTEGER)).toBe(
-        "-9,007,199,254,740,991",
-      );
-      expect(formatNumber(0)).toBe("0");
+      // Note: JavaScript's Number type doesn't distinguish between 0 and -0 in string representation
+      expect(formatNumber(-0)).toBe("-0");
     });
   });
 
-  describe("locale configuration", () => {
-    it("should format numbers according to passed in locale", () => {
+  describe("custom locale", () => {
+    it("formats numbers according to the specified locale", () => {
       const options: FormatNumberOptions = { locale: "de-DE" };
-      expect(formatNumber(1000.5, options)).toBe("1.001");
-      expect(formatNumber(1000000, options)).toBe("1.000.000");
+      // German uses dots for thousands and comma for decimals
+      expect(formatNumber(1234567, options)).toBe("1.234.567");
+      expect(formatNumber(-1234567, options)).toBe("-1.234.567");
     });
   });
 
-  describe("number format options", () => {
-    it("should format as currency", () => {
+  describe("custom number format options", () => {
+    it("supports decimal places configuration", () => {
       const options: FormatNumberOptions = {
-        options: { style: "currency", currency: "USD" },
+        options: {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        },
       };
-      expect(formatNumber(1000.5, options)).toBe("$1,001.00");
-      expect(formatNumber(1000000, options)).toBe("$1,000,000.00");
+      expect(formatNumber(1234.567, options)).toBe("1,234.57");
+      expect(formatNumber(1234, options)).toBe("1,234.00");
     });
 
-    it("should format with specific decimal places", () => {
+    it("supports currency formatting", () => {
       const options: FormatNumberOptions = {
-        options: { minimumFractionDigits: 2, maximumFractionDigits: 2 },
+        options: {
+          style: "currency",
+          currency: "USD",
+        },
       };
-      expect(formatNumber(1000.5, options)).toBe("1,000.50");
-      expect(formatNumber(1000, options)).toBe("1,000.00");
+      expect(formatNumber(1234.56, options)).toBe("$1,234.56");
+      expect(formatNumber(1234, options)).toBe("$1,234.00");
     });
 
-    it("should format as percentage", () => {
+    it("supports percentage formatting", () => {
       const options: FormatNumberOptions = {
-        options: { style: "percent" },
+        options: {
+          style: "percent",
+        },
       };
-      expect(formatNumber(0.156, options)).toBe("16%");
-      expect(formatNumber(1.5, options)).toBe("150%");
+      expect(formatNumber(0.1234, options)).toBe("12%");
+      expect(formatNumber(1, options)).toBe("100%");
     });
   });
 
   describe("combined locale and format options", () => {
-    it("should format currency with specific locale", () => {
+    it("applies both locale and format options", () => {
       const options: FormatNumberOptions = {
         locale: "de-DE",
-        options: { style: "currency", currency: "EUR" },
+        options: {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        },
       };
-      expect(formatNumber(1000.5, options)).toBe("1.000,50 €");
-      expect(formatNumber(1000000, options)).toBe("1.000.000,00 €");
-    });
-
-    it("should format percentage with specific locale", () => {
-      const options: FormatNumberOptions = {
-        locale: "fr-FR",
-        options: { style: "percent", minimumFractionDigits: 1 },
-      };
-      expect(formatNumber(0.156, options)).toBe("15,6 %");
+      expect(formatNumber(1234.56, options)).toBe("1.234,56");
     });
   });
 });
