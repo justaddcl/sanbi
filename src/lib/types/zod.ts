@@ -1,5 +1,7 @@
 import { songKeys } from "@lib/constants";
-import { songNameRegex, tagRegex } from "@lib/constants/regex";
+import { songNameRegex } from "@lib/constants/regex";
+import { formatNumber } from "@lib/numbers/formatNumber";
+import { sanitizeInput } from "@lib/string";
 import {
   organizationMemberships,
   organizations,
@@ -11,8 +13,14 @@ import {
   songTags,
   tags,
 } from "@server/db/schema";
-import { createInsertSchema } from "drizzle-zod";
+import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
+
+/**
+ * Constants
+ */
+export const MAX_SONG_NAME_LENGTH = 100;
+export const MAX_SONG_NOTES_LENGTH = 1000;
 
 /**
  * Organization schemas
@@ -71,7 +79,7 @@ export const duplicateSetSchema = insertSetSchema
 export const songNameSchema = z
   .string()
   .min(1)
-  .max(100)
+  .max(MAX_SONG_NAME_LENGTH)
   .superRefine((val, ctx) => {
     for (const char of val) {
       if (!songNameRegex.test(char)) {
@@ -102,6 +110,19 @@ export const songGetPlayHistorySchema = songIdSchema;
 export const songUpdateNameSchema = songIdSchema.extend({
   name: songNameSchema,
 });
+export const songUpdateNotesSchema = createSelectSchema(songs)
+  .pick({
+    id: true,
+  })
+  .extend({
+    notes: z
+      .string()
+      .trim()
+      .max(MAX_SONG_NOTES_LENGTH, {
+        message: `Notes are too long. Please shorten to less than ${formatNumber(MAX_SONG_NOTES_LENGTH)} characters`,
+      })
+      .transform((notes) => sanitizeInput(notes)),
+  });
 export const songUpdatePreferredKeySchema = songIdSchema.extend({
   preferredKey: z.enum(songKeys),
 });

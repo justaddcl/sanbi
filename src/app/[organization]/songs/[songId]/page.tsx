@@ -1,10 +1,9 @@
-import { api } from "@/trpc/server";
+import { redirect } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
-import { Badge } from "@components/Badge";
-import { Card } from "@components/Card/Card";
-import { HStack } from "@components/HStack";
-import { SongKey } from "@components/SongKey";
-import { Text } from "@components/Text";
+import { Plus } from "@phosphor-icons/react/dist/ssr";
+import { formatDistanceToNow } from "date-fns";
+import unescapeHTML from "validator/es/lib/unescape";
+
 import { Button } from "@components/ui/button";
 import {
   Select,
@@ -13,22 +12,29 @@ import {
   SelectTrigger,
 } from "@components/ui/select";
 import { Skeleton } from "@components/ui/skeleton";
+
+import { Badge } from "@components/Badge";
+import { Card } from "@components/Card/Card";
+import { HStack } from "@components/HStack";
+import { SongKey } from "@components/SongKey";
+import { Text } from "@components/Text";
 import { VStack } from "@components/VStack";
-import { songKeys } from "@lib/constants";
-import { formatSongKey } from "@lib/string/formatSongKey";
+
 import { PlayHistoryItem, ResourceCard } from "@modules/SetListCard";
 import { ArchivedBanner } from "@modules/shared/components";
 import {
   SongDetailsPageHeader,
   SongDetailsPageLoading,
+  SongNotes,
 } from "@modules/songs/components";
 import { SongDetailsItem } from "@modules/songs/components/SongDetailsItem/SongDetailsItem";
 import { SongKeySelect } from "@modules/songs/components/SongKeySelect/SongKeySelect";
 import { SongTags } from "@modules/songs/components/SongTags/SongTags";
-import { Plus } from "@phosphor-icons/react/dist/ssr";
-import { formatDistanceToNow } from "date-fns";
-import { redirect } from "next/navigation";
-import unescapeHTML from "validator/es/lib/unescape";
+
+import { songKeys } from "@lib/constants";
+import { formatSongKey } from "@lib/string/formatSongKey";
+
+import { api } from "@/trpc/server";
 
 export default async function SetListPage({
   params,
@@ -129,11 +135,7 @@ export default async function SetListPage({
           <SongDetailsItem icon="Tag" label="Tags">
             <SongTags songId={song.id} organizationId={params.organization} />
           </SongDetailsItem>
-          {song.notes && (
-            <SongDetailsItem icon="NotePencil" label="Notes">
-              <Text style="body-small">{unescapeHTML(song.notes)}</Text>
-            </SongDetailsItem>
-          )}
+          <SongNotes songId={song.id} organizationId={params.organization} />
         </VStack>
       </Card>
       <Card
