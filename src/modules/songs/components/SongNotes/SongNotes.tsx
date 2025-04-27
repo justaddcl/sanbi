@@ -135,6 +135,7 @@ export const SongNotes: React.FC<SongNotesProps> = ({
             <Button
               size="sm"
               variant="outline"
+              type="button"
               onClick={() => {
                 setIsEditingNotes(false);
                 setNotes(song?.notes ?? "");
