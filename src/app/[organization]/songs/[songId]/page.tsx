@@ -1,5 +1,9 @@
-import { api } from "@/trpc/server";
+import { redirect } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
+import { Plus } from "@phosphor-icons/react/dist/ssr";
+import { formatDistanceToNow } from "date-fns";
+import unescapeHTML from "validator/es/lib/unescape";
+
 import { Badge } from "@components/Badge";
 import { Card } from "@components/Card/Card";
 import { HStack } from "@components/HStack";
@@ -14,8 +18,6 @@ import {
 } from "@components/ui/select";
 import { Skeleton } from "@components/ui/skeleton";
 import { VStack } from "@components/VStack";
-import { songKeys } from "@lib/constants";
-import { formatSongKey } from "@lib/string/formatSongKey";
 import { PlayHistoryItem, ResourceCard } from "@modules/SetListCard";
 import { ArchivedBanner } from "@modules/shared/components";
 import {
@@ -26,10 +28,9 @@ import {
 import { SongDetailsItem } from "@modules/songs/components/SongDetailsItem/SongDetailsItem";
 import { SongKeySelect } from "@modules/songs/components/SongKeySelect/SongKeySelect";
 import { SongTags } from "@modules/songs/components/SongTags/SongTags";
-import { Plus } from "@phosphor-icons/react/dist/ssr";
-import { formatDistanceToNow } from "date-fns";
-import { redirect } from "next/navigation";
-import unescapeHTML from "validator/es/lib/unescape";
+import { songKeys } from "@lib/constants";
+import { formatSongKey } from "@lib/string/formatSongKey";
+import { api } from "@/trpc/server";
 
 export default async function SetListPage({
   params,

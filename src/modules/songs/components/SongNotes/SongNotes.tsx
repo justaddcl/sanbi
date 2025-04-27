@@ -1,19 +1,20 @@
 "use client";
 
-import { SongDetailsItem } from "@modules/songs/components";
-import { Text } from "@components/Text";
-import unescapeHTML from "validator/es/lib/unescape";
 import { useEffect, useState } from "react";
-import { VStack } from "@components/VStack";
-import { Textarea } from "@components/ui/textarea";
-import { HStack } from "@components/HStack";
-import { Button } from "@components/ui/button";
 import { toast } from "sonner";
+import unescapeHTML from "validator/es/lib/unescape";
+
+import { HStack } from "@components/HStack";
+import { Text } from "@components/Text";
+import { Button } from "@components/ui/button";
+import { Skeleton } from "@components/ui/skeleton";
+import { Textarea } from "@components/ui/textarea";
+import { VStack } from "@components/VStack";
+import { SongDetailsItem } from "@modules/songs/components";
+import { formatNumber } from "@lib/numbers/formatNumber";
+import { MAX_SONG_NOTES_LENGTH } from "@lib/types/zod";
 import { cn } from "@lib/utils";
 import { api } from "@/trpc/react";
-import { Skeleton } from "@components/ui/skeleton";
-import { MAX_SONG_NOTES_LENGTH } from "@lib/types/zod";
-import { formatNumber } from "@lib/numbers/formatNumber";
 
 type SongNotesProps = {
   songId: string;
