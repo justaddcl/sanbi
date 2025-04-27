@@ -34,6 +34,7 @@ import { and, asc, desc, eq, lte, sql } from "drizzle-orm";
 const TRIGRAM_SIMILARITY_THRESHOLD = 0.1;
 
 export const songRouter = createTRPCRouter({
+  // Queries
   get: organizationProcedure
     .input(getSongSchema)
     .query(async ({ ctx, input }) => {
@@ -87,6 +88,57 @@ export const songRouter = createTRPCRouter({
       return song;
     }),
 
+  search: organizationProcedure
+    .input(searchSongSchema)
+    .query(async ({ ctx, input }) => {
+      console.log(`🤖 - [song/search] - searching for ${input.searchInput}`);
+
+      /**
+       * NOTE: using similarity requires the pg_trgm extension to be enabled
+       * CREATE EXTENSION IF NOT EXISTS pg_trgm;
+       */
+      const searchResults = await ctx.db
+        .select({
+          songId: songs.id,
+          name: songs.name,
+          preferredKey: songs.preferredKey,
+          isArchived: songs.isArchived,
+          similarityScore: sql<number>`similarity(${songs.name}, ${input.searchInput})`,
+          tags: sql<
+            string[]
+          >`array_agg(DISTINCT ${tags.tag} ORDER BY ${tags.tag})`,
+          lastPlayedDate: sql<Date | null>`
+            MAX(
+              CASE WHEN ${sets.date} <= NOW()
+              THEN ${sets.date}
+              END
+            )
+          `,
+        })
+        .from(songs)
+        .leftJoin(setSectionSongs, eq(setSectionSongs.songId, songs.id))
+        .leftJoin(setSections, eq(setSections.id, setSectionSongs.setSectionId))
+        .leftJoin(sets, eq(sets.id, setSections.setId))
+        .leftJoin(songTags, eq(songTags.songId, songs.id))
+        .leftJoin(tags, eq(tags.id, songTags.tagId))
+        .where(
+          sql`similarity(${songs.name}, ${input.searchInput}) > ${TRIGRAM_SIMILARITY_THRESHOLD}`,
+        )
+        .groupBy(songs.id)
+        .orderBy(
+          desc(sql<number>`similarity(${songs.name}, ${input.searchInput})`),
+          asc(songs.name),
+        );
+
+      console.log(
+        `🤖 - [song/search] - result for ${input.searchInput}:`,
+        searchResults,
+      );
+
+      return searchResults;
+    }),
+
+  // Mutations
   create: organizationProcedure
     .input(insertSongSchema)
     .mutation(async ({ ctx, input }) => {
@@ -194,56 +246,6 @@ export const songRouter = createTRPCRouter({
           `🤖 - [song/delete] - Song ID ${input.songId} could not be deleted`,
         );
       }
-    }),
-
-  search: organizationProcedure
-    .input(searchSongSchema)
-    .query(async ({ ctx, input }) => {
-      console.log(`🤖 - [song/search] - searching for ${input.searchInput}`);
-
-      /**
-       * NOTE: using similarity requires the pg_trgm extension to be enabled
-       * CREATE EXTENSION IF NOT EXISTS pg_trgm;
-       */
-      const searchResults = await ctx.db
-        .select({
-          songId: songs.id,
-          name: songs.name,
-          preferredKey: songs.preferredKey,
-          isArchived: songs.isArchived,
-          similarityScore: sql<number>`similarity(${songs.name}, ${input.searchInput})`,
-          tags: sql<
-            string[]
-          >`array_agg(DISTINCT ${tags.tag} ORDER BY ${tags.tag})`,
-          lastPlayedDate: sql<Date | null>`
-            MAX(
-              CASE WHEN ${sets.date} <= NOW()
-              THEN ${sets.date}
-              END
-            )
-          `,
-        })
-        .from(songs)
-        .leftJoin(setSectionSongs, eq(setSectionSongs.songId, songs.id))
-        .leftJoin(setSections, eq(setSections.id, setSectionSongs.setSectionId))
-        .leftJoin(sets, eq(sets.id, setSections.setId))
-        .leftJoin(songTags, eq(songTags.songId, songs.id))
-        .leftJoin(tags, eq(tags.id, songTags.tagId))
-        .where(
-          sql`similarity(${songs.name}, ${input.searchInput}) > ${TRIGRAM_SIMILARITY_THRESHOLD}`,
-        )
-        .groupBy(songs.id)
-        .orderBy(
-          desc(sql<number>`similarity(${songs.name}, ${input.searchInput})`),
-          asc(songs.name),
-        );
-
-      console.log(
-        `🤖 - [song/search] - result for ${input.searchInput}:`,
-        searchResults,
-      );
-
-      return searchResults;
     }),
 
   getLastPlayInstance: organizationProcedure
@@ -458,7 +460,7 @@ export const songRouter = createTRPCRouter({
       const { id: songId } = input;
 
       console.log(
-        `🤖 - [song/updateName] - attempting to update song name for ${songId}:`,
+        `🤖 - [song/updateNotes] - attempting to update song notes for ${songId}:`,
         { mutationInput: { ...input } },
       );
 
@@ -469,7 +471,7 @@ export const songRouter = createTRPCRouter({
 
         if (!songToUpdate) {
           console.error(
-            `🤖 - [song/updateName] - could not find song ${songId}`,
+            `🤖 - [song/updateNotes] - could not find song ${songId}`,
           );
           throw new TRPCError({
             code: "NOT_FOUND",
@@ -481,7 +483,7 @@ export const songRouter = createTRPCRouter({
           songToUpdate.organizationId !== ctx.user.membership.organizationId
         ) {
           console.error(
-            `🤖 - [song/updateName] - user ${ctx.user.id} is not authorized to update song ${songId}`,
+            `🤖 - [song/updateNotes] - user ${ctx.user.id} is not authorized to update song ${songId}`,
           );
           throw new TRPCError({
             code: "FORBIDDEN",
@@ -491,7 +493,6 @@ export const songRouter = createTRPCRouter({
 
         const [updatedSong] = await updateTransaction
           .update(songs)
-          // TODO: add input sanitation
           .set({ notes: input.notes })
           .where(eq(songs.id, songId))
           .returning();

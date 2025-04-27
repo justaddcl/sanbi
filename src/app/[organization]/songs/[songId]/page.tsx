@@ -131,11 +131,7 @@ export default async function SetListPage({
             <SongTags songId={song.id} organizationId={params.organization} />
           </SongDetailsItem>
           {song.notes && (
-            <SongNotes
-              songId={song.id}
-              songNotes={song.notes}
-              organizationId={params.organization}
-            />
+            <SongNotes songId={song.id} organizationId={params.organization} />
           )}
         </VStack>
       </Card>

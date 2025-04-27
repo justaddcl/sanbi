@@ -3,7 +3,7 @@
 import { SongDetailsItem } from "@modules/songs/components";
 import { Text } from "@components/Text";
 import unescapeHTML from "validator/es/lib/unescape";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { VStack } from "@components/VStack";
 import { Textarea } from "@components/ui/textarea";
 import { HStack } from "@components/HStack";
@@ -11,20 +11,25 @@ import { Button } from "@components/ui/button";
 import { toast } from "sonner";
 import { cn } from "@lib/utils";
 import { api } from "@/trpc/react";
+import { Skeleton } from "@components/ui/skeleton";
 
 type SongNotesProps = {
   songId: string;
-  songNotes: string;
   organizationId: string;
 };
 
 export const SongNotes: React.FC<SongNotesProps> = ({
   songId,
-  songNotes,
   organizationId,
 }) => {
+  const {
+    data: song,
+    isLoading: isSongQueryLoading,
+    error: songQueryError,
+  } = api.song.get.useQuery({ songId, organizationId });
+
   const [isEditingNotes, setIsEditingNotes] = useState<boolean>(false);
-  const [notes, setNotes] = useState<string>(songNotes ?? "");
+  const [notes, setNotes] = useState<string>(song?.notes ?? "");
 
   const updateNotesMutation = api.song.updateNotes.useMutation();
   const apiUtils = api.useUtils();
@@ -48,13 +53,30 @@ export const SongNotes: React.FC<SongNotesProps> = ({
         },
 
         onError(updateError) {
-          toast.error(`Could not update set notes: ${updateError.message}`, {
+          toast.error(`Could not update song notes: ${updateError.message}`, {
             id: toastId,
           });
         },
       },
     );
   };
+
+  useEffect(() => {
+    setNotes(song?.notes ?? "");
+  }, [song]);
+
+  if (isSongQueryLoading) {
+    return (
+      <VStack className="gap-2">
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-4 w-40" />
+      </VStack>
+    );
+  }
+
+  if (songQueryError) {
+    return null;
+  }
 
   return (
     <SongDetailsItem icon="NotePencil" label="Notes">
@@ -77,7 +99,7 @@ export const SongNotes: React.FC<SongNotesProps> = ({
             onKeyDown={(keyDownEvent) => {
               if (keyDownEvent.key === "Escape") {
                 setIsEditingNotes(false);
-                setNotes(songNotes ?? "");
+                setNotes(song?.notes ?? "");
               }
             }}
           />
@@ -87,7 +109,7 @@ export const SongNotes: React.FC<SongNotesProps> = ({
               variant="outline"
               onClick={() => {
                 setIsEditingNotes(false);
-                setNotes(songNotes ?? "");
+                setNotes(song?.notes ?? "");
               }}
             >
               Cancel

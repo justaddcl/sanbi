@@ -1,5 +1,6 @@
 import { songKeys } from "@lib/constants";
 import { songNameRegex } from "@lib/constants/regex";
+import { sanitizeInput } from "@lib/string";
 import {
   organizationMemberships,
   organizations,
@@ -107,11 +108,14 @@ export const songUpdateNotesSchema = createSelectSchema(songs)
     id: true,
   })
   .extend({
-    notes: z.string().trim().max(2000, {
-      message:
-        "Notes are too long. Please shorten to less than 2,000 characters",
-    }),
-    // .transform((notes) => sanitizeInput(notes)),
+    notes: z
+      .string()
+      .trim()
+      .max(2000, {
+        message:
+          "Notes are too long. Please shorten to less than 2,000 characters",
+      })
+      .transform((notes) => sanitizeInput(notes)),
   });
 export const songUpdatePreferredKeySchema = songIdSchema.extend({
   preferredKey: z.enum(songKeys),
