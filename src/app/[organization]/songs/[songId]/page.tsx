@@ -4,11 +4,6 @@ import { Plus } from "@phosphor-icons/react/dist/ssr";
 import { formatDistanceToNow } from "date-fns";
 import unescapeHTML from "validator/es/lib/unescape";
 
-import { Badge } from "@components/Badge";
-import { Card } from "@components/Card/Card";
-import { HStack } from "@components/HStack";
-import { SongKey } from "@components/SongKey";
-import { Text } from "@components/Text";
 import { Button } from "@components/ui/button";
 import {
   Select,
@@ -17,7 +12,14 @@ import {
   SelectTrigger,
 } from "@components/ui/select";
 import { Skeleton } from "@components/ui/skeleton";
+
+import { Badge } from "@components/Badge";
+import { Card } from "@components/Card/Card";
+import { HStack } from "@components/HStack";
+import { SongKey } from "@components/SongKey";
+import { Text } from "@components/Text";
 import { VStack } from "@components/VStack";
+
 import { PlayHistoryItem, ResourceCard } from "@modules/SetListCard";
 import { ArchivedBanner } from "@modules/shared/components";
 import {
@@ -28,8 +30,10 @@ import {
 import { SongDetailsItem } from "@modules/songs/components/SongDetailsItem/SongDetailsItem";
 import { SongKeySelect } from "@modules/songs/components/SongKeySelect/SongKeySelect";
 import { SongTags } from "@modules/songs/components/SongTags/SongTags";
+
 import { songKeys } from "@lib/constants";
 import { formatSongKey } from "@lib/string/formatSongKey";
+
 import { api } from "@/trpc/server";
 
 export default async function SetListPage({

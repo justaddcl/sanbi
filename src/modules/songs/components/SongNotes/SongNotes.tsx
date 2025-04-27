@@ -4,16 +4,20 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import unescapeHTML from "validator/es/lib/unescape";
 
-import { HStack } from "@components/HStack";
-import { Text } from "@components/Text";
 import { Button } from "@components/ui/button";
 import { Skeleton } from "@components/ui/skeleton";
 import { Textarea } from "@components/ui/textarea";
+
+import { HStack } from "@components/HStack";
+import { Text } from "@components/Text";
 import { VStack } from "@components/VStack";
+
 import { SongDetailsItem } from "@modules/songs/components";
+
 import { formatNumber } from "@lib/numbers/formatNumber";
 import { MAX_SONG_NOTES_LENGTH } from "@lib/types/zod";
 import { cn } from "@lib/utils";
+
 import { api } from "@/trpc/react";
 
 type SongNotesProps = {
@@ -150,6 +154,7 @@ export const SongNotes: React.FC<SongNotesProps> = ({
         </VStack>
       ) : (
         <button
+          type="button"
           className={cn("hover:cursor-pointer", {
             "p-[9px]": !isEditingNotes,
           })}
