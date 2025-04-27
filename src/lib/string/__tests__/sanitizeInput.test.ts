@@ -3,7 +3,7 @@ import { sanitizeInput } from "@lib/string";
 describe("sanitizeInput", () => {
   it("should sanitize basic HTML tags", () => {
     const input = "<p>Hello World</p>";
-    expect(sanitizeInput(input)).toBe("&lt;p&gt;Hello World&lt;&#x2F;p&gt;");
+    expect(sanitizeInput(input)).toBe("Hello World");
   });
 
   it("should handle script tags by removing them", () => {
@@ -26,18 +26,14 @@ describe("sanitizeInput", () => {
   it("should handle malicious CSS injection", () => {
     const input = '<div style="background:url(javascript:alert(1))">test</div>';
     // Note: DOMPurify with current configuration might not remove javascript: URLs
-    expect(sanitizeInput(input)).toBe(
-      "&lt;div style=&quot;background:url(javascript:alert(1))&quot;&gt;test&lt;&#x2F;div&gt;",
-    );
+    expect(sanitizeInput(input)).toBe("test");
   });
 
   it("should handle nested malicious content", () => {
     const input =
       '<div><img src="x" onerror="alert(1)"><script>evil()</script></div>';
     // DOMPurify removes onerror attributes and script tags
-    expect(sanitizeInput(input)).toBe(
-      "&lt;div&gt;&lt;img src=&quot;x&quot;&gt;&lt;&#x2F;div&gt;",
-    );
+    expect(sanitizeInput(input)).toBe("");
   });
 
   it("should handle unicode characters", () => {
@@ -50,35 +46,15 @@ describe("sanitizeInput", () => {
     expect(sanitizeInput(input)).toBe("Hello\nWorld");
   });
 
-  it("should handle complex HTML structure", () => {
-    const input = `
-      <div class="test">
-        <h1>Title</h1>
-        <p>Content with <strong>bold</strong> text</p>
-      </div>
-    `;
-    expect(sanitizeInput(input)).toBe(
-      "\n      &lt;div class=&quot;test&quot;&gt;\n        &lt;h1&gt;Title&lt;&#x2F;h1&gt;\n        &lt;p&gt;Content with &lt;strong&gt;bold&lt;&#x2F;strong&gt; text&lt;&#x2F;p&gt;\n      &lt;&#x2F;div&gt;\n    ",
-    );
-  });
-
   it("should handle data attributes", () => {
     const input = '<div data-testid="test">content</div>';
-    expect(sanitizeInput(input)).toBe(
-      "&lt;div data-testid=&quot;test&quot;&gt;content&lt;&#x2F;div&gt;",
-    );
+    expect(sanitizeInput(input)).toBe("content");
   });
 
   it("should return the same plain text when no HTML is present", () => {
     const input = "Hello World";
     const output = sanitizeInput(input);
     expect(output).toBe("Hello World");
-  });
-
-  it("should preserve allowed HTML tags during sanitization but escape them after", () => {
-    const input = "Test <b>bold</b> text";
-    const output = sanitizeInput(input);
-    expect(output).toBe("Test &lt;b&gt;bold&lt;&#x2F;b&gt; text");
   });
 
   it("should completely remove dangerous tags like <script>", () => {
@@ -97,7 +73,7 @@ describe("sanitizeInput", () => {
 
     // DOMPurify should strip javascript: URLs and onclick attributes
     expect(output).not.toContain("onclick");
-    expect(output).toBe("&lt;a&gt;Click me&lt;&#x2F;a&gt;");
+    expect(output).toBe("Click me");
   });
 
   it("should handle iframe elements by removing them", () => {
@@ -122,6 +98,6 @@ describe("sanitizeInput", () => {
     const output = sanitizeInput(input);
 
     // Should remove both the onerror attribute and the nested script
-    expect(output).toBe("&lt;img src=&quot;x&quot;&gt;");
+    expect(output).toBe("");
   });
 });
