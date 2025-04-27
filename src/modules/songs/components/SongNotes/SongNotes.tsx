@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { cn } from "@lib/utils";
 import { api } from "@/trpc/react";
 import { Skeleton } from "@components/ui/skeleton";
+import { MAX_SONG_NOTES_LENGTH } from "@lib/types/zod";
 
 type SongNotesProps = {
   songId: string;
@@ -89,20 +90,26 @@ export const SongNotes: React.FC<SongNotesProps> = ({
         </div>
       ) : (
         <VStack className="gap-4">
-          <Textarea
-            value={unescapeHTML(notes)}
-            onChange={(changeEvent) => {
-              setNotes(changeEvent.target.value);
-            }}
-            className="px-2"
-            autoFocus
-            onKeyDown={(keyDownEvent) => {
-              if (keyDownEvent.key === "Escape") {
-                setIsEditingNotes(false);
-                setNotes(song?.notes ?? "");
-              }
-            }}
-          />
+          <VStack className="gap-2">
+            <Textarea
+              value={unescapeHTML(notes)}
+              onChange={(changeEvent) => {
+                setNotes(changeEvent.target.value);
+              }}
+              className="px-2"
+              autoFocus
+              onKeyDown={(keyDownEvent) => {
+                if (keyDownEvent.key === "Escape") {
+                  setIsEditingNotes(false);
+                  setNotes(song?.notes ?? "");
+                }
+              }}
+              maxLength={MAX_SONG_NOTES_LENGTH}
+            />
+            <Text className="text-sm text-slate-500">
+              {notes.length}/{MAX_SONG_NOTES_LENGTH} characters
+            </Text>
+          </VStack>
           <HStack className="justify-end gap-2">
             <Button
               size="sm"

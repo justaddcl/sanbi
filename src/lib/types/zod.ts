@@ -16,6 +16,12 @@ import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
 
 /**
+ * Constants
+ */
+export const MAX_SONG_NAME_LENGTH = 100;
+export const MAX_SONG_NOTES_LENGTH = 1000;
+
+/**
  * Organization schemas
  */
 export const insertOrganizationSchema = createInsertSchema(organizations, {
@@ -72,7 +78,7 @@ export const duplicateSetSchema = insertSetSchema
 export const songNameSchema = z
   .string()
   .min(1)
-  .max(100)
+  .max(MAX_SONG_NAME_LENGTH)
   .superRefine((val, ctx) => {
     for (const char of val) {
       if (!songNameRegex.test(char)) {
@@ -111,7 +117,7 @@ export const songUpdateNotesSchema = createSelectSchema(songs)
     notes: z
       .string()
       .trim()
-      .max(2000, {
+      .max(MAX_SONG_NOTES_LENGTH, {
         message:
           "Notes are too long. Please shorten to less than 2,000 characters",
       })
