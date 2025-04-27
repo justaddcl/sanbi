@@ -30,7 +30,7 @@ export const SongNotes: React.FC<SongNotesProps> = ({
   } = api.song.get.useQuery({ songId, organizationId });
 
   const [isEditingNotes, setIsEditingNotes] = useState<boolean>(false);
-  const [notes, setNotes] = useState<string>(unescapeHTML(song?.notes ?? ""));
+  const [notes, setNotes] = useState<string>(song?.notes ?? "");
 
   const updateNotesMutation = api.song.updateNotes.useMutation();
   const apiUtils = api.useUtils();
@@ -68,10 +68,12 @@ export const SongNotes: React.FC<SongNotesProps> = ({
 
   if (isSongQueryLoading) {
     return (
-      <VStack className="gap-2">
-        <Skeleton className="h-4 w-full" />
-        <Skeleton className="h-4 w-40" />
-      </VStack>
+      <SongDetailsItem icon="NotePencil" label="Notes">
+        <VStack className="gap-2">
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-40" />
+        </VStack>
+      </SongDetailsItem>
     );
   }
 
@@ -79,28 +81,37 @@ export const SongNotes: React.FC<SongNotesProps> = ({
     return null;
   }
 
-  return (
-    <SongDetailsItem icon="NotePencil" label="Notes">
-      {!isEditingNotes ? (
+  if (!notes && !isEditingNotes) {
+    return (
+      <SongDetailsItem icon="NotePencil" label="Notes">
         <div
-          className={cn("hover:cursor-pointer", { "p-[9px]": !isEditingNotes })}
-          onClick={() => setIsEditingNotes(true)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
+          onClick={() => {
+            setIsEditingNotes(true);
+          }}
+          onKeyDown={(keyDownEvent) => {
+            if (keyDownEvent.key === "Enter" || keyDownEvent.key === " ") {
               setIsEditingNotes(true);
             }
           }}
           role="button"
           tabIndex={0}
+          aria-label="Add notes"
         >
-          <Text style="body-small">{notes}</Text>
+          <Text style="body-small" className="text-slate-500">
+            Add notes
+          </Text>
         </div>
-      ) : (
+      </SongDetailsItem>
+    );
+  }
+
+  return (
+    <SongDetailsItem icon="NotePencil" label="Notes">
+      {isEditingNotes ? (
         <VStack className="gap-4">
           <VStack className="gap-2">
             <Textarea
-              value={notes}
+              value={unescapeHTML(notes)}
               onChange={(changeEvent) => {
                 setNotes(changeEvent.target.value);
               }}
@@ -134,6 +145,23 @@ export const SongNotes: React.FC<SongNotesProps> = ({
             </Button>
           </HStack>
         </VStack>
+      ) : (
+        <div
+          className={cn("hover:cursor-pointer", {
+            "p-[9px]": !isEditingNotes,
+          })}
+          onClick={() => setIsEditingNotes(true)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              setIsEditingNotes(true);
+            }
+          }}
+          role="button"
+          tabIndex={0}
+        >
+          <Text style="body-small">{unescapeHTML(notes)}</Text>
+        </div>
       )}
     </SongDetailsItem>
   );
