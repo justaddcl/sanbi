@@ -30,7 +30,7 @@ export const SongNotes: React.FC<SongNotesProps> = ({
   } = api.song.get.useQuery({ songId, organizationId });
 
   const [isEditingNotes, setIsEditingNotes] = useState<boolean>(false);
-  const [notes, setNotes] = useState<string>(song?.notes ?? "");
+  const [notes, setNotes] = useState<string>(unescapeHTML(song?.notes ?? ""));
 
   const updateNotesMutation = api.song.updateNotes.useMutation();
   const apiUtils = api.useUtils();
@@ -63,7 +63,7 @@ export const SongNotes: React.FC<SongNotesProps> = ({
   };
 
   useEffect(() => {
-    setNotes(song?.notes ?? "");
+    setNotes(unescapeHTML(song?.notes ?? ""));
   }, [song]);
 
   if (isSongQueryLoading) {
@@ -85,14 +85,22 @@ export const SongNotes: React.FC<SongNotesProps> = ({
         <div
           className={cn("hover:cursor-pointer", { "p-[9px]": !isEditingNotes })}
           onClick={() => setIsEditingNotes(true)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              setIsEditingNotes(true);
+            }
+          }}
+          role="button"
+          tabIndex={0}
         >
-          <Text style="body-small">{unescapeHTML(notes)}</Text>
+          <Text style="body-small">{notes}</Text>
         </div>
       ) : (
         <VStack className="gap-4">
           <VStack className="gap-2">
             <Textarea
-              value={unescapeHTML(notes)}
+              value={notes}
               onChange={(changeEvent) => {
                 setNotes(changeEvent.target.value);
               }}
