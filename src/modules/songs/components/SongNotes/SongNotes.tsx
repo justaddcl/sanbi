@@ -13,6 +13,7 @@ import { cn } from "@lib/utils";
 import { api } from "@/trpc/react";
 import { Skeleton } from "@components/ui/skeleton";
 import { MAX_SONG_NOTES_LENGTH } from "@lib/types/zod";
+import { formatNumber } from "@lib/numbers/formatNumber";
 
 type SongNotesProps = {
   songId: string;
@@ -126,7 +127,7 @@ export const SongNotes: React.FC<SongNotesProps> = ({
               maxLength={MAX_SONG_NOTES_LENGTH}
             />
             <Text className="text-sm text-slate-500">
-              {notes.length}/{MAX_SONG_NOTES_LENGTH} characters
+              {notes.length}/{formatNumber(MAX_SONG_NOTES_LENGTH)} characters
             </Text>
           </VStack>
           <HStack className="justify-end gap-2">
@@ -146,7 +147,7 @@ export const SongNotes: React.FC<SongNotesProps> = ({
           </HStack>
         </VStack>
       ) : (
-        <div
+        <button
           className={cn("hover:cursor-pointer", {
             "p-[9px]": !isEditingNotes,
           })}
@@ -157,11 +158,9 @@ export const SongNotes: React.FC<SongNotesProps> = ({
               setIsEditingNotes(true);
             }
           }}
-          role="button"
-          tabIndex={0}
         >
           <Text style="body-small">{unescapeHTML(notes)}</Text>
-        </div>
+        </button>
       )}
     </SongDetailsItem>
   );

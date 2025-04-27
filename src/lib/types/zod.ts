@@ -1,5 +1,6 @@
 import { songKeys } from "@lib/constants";
 import { songNameRegex } from "@lib/constants/regex";
+import { formatNumber } from "@lib/numbers/formatNumber";
 import { sanitizeInput } from "@lib/string";
 import {
   organizationMemberships,
@@ -118,8 +119,7 @@ export const songUpdateNotesSchema = createSelectSchema(songs)
       .string()
       .trim()
       .max(MAX_SONG_NOTES_LENGTH, {
-        message:
-          "Notes are too long. Please shorten to less than 2,000 characters",
+        message: `Notes are too long. Please shorten to less than ${formatNumber(MAX_SONG_NOTES_LENGTH)} characters`,
       })
       .transform((notes) => sanitizeInput(notes)),
   });
