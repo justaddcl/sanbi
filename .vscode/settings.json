@@ -1,0 +1,10 @@
+{
+  "typescript.preferences.autoImportFileExcludePatterns": [
+    "@radix-ui",
+    "next-router",
+    "next/dist",
+    "lucide-react",
+    "^lucide-react/dist/lucide-react.siffixed$",
+    "react-day-picker"
+  ]
+}
