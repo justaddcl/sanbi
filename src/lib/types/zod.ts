@@ -1,3 +1,6 @@
+import { createInsertSchema, createSelectSchema } from "drizzle-zod";
+import { z } from "zod";
+
 import { songKeys } from "@lib/constants";
 import { songNameRegex } from "@lib/constants/regex";
 import { formatNumber } from "@lib/numbers/formatNumber";
@@ -13,8 +16,6 @@ import {
   songTags,
   tags,
 } from "@server/db/schema";
-import { createInsertSchema, createSelectSchema } from "drizzle-zod";
-import { z } from "zod";
 
 /**
  * Constants

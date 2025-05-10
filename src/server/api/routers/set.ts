@@ -1,3 +1,17 @@
+import { TRPCError } from "@trpc/server";
+import { and, eq, gte, inArray, sql } from "drizzle-orm";
+
+import { type NewSet } from "@lib/types";
+import {
+  archiveSetSchema,
+  deleteSetSchema,
+  duplicateSetSchema,
+  getSetSchema,
+  insertSetSchema,
+  unarchiveSetSchema,
+  updateSetDetailsSchema,
+  updateSetNotesSchema,
+} from "@lib/types/zod";
 import {
   adminProcedure,
   createTRPCRouter,
@@ -9,21 +23,10 @@ import {
   setSections,
   setSectionSongs,
 } from "@server/db/schema";
-import { type NewSet } from "@lib/types";
-import { eq, inArray } from "drizzle-orm";
-import {
-  archiveSetSchema,
-  deleteSetSchema,
-  duplicateSetSchema,
-  getSetSchema,
-  insertSetSchema,
-  unarchiveSetSchema,
-  updateSetDetailsSchema,
-  updateSetNotesSchema,
-} from "@lib/types/zod";
-import { TRPCError } from "@trpc/server";
+import { pluralize } from "@lib/string";
 
 export const setRouter = createTRPCRouter({
+  // Queries
   get: organizationProcedure
     .input(getSetSchema)
     .query(async ({ ctx, input }) => {
@@ -66,6 +69,68 @@ export const setRouter = createTRPCRouter({
       return setData;
     }),
 
+  getUpcoming: organizationProcedure.query(async ({ ctx, input }) => {
+    const { organizationId } = ctx.user.membership;
+    console.log(
+      `🤖 - [set/getUpcoming] - attempting to get the upcoming sets for ${organizationId}`,
+    );
+
+    const upcomingSetsSubquery = ctx.db.$with("next_sets").as(
+      ctx.db
+        .selectDistinctOn([sets.eventTypeId], {
+          eventTypeId: sets.eventTypeId,
+          setId: sets.id,
+          setDate: sets.date,
+        })
+        .from(sets)
+        .where(
+          and(
+            eq(sets.organizationId, input.organizationId),
+            gte(sets.date, new Date().toLocaleDateString("en-CA")), // en-CA is a locale that uses the 'YYYY-MM-DD' format
+          ),
+        )
+        .orderBy(sets.eventTypeId, sets.date),
+    );
+
+    // 2) Consume the CTE: join to get names, count songs, group & order
+    const upcomingSets = await ctx.db
+      .with(upcomingSetsSubquery)
+      .select({
+        eventTypeId: upcomingSetsSubquery.eventTypeId,
+        setId: upcomingSetsSubquery.setId,
+        setDate: upcomingSetsSubquery.setDate,
+        eventType: eventTypes.name,
+        songCount: sql<number>`COUNT(${setSectionSongs.id})`
+          .mapWith(Number)
+          .as("songCount"),
+      })
+      .from(upcomingSetsSubquery)
+      .innerJoin(
+        eventTypes,
+        eq(eventTypes.id, upcomingSetsSubquery.eventTypeId),
+      )
+      .leftJoin(setSections, eq(setSections.setId, upcomingSetsSubquery.setId))
+      .leftJoin(
+        setSectionSongs,
+        eq(setSectionSongs.setSectionId, setSections.id),
+      )
+      .groupBy(
+        upcomingSetsSubquery.eventTypeId,
+        upcomingSetsSubquery.setId,
+        upcomingSetsSubquery.setDate,
+        eventTypes.name,
+      )
+      .orderBy(eventTypes.name);
+
+    console.log(
+      `🤖 - ${upcomingSets.length} upcoming ${pluralize(upcomingSets.length, { singular: "set", plural: "sets" })} found for ${input.organizationId}`,
+      { queryInput: input, upcomingSets },
+    );
+
+    return upcomingSets;
+  }),
+
+  // Mutations
   create: organizationProcedure
     .input(insertSetSchema)
     .mutation(async ({ ctx, input }) => {
@@ -260,6 +325,7 @@ export const setRouter = createTRPCRouter({
         };
       });
     }),
+
   updateNotes: organizationProcedure
     .input(updateSetNotesSchema)
     .mutation(async ({ ctx, input }) => {
