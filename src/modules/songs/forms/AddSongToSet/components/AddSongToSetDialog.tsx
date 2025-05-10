@@ -70,6 +70,8 @@ export const AddSongToSetDialog: React.FC = ({}) => {
 
   const renderStepContent = () => {
     switch (currentStep) {
+      case AddSongToSetDialogStep.SELECT_SET:
+        return <SetSelectionStep />;
       default:
         return null;
     }

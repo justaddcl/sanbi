@@ -4,3 +4,4 @@ export * from "./SetSelectionFilters";
 export * from "./SetSelectionSection";
 export * from "./SetSelectionSetItem";
 export * from "./SetSelectionStep";
+export * from "./SetSelectionUpcomingSets";
