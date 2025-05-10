@@ -1,10 +1,10 @@
 "use client";
 
 import * as React from "react";
+import { type ControllerRenderProps } from "react-hook-form";
+import { CalendarBlank } from "@phosphor-icons/react";
 import { addDays, format } from "date-fns";
-import { Calendar as CalendarIcon } from "lucide-react";
 
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { type ControllerRenderProps } from "react-hook-form";
+import { cn } from "@/lib/utils";
 
 export type DatePickerPreset = {
   value: string;
@@ -63,7 +63,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
             !date && "text-muted-foreground",
           )}
         >
-          <CalendarIcon className="mr-2 h-4 w-4" />
+          <CalendarBlank className="mr-2 h-4 w-4" />
           {date ? format(date, "PPP") : <span>Pick a date</span>}
         </Button>
       </PopoverTrigger>

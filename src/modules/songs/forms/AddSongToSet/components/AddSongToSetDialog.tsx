@@ -43,8 +43,6 @@ const contentMap: Record<
   },
 };
 
-type AddSongToSetDialogProps = {};
-
 export const AddSongToSetDialog: React.FC = ({}) => {
   const [isOpen, setIsOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(
