@@ -86,7 +86,7 @@ export const AddSongToSetDialog: React.FC = ({}) => {
         fixed
         minimalPadding
         closeButton={null}
-        className="gap-0 p-0 lg:p-0"
+        className="max-h-[90%] gap-0 overflow-y-auto p-0 lg:max-h-[600px] lg:p-0"
       >
         {/* TODO: move within each step's component */}
         <AddSongToSetDialogHeader

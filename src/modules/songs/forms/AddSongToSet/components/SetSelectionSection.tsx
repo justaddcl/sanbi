@@ -4,10 +4,11 @@ import { HStack } from "@components/HStack";
 import { Text } from "@components/Text";
 import { VStack } from "@components/VStack";
 
-type SetSelectionSectionProps = React.PropsWithChildren & {
-  title: string;
-  label?: string;
-};
+type SetSelectionSectionProps = React.ComponentPropsWithoutRef<"div"> &
+  React.PropsWithChildren & {
+    title: string;
+    label?: string;
+  };
 
 export const SetSelectionSection: React.FC<SetSelectionSectionProps> = ({
   title,
