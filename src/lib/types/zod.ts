@@ -49,6 +49,16 @@ export const insertOrganizationMembershipSchema = createInsertSchema(
  * Set schemas
  */
 export const getSetSchema = z.object({ setId: z.string().uuid() });
+export const getInfiniteSetsSchema = z.object({
+  cursor: z
+    .object({
+      date: z.string().date(),
+      id: z.string().uuid(),
+    })
+    .nullish(),
+  limit: z.number().min(1).max(48).nullish(),
+  eventTypeId: z.string().uuid().nullish(),
+});
 export const insertSetSchema = createInsertSchema(sets);
 const setIdSchema = z.object({
   setId: z.string().uuid(),

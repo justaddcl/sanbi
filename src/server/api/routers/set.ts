@@ -1,11 +1,13 @@
 import { TRPCError } from "@trpc/server";
-import { and, eq, gte, inArray, sql } from "drizzle-orm";
+import { and, asc, eq, gt, gte, inArray, or, sql } from "drizzle-orm";
 
+import { pluralize } from "@lib/string";
 import { type NewSet } from "@lib/types";
 import {
   archiveSetSchema,
   deleteSetSchema,
   duplicateSetSchema,
+  getInfiniteSetsSchema,
   getSetSchema,
   insertSetSchema,
   unarchiveSetSchema,
@@ -23,7 +25,6 @@ import {
   setSections,
   setSectionSongs,
 } from "@server/db/schema";
-import { pluralize } from "@lib/string";
 
 export const setRouter = createTRPCRouter({
   // Queries
@@ -120,15 +121,111 @@ export const setRouter = createTRPCRouter({
         upcomingSetsSubquery.setDate,
         eventTypes.name,
       )
-      .orderBy(eventTypes.name);
+      .orderBy(upcomingSetsSubquery.setDate, eventTypes.name);
 
     console.log(
-      `🤖 - ${upcomingSets.length} upcoming ${pluralize(upcomingSets.length, { singular: "set", plural: "sets" })} found for ${input.organizationId}`,
+      `🤖 - [set/getUpcoming] - ${upcomingSets.length} upcoming ${pluralize(upcomingSets.length, { singular: "set", plural: "sets" })} found for ${input.organizationId}`,
       { queryInput: input, upcomingSets },
     );
 
     return upcomingSets;
   }),
+
+  getInfinite: organizationProcedure
+    .input(getInfiniteSetsSchema)
+    .query(async ({ ctx, input }) => {
+      console.log(
+        `🤖 - [set/getInfinite] - attempting to query sets for organization ${input.organizationId}`,
+        { queryInput: input },
+      );
+
+      const limit = input.limit ?? 10;
+
+      let validatedEventTypeId: string | undefined;
+      if (!!input.eventTypeId) {
+        const eventType = await ctx.db.query.eventTypes.findFirst({
+          where: eq(eventTypes.id, input.eventTypeId),
+        });
+
+        if (!eventType) {
+          console.error(
+            `🤖 - [set/getInfinite] - could not find event type ${input.eventTypeId}`,
+            { queryInput: input },
+          );
+        }
+
+        if (eventType?.organizationId !== input.organizationId) {
+          console.error(
+            `🤖 - [set/getInfinite] - user ${ctx.user.id} not authorized to use event type ${eventType?.id}`,
+            { queryInput: input, eventType },
+          );
+        }
+
+        if (eventType && eventType.organizationId === input.organizationId) {
+          validatedEventTypeId = eventType.id;
+        }
+      }
+
+      const whereClauses = [
+        eq(sets.organizationId, input.organizationId),
+        ...(input.cursor
+          ? [
+              or(
+                gt(sets.date, input.cursor.date),
+                and(
+                  eq(sets.date, input.cursor.date),
+                  gt(sets.id, input.cursor.id),
+                ),
+              ),
+            ]
+          : [gte(sets.date, new Date().toLocaleDateString("en-CA"))]),
+        ...(typeof validatedEventTypeId === "string"
+          ? [eq(sets.eventTypeId, validatedEventTypeId)]
+          : []),
+      ];
+
+      const setsResults = await ctx.db
+        .select({
+          id: sets.id,
+          date: sets.date,
+          eventType: eventTypes.name,
+          songCount: sql<number>`COUNT(${setSectionSongs.songId})`
+            .mapWith(Number)
+            .as("songCount"),
+        })
+        .from(sets)
+        .leftJoin(eventTypes, eq(eventTypes.id, sets.eventTypeId))
+        .leftJoin(setSections, eq(setSections.setId, sets.id))
+        .leftJoin(
+          setSectionSongs,
+          eq(setSectionSongs.setSectionId, setSections.id),
+        )
+        .where(and(...whereClauses))
+        .groupBy(sets.id, sets.date, eventTypes.name)
+        .orderBy(asc(sets.date), asc(sets.eventTypeId))
+        .limit(limit + 1);
+
+      const setItems = setsResults.slice(0, limit);
+      const setItemForCursor = setsResults.at(limit);
+      const nextCursor = setItemForCursor
+        ? { date: setItemForCursor.date, id: setItemForCursor.id }
+        : undefined;
+
+      console.log(
+        `🤖 - [set/getInfinite] - ${setsResults.length} results using cursor id ${input.cursor?.id} and date ${input.cursor?.date ?? new Date().toLocaleDateString("en-CA")}`,
+        {
+          queryInput: input,
+          setItems,
+          setsResults,
+          nextCursor,
+        },
+      );
+
+      return {
+        sets: setItems,
+        nextCursor,
+      };
+    }),
 
   // Mutations
   create: organizationProcedure
