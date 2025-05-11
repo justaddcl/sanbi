@@ -1,11 +1,3 @@
-import { api } from "@/trpc/react";
-import { Skeleton } from "@components/ui/skeleton";
-import { pluralize } from "@lib/string";
-import {
-  SetSelectionSection,
-  SetSelectionSetItem,
-} from "@modules/songs/forms/AddSongToSet/components";
-import { useUserQuery } from "@modules/users/api/queries";
 import {
   differenceInCalendarWeeks,
   format,
@@ -13,6 +5,41 @@ import {
   isTomorrow,
 } from "date-fns";
 import { toast } from "sonner";
+
+import { Skeleton } from "@components/ui/skeleton";
+import { HStack } from "@components/HStack";
+import { VStack } from "@components/VStack";
+import {
+  SetSelectionSection,
+  SetSelectionSetItem,
+} from "@modules/songs/forms/AddSongToSet/components";
+import { useUserQuery } from "@modules/users/api/queries";
+import { pluralize } from "@lib/string";
+import { api } from "@/trpc/react";
+
+// TODO: move to utils and add tests
+export const formatFriendlyDate = (date: string) => {
+  if (isToday(date)) {
+    return "Today";
+  }
+
+  if (isTomorrow(date)) {
+    return "Tomorrow";
+  }
+
+  const weekDiff = differenceInCalendarWeeks(date, new Date(), {
+    weekStartsOn: 0,
+  });
+  if (weekDiff === 0) {
+    return `This ${format(date, "EEEE")}`;
+  }
+
+  if (weekDiff === 1) {
+    return `Next ${format(date, "EEEE")}`;
+  }
+
+  return format(date, "EEEE, MMM dd");
+};
 
 export const SetSelectionUpcomingSets: React.FC = () => {
   const {
@@ -36,8 +63,28 @@ export const SetSelectionUpcomingSets: React.FC = () => {
     organizationId: userMembership?.organizationId,
   });
 
+  // FIXME: add skeleton to mimic mobile styles
   if (isUpcomingSetsQueryLoading) {
-    return <Skeleton />;
+    return (
+      <SetSelectionSection title="Next sets" label="Show more">
+        <VStack className="gap-4 px-3">
+          <HStack className="justify-between">
+            <HStack className="gap-2">
+              <Skeleton className="h-5 w-20" />
+              <Skeleton className="h-5 w-40" />
+            </HStack>
+            <Skeleton className="h-5 w-20" />
+          </HStack>
+          <HStack className="justify-between">
+            <HStack className="gap-2">
+              <Skeleton className="h-5 w-36" />
+              <Skeleton className="h-5 w-32" />
+            </HStack>
+            <Skeleton className="h-5 w-20" />
+          </HStack>
+        </VStack>
+      </SetSelectionSection>
+    );
   }
 
   if (!!upcomingSetsQueryError || !upcomingSetsData) {
@@ -48,32 +95,8 @@ export const SetSelectionUpcomingSets: React.FC = () => {
     return null;
   }
 
-  // TODO: move to utils and add tests
-  const formatFriendlyDate = (date: string) => {
-    if (isToday(date)) {
-      return "Today";
-    }
-
-    if (isTomorrow(date)) {
-      return "Tomorrow";
-    }
-
-    const weekDiff = differenceInCalendarWeeks(date, new Date(), {
-      weekStartsOn: 0,
-    });
-    if (weekDiff === 0) {
-      return `This ${format(date, "EEEE")}`;
-    }
-
-    if (weekDiff === 1) {
-      return `Next ${format(date, "EEEE")}`;
-    }
-
-    return format(date, "EEEE, MMM dd");
-  };
-
   return (
-    <SetSelectionSection title="Upcoming sets" label="Show more">
+    <SetSelectionSection title="Next sets" label="Show more">
       {upcomingSetsData?.map((upcomingSet) => (
         <SetSelectionSetItem
           key={upcomingSet.setId}
