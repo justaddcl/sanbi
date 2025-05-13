@@ -11,6 +11,7 @@ import {
   SetSelectionSetItem,
 } from "@modules/songs/forms/AddSongToSet/components";
 import { useUserQuery } from "@modules/users/api/queries";
+import { pluralize } from "@lib/string";
 import { api } from "@/trpc/react";
 
 export const SetSelectionAllUpcomingSets: React.FC = () => {
@@ -75,7 +76,6 @@ export const SetSelectionAllUpcomingSets: React.FC = () => {
   if (!setsData) {
     return <div>No sets found...</div>;
   }
-
   return (
     <SetSelectionSection title="All upcoming sets">
       {setsData.pages.map((setsPage, pageIndex) => (
@@ -85,7 +85,7 @@ export const SetSelectionAllUpcomingSets: React.FC = () => {
               key={set.id}
               title={formatFriendlyDate(set.date)}
               subtitle={set.eventType!} // eventType is marked as notNull:true, so not sure why the type is nullable, but this appeases TS for now
-              label={" 3 songs"}
+              label={`${set.songCount} ${pluralize(set.songCount, { singular: "song", plural: "songs" })}`}
             />
           ))}
         </React.Fragment>
