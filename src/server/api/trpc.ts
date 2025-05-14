@@ -6,14 +6,15 @@
  * TL;DR - This is where all the tRPC server stuff is created and plugged in. The pieces you will
  * need to use are documented accordingly near the end.
  */
-import { TRPCError, initTRPC } from "@trpc/server";
+import { auth } from "@clerk/nextjs/server";
+import { initTRPC, TRPCError } from "@trpc/server";
+import { and, eq } from "drizzle-orm";
 import superjson from "superjson";
 import { z, ZodError } from "zod";
 
 import { db } from "@/server/db";
-import { auth } from "@clerk/nextjs/server";
-import { and, eq } from "drizzle-orm";
-import { organizationMemberships, users } from "../db/schema";
+
+import { organizationMemberships, organizations, users } from "../db/schema";
 
 /**
  * 1. CONTEXT
@@ -130,6 +131,22 @@ export const organizationProcedure = authedProcedure
       throw new TRPCError({
         code: "NOT_FOUND",
         message: `Sanbi user, ${ctx.auth.userId}, not found`,
+      });
+    }
+
+    const organization = await db.query.organizations.findFirst({
+      where: eq(organizations.id, input.organizationId),
+    });
+
+    if (!organization) {
+      console.log(
+        `🤖 - organizationProcedure: organization ${input.organizationId} could not be found`,
+        { procedureInput: input },
+      );
+
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Organization not found",
       });
     }
 

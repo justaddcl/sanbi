@@ -1,3 +1,19 @@
+import { TRPCError } from "@trpc/server";
+import { and, asc, eq, gt, gte, inArray, lte, or, sql } from "drizzle-orm";
+
+import { pluralize } from "@lib/string";
+import { type NewSet } from "@lib/types";
+import {
+  archiveSetSchema,
+  deleteSetSchema,
+  duplicateSetSchema,
+  getInfiniteSetsSchema,
+  getSetSchema,
+  insertSetSchema,
+  unarchiveSetSchema,
+  updateSetDetailsSchema,
+  updateSetNotesSchema,
+} from "@lib/types/zod";
 import {
   adminProcedure,
   createTRPCRouter,
@@ -9,21 +25,12 @@ import {
   setSections,
   setSectionSongs,
 } from "@server/db/schema";
-import { type NewSet } from "@lib/types";
-import { eq, inArray } from "drizzle-orm";
-import {
-  archiveSetSchema,
-  deleteSetSchema,
-  duplicateSetSchema,
-  getSetSchema,
-  insertSetSchema,
-  unarchiveSetSchema,
-  updateSetDetailsSchema,
-  updateSetNotesSchema,
-} from "@lib/types/zod";
-import { TRPCError } from "@trpc/server";
+
+type WhereClause = ReturnType<typeof eq> | ReturnType<typeof and>;
+const DATE_LOCALE = "en-CA";
 
 export const setRouter = createTRPCRouter({
+  // Queries
   get: organizationProcedure
     .input(getSetSchema)
     .query(async ({ ctx, input }) => {
@@ -66,6 +73,208 @@ export const setRouter = createTRPCRouter({
       return setData;
     }),
 
+  getUpcoming: organizationProcedure.query(async ({ ctx, input }) => {
+    const { organizationId } = ctx.user.membership;
+    console.log(
+      `🤖 - [set/getUpcoming] - attempting to get the upcoming sets for ${organizationId}`,
+    );
+
+    const upcomingSetsSubquery = ctx.db.$with("next_sets").as(
+      ctx.db
+        .selectDistinctOn([sets.eventTypeId], {
+          eventTypeId: sets.eventTypeId,
+          setId: sets.id,
+          setDate: sets.date,
+        })
+        .from(sets)
+        .where(
+          and(
+            eq(sets.organizationId, input.organizationId),
+            gte(sets.date, new Date().toLocaleDateString("en-CA")), // en-CA is a locale that uses the 'YYYY-MM-DD' format
+          ),
+        )
+        .orderBy(sets.eventTypeId, sets.date),
+    );
+
+    // 2) Consume the CTE: join to get names, count songs, group & order
+    const upcomingSets = await ctx.db
+      .with(upcomingSetsSubquery)
+      .select({
+        eventTypeId: upcomingSetsSubquery.eventTypeId,
+        setId: upcomingSetsSubquery.setId,
+        setDate: upcomingSetsSubquery.setDate,
+        eventType: eventTypes.name,
+        songCount: sql<number>`COUNT(${setSectionSongs.id})`
+          .mapWith(Number)
+          .as("songCount"),
+      })
+      .from(upcomingSetsSubquery)
+      .innerJoin(
+        eventTypes,
+        eq(eventTypes.id, upcomingSetsSubquery.eventTypeId),
+      )
+      .leftJoin(setSections, eq(setSections.setId, upcomingSetsSubquery.setId))
+      .leftJoin(
+        setSectionSongs,
+        eq(setSectionSongs.setSectionId, setSections.id),
+      )
+      .groupBy(
+        upcomingSetsSubquery.eventTypeId,
+        upcomingSetsSubquery.setId,
+        upcomingSetsSubquery.setDate,
+        eventTypes.name,
+      )
+      .orderBy(upcomingSetsSubquery.setDate, eventTypes.name);
+
+    console.log(
+      `🤖 - [set/getUpcoming] - ${upcomingSets.length} upcoming ${pluralize(upcomingSets.length, { singular: "set", plural: "sets" })} found for ${input.organizationId}`,
+      { queryInput: input, upcomingSets },
+    );
+
+    return upcomingSets;
+  }),
+
+  getInfinite: organizationProcedure
+    .input(getInfiniteSetsSchema)
+    .query(async ({ ctx, input }) => {
+      console.log(
+        `🤖 - [set/getInfinite] - attempting to query sets for organization ${input.organizationId}`,
+        { queryInput: input },
+      );
+
+      const limit = input.limit ?? 10;
+
+      let validatedEventTypeId: string | undefined;
+      if (!!input.eventTypeId) {
+        const eventType = await ctx.db.query.eventTypes.findFirst({
+          where: eq(eventTypes.id, input.eventTypeId),
+        });
+
+        if (!eventType) {
+          console.error(
+            `🤖 - [set/getInfinite] - could not find event type ${input.eventTypeId}`,
+            { queryInput: input },
+          );
+        }
+
+        if (eventType?.organizationId !== input.organizationId) {
+          console.error(
+            `🤖 - [set/getInfinite] - user ${ctx.user.id} not authorized to use event type ${eventType?.id}`,
+            { queryInput: input, eventType },
+          );
+        }
+
+        if (eventType && eventType.organizationId === input.organizationId) {
+          validatedEventTypeId = eventType.id;
+        }
+      }
+
+      const buildWhereClauses = () => {
+        const clauses: WhereClause[] = [];
+
+        // always filter by org
+        clauses.push(eq(sets.organizationId, input.organizationId));
+
+        // 1) cursor paging
+        if (input.cursor) {
+          clauses.push(
+            or(
+              gt(
+                sets.date,
+                new Date(input.cursor.date).toLocaleDateString(DATE_LOCALE),
+              ),
+              and(
+                eq(
+                  sets.date,
+                  new Date(input.cursor.date).toLocaleDateString(DATE_LOCALE),
+                ),
+                gt(sets.id, input.cursor.id),
+              ),
+            ),
+          );
+        }
+
+        // 2) eventType filter
+        if (validatedEventTypeId) {
+          clauses.push(eq(sets.eventTypeId, validatedEventTypeId));
+        }
+
+        // 3) date‐range filters
+        if (input.dateRange) {
+          if (input.dateRange.from) {
+            clauses.push(
+              gte(
+                sets.date,
+                new Date(input.dateRange.from).toLocaleDateString(DATE_LOCALE),
+              ),
+            );
+          }
+          if (input.dateRange.to) {
+            clauses.push(
+              lte(
+                sets.date,
+                new Date(input.dateRange.to).toLocaleDateString(DATE_LOCALE),
+              ),
+            );
+          }
+        } else {
+          // 4) default “upcoming” filter when no dateRange is provided
+          //    (using en-CA ensures YYYY-MM-DD format)
+          const today = new Date().toLocaleDateString(DATE_LOCALE);
+          clauses.push(
+            gte(sets.date, new Date(today).toLocaleDateString(DATE_LOCALE)),
+          );
+        }
+
+        return clauses;
+      };
+
+      const whereClauses = buildWhereClauses();
+
+      const setsResults = await ctx.db
+        .select({
+          id: sets.id,
+          date: sets.date,
+          eventType: eventTypes.name,
+          songCount: sql<number>`COUNT(${setSectionSongs.songId})`
+            .mapWith(Number)
+            .as("songCount"),
+        })
+        .from(sets)
+        .leftJoin(eventTypes, eq(eventTypes.id, sets.eventTypeId))
+        .leftJoin(setSections, eq(setSections.setId, sets.id))
+        .leftJoin(
+          setSectionSongs,
+          eq(setSectionSongs.setSectionId, setSections.id),
+        )
+        .where(and(...whereClauses))
+        .groupBy(sets.id, sets.date, eventTypes.name)
+        .orderBy(asc(sets.date), asc(sets.eventTypeId))
+        .limit(limit + 1);
+
+      const setItems = setsResults.slice(0, limit);
+      const setItemForCursor = setsResults.at(limit);
+      const nextCursor = setItemForCursor
+        ? { date: setItemForCursor.date, id: setItemForCursor.id }
+        : undefined;
+
+      console.log(
+        `🤖 - [set/getInfinite] - ${setsResults.length} results using cursor id ${input.cursor?.id} and date ${input.cursor?.date ?? new Date().toLocaleDateString(DATE_LOCALE)}`,
+        {
+          queryInput: input,
+          setItems,
+          setsResults,
+          nextCursor,
+        },
+      );
+
+      return {
+        sets: setItems,
+        nextCursor,
+      };
+    }),
+
+  // Mutations
   create: organizationProcedure
     .input(insertSetSchema)
     .mutation(async ({ ctx, input }) => {
@@ -260,6 +469,7 @@ export const setRouter = createTRPCRouter({
         };
       });
     }),
+
   updateNotes: organizationProcedure
     .input(updateSetNotesSchema)
     .mutation(async ({ ctx, input }) => {
