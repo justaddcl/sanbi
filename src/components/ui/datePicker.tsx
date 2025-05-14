@@ -1,12 +1,17 @@
 "use client";
 
 import * as React from "react";
+import { type DateRange } from "react-day-picker";
 import { type ControllerRenderProps } from "react-hook-form";
 import { CalendarBlank } from "@phosphor-icons/react";
 import { addDays, format } from "date-fns";
 
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
+import {
+  CalendarMultiple,
+  CalendarRange,
+  CalendarSingle,
+} from "@/components/ui/calendar";
 import {
   Popover,
   PopoverContent,
@@ -21,35 +26,156 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
+const DATE_FORMAT = "PPP";
+
+export type CalendarMode = "single" | "multiple" | "range";
+
 export type DatePickerPreset = {
   value: string;
   label: string;
 };
 
-type DatePickerProps = ControllerRenderProps<{ date: string }, "date"> & {
-  presets?: DatePickerPreset[];
-  initialDate?: Date;
-  presetSelectPlaceholder?: string;
+const isDateArray = (value: Date | Date[] | DateRange): value is Date[] =>
+  Array.isArray(value) && value.every((d) => d instanceof Date);
+
+const isDateRange = (value: Date | Date[] | DateRange): value is DateRange =>
+  typeof value === "object" &&
+  value !== null &&
+  // must have a "from" property that is a Date (or undefined)
+  "from" in value &&
+  // at runtime v.from is either undefined or actually an instanceof Date
+  (value.from === undefined || value.from instanceof Date);
+
+export type DatePickerValue<Mode extends CalendarMode = "single"> =
+  Mode extends "single" ? Date : Mode extends "multiple" ? Date[] : DateRange;
+
+const getDatePickerLabel = <Mode extends CalendarMode = "single">(
+  date: DatePickerValue<Mode> | undefined,
+  mode: Mode,
+): string => {
+  if (!date) {
+    return "Pick a date";
+  }
+
+  if (mode === "single") {
+    return format(date as DatePickerValue<"single">, DATE_FORMAT);
+  }
+
+  if (mode === "multiple") {
+    return (date as DatePickerValue<"multiple">)
+      .map((individualDate) => format(individualDate, DATE_FORMAT))
+      .join(", ");
+  }
+
+  if (mode === "range") {
+    const range = date as DateRange;
+    return range.from
+      ? range.to
+        ? `${format(range.from, DATE_FORMAT)} -${" "}
+          ${format(range.to, DATE_FORMAT)}`
+        : format(range.from, DATE_FORMAT)
+      : "Pick a date";
+  }
+
+  return format(date as DatePickerValue<"single">, DATE_FORMAT);
 };
 
-export const DatePicker: React.FC<DatePickerProps> = ({
+type DatePickerProps<Mode extends CalendarMode = "single"> =
+  ControllerRenderProps<{ date: string }, "date"> & {
+    presets?: DatePickerPreset[];
+    initialDate?: DatePickerValue<Mode>;
+    presetSelectPlaceholder?: string;
+    mode?: Mode;
+  };
+
+export const DatePicker = <Mode extends CalendarMode = "single">({
   presets,
   initialDate,
   presetSelectPlaceholder = "Quick select date",
+  mode = "single" as Mode,
   ...props
-}) => {
-  const [date, setDate] = React.useState<Date | undefined>(initialDate);
-  const [open, setOpen] = React.useState(false);
-  const [viewMonth, setViewMonth] = React.useState<Date>(
-    initialDate ?? new Date(),
+}: DatePickerProps<Mode>) => {
+  const [date, setDate] = React.useState<DatePickerValue<Mode> | undefined>(
+    initialDate,
   );
+  const [open, setOpen] = React.useState(false);
+  const [viewMonth, setViewMonth] = React.useState<Date>(() => {
+    if (!initialDate) {
+      return new Date();
+    }
 
-  const onDateChange = (selectedDate: Date | undefined, closePicker = true) => {
-    const formattedDate = selectedDate?.toLocaleDateString("en-CA");
+    if (isDateArray(initialDate)) {
+      return initialDate[0] ?? new Date();
+    }
+
+    if (isDateRange(initialDate)) {
+      return initialDate.from ?? new Date();
+    }
+
+    return initialDate ?? new Date();
+  });
+
+  const onDateChange = (
+    selectedDate: DatePickerValue<Mode>,
+    closePicker = true,
+  ) => {
+    const formattedDate = (selectedDate: DatePickerValue<Mode>) => {
+      if (isDateArray(selectedDate)) {
+        return selectedDate.map((date) => date.toLocaleDateString("en-CA"));
+      }
+
+      if (isDateRange(selectedDate)) {
+        return {
+          to: selectedDate.to?.toLocaleDateString("en-CA"),
+          from: selectedDate.from?.toLocaleDateString("en-CA"),
+        };
+      }
+
+      return selectedDate?.toLocaleDateString("en-CA");
+    };
     setDate(selectedDate);
-    props.onChange?.(formattedDate);
+    props.onChange?.(formattedDate(selectedDate));
     if (closePicker) {
       setOpen(false);
+    }
+  };
+
+  const renderCalendarVariant = (mode: Mode) => {
+    if (mode === "single") {
+      return (
+        <CalendarSingle
+          selected={date as Date}
+          onSelect={(value) =>
+            value && onDateChange(value as DatePickerValue<Mode>)
+          }
+          month={viewMonth}
+          onMonthChange={setViewMonth}
+        />
+      );
+    }
+    if (mode === "multiple") {
+      return (
+        <CalendarMultiple
+          selected={date as Date[]}
+          onSelect={(value) =>
+            value && onDateChange(value as DatePickerValue<Mode>)
+          }
+          month={viewMonth}
+          onMonthChange={setViewMonth}
+        />
+      );
+    }
+    if (mode === "range") {
+      return (
+        <CalendarRange
+          selected={date as DateRange}
+          onSelect={(value) =>
+            value && onDateChange(value as DatePickerValue<Mode>)
+          }
+          month={viewMonth}
+          onMonthChange={setViewMonth}
+        />
+      );
     }
   };
 
@@ -64,16 +190,16 @@ export const DatePicker: React.FC<DatePickerProps> = ({
           )}
         >
           <CalendarBlank className="mr-2 h-4 w-4" />
-          {date ? format(date, "PPP") : <span>Pick a date</span>}
+          {getDatePickerLabel(date, mode)}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="flex w-auto flex-col space-y-2 p-2">
-        {!!presets && (
+        {!!presets && mode === "single" && (
           <Select
             onValueChange={(value) => {
               const presetOffset = parseInt(value);
               const selectedDate = addDays(new Date(), presetOffset);
-              onDateChange(selectedDate);
+              onDateChange(selectedDate as DatePickerValue<Mode>);
               setViewMonth(selectedDate);
             }}
           >
@@ -89,15 +215,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
             </SelectContent>
           </Select>
         )}
-        <div className="rounded-md border">
-          <Calendar
-            mode="single"
-            selected={date}
-            onSelect={(selectedDate) => onDateChange(selectedDate)}
-            month={viewMonth}
-            onMonthChange={setViewMonth}
-          />
-        </div>
+        <div className="rounded-md border">{renderCalendarVariant(mode)}</div>
       </PopoverContent>
     </Popover>
   );
