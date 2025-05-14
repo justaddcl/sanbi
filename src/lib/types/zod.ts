@@ -23,6 +23,11 @@ import {
 export const MAX_SONG_NAME_LENGTH = 100;
 export const MAX_SONG_NOTES_LENGTH = 1000;
 
+export const dateRangeSchema = z.object({
+  from: z.string(),
+  to: z.string().nullish(),
+});
+
 /**
  * Organization schemas
  */
@@ -58,6 +63,7 @@ export const getInfiniteSetsSchema = z.object({
     .nullish(),
   limit: z.number().min(1).max(48).nullish(),
   eventTypeId: z.string().uuid().nullish(),
+  dateRange: dateRangeSchema.nullish(),
 });
 export const insertSetSchema = createInsertSchema(sets);
 const setIdSchema = z.object({

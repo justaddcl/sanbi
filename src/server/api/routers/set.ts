@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import { and, asc, eq, gt, gte, inArray, or, sql } from "drizzle-orm";
+import { and, asc, eq, gt, gte, inArray, lte, or, sql } from "drizzle-orm";
 
 import { pluralize } from "@lib/string";
 import { type NewSet } from "@lib/types";
@@ -25,6 +25,9 @@ import {
   setSections,
   setSectionSongs,
 } from "@server/db/schema";
+
+type WhereClause = ReturnType<typeof eq> | ReturnType<typeof and>;
+const DATE_LOCALE = "en-CA";
 
 export const setRouter = createTRPCRouter({
   // Queries
@@ -166,23 +169,67 @@ export const setRouter = createTRPCRouter({
         }
       }
 
-      const whereClauses = [
-        eq(sets.organizationId, input.organizationId),
-        ...(input.cursor
-          ? [
-              or(
-                gt(sets.date, input.cursor.date),
-                and(
-                  eq(sets.date, input.cursor.date),
-                  gt(sets.id, input.cursor.id),
-                ),
+      const buildWhereClauses = () => {
+        const clauses: WhereClause[] = [];
+
+        // always filter by org
+        clauses.push(eq(sets.organizationId, input.organizationId));
+
+        // 1) cursor paging
+        if (input.cursor) {
+          clauses.push(
+            or(
+              gt(
+                sets.date,
+                new Date(input.cursor.date).toLocaleDateString(DATE_LOCALE),
               ),
-            ]
-          : [gte(sets.date, new Date().toLocaleDateString("en-CA"))]),
-        ...(typeof validatedEventTypeId === "string"
-          ? [eq(sets.eventTypeId, validatedEventTypeId)]
-          : []),
-      ];
+              and(
+                eq(
+                  sets.date,
+                  new Date(input.cursor.date).toLocaleDateString(DATE_LOCALE),
+                ),
+                gt(sets.id, input.cursor.id),
+              ),
+            ),
+          );
+        }
+
+        // 2) eventType filter
+        if (validatedEventTypeId) {
+          clauses.push(eq(sets.eventTypeId, validatedEventTypeId));
+        }
+
+        // 3) date‐range filters
+        if (input.dateRange) {
+          if (input.dateRange.from) {
+            clauses.push(
+              gte(
+                sets.date,
+                new Date(input.dateRange.from).toLocaleDateString(DATE_LOCALE),
+              ),
+            );
+          }
+          if (input.dateRange.to) {
+            clauses.push(
+              lte(
+                sets.date,
+                new Date(input.dateRange.to).toLocaleDateString(DATE_LOCALE),
+              ),
+            );
+          }
+        } else {
+          // 4) default “upcoming” filter when no dateRange is provided
+          //    (using en-CA ensures YYYY-MM-DD format)
+          const today = new Date().toLocaleDateString(DATE_LOCALE);
+          clauses.push(
+            gte(sets.date, new Date(today).toLocaleDateString(DATE_LOCALE)),
+          );
+        }
+
+        return clauses;
+      };
+
+      const whereClauses = buildWhereClauses();
 
       const setsResults = await ctx.db
         .select({
@@ -212,7 +259,7 @@ export const setRouter = createTRPCRouter({
         : undefined;
 
       console.log(
-        `🤖 - [set/getInfinite] - ${setsResults.length} results using cursor id ${input.cursor?.id} and date ${input.cursor?.date ?? new Date().toLocaleDateString("en-CA")}`,
+        `🤖 - [set/getInfinite] - ${setsResults.length} results using cursor id ${input.cursor?.id} and date ${input.cursor?.date ?? new Date().toLocaleDateString(DATE_LOCALE)}`,
         {
           queryInput: input,
           setItems,
