@@ -1,4 +1,11 @@
-import { DatePicker, type DatePickerPreset } from "@components/ui/datePicker";
+import { useFormContext } from "react-hook-form";
+import { addWeeks, differenceInCalendarDays, nextSunday } from "date-fns";
+
+import {
+  DatePicker,
+  type DatePickerPreset,
+  type DatePickerValue,
+} from "@components/ui/datePicker";
 import {
   FormControl,
   FormField,
@@ -6,8 +13,6 @@ import {
   FormLabel,
 } from "@components/ui/form";
 import { getFirstSundayOfNextMonth } from "@lib/date/getFirstSundayOfNextMonth";
-import { addWeeks, differenceInCalendarDays, nextSunday } from "date-fns";
-import { useFormContext } from "react-hook-form";
 
 export const SetDatePickerFormField: React.FC = () => {
   const { control } = useFormContext();
@@ -48,9 +53,13 @@ export const SetDatePickerFormField: React.FC = () => {
           <FormControl>
             <DatePicker
               {...field}
-              date={field.value}
+              date={field.value as DatePickerValue<"single">}
               onChange={(selectedDate) => {
-                field.onChange(selectedDate.toLocaleDateString("en-CA"));
+                field.onChange(
+                  (
+                    selectedDate as DatePickerValue<"single">
+                  ).toLocaleDateString("en-CA"),
+                );
               }}
               presets={datePresets}
               initialDate={field.value as Date} // technically, this is a string, but this satisfies TS and works..

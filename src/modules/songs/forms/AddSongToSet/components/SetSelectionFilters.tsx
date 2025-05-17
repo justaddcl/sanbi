@@ -1,5 +1,18 @@
-import React, { useState, type Dispatch, type SetStateAction } from "react";
+import React, { type Dispatch, type SetStateAction, useState } from "react";
+import { SlidersHorizontal, X } from "@phosphor-icons/react/dist/ssr";
+import { skipToken } from "@tanstack/react-query";
 
+import { Button } from "@components/ui/button";
+import { Checkbox } from "@components/ui/checkbox";
+import { DatePicker, type DatePickerValue } from "@components/ui/datePicker";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@components/ui/drawer";
 import {
   Select,
   SelectContent,
@@ -9,24 +22,11 @@ import {
 } from "@components/ui/select";
 import { HStack } from "@components/HStack";
 import { Text } from "@components/Text";
-import { EventTypeSelect } from "@modules/eventTypes/components";
-import { useResponsive } from "@/hooks/useResponsive";
-import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
-} from "@components/ui/drawer";
-import { Button } from "@components/ui/button";
-import { SlidersHorizontal, X } from "@phosphor-icons/react/dist/ssr";
 import { VStack } from "@components/VStack";
-import { Checkbox } from "@components/ui/checkbox";
+import { EventTypeSelect } from "@modules/eventTypes/components";
 import { useUserQuery } from "@modules/users/api/queries";
+import { useResponsive } from "@/hooks/useResponsive";
 import { api } from "@/trpc/react";
-import { skipToken } from "@tanstack/react-query";
-import { DatePicker, DatePickerValue } from "@components/ui/datePicker";
 
 type SetSelectionFiltersProps = {
   eventTypeFilter: string;
@@ -117,7 +117,7 @@ export const SetSelectionFilters: React.FC<SetSelectionFiltersProps> = ({
               <HStack className="justify-between gap-4">
                 <DatePicker
                   mode="range"
-                  onChange={(selectedDate) => {
+                  onChange={(selectedDate: DatePickerValue<"range">) => {
                     setDateFilter(selectedDate);
                   }}
                   placeholder="Pick a date or range"
