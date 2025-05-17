@@ -7,7 +7,7 @@ import { VStack } from "@components/VStack";
 type SetSelectionSectionProps = React.ComponentPropsWithoutRef<"div"> &
   React.PropsWithChildren & {
     title: string;
-    label?: string;
+    label?: React.ReactNode;
   };
 
 export const SetSelectionSection: React.FC<SetSelectionSectionProps> = ({
@@ -17,9 +17,13 @@ export const SetSelectionSection: React.FC<SetSelectionSectionProps> = ({
 }) => {
   return (
     <VStack className="lg:gap-1 lg:px-6">
-      <HStack className="justify-between px-4">
+      <HStack className="items-center justify-between px-4">
         <Text className="text-slate-500">{title}</Text>
-        {label && <Text className="text-sm">{label}</Text>}
+        {label && typeof label === "string" ? (
+          <Text className="text-sm">{label}</Text>
+        ) : (
+          label
+        )}
       </HStack>
       <VStack className="pl-4 pr-1">{children}</VStack>
     </VStack>

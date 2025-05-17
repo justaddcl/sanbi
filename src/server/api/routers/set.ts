@@ -201,7 +201,16 @@ export const setRouter = createTRPCRouter({
 
         // 3) date‐range filters
         if (input.dateRange) {
-          if (input.dateRange.from) {
+          // determine if should match exact date if only one date is given
+          if (!input.dateRange.to) {
+            clauses.push(
+              eq(
+                sets.date,
+                new Date(input.dateRange.from).toLocaleDateString(DATE_LOCALE),
+              ),
+            );
+          } else {
+            // or use a date range
             clauses.push(
               gte(
                 sets.date,
@@ -209,6 +218,7 @@ export const setRouter = createTRPCRouter({
               ),
             );
           }
+
           if (input.dateRange.to) {
             clauses.push(
               lte(

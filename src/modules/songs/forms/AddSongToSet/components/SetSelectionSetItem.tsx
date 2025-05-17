@@ -4,7 +4,7 @@ import { Text } from "@components/Text";
 type SetSelectionSetItemProps = {
   title: string;
   subtitle?: string;
-  label: string;
+  label?: string;
 };
 
 export const SetSelectionSetItem: React.FC<SetSelectionSetItemProps> = ({
@@ -18,7 +18,7 @@ export const SetSelectionSetItem: React.FC<SetSelectionSetItemProps> = ({
         <Text className="font-medium">{title}</Text>
         {subtitle && <Text className="text-sm text-slate-500">{subtitle}</Text>}
       </div>
-      <Text className="text-sm text-slate-500">{label}</Text>
+      {label && <Text className="text-sm text-slate-500">{label}</Text>}
     </HStack>
   );
 };

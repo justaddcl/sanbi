@@ -1,9 +1,11 @@
 import React from "react";
+import { Plus } from "@phosphor-icons/react/dist/ssr";
 import { toast } from "sonner";
 
 import { Button } from "@components/ui/button";
 import { Skeleton } from "@components/ui/skeleton";
 import { HStack } from "@components/HStack";
+import { Text } from "@components/Text";
 import { VStack } from "@components/VStack";
 import {
   formatFriendlyDate,
@@ -13,8 +15,16 @@ import {
 import { useUserQuery } from "@modules/users/api/queries";
 import { pluralize } from "@lib/string";
 import { api } from "@/trpc/react";
+import { DatePickerValue } from "@components/ui/datePicker";
 
-export const SetSelectionAllUpcomingSets: React.FC = () => {
+type SetSelectionAllUpcomingSetsProps = {
+  eventTypeFilter: string;
+  dateFilter: DatePickerValue<"range"> | undefined;
+};
+
+export const SetSelectionAllUpcomingSets: React.FC<
+  SetSelectionAllUpcomingSetsProps
+> = ({ eventTypeFilter, dateFilter }) => {
   const {
     data: userData,
     error: userQueryError,
@@ -38,6 +48,15 @@ export const SetSelectionAllUpcomingSets: React.FC = () => {
   } = api.set.getInfinite.useInfiniteQuery(
     {
       organizationId: userMembership.organizationId,
+      dateRange: dateFilter?.from
+        ? {
+            from: dateFilter.from.toLocaleDateString("en-CA"),
+            to: dateFilter.to
+              ? dateFilter.to.toLocaleDateString("en-CA")
+              : null,
+          }
+        : null,
+      // eventTypeId: eventTypeFilter,
     },
     {
       getNextPageParam: (last) => last.nextCursor,
@@ -76,10 +95,27 @@ export const SetSelectionAllUpcomingSets: React.FC = () => {
   if (!setsData) {
     return <div>No sets found...</div>;
   }
+
   return (
-    <SetSelectionSection title="All upcoming sets">
+    <SetSelectionSection
+      title="All upcoming sets"
+      label={
+        <Button variant="outline" size="sm" className="md:hidden">
+          <HStack className="items-center gap-2">
+            <Plus />
+            <Text className="text-sm">Create set</Text>
+          </HStack>
+        </Button>
+      }
+    >
       {setsData.pages.map((setsPage, pageIndex) => (
         <React.Fragment key={pageIndex}>
+          {(!setsPage.sets || setsPage.sets.length === 0) && (
+            <SetSelectionSetItem
+              title="No sets found..."
+              subtitle="But you can create one!"
+            />
+          )}
           {setsPage.sets.map((set) => (
             <SetSelectionSetItem
               key={set.id}
