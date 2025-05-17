@@ -48,6 +48,10 @@ export const SetDatePickerFormField: React.FC = () => {
           <FormControl>
             <DatePicker
               {...field}
+              date={field.value}
+              onChange={(selectedDate) => {
+                field.onChange(selectedDate.toLocaleDateString("en-CA"));
+              }}
               presets={datePresets}
               initialDate={field.value as Date} // technically, this is a string, but this satisfies TS and works..
               // also, asserting the type since TS can't tell since we're using form context
