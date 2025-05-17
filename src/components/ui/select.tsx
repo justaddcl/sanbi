@@ -11,6 +11,7 @@ const Select = SelectPrimitive.Root;
 
 const SelectGroup = SelectPrimitive.Group;
 
+export type SelectValueProps = SelectPrimitive.SelectValueProps;
 const SelectValue = SelectPrimitive.Value;
 
 const SelectTrigger = React.forwardRef<

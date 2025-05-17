@@ -143,19 +143,12 @@ export const SetSelectionFilters: React.FC<SetSelectionFiltersProps> = ({
     <HStack className="hidden items-center gap-4 bg-slate-50 px-4 py-2 md:flex lg:px-10">
       <Text className="text-sm text-slate-500">Filter by:</Text>
       <HStack className="gap-2">
-        {/* TODO: replace with actual event type select */}
-        <Select>
-          <SelectTrigger className="w-auto min-w-[120px]">
-            <SelectValue placeholder="Event type" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="sunday-service">Sunday service</SelectItem>
-            <SelectItem value="team-stoneway">Team Stoneway</SelectItem>
-            <SelectItem value="discipleship-community">
-              Discipleship Community
-            </SelectItem>
-          </SelectContent>
-        </Select>
+        <EventTypeSelect
+          value={eventTypeFilter}
+          setSelectedEventType={setEventTypeFilter}
+          placeholder="Event type"
+          valuePrefix="Event type: "
+        />
         {/* TODO: replace with actual date picker */}
         <Select>
           <SelectTrigger className="w-auto">

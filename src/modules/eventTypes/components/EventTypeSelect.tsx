@@ -1,4 +1,9 @@
-import React from "react";
+import React, {
+  type Dispatch,
+  type SetStateAction,
+  useRef,
+  useState,
+} from "react";
 import { skipToken } from "@tanstack/react-query";
 
 import {
@@ -8,6 +13,7 @@ import {
   type SelectProps,
   SelectTrigger,
   SelectValue,
+  type SelectValueProps,
 } from "@components/ui/select";
 import { Skeleton } from "@components/ui/skeleton";
 import { Text } from "@components/Text";
@@ -15,7 +21,19 @@ import { VStack } from "@components/VStack";
 import { useUserQuery } from "@modules/users/api/queries";
 import { api } from "@/trpc/react";
 
-export const EventTypeSelect: React.FC<SelectProps> = (props) => {
+type EventTypeSelectProps = SelectProps & {
+  setSelectedEventType: Dispatch<SetStateAction<string>>;
+  placeholder?: SelectValueProps["placeholder"];
+  valuePrefix?: string;
+};
+
+export const EventTypeSelect: React.FC<EventTypeSelectProps> = ({
+  placeholder,
+  setSelectedEventType,
+  value,
+  valuePrefix,
+  ...props
+}) => {
   const {
     data: userData,
     error: userQueryError,
@@ -37,16 +55,57 @@ export const EventTypeSelect: React.FC<SelectProps> = (props) => {
   const isLoading = !isAuthLoaded || userQueryLoading || eventTypeQueryLoading;
   const isError = !!userQueryError || !!eventTypeQueryError;
 
+  const [open, setOpen] = useState(false);
+
+  // helper ref just to avoid stale closures
+  const latestValueRef = useRef(value);
+  latestValueRef.current = value;
+
+  const handleValueChange = (selectedEventTypeId: string) => {
+    setSelectedEventType(selectedEventTypeId);
+  };
+
+  const handleOpenChange = (isOpen: boolean) => {
+    setOpen(isOpen);
+  };
+
   if (isError) {
     return (
       <Text>Uh oh. We couldn&apos;t get your team&apos;s event types.</Text>
     );
   }
 
+  // const handleSelect = (selectedEventTypeId: string): void => {
+  //   const eventTypeId =
+  //     selectedEventTypeId === value ? "" : selectedEventTypeId;
+  //   console.log("🚀 ~ EventTypeSelect.tsx:62 ~ handleSelect ~ eventTypeId:", {
+  //     selectedEventTypeId,
+  //     value,
+  //     eventTypeId,
+  //   });
+  //   setSelectedEventType?.(eventTypeId);
+  // };
+
+  const displayValue = eventTypeData?.find(
+    (eventType) => eventType.id === value,
+  )?.name;
+
   return (
-    <Select {...props}>
+    <Select
+      open={open}
+      onOpenChange={handleOpenChange}
+      value={value ?? undefined}
+      onValueChange={handleValueChange}
+      {...props}
+    >
       <SelectTrigger>
-        <SelectValue placeholder="Select event type" />
+        <SelectValue
+          placeholder={placeholder ?? "Select event type"}
+          aria-label={value}
+        >
+          {value && valuePrefix ? valuePrefix : null}
+          {displayValue}
+        </SelectValue>
       </SelectTrigger>
       <SelectContent>
         {isLoading && (
@@ -64,7 +123,21 @@ export const EventTypeSelect: React.FC<SelectProps> = (props) => {
         )}
         {!isLoading &&
           eventTypeData?.map((eventType) => (
-            <SelectItem key={eventType.id} value={eventType.id}>
+            <SelectItem
+              key={eventType.id}
+              value={eventType.id}
+              // intercept before Radix handles selection
+              onMouseDownCapture={(mouseDownEvent) => {
+                if (eventType.id === latestValueRef.current) {
+                  // stop Radix’s internal “same‐value” logic
+                  mouseDownEvent.preventDefault();
+                  mouseDownEvent.stopPropagation();
+                  // close and clear
+                  setOpen(false);
+                  setSelectedEventType("");
+                }
+              }}
+            >
               {eventType.name}
             </SelectItem>
           ))}
