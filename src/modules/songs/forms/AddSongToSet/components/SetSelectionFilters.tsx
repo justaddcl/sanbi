@@ -9,6 +9,7 @@ import {
   Drawer,
   DrawerClose,
   DrawerContent,
+  DrawerFooter,
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
@@ -127,6 +128,11 @@ export const SetSelectionFilters: React.FC<SetSelectionFiltersProps> = ({
               </HStack>
             </VStack>
           </VStack>
+          <DrawerFooter className="px-0">
+            <DrawerClose asChild>
+              <Button>See matching sets</Button>
+            </DrawerClose>
+          </DrawerFooter>
         </DrawerContent>
       </Drawer>
     );
