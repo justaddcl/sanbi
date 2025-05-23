@@ -1,3 +1,6 @@
+import { createInsertSchema, createSelectSchema } from "drizzle-zod";
+import { z } from "zod";
+
 import { songKeys } from "@lib/constants";
 import { songNameRegex } from "@lib/constants/regex";
 import { formatNumber } from "@lib/numbers/formatNumber";
@@ -13,14 +16,17 @@ import {
   songTags,
   tags,
 } from "@server/db/schema";
-import { createInsertSchema, createSelectSchema } from "drizzle-zod";
-import { z } from "zod";
 
 /**
  * Constants
  */
 export const MAX_SONG_NAME_LENGTH = 100;
 export const MAX_SONG_NOTES_LENGTH = 1000;
+
+export const dateRangeSchema = z.object({
+  from: z.string(),
+  to: z.string().nullish(),
+});
 
 /**
  * Organization schemas
@@ -48,6 +54,17 @@ export const insertOrganizationMembershipSchema = createInsertSchema(
  * Set schemas
  */
 export const getSetSchema = z.object({ setId: z.string().uuid() });
+export const getInfiniteSetsSchema = z.object({
+  cursor: z
+    .object({
+      date: z.string().date(),
+      id: z.string().uuid(),
+    })
+    .nullish(),
+  limit: z.number().min(1).max(48).nullish(),
+  eventTypeId: z.string().uuid().nullish(),
+  dateRange: dateRangeSchema.nullish(),
+});
 export const insertSetSchema = createInsertSchema(sets);
 const setIdSchema = z.object({
   setId: z.string().uuid(),

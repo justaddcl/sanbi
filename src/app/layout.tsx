@@ -1,15 +1,15 @@
-import "@/styles/globals.css";
-
 import { Poppins } from "next/font/google";
-
-import { TRPCReactProvider } from "@/trpc/react";
 import { ClerkProvider, SignedIn } from "@clerk/nextjs";
-import { Navbar } from "@components/Navbar";
-import { GlobalNav } from "@components/GlobalNav";
-import { OrganizationHeader } from "@/components/OrganizationHeader";
 import { auth } from "@clerk/nextjs/server";
-import { SanbiStoreProvider } from "@/providers/sanbi-store-provider";
+
 import { Toaster } from "@components/ui/sonner";
+import { GlobalNav } from "@components/GlobalNav";
+import { Navbar } from "@components/Navbar";
+import { OrganizationHeader } from "@/components/OrganizationHeader";
+import { SanbiStoreProvider } from "@/providers/sanbi-store-provider";
+import { TRPCReactProvider } from "@/trpc/react";
+
+import "@/styles/globals.css";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -39,7 +39,7 @@ export default function RootLayout({
         <head>
           <meta
             name="viewport"
-            content="width=device-width, initial-scale=1, maximum-scale=1"
+            content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
           />
         </head>
         <body>
