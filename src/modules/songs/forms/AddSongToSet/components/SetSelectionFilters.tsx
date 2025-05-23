@@ -124,13 +124,6 @@ export const SetSelectionFilters: React.FC<SetSelectionFiltersProps> = ({
                   initialDate={dateFilter}
                   date={dateFilter}
                 />
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setDateFilter(undefined)}
-                >
-                  <X />
-                </Button>
               </HStack>
             </VStack>
           </VStack>

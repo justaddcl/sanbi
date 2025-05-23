@@ -3,7 +3,7 @@
 import * as React from "react";
 import { type DateRange } from "react-day-picker";
 import { type ControllerRenderProps } from "react-hook-form";
-import { CalendarBlank } from "@phosphor-icons/react";
+import { CalendarBlank, X } from "@phosphor-icons/react";
 import { addDays, format, isSameYear } from "date-fns";
 
 import { Button } from "@/components/ui/button";
@@ -120,7 +120,7 @@ export const DatePicker = <Mode extends CalendarMode = "single">({
   });
 
   const onDateChange = (
-    selectedDate: DatePickerValue<Mode>,
+    selectedDate: DatePickerValue<Mode> | undefined,
     closePicker = true,
   ) => {
     const formattedDate = (selectedDate: DatePickerValue<Mode>) => {
@@ -194,6 +194,19 @@ export const DatePicker = <Mode extends CalendarMode = "single">({
         >
           <CalendarBlank className="mr-2 h-4 w-4" />
           {getDatePickerLabel(placeholder, date, mode)}
+          {date && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="ml-auto"
+              onClick={(clickEvent) => {
+                clickEvent.stopPropagation();
+                onDateChange(undefined);
+              }}
+            >
+              <X />
+            </Button>
+          )}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="flex w-auto flex-col space-y-2 p-2">
