@@ -22,7 +22,7 @@ import { useUserQuery } from "@modules/users/api/queries";
 import { api } from "@/trpc/react";
 
 type EventTypeSelectProps = SelectProps & {
-  setSelectedEventType: Dispatch<SetStateAction<string>>;
+  setSelectedEventType: (eventTypeId: string) => void;
   placeholder?: SelectValueProps["placeholder"];
   valuePrefix?: string;
 };
@@ -134,7 +134,7 @@ export const EventTypeSelect: React.FC<EventTypeSelectProps> = ({
                   mouseDownEvent.stopPropagation();
                   // close and clear
                   setOpen(false);
-                  setSelectedEventType("");
+                  setSelectedEventType(eventType.id);
                 }
               }}
             >

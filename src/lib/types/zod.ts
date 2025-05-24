@@ -62,7 +62,7 @@ export const getInfiniteSetsSchema = z.object({
     })
     .nullish(),
   limit: z.number().min(1).max(48).nullish(),
-  eventTypeId: z.string().uuid().nullish(),
+  eventTypeFilters: z.array(z.string().uuid()).optional(),
   dateRange: dateRangeSchema.nullish(),
 });
 export const insertSetSchema = createInsertSchema(sets);

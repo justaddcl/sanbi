@@ -3,6 +3,7 @@ import { Plus } from "@phosphor-icons/react/dist/ssr";
 import { toast } from "sonner";
 
 import { Button } from "@components/ui/button";
+import { type DatePickerValue } from "@components/ui/datePicker";
 import { Skeleton } from "@components/ui/skeleton";
 import { HStack } from "@components/HStack";
 import { Text } from "@components/Text";
@@ -15,16 +16,17 @@ import {
 import { useUserQuery } from "@modules/users/api/queries";
 import { pluralize } from "@lib/string";
 import { api } from "@/trpc/react";
-import { DatePickerValue } from "@components/ui/datePicker";
+
+import { type SetSelectionEventTypeFilters } from "./SetSelectionStep";
 
 type SetSelectionAllUpcomingSetsProps = {
-  eventTypeFilter: string;
+  eventTypeFilters: SetSelectionEventTypeFilters;
   dateFilter: DatePickerValue<"range"> | undefined;
 };
 
 export const SetSelectionAllUpcomingSets: React.FC<
   SetSelectionAllUpcomingSetsProps
-> = ({ eventTypeFilter, dateFilter }) => {
+> = ({ eventTypeFilters, dateFilter }) => {
   const {
     data: userData,
     error: userQueryError,
@@ -56,7 +58,7 @@ export const SetSelectionAllUpcomingSets: React.FC<
               : null,
           }
         : null,
-      // eventTypeId: eventTypeFilter,
+      eventTypeFilters: eventTypeFilters.map((filter) => filter.id),
     },
     {
       getNextPageParam: (last) => last.nextCursor,

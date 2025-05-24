@@ -1,29 +1,82 @@
 import React, { useState } from "react";
-import { SlidersHorizontal } from "@phosphor-icons/react/dist/ssr";
+import { format, isSameYear } from "date-fns";
 
-import { Button } from "@components/ui/button";
+import { Badge } from "@components/ui/badge";
+import { type DatePickerValue } from "@components/ui/datePicker";
 import { ScrollArea } from "@components/ui/scroll-area";
+import { HStack } from "@components/HStack";
 import { VStack } from "@components/VStack";
 import { SetSelectionFilters } from "@modules/songs/forms/AddSongToSet/components";
 
 import { SetSelectionAllUpcomingSets } from "./SetSelectionAllUpcomingSets";
 import { SetSelectionUpcomingSets } from "./SetSelectionUpcomingSets";
-import { DatePickerValue } from "@components/ui/datePicker";
+
+type SetSelectionEventTypeFilter = {
+  id: string;
+  name: string;
+};
+
+export type SetSelectionEventTypeFilters = SetSelectionEventTypeFilter[];
 
 export const SetSelectionStep: React.FC = () => {
-  const [eventTypeFilter, setEventTypeFilter] = useState<string>("");
+  const [eventTypeFilters, setEventTypeFilters] = useState<
+    SetSelectionEventTypeFilter[]
+  >([]);
   const [dateFilter, setDateFilter] = useState<
     DatePickerValue<"range"> | undefined
   >(undefined);
 
+  const renderDateFilterLabel = (dateFilter: DatePickerValue<"range">) => {
+    if (!dateFilter?.from) {
+      return;
+    }
+
+    return dateFilter.to
+      ? `${format(dateFilter.from, `LLL dd${isSameYear(dateFilter.to, dateFilter.from) ? "" : ", yyyy"}`)} -${" "}
+        ${format(dateFilter.to, `LLL dd${isSameYear(dateFilter.to, dateFilter.from) ? "" : ", yyyy"}`)}`
+      : format(dateFilter.from, `LLL dd`);
+  };
+
   return (
     <VStack>
-      <SetSelectionFilters
-        eventTypeFilter={eventTypeFilter}
-        setEventTypeFilter={setEventTypeFilter}
-        dateFilter={dateFilter}
-        setDateFilter={setDateFilter}
-      />
+      <VStack className="gap-4">
+        <SetSelectionFilters
+          eventTypeFilter={eventTypeFilters}
+          setEventTypeFilter={setEventTypeFilters}
+          dateFilter={dateFilter}
+          setDateFilter={setDateFilter}
+        />
+        <HStack className="flex-wrap gap-2 px-4">
+          {eventTypeFilters.length > 0 &&
+            eventTypeFilters.map((eventType) => (
+              <Badge
+                key={eventType.id}
+                variant="secondary"
+                dismissable
+                onDismiss={() => {
+                  setEventTypeFilters((currentFilters) =>
+                    currentFilters.filter(
+                      (filter) => filter.id !== eventType.id,
+                    ),
+                  );
+                }}
+              >
+                {eventType.name}
+              </Badge>
+            ))}
+          {dateFilter && (
+            <Badge
+              variant="secondary"
+              dismissable
+              onDismiss={() => {
+                setDateFilter(undefined);
+              }}
+            >
+              {renderDateFilterLabel(dateFilter)}
+            </Badge>
+          )}
+        </HStack>
+      </VStack>
       <ScrollArea>
         <VStack className="gap-4 py-4 lg:gap-6">
           {/* <div className="px-4">
@@ -37,7 +90,7 @@ export const SetSelectionStep: React.FC = () => {
           </div> */}
           <SetSelectionUpcomingSets />
           <SetSelectionAllUpcomingSets
-            eventTypeFilter={eventTypeFilter}
+            eventTypeFilters={eventTypeFilters}
             dateFilter={dateFilter}
           />
         </VStack>

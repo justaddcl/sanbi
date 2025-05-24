@@ -144,30 +144,19 @@ export const setRouter = createTRPCRouter({
 
       const limit = input.limit ?? 10;
 
-      let validatedEventTypeId: string | undefined;
-      if (!!input.eventTypeId) {
-        const eventType = await ctx.db.query.eventTypes.findFirst({
-          where: eq(eventTypes.id, input.eventTypeId),
-        });
-
-        if (!eventType) {
-          console.error(
-            `🤖 - [set/getInfinite] - could not find event type ${input.eventTypeId}`,
-            { queryInput: input },
-          );
-        }
-
-        if (eventType?.organizationId !== input.organizationId) {
-          console.error(
-            `🤖 - [set/getInfinite] - user ${ctx.user.id} not authorized to use event type ${eventType?.id}`,
-            { queryInput: input, eventType },
-          );
-        }
-
-        if (eventType && eventType.organizationId === input.organizationId) {
-          validatedEventTypeId = eventType.id;
-        }
-      }
+      const validEventTypesIds = input.eventTypeFilters
+        ? (
+            await ctx.db
+              .select({ id: eventTypes.id })
+              .from(eventTypes)
+              .where(
+                and(
+                  inArray(eventTypes.id, input.eventTypeFilters),
+                  eq(eventTypes.organizationId, input.organizationId),
+                ),
+              )
+          ).map((row) => row.id)
+        : [];
 
       const buildWhereClauses = () => {
         const clauses: WhereClause[] = [];
@@ -195,8 +184,8 @@ export const setRouter = createTRPCRouter({
         }
 
         // 2) eventType filter
-        if (validatedEventTypeId) {
-          clauses.push(eq(sets.eventTypeId, validatedEventTypeId));
+        if (validEventTypesIds.length > 0) {
+          clauses.push(inArray(sets.eventTypeId, validEventTypesIds));
         }
 
         // 3) date‐range filters

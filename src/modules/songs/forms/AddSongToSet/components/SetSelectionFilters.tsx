@@ -29,9 +29,11 @@ import { useUserQuery } from "@modules/users/api/queries";
 import { useResponsive } from "@/hooks/useResponsive";
 import { api } from "@/trpc/react";
 
+import { type SetSelectionEventTypeFilters } from "./SetSelectionStep";
+
 type SetSelectionFiltersProps = {
-  eventTypeFilter: string;
-  setEventTypeFilter: Dispatch<SetStateAction<string>>;
+  eventTypeFilter: SetSelectionEventTypeFilters;
+  setEventTypeFilter: Dispatch<SetStateAction<SetSelectionEventTypeFilters>>;
   dateFilter?: DatePickerValue<"range">;
   setDateFilter: Dispatch<SetStateAction<DatePickerValue<"range"> | undefined>>;
 };
@@ -66,6 +68,22 @@ export const SetSelectionFilters: React.FC<SetSelectionFiltersProps> = ({
 
   const isLoading = !isAuthLoaded || userQueryLoading || eventTypeQueryLoading;
   const isError = !!userQueryError || !!eventTypeQueryError;
+
+  const handleOnSelectEventType = (eventTypeId: string) => {
+    if (eventTypeFilter.some((filter) => filter.id === eventTypeId)) {
+      setEventTypeFilter((currentFilters) =>
+        currentFilters.filter((filter) => filter.id !== eventTypeId),
+      );
+    } else {
+      const eventType = eventTypeData?.find(
+        (eventType) => eventType.id === eventTypeId,
+      );
+      setEventTypeFilter([
+        ...eventTypeFilter,
+        { id: eventTypeId, name: eventType?.name ?? "" },
+      ]);
+    }
+  };
 
   if (isMobile) {
     return (
@@ -104,7 +122,13 @@ export const SetSelectionFilters: React.FC<SetSelectionFiltersProps> = ({
                 <VStack className="gap-1">
                   {eventTypeData.map((eventType) => (
                     <HStack key={eventType.id} className="items-center gap-3">
-                      <Checkbox id={eventType.id} />
+                      <Checkbox
+                        id={eventType.id}
+                        checked={eventTypeFilter.some(
+                          (filter) => filter.id === eventType.id,
+                        )}
+                        onClick={() => handleOnSelectEventType(eventType.id)}
+                      />
                       <label htmlFor={eventType.id} className="text-slate-900">
                         {eventType.name}
                       </label>
@@ -143,8 +167,8 @@ export const SetSelectionFilters: React.FC<SetSelectionFiltersProps> = ({
       <Text className="text-sm text-slate-500">Filter by:</Text>
       <HStack className="gap-2">
         <EventTypeSelect
-          value={eventTypeFilter}
-          setSelectedEventType={setEventTypeFilter}
+          // value={eventTypeFilter}
+          setSelectedEventType={handleOnSelectEventType}
           placeholder="Event type"
           valuePrefix="Event type: "
         />
