@@ -90,14 +90,12 @@ export const SetSelectionFilters: React.FC<SetSelectionFiltersProps> = ({
     return (
       <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
         <DrawerTrigger>
-          <div className="mt-4 px-4">
-            <Button
-              variant="secondary"
-              className="w-full justify-center gap-2 px-4 font-medium"
-            >
-              <SlidersHorizontal /> Filter sets
-            </Button>
-          </div>
+          <Button
+            variant="secondary"
+            className="mt-4 w-full justify-center gap-2 px-4 font-medium"
+          >
+            <SlidersHorizontal /> Filter sets
+          </Button>
         </DrawerTrigger>
         <DrawerContent>
           <DrawerHeader className="px-0">
@@ -164,7 +162,7 @@ export const SetSelectionFilters: React.FC<SetSelectionFiltersProps> = ({
   }
 
   return (
-    <HStack className="hidden items-center gap-4 bg-slate-50 px-4 py-2 md:flex lg:px-10">
+    <HStack className="hidden items-center gap-4 py-2 md:flex">
       <Text className="text-sm text-slate-500">Filter by:</Text>
       <HStack className="gap-2">
         <EventTypeSelect
@@ -174,15 +172,15 @@ export const SetSelectionFilters: React.FC<SetSelectionFiltersProps> = ({
           valuePrefix="Event type: "
           allowMultiple
         />
-        {/* TODO: replace with actual date picker */}
-        <Select>
-          <SelectTrigger className="w-auto">
-            <SelectValue placeholder="Date" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="some-date">Some date</SelectItem>
-          </SelectContent>
-        </Select>
+        <DatePicker
+          mode="range"
+          onChange={(selectedDate: DatePickerValue<"range">) => {
+            setDateFilter(selectedDate);
+          }}
+          placeholder="Pick a date or range"
+          initialDate={dateFilter}
+          date={dateFilter}
+        />
       </HStack>
     </HStack>
   );

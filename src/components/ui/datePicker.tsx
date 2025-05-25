@@ -82,7 +82,7 @@ const getDatePickerLabel = <Mode extends CalendarMode = "single">(
 };
 
 type DatePickerProps<Mode extends CalendarMode = "single"> = Partial<
-  Pick<ControllerRenderProps<{ date: string }, "date">, "ref" | "onChange">
+  Pick<ControllerRenderProps<{ date: string }, "date">, "onChange">
 > & {
   presets?: DatePickerPreset[];
   initialDate?: DatePickerValue<Mode>;
@@ -100,7 +100,6 @@ export const DatePicker = <Mode extends CalendarMode = "single">({
   placeholder,
   date,
   onChange,
-  ...props
 }: DatePickerProps<Mode>) => {
   const [open, setOpen] = React.useState(false);
   const [viewMonth, setViewMonth] = React.useState<Date>(() => {
@@ -123,20 +122,6 @@ export const DatePicker = <Mode extends CalendarMode = "single">({
     selectedDate: DatePickerValue<Mode> | undefined,
     closePicker = true,
   ) => {
-    const formattedDate = (selectedDate: DatePickerValue<Mode>) => {
-      if (isDateArray(selectedDate)) {
-        return selectedDate.map((date) => date.toLocaleDateString("en-CA"));
-      }
-
-      if (isDateRange(selectedDate)) {
-        return {
-          to: selectedDate.to?.toLocaleDateString("en-CA"),
-          from: selectedDate.from?.toLocaleDateString("en-CA"),
-        };
-      }
-
-      return selectedDate?.toLocaleDateString("en-CA");
-    };
     onChange?.(selectedDate);
     if (closePicker) {
       setOpen(false);
@@ -188,7 +173,7 @@ export const DatePicker = <Mode extends CalendarMode = "single">({
         <Button
           variant={"outline"}
           className={cn(
-            "w-[280px] justify-start text-left font-normal",
+            "justify-start text-left font-normal",
             !date && "text-muted-foreground",
           )}
         >

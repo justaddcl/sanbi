@@ -39,43 +39,45 @@ export const SetSelectionStep: React.FC = () => {
 
   return (
     <VStack>
-      <VStack className="gap-4">
+      <VStack className="gap-4 px-4 lg:gap-1 lg:px-10">
         <SetSelectionFilters
           eventTypeFilter={eventTypeFilters}
           setEventTypeFilter={setEventTypeFilters}
           dateFilter={dateFilter}
           setDateFilter={setDateFilter}
         />
-        <HStack className="flex-wrap gap-2 px-4">
-          {eventTypeFilters.length > 0 &&
-            eventTypeFilters.map((eventType) => (
+        {(eventTypeFilters.length > 0 || dateFilter) && (
+          <HStack className="mb-4 flex-wrap gap-2">
+            {eventTypeFilters.length > 0 &&
+              eventTypeFilters.map((eventType) => (
+                <Badge
+                  key={eventType.id}
+                  variant="secondary"
+                  dismissable
+                  onDismiss={() => {
+                    setEventTypeFilters((currentFilters) =>
+                      currentFilters.filter(
+                        (filter) => filter.id !== eventType.id,
+                      ),
+                    );
+                  }}
+                >
+                  {eventType.name}
+                </Badge>
+              ))}
+            {dateFilter && (
               <Badge
-                key={eventType.id}
                 variant="secondary"
                 dismissable
                 onDismiss={() => {
-                  setEventTypeFilters((currentFilters) =>
-                    currentFilters.filter(
-                      (filter) => filter.id !== eventType.id,
-                    ),
-                  );
+                  setDateFilter(undefined);
                 }}
               >
-                {eventType.name}
+                {renderDateFilterLabel(dateFilter)}
               </Badge>
-            ))}
-          {dateFilter && (
-            <Badge
-              variant="secondary"
-              dismissable
-              onDismiss={() => {
-                setDateFilter(undefined);
-              }}
-            >
-              {renderDateFilterLabel(dateFilter)}
-            </Badge>
-          )}
-        </HStack>
+            )}
+          </HStack>
+        )}
       </VStack>
       <ScrollArea>
         <VStack className="gap-4 py-4 lg:gap-6">
