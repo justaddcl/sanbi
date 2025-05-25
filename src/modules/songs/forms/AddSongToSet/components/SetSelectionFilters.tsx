@@ -25,11 +25,10 @@ import { HStack } from "@components/HStack";
 import { Text } from "@components/Text";
 import { VStack } from "@components/VStack";
 import { EventTypeSelect } from "@modules/eventTypes/components";
+import { type SetSelectionEventTypeFilters } from "@modules/songs/forms/AddSongToSet/components/SetSelectionStep";
 import { useUserQuery } from "@modules/users/api/queries";
 import { useResponsive } from "@/hooks/useResponsive";
 import { api } from "@/trpc/react";
-
-import { type SetSelectionEventTypeFilters } from "./SetSelectionStep";
 
 type SetSelectionFiltersProps = {
   eventTypeFilter: SetSelectionEventTypeFilters;
@@ -68,6 +67,8 @@ export const SetSelectionFilters: React.FC<SetSelectionFiltersProps> = ({
 
   const isLoading = !isAuthLoaded || userQueryLoading || eventTypeQueryLoading;
   const isError = !!userQueryError || !!eventTypeQueryError;
+
+  const eventTypeFilterIds = eventTypeFilter.map((eventType) => eventType.id);
 
   const handleOnSelectEventType = (eventTypeId: string) => {
     if (eventTypeFilter.some((filter) => filter.id === eventTypeId)) {
@@ -167,10 +168,11 @@ export const SetSelectionFilters: React.FC<SetSelectionFiltersProps> = ({
       <Text className="text-sm text-slate-500">Filter by:</Text>
       <HStack className="gap-2">
         <EventTypeSelect
-          // value={eventTypeFilter}
-          setSelectedEventType={handleOnSelectEventType}
+          value={eventTypeFilterIds}
+          onSelectChange={handleOnSelectEventType}
           placeholder="Event type"
           valuePrefix="Event type: "
+          allowMultiple
         />
         {/* TODO: replace with actual date picker */}
         <Select>

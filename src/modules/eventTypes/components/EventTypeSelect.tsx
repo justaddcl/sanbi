@@ -1,11 +1,10 @@
-import React, {
-  type Dispatch,
-  type SetStateAction,
-  useRef,
-  useState,
-} from "react";
+import React, { useRef, useState } from "react";
 import { skipToken } from "@tanstack/react-query";
 
+import {
+  MultiSelect,
+  type MultiSelectOption,
+} from "@components/ui/multi-select";
 import {
   Select,
   SelectContent,
@@ -21,17 +20,32 @@ import { VStack } from "@components/VStack";
 import { useUserQuery } from "@modules/users/api/queries";
 import { api } from "@/trpc/react";
 
-type EventTypeSelectProps = SelectProps & {
-  setSelectedEventType: (eventTypeId: string) => void;
+type EventTypeSelectBaseProps = Omit<SelectProps, "value"> & {
+  onSelectChange: (eventTypeId: string) => void;
   placeholder?: SelectValueProps["placeholder"];
   valuePrefix?: string;
 };
 
+type EventTypeSingleSelectProps = EventTypeSelectBaseProps & {
+  allowMultiple?: false;
+  value: SelectProps["value"];
+};
+
+type EventTypeMultiSelectProps = EventTypeSelectBaseProps & {
+  allowMultiple: true;
+  value: NonNullable<SelectProps["value"]>[];
+};
+
+type EventTypeSelectProps =
+  | EventTypeSingleSelectProps
+  | EventTypeMultiSelectProps;
+
 export const EventTypeSelect: React.FC<EventTypeSelectProps> = ({
   placeholder,
-  setSelectedEventType,
+  onSelectChange,
   value,
   valuePrefix,
+  allowMultiple,
   ...props
 }) => {
   const {
@@ -62,7 +76,7 @@ export const EventTypeSelect: React.FC<EventTypeSelectProps> = ({
   latestValueRef.current = value;
 
   const handleValueChange = (selectedEventTypeId: string) => {
-    setSelectedEventType(selectedEventTypeId);
+    onSelectChange(selectedEventTypeId);
   };
 
   const handleOpenChange = (isOpen: boolean) => {
@@ -90,6 +104,23 @@ export const EventTypeSelect: React.FC<EventTypeSelectProps> = ({
     (eventType) => eventType.id === value,
   )?.name;
 
+  if (allowMultiple) {
+    const multiSelectOptions: MultiSelectOption[] =
+      eventTypeData?.map((eventType) => ({
+        value: eventType.id,
+        label: eventType.name,
+      })) ?? [];
+
+    return (
+      <MultiSelect
+        label={placeholder ?? "Select event type"}
+        options={multiSelectOptions}
+        selected={value}
+        onSelectChange={onSelectChange}
+      />
+    );
+  }
+
   return (
     <Select
       open={open}
@@ -103,8 +134,14 @@ export const EventTypeSelect: React.FC<EventTypeSelectProps> = ({
           placeholder={placeholder ?? "Select event type"}
           aria-label={value}
         >
-          {value && valuePrefix ? valuePrefix : null}
-          {displayValue}
+          {!allowMultiple ? (
+            <>
+              {value && valuePrefix ? valuePrefix : null}
+              {displayValue}
+            </>
+          ) : (
+            placeholder
+          )}
         </SelectValue>
       </SelectTrigger>
       <SelectContent>
@@ -134,7 +171,7 @@ export const EventTypeSelect: React.FC<EventTypeSelectProps> = ({
                   mouseDownEvent.stopPropagation();
                   // close and clear
                   setOpen(false);
-                  setSelectedEventType(eventType.id);
+                  onSelectChange(eventType.id);
                 }
               }}
             >
