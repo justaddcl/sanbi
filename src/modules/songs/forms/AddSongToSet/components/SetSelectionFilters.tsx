@@ -1,5 +1,5 @@
 import React, { type Dispatch, type SetStateAction, useState } from "react";
-import { SlidersHorizontal, X } from "@phosphor-icons/react/dist/ssr";
+import { Plus, SlidersHorizontal, X } from "@phosphor-icons/react/dist/ssr";
 import { skipToken } from "@tanstack/react-query";
 
 import { Button } from "@components/ui/button";
@@ -144,7 +144,7 @@ export const SetSelectionFilters: React.FC<SetSelectionFiltersProps> = ({
                   onChange={(selectedDate: DatePickerValue<"range">) => {
                     setDateFilter(selectedDate);
                   }}
-                  placeholder="Pick a date or range"
+                  placeholder="Date range"
                   initialDate={dateFilter}
                   date={dateFilter}
                 />
@@ -162,26 +162,35 @@ export const SetSelectionFilters: React.FC<SetSelectionFiltersProps> = ({
   }
 
   return (
-    <HStack className="hidden items-center gap-4 py-2 md:flex">
-      <Text className="text-sm text-slate-500">Filter by:</Text>
-      <HStack className="gap-2">
-        <EventTypeSelect
-          value={eventTypeFilterIds}
-          onSelectChange={handleOnSelectEventType}
-          placeholder="Event type"
-          valuePrefix="Event type: "
-          allowMultiple
-        />
-        <DatePicker
-          mode="range"
-          onChange={(selectedDate: DatePickerValue<"range">) => {
-            setDateFilter(selectedDate);
-          }}
-          placeholder="Pick a date or range"
-          initialDate={dateFilter}
-          date={dateFilter}
-        />
+    <HStack className="hidden items-center justify-between gap-4 py-2 md:flex">
+      <HStack className="items-center gap-4">
+        <Text className="text-sm text-slate-500">Filter by:</Text>
+        <HStack className="gap-2">
+          <EventTypeSelect
+            value={eventTypeFilterIds}
+            onSelectChange={handleOnSelectEventType}
+            placeholder="Event type"
+            // TODO: is the prefix still required?
+            valuePrefix="Event type: "
+            allowMultiple
+          />
+          {/* FIXME: only close the popover when the range is fully selected */}
+          {/* TODO: update date picker to pass numberOfMonths prop */}
+          <DatePicker
+            mode="range"
+            onChange={(selectedDate: DatePickerValue<"range">) => {
+              setDateFilter(selectedDate);
+            }}
+            placeholder="Date range"
+            alwaysShowPlaceholder
+            initialDate={dateFilter}
+            date={dateFilter}
+          />
+        </HStack>
       </HStack>
+      <Button variant="secondary" size="sm" className="font-medium">
+        <Plus /> Create set
+      </Button>
     </HStack>
   );
 };

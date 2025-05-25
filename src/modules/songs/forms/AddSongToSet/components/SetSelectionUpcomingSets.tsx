@@ -66,6 +66,8 @@ export const SetSelectionUpcomingSets: React.FC = () => {
   // FIXME: add skeleton to mimic mobile styles
   if (isUpcomingSetsQueryLoading) {
     return (
+      // TODO: implement labelOnClick function
+      // TODO: implement favorite event types and only show those
       <SetSelectionSection title="Next sets" label="Show more">
         <VStack className="gap-4 px-3">
           <HStack className="justify-between">

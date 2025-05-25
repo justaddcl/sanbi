@@ -89,6 +89,7 @@ type DatePickerProps<Mode extends CalendarMode = "single"> = Partial<
   presetSelectPlaceholder?: string;
   mode?: Mode;
   placeholder?: string;
+  alwaysShowPlaceholder?: boolean;
   date?: DatePickerValue<Mode>;
 };
 
@@ -98,6 +99,7 @@ export const DatePicker = <Mode extends CalendarMode = "single">({
   presetSelectPlaceholder = "Quick select date",
   mode = "single" as Mode,
   placeholder,
+  alwaysShowPlaceholder,
   date,
   onChange,
 }: DatePickerProps<Mode>) => {
@@ -178,8 +180,10 @@ export const DatePicker = <Mode extends CalendarMode = "single">({
           )}
         >
           <CalendarBlank className="mr-2 h-4 w-4" />
-          {getDatePickerLabel(placeholder, date, mode)}
-          {date && (
+          {alwaysShowPlaceholder
+            ? placeholder ?? "Pick a date"
+            : getDatePickerLabel(placeholder, date, mode)}
+          {!alwaysShowPlaceholder && date && (
             <Button
               variant="ghost"
               size="icon"

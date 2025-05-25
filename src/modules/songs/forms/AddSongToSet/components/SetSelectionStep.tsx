@@ -81,15 +81,6 @@ export const SetSelectionStep: React.FC = () => {
       </VStack>
       <ScrollArea>
         <VStack className="gap-4 py-4 lg:gap-6">
-          {/* <div className="px-4">
-            <Button
-              variant="secondary"
-              size="sm"
-              className="w-full justify-start px-4 font-medium"
-            >
-              <Plus /> Create new set
-            </Button>
-          </div> */}
           <SetSelectionUpcomingSets />
           <SetSelectionAllUpcomingSets
             eventTypeFilters={eventTypeFilters}
