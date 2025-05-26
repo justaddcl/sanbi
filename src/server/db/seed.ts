@@ -149,9 +149,18 @@ const seed = async () => {
   console.log("🚀 ~ seed ~ orgMembership:", orgMembership);
 
   /** seed the event types table */
+  const eventTypesFavoritedAt = new Date();
   const seedEventTypes: NewEventType[] = [
-    { name: "Sunday service", organizationId },
-    { name: "Team Stoneway", organizationId },
+    {
+      name: "Sunday service",
+      organizationId,
+      favoritedAt: eventTypesFavoritedAt,
+    },
+    {
+      name: "Team Stoneway",
+      organizationId,
+      favoritedAt: eventTypesFavoritedAt,
+    },
     { name: "Discipleship Community", organizationId },
   ];
 

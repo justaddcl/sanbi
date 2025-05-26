@@ -176,6 +176,7 @@ export const eventTypes = createTable("event_types", {
   organizationId: uuid("organization_id")
     .references(() => organizations.id)
     .notNull(),
+  favoritedAt: timestamp("favorited_at"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),
