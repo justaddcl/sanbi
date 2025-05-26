@@ -91,11 +91,14 @@ const getDatePickerLabel = <Mode extends CalendarMode = "single">(
 type DatePickerProps<Mode extends CalendarMode = "single"> = Partial<
   Pick<ControllerRenderProps<{ date: string }, "date">, "onChange">
 > &
-  (Mode extends "single"
-    ? DayPickerSingleProps
-    : Mode extends "multiple"
-      ? DayPickerMultipleProps
-      : DayPickerRangeProps) & {
+  Omit<
+    Mode extends "single"
+      ? DayPickerSingleProps
+      : Mode extends "multiple"
+        ? DayPickerMultipleProps
+        : DayPickerRangeProps,
+    "mode"
+  > & {
     presets?: DatePickerPreset[];
     initialDate?: DatePickerValue<Mode>;
     presetSelectPlaceholder?: string;
