@@ -1,11 +1,18 @@
 "use client";
 
 import * as React from "react";
-import { type DateRange } from "react-day-picker";
+import {
+  type DateRange,
+  type DayPickerMultipleProps,
+  type DayPickerRangeProps,
+  type DayPickerSingleProps,
+} from "react-day-picker";
 import { type ControllerRenderProps } from "react-hook-form";
-import { CalendarBlank, X } from "@phosphor-icons/react";
+import { CalendarBlank, CaretDown, X } from "@phosphor-icons/react";
 import { addDays, format, isSameYear } from "date-fns";
 
+import { HStack } from "@components/HStack";
+import { Text } from "@components/Text";
 import { Button } from "@/components/ui/button";
 import {
   CalendarMultiple,
@@ -83,15 +90,20 @@ const getDatePickerLabel = <Mode extends CalendarMode = "single">(
 
 type DatePickerProps<Mode extends CalendarMode = "single"> = Partial<
   Pick<ControllerRenderProps<{ date: string }, "date">, "onChange">
-> & {
-  presets?: DatePickerPreset[];
-  initialDate?: DatePickerValue<Mode>;
-  presetSelectPlaceholder?: string;
-  mode?: Mode;
-  placeholder?: string;
-  alwaysShowPlaceholder?: boolean;
-  date?: DatePickerValue<Mode>;
-};
+> &
+  (Mode extends "single"
+    ? DayPickerSingleProps
+    : Mode extends "multiple"
+      ? DayPickerMultipleProps
+      : DayPickerRangeProps) & {
+    presets?: DatePickerPreset[];
+    initialDate?: DatePickerValue<Mode>;
+    presetSelectPlaceholder?: string;
+    mode?: Mode;
+    placeholder?: string;
+    alwaysShowPlaceholder?: boolean;
+    date?: DatePickerValue<Mode>;
+  };
 
 export const DatePicker = <Mode extends CalendarMode = "single">({
   presets,
@@ -102,6 +114,7 @@ export const DatePicker = <Mode extends CalendarMode = "single">({
   alwaysShowPlaceholder,
   date,
   onChange,
+  ...props
 }: DatePickerProps<Mode>) => {
   const [open, setOpen] = React.useState(false);
   const [viewMonth, setViewMonth] = React.useState<Date>(() => {
@@ -140,6 +153,7 @@ export const DatePicker = <Mode extends CalendarMode = "single">({
           }
           month={viewMonth}
           onMonthChange={setViewMonth}
+          {...props}
         />
       );
     }
@@ -148,10 +162,11 @@ export const DatePicker = <Mode extends CalendarMode = "single">({
         <CalendarMultiple
           selected={date as Date[]}
           onSelect={(value) =>
-            value && onDateChange(value as DatePickerValue<Mode>)
+            value && onDateChange(value as DatePickerValue<Mode>, false)
           }
           month={viewMonth}
           onMonthChange={setViewMonth}
+          {...props}
         />
       );
     }
@@ -160,10 +175,11 @@ export const DatePicker = <Mode extends CalendarMode = "single">({
         <CalendarRange
           selected={date as DateRange}
           onSelect={(value) =>
-            value && onDateChange(value as DatePickerValue<Mode>)
+            value && onDateChange(value as DatePickerValue<Mode>, false)
           }
           month={viewMonth}
           onMonthChange={setViewMonth}
+          {...props}
         />
       );
     }
@@ -180,9 +196,16 @@ export const DatePicker = <Mode extends CalendarMode = "single">({
           )}
         >
           <CalendarBlank className="mr-2 h-4 w-4" />
-          {alwaysShowPlaceholder
-            ? placeholder ?? "Pick a date"
-            : getDatePickerLabel(placeholder, date, mode)}
+          {alwaysShowPlaceholder ? (
+            <HStack className="items-center gap-1 text-slate-900">
+              <Text asElement="span" className="text-sm font-medium">
+                {placeholder ?? "Pick a date"}
+              </Text>
+              <CaretDown />
+            </HStack>
+          ) : (
+            getDatePickerLabel(placeholder, date, mode)
+          )}
           {!alwaysShowPlaceholder && date && (
             <Button
               variant="ghost"
@@ -221,6 +244,14 @@ export const DatePicker = <Mode extends CalendarMode = "single">({
           </Select>
         )}
         <div className="rounded-md border">{renderCalendarVariant(mode)}</div>
+        {mode !== "single" && (
+          <HStack className="justify-end gap-2">
+            <Button variant="outline" onClick={() => onDateChange(undefined)}>
+              Clear
+            </Button>
+            <Button onClick={() => setOpen(false)}>Use these dates</Button>
+          </HStack>
+        )}
       </PopoverContent>
     </Popover>
   );

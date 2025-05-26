@@ -174,8 +174,6 @@ export const SetSelectionFilters: React.FC<SetSelectionFiltersProps> = ({
             valuePrefix="Event type: "
             allowMultiple
           />
-          {/* FIXME: only close the popover when the range is fully selected */}
-          {/* TODO: update date picker to pass numberOfMonths prop */}
           <DatePicker
             mode="range"
             onChange={(selectedDate: DatePickerValue<"range">) => {
@@ -185,6 +183,7 @@ export const SetSelectionFilters: React.FC<SetSelectionFiltersProps> = ({
             alwaysShowPlaceholder
             initialDate={dateFilter}
             date={dateFilter}
+            numberOfMonths={2}
           />
         </HStack>
       </HStack>
