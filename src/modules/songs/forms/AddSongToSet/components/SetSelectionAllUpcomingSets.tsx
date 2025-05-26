@@ -102,7 +102,7 @@ export const SetSelectionAllUpcomingSets: React.FC<
     <SetSelectionSection
       title="All upcoming sets"
       label={
-        <Button variant="outline" size="sm" className="md:hidden">
+        <Button variant="outline" size="sm" className="mb-1 md:hidden">
           <HStack className="items-center gap-2">
             <Plus />
             <Text className="text-sm">Create set</Text>
