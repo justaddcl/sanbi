@@ -23,7 +23,6 @@ import { api } from "@/trpc/react";
 type EventTypeSelectBaseProps = Omit<SelectProps, "value"> & {
   onSelectChange: (eventTypeId: string) => void;
   placeholder?: SelectValueProps["placeholder"];
-  valuePrefix?: string;
 };
 
 type EventTypeSingleSelectProps = EventTypeSelectBaseProps & {
@@ -44,7 +43,6 @@ export const EventTypeSelect: React.FC<EventTypeSelectProps> = ({
   placeholder,
   onSelectChange,
   value,
-  valuePrefix,
   allowMultiple,
   ...props
 }) => {
@@ -134,14 +132,7 @@ export const EventTypeSelect: React.FC<EventTypeSelectProps> = ({
           placeholder={placeholder ?? "Select event type"}
           aria-label={value}
         >
-          {!allowMultiple ? (
-            <>
-              {value && valuePrefix ? valuePrefix : null}
-              {displayValue}
-            </>
-          ) : (
-            placeholder
-          )}
+          {displayValue}
         </SelectValue>
       </SelectTrigger>
       <SelectContent>

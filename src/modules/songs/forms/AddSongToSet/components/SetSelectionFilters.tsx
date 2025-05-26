@@ -14,13 +14,6 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@components/ui/drawer";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@components/ui/select";
 import { HStack } from "@components/HStack";
 import { Text } from "@components/Text";
 import { VStack } from "@components/VStack";
@@ -170,8 +163,6 @@ export const SetSelectionFilters: React.FC<SetSelectionFiltersProps> = ({
             value={eventTypeFilterIds}
             onSelectChange={handleOnSelectEventType}
             placeholder="Event type"
-            // TODO: is the prefix still required?
-            valuePrefix="Event type: "
             allowMultiple
           />
           <DatePicker
