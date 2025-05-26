@@ -107,6 +107,7 @@ export const setRouter = createTRPCRouter({
         songCount: sql<number>`COUNT(${setSectionSongs.id})`
           .mapWith(Number)
           .as("songCount"),
+        favoritedAt: eventTypes.favoritedAt,
       })
       .from(upcomingSetsSubquery)
       .innerJoin(
@@ -123,6 +124,7 @@ export const setRouter = createTRPCRouter({
         upcomingSetsSubquery.setId,
         upcomingSetsSubquery.setDate,
         eventTypes.name,
+        eventTypes.favoritedAt,
       )
       .orderBy(upcomingSetsSubquery.setDate, eventTypes.name);
 

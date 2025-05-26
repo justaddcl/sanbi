@@ -1,3 +1,5 @@
+import { useState } from "react";
+import { Funnel } from "@phosphor-icons/react";
 import {
   differenceInCalendarWeeks,
   format,
@@ -6,6 +8,7 @@ import {
 } from "date-fns";
 import { toast } from "sonner";
 
+import { Button } from "@components/ui/button";
 import { Skeleton } from "@components/ui/skeleton";
 import { HStack } from "@components/HStack";
 import { VStack } from "@components/VStack";
@@ -42,6 +45,9 @@ export const formatFriendlyDate = (date: string) => {
 };
 
 export const SetSelectionUpcomingSets: React.FC = () => {
+  const [shouldShowFilteredList, setShouldShowFilteredList] =
+    useState<boolean>(true);
+
   const {
     data: userData,
     error: userQueryError,
@@ -63,11 +69,13 @@ export const SetSelectionUpcomingSets: React.FC = () => {
     organizationId: userMembership?.organizationId,
   });
 
+  const upcomingSetsList = shouldShowFilteredList
+    ? upcomingSetsData?.filter((upcomingSet) => !!upcomingSet.favoritedAt)
+    : upcomingSetsData;
+
   // FIXME: add skeleton to mimic mobile styles
   if (isUpcomingSetsQueryLoading) {
     return (
-      // TODO: implement labelOnClick function
-      // TODO: implement favorite event types and only show those
       <SetSelectionSection title="Next sets" label="Show more">
         <VStack className="gap-4 px-3">
           <HStack className="justify-between">
@@ -97,9 +105,30 @@ export const SetSelectionUpcomingSets: React.FC = () => {
     return null;
   }
 
+  const SetSelectionUpcomingSetsLabel = () => {
+    return (
+      <Button size="sm" variant="ghost">
+        <HStack
+          className="items-center gap-1"
+          onClick={() =>
+            setShouldShowFilteredList(
+              (shouldShowFilteredList) => !shouldShowFilteredList,
+            )
+          }
+        >
+          <Funnel />
+          See {shouldShowFilteredList ? "all" : "only favorites"}
+        </HStack>
+      </Button>
+    );
+  };
+
   return (
-    <SetSelectionSection title="Next sets" label="Show more">
-      {upcomingSetsData?.map((upcomingSet) => (
+    <SetSelectionSection
+      title="Next sets"
+      label={<SetSelectionUpcomingSetsLabel />}
+    >
+      {upcomingSetsList?.map((upcomingSet) => (
         <SetSelectionSetItem
           key={upcomingSet.setId}
           title={formatFriendlyDate(upcomingSet.setDate)}
