@@ -22,11 +22,12 @@ import { type SetSelectionEventTypeFilters } from "./SetSelectionStep";
 type SetSelectionAllUpcomingSetsProps = {
   eventTypeFilters: SetSelectionEventTypeFilters;
   dateFilter: DatePickerValue<"range"> | undefined;
+  onCreateSetClick: () => void;
 };
 
 export const SetSelectionAllUpcomingSets: React.FC<
   SetSelectionAllUpcomingSetsProps
-> = ({ eventTypeFilters, dateFilter }) => {
+> = ({ eventTypeFilters, dateFilter, onCreateSetClick }) => {
   const {
     data: userData,
     error: userQueryError,
@@ -102,7 +103,14 @@ export const SetSelectionAllUpcomingSets: React.FC<
     <SetSelectionSection
       title="All upcoming sets"
       label={
-        <Button variant="outline" size="sm" className="mb-1 md:hidden">
+        <Button
+          variant="outline"
+          size="sm"
+          className="mb-1 md:hidden"
+          onClick={() => {
+            onCreateSetClick();
+          }}
+        >
           <HStack className="items-center gap-2">
             <Plus />
             <Text className="text-sm">Create set</Text>

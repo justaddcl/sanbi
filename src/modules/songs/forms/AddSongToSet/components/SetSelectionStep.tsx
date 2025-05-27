@@ -6,6 +6,7 @@ import { type DatePickerValue } from "@components/ui/datePicker";
 import { ScrollArea } from "@components/ui/scroll-area";
 import { HStack } from "@components/HStack";
 import { VStack } from "@components/VStack";
+import { CreateSetForm } from "@modules/sets/components/CreateSetForm";
 import { SetSelectionFilters } from "@modules/songs/forms/AddSongToSet/components";
 
 import { SetSelectionAllUpcomingSets } from "./SetSelectionAllUpcomingSets";
@@ -18,7 +19,17 @@ type SetSelectionEventTypeFilter = {
 
 export type SetSelectionEventTypeFilters = SetSelectionEventTypeFilter[];
 
-export const SetSelectionStep: React.FC = () => {
+type SetSelectionStepProps = {
+  isCreatingNewSet: boolean;
+  onCreateSetClick: () => void;
+  onSetSelect: (setId: string) => void;
+};
+
+export const SetSelectionStep: React.FC<SetSelectionStepProps> = ({
+  isCreatingNewSet,
+  onCreateSetClick,
+  onSetSelect,
+}) => {
   const [eventTypeFilters, setEventTypeFilters] = useState<
     SetSelectionEventTypeFilter[]
   >([]);
@@ -37,6 +48,18 @@ export const SetSelectionStep: React.FC = () => {
       : format(dateFilter.from, `LLL dd`);
   };
 
+  if (isCreatingNewSet) {
+    return (
+      <div className="mt-4 lg:px-10">
+        <CreateSetForm
+          onCreationSuccess={(newSetId) => {
+            onSetSelect(newSetId);
+          }}
+        />
+      </div>
+    );
+  }
+
   return (
     <VStack>
       <VStack className="gap-4 px-4 lg:gap-1 lg:px-10">
@@ -45,6 +68,7 @@ export const SetSelectionStep: React.FC = () => {
           setEventTypeFilter={setEventTypeFilters}
           dateFilter={dateFilter}
           setDateFilter={setDateFilter}
+          onCreateSetClick={onCreateSetClick}
         />
         {(eventTypeFilters.length > 0 || dateFilter) && (
           <HStack className="mb-4 flex-wrap gap-2">
@@ -85,6 +109,7 @@ export const SetSelectionStep: React.FC = () => {
           <SetSelectionAllUpcomingSets
             eventTypeFilters={eventTypeFilters}
             dateFilter={dateFilter}
+            onCreateSetClick={onCreateSetClick}
           />
         </VStack>
       </ScrollArea>

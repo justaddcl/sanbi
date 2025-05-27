@@ -28,6 +28,7 @@ type SetSelectionFiltersProps = {
   setEventTypeFilter: Dispatch<SetStateAction<SetSelectionEventTypeFilters>>;
   dateFilter?: DatePickerValue<"range">;
   setDateFilter: Dispatch<SetStateAction<DatePickerValue<"range"> | undefined>>;
+  onCreateSetClick: () => void;
 };
 
 export const SetSelectionFilters: React.FC<SetSelectionFiltersProps> = ({
@@ -35,6 +36,7 @@ export const SetSelectionFilters: React.FC<SetSelectionFiltersProps> = ({
   setEventTypeFilter,
   dateFilter,
   setDateFilter,
+  onCreateSetClick,
 }) => {
   const { isMobile } = useResponsive();
 
@@ -178,7 +180,14 @@ export const SetSelectionFilters: React.FC<SetSelectionFiltersProps> = ({
           />
         </HStack>
       </HStack>
-      <Button variant="secondary" size="sm" className="font-medium">
+      <Button
+        variant="secondary"
+        size="sm"
+        className="font-medium"
+        onClick={() => {
+          onCreateSetClick();
+        }}
+      >
         <Plus /> Create set
       </Button>
     </HStack>

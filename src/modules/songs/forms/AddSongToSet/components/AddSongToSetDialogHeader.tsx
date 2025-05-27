@@ -17,17 +17,20 @@ interface AddSongToSetDialogHeaderProps {
   totalSteps: number;
   onBack: () => void;
   onClose: () => void;
+  isCreatingNewSet: boolean;
 }
 
 export const AddSongToSetDialogHeader: React.FC<
   AddSongToSetDialogHeaderProps
-> = ({ title, step, totalSteps, onBack, onClose }) => {
+> = ({ title, step, totalSteps, onBack, onClose, isCreatingNewSet }) => {
   const progressValue = (step / totalSteps) * 100;
   return (
     <VStack className="gap-2 p-4 pb-2 lg:p-6 lg:py-4">
       <HStack className="mx-[-10px] items-center justify-between">
         <HStack className="items-center">
-          {step !== AddSongToSetDialogStep.SELECT_SET && (
+          {!(
+            step === AddSongToSetDialogStep.SELECT_SET && !isCreatingNewSet
+          ) && (
             <Button
               variant="ghost"
               size="icon"
@@ -41,7 +44,8 @@ export const AddSongToSetDialogHeader: React.FC<
           <h2
             id="modal-title"
             className={cn("text-lg font-semibold", {
-              "ml-11": step === AddSongToSetDialogStep.SELECT_SET,
+              "ml-3":
+                step === AddSongToSetDialogStep.SELECT_SET && !isCreatingNewSet,
             })}
           >
             {title}

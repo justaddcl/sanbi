@@ -98,9 +98,13 @@ export const EventTypeSelect: React.FC<EventTypeSelectProps> = ({
   //   setSelectedEventType?.(eventTypeId);
   // };
 
-  const displayValue = eventTypeData?.find(
-    (eventType) => eventType.id === value,
-  )?.name;
+  const displayValue = (value?: string) => {
+    if (!value) {
+      return placeholder ?? "Select event type";
+    }
+
+    return eventTypeData?.find((eventType) => eventType.id === value)?.name;
+  };
 
   if (allowMultiple) {
     const multiSelectOptions: MultiSelectOption[] =
@@ -132,7 +136,7 @@ export const EventTypeSelect: React.FC<EventTypeSelectProps> = ({
           placeholder={placeholder ?? "Select event type"}
           aria-label={value}
         >
-          {displayValue}
+          {displayValue(value)}
         </SelectValue>
       </SelectTrigger>
       <SelectContent>

@@ -1,7 +1,11 @@
 "use client";
 
-import { CreateSongForm } from "@modules/sets/components/CreateSongForm/CreateSongForm";
-import { useSanbiStore } from "@/providers/sanbi-store-provider";
+import { useRouter } from "next/navigation";
+import { MusicNoteSimple, Playlist } from "@phosphor-icons/react/dist/ssr";
+import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
+
+import { Button } from "@components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@components/ui/tabs";
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -10,11 +14,10 @@ import {
   ResponsiveDialogTitle,
   ResponsiveDialogTrigger,
 } from "@components/ResponsiveDialog";
-import { Button } from "@components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@components/ui/tabs";
 import { CreateSetForm } from "@modules/sets/components/CreateSetForm";
-import { MusicNoteSimple, Playlist } from "@phosphor-icons/react/dist/ssr";
-import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
+import { CreateSongForm } from "@modules/sets/components/CreateSongForm/CreateSongForm";
+import { useUserQuery } from "@modules/users/api/queries";
+import { useSanbiStore } from "@/providers/sanbi-store-provider";
 
 // TODO: add prop to configure which tab is default, with "new set" as fallback (SWY-40)
 export const NewItemResponsiveDialog: React.FC = ({}) => {
@@ -25,6 +28,10 @@ export const NewItemResponsiveDialog: React.FC = ({}) => {
     isMobileNavOpen,
     closeMobileNav,
   } = useSanbiStore((state) => state);
+
+  const router = useRouter();
+
+  const { userMembership } = useUserQuery();
 
   return (
     <ResponsiveDialog
@@ -71,7 +78,17 @@ export const NewItemResponsiveDialog: React.FC = ({}) => {
             </TabsTrigger>
           </TabsList>
           <TabsContent value="newSet" className="w-full">
-            <CreateSetForm onSubmit={() => closeCreateItemDialog()} />
+            <CreateSetForm
+              onCreationSuccess={(newSetId: string) => {
+                closeCreateItemDialog();
+
+                if (userMembership?.organizationId) {
+                  router.push(
+                    `/${userMembership.organizationId}/sets/${newSetId}`,
+                  );
+                }
+              }}
+            />
           </TabsContent>
           <TabsContent value="newSong" className="w-full">
             <CreateSongForm onSubmit={() => closeCreateItemDialog()} />

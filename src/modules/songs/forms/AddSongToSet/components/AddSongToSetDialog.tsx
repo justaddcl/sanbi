@@ -19,10 +19,15 @@ export enum AddSongToSetDialogStep {
 
 const contentMap: Record<
   AddSongToSetDialogStep,
-  { title: string; subtitle?: (songName: string) => string }
+  {
+    title: string;
+    alternateTitle?: string;
+    subtitle?: (songName: string) => string;
+  }
 > = {
   [AddSongToSetDialogStep.SELECT_SET]: {
     title: "Add to which set?",
+    alternateTitle: "Create new set",
     subtitle: (songName: string) =>
       `Select the set you want to add ${songName} to`,
   },
@@ -48,14 +53,19 @@ export const AddSongToSetDialog: React.FC = ({}) => {
   const [currentStep, setCurrentStep] = useState(
     AddSongToSetDialogStep.SELECT_SET,
   );
+  const [isCreatingNewSet, setIsCreatingNewSet] = useState(false);
+  const [selectedSetId, setSelectedSetId] = useState<string | null>(null);
 
   const totalSteps = Object.values(AddSongToSetDialogStep).filter(
     (value) => typeof value === "number",
   ).length;
 
   const goBack = () => {
-    if (currentStep > AddSongToSetDialogStep.SELECT_SET) {
+    if (currentStep === AddSongToSetDialogStep.SELECT_SET && isCreatingNewSet) {
+      setIsCreatingNewSet(false);
+    } else if (currentStep > AddSongToSetDialogStep.SELECT_SET) {
       setCurrentStep(currentStep - 1);
+      // setCurrentStep((step) => step - 1);
     } else {
       handleClose();
     }
@@ -63,13 +73,24 @@ export const AddSongToSetDialog: React.FC = ({}) => {
 
   const handleClose = () => {
     setIsOpen(false);
+    setIsCreatingNewSet(false);
     setCurrentStep(AddSongToSetDialogStep.SELECT_SET);
   };
 
   const renderStepContent = () => {
     switch (currentStep) {
       case AddSongToSetDialogStep.SELECT_SET:
-        return <SetSelectionStep />;
+        return (
+          <SetSelectionStep
+            isCreatingNewSet={isCreatingNewSet}
+            onCreateSetClick={() => {
+              setIsCreatingNewSet(true);
+            }}
+            onSetSelect={(setId) => {
+              setSelectedSetId(setId);
+            }}
+          />
+        );
       default:
         return null;
     }
@@ -90,11 +111,17 @@ export const AddSongToSetDialog: React.FC = ({}) => {
       >
         {/* TODO: move within each step's component */}
         <AddSongToSetDialogHeader
-          title={contentMap[currentStep].title}
+          title={
+            currentStep === AddSongToSetDialogStep.SELECT_SET &&
+            isCreatingNewSet
+              ? contentMap[AddSongToSetDialogStep.SELECT_SET].alternateTitle! // using a non-null type assertion since we know this specific alternateTitle shouldn't be undefined
+              : contentMap[currentStep].title
+          }
           step={currentStep}
           totalSteps={totalSteps}
           onBack={goBack}
           onClose={handleClose}
+          isCreatingNewSet={isCreatingNewSet}
         />
         {renderStepContent()}
       </DialogContent>
