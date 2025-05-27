@@ -17,17 +17,21 @@ import { useUserQuery } from "@modules/users/api/queries";
 import { pluralize } from "@lib/string";
 import { api } from "@/trpc/react";
 
-import { type SetSelectionEventTypeFilters } from "./SetSelectionStep";
+import {
+  type SetSelectionEventTypeFilters,
+  type SetSelectionStepProps,
+} from "./SetSelectionStep";
 
 type SetSelectionAllUpcomingSetsProps = {
   eventTypeFilters: SetSelectionEventTypeFilters;
   dateFilter: DatePickerValue<"range"> | undefined;
   onCreateSetClick: () => void;
+  onSetSelect: SetSelectionStepProps["onSetSelect"];
 };
 
 export const SetSelectionAllUpcomingSets: React.FC<
   SetSelectionAllUpcomingSetsProps
-> = ({ eventTypeFilters, dateFilter, onCreateSetClick }) => {
+> = ({ eventTypeFilters, dateFilter, onCreateSetClick, onSetSelect }) => {
   const {
     data: userData,
     error: userQueryError,
@@ -132,6 +136,9 @@ export const SetSelectionAllUpcomingSets: React.FC<
               title={formatFriendlyDate(set.date)}
               subtitle={set.eventType!} // eventType is marked as notNull:true, so not sure why the type is nullable, but this appeases TS for now
               label={`${set.songCount} ${pluralize(set.songCount, { singular: "song", plural: "songs" })}`}
+              onClick={() => {
+                onSetSelect(set.id);
+              }}
             />
           ))}
         </React.Fragment>

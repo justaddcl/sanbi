@@ -19,7 +19,7 @@ type SetSelectionEventTypeFilter = {
 
 export type SetSelectionEventTypeFilters = SetSelectionEventTypeFilter[];
 
-type SetSelectionStepProps = {
+export type SetSelectionStepProps = {
   isCreatingNewSet: boolean;
   onCreateSetClick: () => void;
   onSetSelect: (setId: string) => void;
@@ -105,11 +105,12 @@ export const SetSelectionStep: React.FC<SetSelectionStepProps> = ({
       </VStack>
       <ScrollArea>
         <VStack className="gap-4 py-4 lg:gap-6">
-          <SetSelectionUpcomingSets />
+          <SetSelectionUpcomingSets onSetSelect={onSetSelect} />
           <SetSelectionAllUpcomingSets
             eventTypeFilters={eventTypeFilters}
             dateFilter={dateFilter}
             onCreateSetClick={onCreateSetClick}
+            onSetSelect={onSetSelect}
           />
         </VStack>
       </ScrollArea>

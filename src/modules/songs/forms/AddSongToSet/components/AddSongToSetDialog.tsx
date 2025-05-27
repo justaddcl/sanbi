@@ -88,6 +88,7 @@ export const AddSongToSetDialog: React.FC = ({}) => {
             }}
             onSetSelect={(setId) => {
               setSelectedSetId(setId);
+              setCurrentStep(AddSongToSetDialogStep.SELECT_SET_SECTION);
             }}
           />
         );

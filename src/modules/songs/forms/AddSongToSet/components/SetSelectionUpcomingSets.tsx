@@ -15,6 +15,7 @@ import { VStack } from "@components/VStack";
 import {
   SetSelectionSection,
   SetSelectionSetItem,
+  type SetSelectionStepProps,
 } from "@modules/songs/forms/AddSongToSet/components";
 import { useUserQuery } from "@modules/users/api/queries";
 import { pluralize } from "@lib/string";
@@ -44,7 +45,13 @@ export const formatFriendlyDate = (date: string) => {
   return format(date, "EEEE, MMM dd");
 };
 
-export const SetSelectionUpcomingSets: React.FC = () => {
+type SetSelectionAllUpcomingSetsProps = {
+  onSetSelect: SetSelectionStepProps["onSetSelect"];
+};
+
+export const SetSelectionUpcomingSets: React.FC<
+  SetSelectionAllUpcomingSetsProps
+> = ({ onSetSelect }) => {
   const [shouldShowFilteredList, setShouldShowFilteredList] =
     useState<boolean>(true);
 
@@ -134,6 +141,9 @@ export const SetSelectionUpcomingSets: React.FC = () => {
           title={formatFriendlyDate(upcomingSet.setDate)}
           subtitle={upcomingSet.eventType}
           label={`${upcomingSet.songCount} ${pluralize(upcomingSet.songCount, { singular: "song", plural: "songs" })}`}
+          onClick={() => {
+            onSetSelect(upcomingSet.setId);
+          }}
         />
       ))}
     </SetSelectionSection>
