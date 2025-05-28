@@ -8,6 +8,14 @@ import {
   AddSongToSetDialogHeader,
   SetSelectionStep,
 } from "@modules/songs/forms/AddSongToSet/components";
+import { type SetType } from "@lib/types";
+
+import { SetSectionSelectionStep } from "./SetSectionSelectionStep";
+
+export type SelectedSet = Pick<SetType, "id"> & {
+  // TODO: return this directly from the set/get route
+  songCount: number;
+};
 
 export enum AddSongToSetDialogStep {
   SELECT_SET = 1,
@@ -54,7 +62,7 @@ export const AddSongToSetDialog: React.FC = ({}) => {
     AddSongToSetDialogStep.SELECT_SET,
   );
   const [isCreatingNewSet, setIsCreatingNewSet] = useState(false);
-  const [selectedSetId, setSelectedSetId] = useState<string | null>(null);
+  const [selectedSet, setSelectedSet] = useState<SelectedSet | null>(null);
 
   const totalSteps = Object.values(AddSongToSetDialogStep).filter(
     (value) => typeof value === "number",
@@ -86,8 +94,8 @@ export const AddSongToSetDialog: React.FC = ({}) => {
             onCreateSetClick={() => {
               setIsCreatingNewSet(true);
             }}
-            onSetSelect={(setId) => {
-              setSelectedSetId(setId);
+            onSetSelect={(selectedSetSummary) => {
+              setSelectedSet(selectedSetSummary);
               setCurrentStep(AddSongToSetDialogStep.SELECT_SET_SECTION);
             }}
           />

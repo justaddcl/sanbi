@@ -10,6 +10,7 @@ import { type z } from "zod";
 import { Button } from "@components/ui/button";
 import { TextareaFormField } from "@components/TextareaFormField";
 import { sanitizeInput } from "@lib/string";
+import { type SetType } from "@lib/types";
 import { insertSetSchema } from "@lib/types/zod";
 import { api } from "@/trpc/react";
 
@@ -29,7 +30,7 @@ export type CreateSetFormFields = Omit<
 };
 
 type CreateSetFormProps = {
-  onCreationSuccess: (newSetId: string) => void;
+  onCreationSuccess: (newSet: SetType) => void;
 };
 
 export const CreateSetForm: React.FC<CreateSetFormProps> = ({
@@ -93,7 +94,7 @@ export const CreateSetForm: React.FC<CreateSetFormProps> = ({
             toast.success("Set was created", { id: toastId });
 
             if (newSet) {
-              onCreationSuccess?.(newSet.id);
+              onCreationSuccess?.(newSet);
             } else {
               toast.warning(
                 "Set was created, but the set data wasn't returned...",

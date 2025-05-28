@@ -7,7 +7,10 @@ import { ScrollArea } from "@components/ui/scroll-area";
 import { HStack } from "@components/HStack";
 import { VStack } from "@components/VStack";
 import { CreateSetForm } from "@modules/sets/components/CreateSetForm";
-import { SetSelectionFilters } from "@modules/songs/forms/AddSongToSet/components";
+import {
+  type SelectedSet,
+  SetSelectionFilters,
+} from "@modules/songs/forms/AddSongToSet/components";
 
 import { SetSelectionAllUpcomingSets } from "./SetSelectionAllUpcomingSets";
 import { SetSelectionUpcomingSets } from "./SetSelectionUpcomingSets";
@@ -22,7 +25,7 @@ export type SetSelectionEventTypeFilters = SetSelectionEventTypeFilter[];
 export type SetSelectionStepProps = {
   isCreatingNewSet: boolean;
   onCreateSetClick: () => void;
-  onSetSelect: (setId: string) => void;
+  onSetSelect: (setSummary: SelectedSet) => void;
 };
 
 export const SetSelectionStep: React.FC<SetSelectionStepProps> = ({
@@ -52,8 +55,11 @@ export const SetSelectionStep: React.FC<SetSelectionStepProps> = ({
     return (
       <div className="mt-4 lg:px-10">
         <CreateSetForm
-          onCreationSuccess={(newSetId) => {
-            onSetSelect(newSetId);
+          onCreationSuccess={(newSet) => {
+            onSetSelect({
+              id: newSet.id,
+              songCount: 0,
+            });
           }}
         />
       </div>

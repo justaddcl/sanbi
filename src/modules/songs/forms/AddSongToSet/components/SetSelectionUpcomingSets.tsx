@@ -142,7 +142,10 @@ export const SetSelectionUpcomingSets: React.FC<
           subtitle={upcomingSet.eventType}
           label={`${upcomingSet.songCount} ${pluralize(upcomingSet.songCount, { singular: "song", plural: "songs" })}`}
           onClick={() => {
-            onSetSelect(upcomingSet.setId);
+            onSetSelect({
+              id: upcomingSet.setId,
+              songCount: upcomingSet.songCount,
+            });
           }}
         />
       ))}

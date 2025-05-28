@@ -137,7 +137,10 @@ export const SetSelectionAllUpcomingSets: React.FC<
               subtitle={set.eventType!} // eventType is marked as notNull:true, so not sure why the type is nullable, but this appeases TS for now
               label={`${set.songCount} ${pluralize(set.songCount, { singular: "song", plural: "songs" })}`}
               onClick={() => {
-                onSetSelect(set.id);
+                onSetSelect({
+                  id: set.id,
+                  songCount: set.songCount,
+                });
               }}
             />
           ))}
