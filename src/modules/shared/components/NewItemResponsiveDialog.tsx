@@ -79,12 +79,12 @@ export const NewItemResponsiveDialog: React.FC = ({}) => {
           </TabsList>
           <TabsContent value="newSet" className="w-full">
             <CreateSetForm
-              onCreationSuccess={(newSetId: string) => {
+              onCreationSuccess={(newSet) => {
                 closeCreateItemDialog();
 
                 if (userMembership?.organizationId) {
                   router.push(
-                    `/${userMembership.organizationId}/sets/${newSetId}`,
+                    `/${userMembership.organizationId}/sets/${newSet.id}`,
                   );
                 }
               }}
