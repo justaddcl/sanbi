@@ -291,6 +291,34 @@ export const setRouter = createTRPCRouter({
         });
       }
 
+      const eventType = await ctx.db.query.eventTypes.findFirst({
+        where: eq(eventTypes.id, input.eventTypeId),
+      });
+
+      if (!eventType) {
+        console.error(
+          `🤖 - [set/create] - could not find event type ${input.eventTypeId}`,
+          { mutationInput: input },
+        );
+
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Could not find event type",
+        });
+      }
+
+      if (eventType.organizationId !== input.organizationId) {
+        console.error(
+          `🤖 - [set/create] - user ${ctx.user.id} is not authorized to use event type ${input.eventTypeId}`,
+          { mutationInput: input },
+        );
+
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "User is not authorized to use event type",
+        });
+      }
+
       const newSet: NewSet = {
         date,
         eventTypeId,
