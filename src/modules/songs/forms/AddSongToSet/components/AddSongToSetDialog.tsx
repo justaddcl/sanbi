@@ -100,6 +100,8 @@ export const AddSongToSetDialog: React.FC = ({}) => {
             }}
           />
         );
+      case AddSongToSetDialogStep.SELECT_SET_SECTION:
+        return <SetSectionSelectionStep selectedSet={selectedSet} />;
       default:
         return null;
     }
