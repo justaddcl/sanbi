@@ -159,6 +159,7 @@ export const setSectionIdSchema = z.object({
   setSectionId: z.string().uuid(),
 });
 export const insertSetSectionSchema = createInsertSchema(setSections);
+export const getSetSectionSchema = setSectionIdSchema;
 export const getSectionsForSet = z.object({ setId: z.string().uuid() });
 export const updateSetSectionType = insertSetSectionSchema
   .pick({

@@ -1,20 +1,22 @@
+import { TRPCError } from "@trpc/server";
+import { and, eq, gt, sql } from "drizzle-orm";
+
+import { updateSetSectionPosition } from "@modules/setSections/api/mutations";
 import { type NewSetSection } from "@lib/types";
 import {
   deleteSetSectionSchema,
   getSectionsForSet,
+  getSetSectionSchema,
   insertSetSectionSchema,
   swapSetSectionPositionSchema,
   updateSetSectionType,
 } from "@lib/types/zod";
-import { updateSetSectionPosition } from "@modules/setSections/api/mutations";
 import {
   adminProcedure,
   createTRPCRouter,
   organizationProcedure,
 } from "@server/api/trpc";
 import { setSections, setSectionTypes } from "@server/db/schema";
-import { TRPCError } from "@trpc/server";
-import { and, eq, gt, sql } from "drizzle-orm";
 
 export const setSectionRouter = createTRPCRouter({
   create: organizationProcedure
@@ -32,6 +34,53 @@ export const setSectionRouter = createTRPCRouter({
       };
 
       return ctx.db.insert(setSections).values(newSetSection).returning();
+    }),
+
+  get: organizationProcedure
+    .input(getSetSectionSchema)
+    .query(async ({ ctx, input }) => {
+      console.log(
+        `🤖 ~ [setSection/get] ~ attempting to retrieve set sections for ${input.setSectionId}`,
+      );
+
+      const setSection = await ctx.db.query.setSections.findFirst({
+        where: eq(setSections.id, input.setSectionId),
+        with: {
+          type: true,
+          songs: {
+            with: {
+              song: true,
+            },
+          },
+        },
+      });
+
+      if (!setSection) {
+        console.error(
+          `🤖 - [setSection/get] - could not find set section ${input.setSectionId}`,
+          input,
+        );
+
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Cannot find the set section",
+        });
+      }
+
+      if (setSection.organizationId !== input.organizationId) {
+        console.error(
+          `🤖 - [setSection/get] - User ${ctx.user.id} not authorized to retrieve set section ${setSection.id}`,
+        );
+
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Not authorized to retrieve this set section",
+        });
+      }
+
+      console.info(`🤖 - [setSection/get] - retrieved set section`, setSection);
+
+      return setSection;
     }),
 
   getSectionsForSet: organizationProcedure
