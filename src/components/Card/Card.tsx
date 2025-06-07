@@ -17,6 +17,10 @@ type CardPropsWithHeader = BaseCardProps & {
   header: React.ReactElement;
   title?: never;
   badge?: never;
+  badgeAlignStart?: never;
+  badgeAlignEnd?: never;
+  hideBadgeWhenExpanded?: never;
+  hideBadgeWhenCollapsed?: never;
   collapsible?: never;
   externalIsExpanded?: boolean;
   initialIsExpanded?: never;
@@ -29,6 +33,10 @@ type CardPropsWithoutHeader = BaseCardProps & {
   header?: never;
   title: string;
   badge?: React.ReactElement;
+  badgeAlignStart?: boolean;
+  badgeAlignEnd?: boolean;
+  hideBadgeWhenExpanded?: boolean;
+  hideBadgeWhenCollapsed?: boolean;
   collapsible?: boolean;
   externalIsExpanded?: never;
   initialIsExpanded?: boolean;
@@ -43,6 +51,10 @@ export const Card: React.FC<CardProps> = ({
   header,
   title,
   badge,
+  badgeAlignStart = true,
+  badgeAlignEnd,
+  hideBadgeWhenExpanded,
+  hideBadgeWhenCollapsed,
   collapsible: isCollapsible,
   externalIsExpanded,
   initialIsExpanded,
@@ -59,6 +71,10 @@ export const Card: React.FC<CardProps> = ({
   const hasButton = !!buttonLabel && !!buttonOnClick;
   const shouldShowChildren =
     externalIsExpanded ?? (isCollapsible ? isExpanded : true);
+  const shouldShowBadge =
+    !!badge &&
+    ((isExpanded && !hideBadgeWhenExpanded) ||
+      (!isExpanded && !hideBadgeWhenCollapsed));
 
   const HeaderWrapper: React.FC<PropsWithChildren> = ({ children }) =>
     isCollapsible ? (
@@ -92,20 +108,27 @@ export const Card: React.FC<CardProps> = ({
           <HeaderWrapper>
             <HStack
               className={cn(
-                "flex-wrap items-baseline justify-between gap-4 lg:gap-16 lg:pr-4",
+                "flex-wrap items-baseline justify-between gap-4 lg:pr-4",
                 {
                   "w-full p-3": isCollapsible,
                 },
               )}
             >
-              <Text
-                asElement="h3"
-                style="header-medium-semibold"
-                className="text-l flex-wrap md:text-xl"
+              <HStack
+                className={cn("flex-1 gap-4", {
+                  "justify-start": badgeAlignStart,
+                  "justify-between": badgeAlignEnd,
+                })}
               >
-                {title}
-              </Text>
-              {!!badge && badge}
+                <Text
+                  asElement="h3"
+                  style="header-medium-semibold"
+                  className="text-l flex-wrap md:text-xl"
+                >
+                  {title}
+                </Text>
+                {shouldShowBadge && badge}
+              </HStack>
               {(!!isCollapsible || hasButton) && (
                 <HStack className="flex items-start gap-2">
                   {isCollapsible && (isExpanded ? <CaretUp /> : <CaretDown />)}
