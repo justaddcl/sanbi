@@ -11,7 +11,7 @@ import { Form } from "@components/ui/form";
 import { HStack } from "@components/HStack";
 import { VStack } from "@components/VStack";
 import { SongContent } from "@modules/SetListCard/components/SongContent";
-import { type SetSectionCardProps } from "@modules/sets/components/SetSectionCard";
+import { EditSongContentFormFields } from "@modules/SetListCard/forms/EditSongContent/components";
 import { useUserQuery } from "@modules/users/api/queries";
 import { type SetSectionSongWithSongData } from "@lib/types";
 import { insertSetSectionSongSchema } from "@lib/types/zod";
@@ -172,12 +172,15 @@ export const SongItem: React.FC<SongItemProps> = ({
           )}
         >
           <HStack className="items-baseline justify-between">
-            <SongContent
-              setSectionSong={setSectionSong}
-              index={index}
-              isEditing={isEditingDetails}
-              updateForm={updateSetSectionSongForm}
-            />
+            {isEditingDetails ? (
+              <EditSongContentFormFields
+                setSectionSong={setSectionSong}
+                index={index}
+                updateForm={updateSetSectionSongForm}
+              />
+            ) : (
+              <SongContent setSectionSong={setSectionSong} index={index} />
+            )}
             {props.withActionsMenu && !isEditingDetails && (
               <SongActionMenu
                 setSectionSong={setSectionSong}
