@@ -168,7 +168,7 @@ export const SongItem: React.FC<SongItemProps> = ({
               isEditingDetails &&
                 "mt-4 border border-slate-200 bg-slate-50 p-4 lg:p-6",
             ],
-            [!isEditingDetails && "py-1 hover:bg-slate-50 md:px-4"],
+            [!isEditingDetails && "hover:bg-slate-50 md:px-4"],
           )}
         >
           <HStack className="items-baseline justify-between">

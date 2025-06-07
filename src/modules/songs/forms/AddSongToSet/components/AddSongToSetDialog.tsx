@@ -64,6 +64,10 @@ export const AddSongToSetDialog: React.FC = ({}) => {
   const [isCreatingNewSet, setIsCreatingNewSet] = useState(false);
   const [selectedSet, setSelectedSet] = useState<SelectedSet | null>(null);
 
+  const [selectedSetSection, setSelectedSetSection] = useState<string | null>(
+    null,
+  );
+
   const totalSteps = Object.values(AddSongToSetDialogStep).filter(
     (value) => typeof value === "number",
   ).length;
@@ -101,7 +105,15 @@ export const AddSongToSetDialog: React.FC = ({}) => {
           />
         );
       case AddSongToSetDialogStep.SELECT_SET_SECTION:
-        return <SetSectionSelectionStep selectedSet={selectedSet} />;
+        return (
+          <SetSectionSelectionStep
+            selectedSet={selectedSet}
+            onSelectSetSection={(setSectionId) => {
+              setSelectedSetSection(setSectionId);
+              setCurrentStep(AddSongToSetDialogStep.SET_POSITION);
+            }}
+          />
+        );
       default:
         return null;
     }

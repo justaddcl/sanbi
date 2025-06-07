@@ -27,7 +27,7 @@ export const SongContent: React.FC<SongContentProps> = ({
       <Text
         style="header-medium-semibold"
         align="right"
-        className="text-slate-400"
+        className="min-w-4 text-slate-400"
       >
         {index}.
       </Text>

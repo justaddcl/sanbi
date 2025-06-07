@@ -25,7 +25,7 @@ export const SetSelectionSetItem: React.FC<SetSelectionSetItemProps> = ({
       onClick={onClick}
     >
       <div className="flex flex-col lg:flex-row lg:items-center lg:gap-2">
-        <Text className="font-medium">{title}</Text>
+        <Text className="font-semibold">{title}</Text>
         {subtitle && <Text className="text-sm text-slate-500">{subtitle}</Text>}
       </div>
       {label && <Text className="text-sm text-slate-500">{label}</Text>}

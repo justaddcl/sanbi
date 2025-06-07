@@ -1,6 +1,6 @@
 "use client";
 
-import { type PropsWithChildren, useState } from "react";
+import { useState } from "react";
 import { CaretDown, CaretUp } from "@phosphor-icons/react";
 
 import { Button } from "@components/ui/button";
@@ -15,6 +15,7 @@ type BaseCardProps = React.PropsWithChildren & {
 
 type CardPropsWithHeader = BaseCardProps & {
   header: React.ReactElement;
+  headerClassName?: never;
   title?: never;
   badge?: never;
   badgeAlignStart?: never;
@@ -31,6 +32,7 @@ type CardPropsWithHeader = BaseCardProps & {
 
 type CardPropsWithoutHeader = BaseCardProps & {
   header?: never;
+  headerClassName?: string;
   title: string;
   badge?: React.ReactElement;
   badgeAlignStart?: boolean;
@@ -49,6 +51,7 @@ type CardProps = CardPropsWithHeader | CardPropsWithoutHeader;
 
 export const Card: React.FC<CardProps> = ({
   header,
+  headerClassName,
   title,
   badge,
   badgeAlignStart = true,
@@ -76,23 +79,6 @@ export const Card: React.FC<CardProps> = ({
     ((isExpanded && !hideBadgeWhenExpanded) ||
       (!isExpanded && !hideBadgeWhenCollapsed));
 
-  const HeaderWrapper: React.FC<PropsWithChildren> = ({ children }) =>
-    isCollapsible ? (
-      <Button
-        size="sm"
-        variant="ghost"
-        className="flex h-full px-0 hover:bg-slate-50"
-        onClick={(clickEvent) => {
-          clickEvent.preventDefault();
-          setIsExpanded((isExpanded) => !isExpanded);
-        }}
-      >
-        {children}
-      </Button>
-    ) : (
-      children
-    );
-
   return (
     <VStack
       className={cn(
@@ -105,17 +91,26 @@ export const Card: React.FC<CardProps> = ({
         {header ? (
           header
         ) : (
-          <HeaderWrapper>
-            <HStack
-              className={cn(
-                "flex-wrap items-baseline justify-between gap-4 lg:pr-4",
-                {
-                  "w-full p-3": isCollapsible,
-                },
-              )}
+          <HStack
+            className={cn(
+              "flex-wrap items-center gap-2 md:gap-4 lg:pr-4",
+              {
+                "w-full p-3": isCollapsible,
+              },
+              headerClassName,
+            )}
+          >
+            <Button
+              size="sm"
+              variant="ghost"
+              className="flex h-full flex-1 px-0 hover:bg-slate-50"
+              onClick={(clickEvent) => {
+                clickEvent.preventDefault();
+                setIsExpanded((isExpanded) => !isExpanded);
+              }}
             >
               <HStack
-                className={cn("flex-1 gap-4", {
+                className={cn("flex-1 items-center gap-4", {
                   "justify-start": badgeAlignStart,
                   "justify-between": badgeAlignEnd,
                 })}
@@ -123,38 +118,49 @@ export const Card: React.FC<CardProps> = ({
                 <Text
                   asElement="h3"
                   style="header-medium-semibold"
-                  className="text-l flex-wrap md:text-xl"
+                  className="font-medium md:text-lg md:text-slate-700 lg:font-semibold"
                 >
                   {title}
                 </Text>
                 {shouldShowBadge && badge}
               </HStack>
-              {(!!isCollapsible || hasButton) && (
-                <HStack className="flex items-start gap-2">
-                  {isCollapsible && (isExpanded ? <CaretUp /> : <CaretDown />)}
-                  {hasButton && (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={(clickEvent) => {
-                        clickEvent.preventDefault();
-                        buttonOnClick?.();
-                      }}
-                    >
-                      {buttonLabel}
-                    </Button>
-                  )}
-                  {!!actionMenu && actionMenu}
-                </HStack>
-              )}
-            </HStack>
-          </HeaderWrapper>
+            </Button>
+            {(!!isCollapsible || hasButton) && (
+              <HStack className="flex items-start gap-1 md:gap-2">
+                {isCollapsible && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={(clickEvent) => {
+                      clickEvent.preventDefault();
+                      setIsExpanded((isExpanded) => !isExpanded);
+                    }}
+                  >
+                    {isExpanded ? <CaretUp /> : <CaretDown />}
+                  </Button>
+                )}
+                {hasButton && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={(clickEvent) => {
+                      clickEvent.preventDefault();
+                      buttonOnClick?.();
+                    }}
+                  >
+                    {buttonLabel}
+                  </Button>
+                )}
+                {!!actionMenu && actionMenu}
+              </HStack>
+            )}
+          </HStack>
         )}
       </VStack>
       {shouldShowChildren && (
-        <VStack>
-          <hr className={cn("mt-1 bg-slate-100 lg:mt-2")} />
-          <div className={cn("p-4")}>{children}</div>
+        <VStack className="mt-1 md:mt-2">
+          <hr className={cn("bg-slate-100")} />
+          <div className={cn("p-3")}>{children}</div>
         </VStack>
       )}
     </VStack>

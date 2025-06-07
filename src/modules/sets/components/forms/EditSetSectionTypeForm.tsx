@@ -133,26 +133,26 @@ export const EditSetSectionTypeForm: React.FC<EditSetSectionTypeFormProps> = ({
 
   return (
     <Form {...updateSetSectionForm}>
-      <Button
-        size="sm"
-        variant="ghost"
-        className="flex h-full justify-between px-0 hover:bg-slate-50"
-        onClick={(clickEvent) => {
-          clickEvent.preventDefault();
-          setIsExpanded((isExpanded) => !isExpanded);
-        }}
+      <form
+        className="w-full"
+        onSubmit={updateSetSectionForm.handleSubmit(handleUpdateSetSection)}
       >
-        <form
-          className="w-full p-3"
-          onSubmit={updateSetSectionForm.handleSubmit(handleUpdateSetSection)}
-        >
-          {!isEditing && (
-            <HStack className="w-full flex-wrap items-baseline justify-between gap-4 lg:gap-16 lg:pr-4">
-              <HStack className="gap-2 lg:gap-4">
+        {!isEditing && (
+          <HStack className="w-full flex-wrap items-center justify-between gap-4 lg:pr-4">
+            <Button
+              size="sm"
+              variant="ghost"
+              className="hover:bg-initial flex h-full flex-1 justify-between p-3"
+              onClick={(clickEvent) => {
+                clickEvent.preventDefault();
+                setIsExpanded((isExpanded) => !isExpanded);
+              }}
+            >
+              <HStack className="items-center gap-2 lg:gap-4">
                 <Text
                   asElement="h3"
                   style="header-medium-semibold"
-                  className="text-l flex-wrap md:text-xl"
+                  className="text-wrap text-lg md:text-xl"
                 >
                   {section.type.name}
                 </Text>
@@ -168,102 +168,113 @@ export const EditSetSectionTypeForm: React.FC<EditSetSectionTypeFormProps> = ({
                   </Badge>
                 ) : null}
               </HStack>
-              <HStack className="flex items-center gap-2">
-                {isExpanded ? <CaretUp /> : <CaretDown />}
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={(clickEvent) => {
-                    clickEvent.preventDefault();
-                    openAddSongDialogWithPrePopulatedSection();
-                  }}
-                >
-                  <Plus className="text-slate-900" size={16} />
-                  <span className="hidden sm:inline">Add song</span>
-                </Button>
-                {withActionsMenu && (
-                  <SetSectionActionMenu
-                    setSection={section}
-                    setSectionsLength={setSectionsLength}
-                    isInFirstSection={isFirstSection}
-                    isInLastSection={isLastSection}
-                    setIsEditingSectionType={setIsEditing}
-                  />
-                )}
-              </HStack>
-            </HStack>
-          )}
-          {isEditing && (
-            <VStack className="gap-4">
-              <FormField
-                control={updateSetSectionForm.control}
-                name="sectionTypeId"
-                render={({ field }) => {
-                  const matchingSetSectionType = setSectionTypesOptions.find(
-                    (setSectionType) => setSectionType.id === field.value,
-                  );
-
-                  const value: ComboboxOption = {
-                    id: matchingSetSectionType?.id ?? "",
-                    label: matchingSetSectionType?.label ?? "",
-                  };
-
-                  return (
-                    <FormItem>
-                      <VStack className="gap-2">
-                        <FormLabel>
-                          <Text
-                            asElement="h3"
-                            style="header-medium-semibold"
-                            className="flex-wrap"
-                          >
-                            Section type
-                          </Text>
-                        </FormLabel>
-                        <FormControl>
-                          <SetSectionTypeCombobox
-                            value={value}
-                            onChange={(selectedValue) => {
-                              field.onChange(selectedValue?.id);
-                            }}
-                            textStyles={cn("text-slate-700", textSize)}
-                            organizationId={userMembership.organizationId}
-                            onCreateSuccess={(newSectionType) =>
-                              field.onChange(newSectionType.id)
-                            }
-                          />
-                        </FormControl>
-                      </VStack>
-                    </FormItem>
-                  );
+            </Button>
+            <HStack className="flex items-center gap-1 md:gap-2">
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={(clickEvent) => {
+                  clickEvent.preventDefault();
+                  clickEvent.stopPropagation();
+                  openAddSongDialogWithPrePopulatedSection();
                 }}
-              />
-              <HStack className="flex items-start gap-2 self-end">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => {
-                    resetForm({
-                      sectionTypeId: section.sectionTypeId,
-                    });
-                    setIsEditing(false);
-                  }}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  size="sm"
-                  type="submit"
-                  disabled={shouldUpdateSectionButtonBeDisabled}
-                  isLoading={isSubmitting}
-                >
-                  Update section
-                </Button>
-              </HStack>
-            </VStack>
-          )}
-        </form>
-      </Button>
+              >
+                <Plus className="text-slate-900" size={16} />
+                <span className="hidden sm:inline">Add song</span>
+              </Button>
+              {withActionsMenu && (
+                <SetSectionActionMenu
+                  setSection={section}
+                  setSectionsLength={setSectionsLength}
+                  isInFirstSection={isFirstSection}
+                  isInLastSection={isLastSection}
+                  setIsEditingSectionType={setIsEditing}
+                />
+              )}
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={(clickEvent) => {
+                  clickEvent.preventDefault();
+                  clickEvent.stopPropagation();
+                  setIsExpanded((isExpanded) => !isExpanded);
+                }}
+              >
+                {isExpanded ? <CaretUp /> : <CaretDown />}
+              </Button>
+            </HStack>
+          </HStack>
+        )}
+        {isEditing && (
+          <VStack className="gap-4 p-3">
+            <FormField
+              control={updateSetSectionForm.control}
+              name="sectionTypeId"
+              render={({ field }) => {
+                const matchingSetSectionType = setSectionTypesOptions.find(
+                  (setSectionType) => setSectionType.id === field.value,
+                );
+
+                const value: ComboboxOption = {
+                  id: matchingSetSectionType?.id ?? "",
+                  label: matchingSetSectionType?.label ?? "",
+                };
+
+                return (
+                  <FormItem>
+                    <VStack className="gap-2">
+                      <FormLabel>
+                        <Text
+                          asElement="h3"
+                          style="header-medium-semibold"
+                          className="flex-wrap"
+                        >
+                          Section type
+                        </Text>
+                      </FormLabel>
+                      <FormControl>
+                        <SetSectionTypeCombobox
+                          value={value}
+                          onChange={(selectedValue) => {
+                            field.onChange(selectedValue?.id);
+                          }}
+                          textStyles={cn("text-slate-700", textSize)}
+                          organizationId={userMembership.organizationId}
+                          onCreateSuccess={(newSectionType) =>
+                            field.onChange(newSectionType.id)
+                          }
+                        />
+                      </FormControl>
+                    </VStack>
+                  </FormItem>
+                );
+              }}
+            />
+            <HStack className="flex items-start gap-2 self-end">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  resetForm({
+                    sectionTypeId: section.sectionTypeId,
+                  });
+                  setIsEditing(false);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                size="sm"
+                type="submit"
+                disabled={shouldUpdateSectionButtonBeDisabled}
+                isLoading={isSubmitting}
+              >
+                Update section
+              </Button>
+            </HStack>
+          </VStack>
+        )}
+      </form>
     </Form>
   );
 };
