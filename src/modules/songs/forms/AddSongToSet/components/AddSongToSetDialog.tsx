@@ -77,6 +77,8 @@ export const AddSongToSetDialog: React.FC<AddSongToSetDialogProps> = ({
     null,
   );
 
+  const [songPosition, setSongPosition] = useState<number | null>(null);
+
   const totalSteps = Object.values(AddSongToSetDialogStep).filter(
     (value) => typeof value === "number",
   ).length;
@@ -88,14 +90,17 @@ export const AddSongToSetDialog: React.FC<AddSongToSetDialogProps> = ({
       setCurrentStep(currentStep - 1);
       // setCurrentStep((step) => step - 1);
     } else {
-      handleClose();
+      resetDialog();
     }
   };
 
-  const handleClose = () => {
+  const resetDialog = () => {
     setIsOpen(false);
     setIsCreatingNewSet(false);
     setCurrentStep(AddSongToSetDialogStep.SELECT_SET);
+    setSelectedSet(null);
+    setSelectedSetSection(null);
+    setSongPosition(null);
   };
 
   const renderStepContent = () => {
@@ -133,6 +138,7 @@ export const AddSongToSetDialog: React.FC<AddSongToSetDialogProps> = ({
                 "🚀 ~ AddSongToSetDialog.tsx:120 ~ renderStepContent ~ songPosition:",
                 songPosition,
               );
+              setSongPosition(songPosition);
             }}
           />
         );
@@ -142,7 +148,15 @@ export const AddSongToSetDialog: React.FC<AddSongToSetDialogProps> = ({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        setIsOpen(open);
+        if (!open) {
+          resetDialog();
+        }
+      }}
+    >
       <DialogTrigger>
         <Button>
           <Plus /> Add to a set
@@ -165,7 +179,7 @@ export const AddSongToSetDialog: React.FC<AddSongToSetDialogProps> = ({
           step={currentStep}
           totalSteps={totalSteps}
           onBack={goBack}
-          onClose={handleClose}
+          onClose={resetDialog}
           isCreatingNewSet={isCreatingNewSet}
         />
         {renderStepContent()}
