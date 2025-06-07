@@ -1,13 +1,17 @@
 "use client";
 
+import { type PropsWithChildren, useState } from "react";
+import { CaretDown, CaretUp } from "@phosphor-icons/react";
+
+import { Button } from "@components/ui/button";
 import { HStack } from "@components/HStack";
 import { Text } from "@components/Text";
-import { Button } from "@components/ui/button";
 import { VStack } from "@components/VStack";
-import { CaretDown, CaretUp } from "@phosphor-icons/react";
-import { useState } from "react";
+import { cn } from "@lib/utils";
 
-type BaseCardProps = React.PropsWithChildren;
+type BaseCardProps = React.PropsWithChildren & {
+  className?: string;
+};
 
 type CardPropsWithHeader = BaseCardProps & {
   header: React.ReactElement;
@@ -45,6 +49,7 @@ export const Card: React.FC<CardProps> = ({
   buttonLabel,
   buttonOnClick,
   actionMenu,
+  className,
   children,
 }) => {
   const [isExpanded, setIsExpanded] = useState<boolean>(
@@ -55,14 +60,44 @@ export const Card: React.FC<CardProps> = ({
   const shouldShowChildren =
     externalIsExpanded ?? (isCollapsible ? isExpanded : true);
 
+  const HeaderWrapper: React.FC<PropsWithChildren> = ({ children }) =>
+    isCollapsible ? (
+      <Button
+        size="sm"
+        variant="ghost"
+        className="flex h-full px-0 hover:bg-slate-50"
+        onClick={(clickEvent) => {
+          clickEvent.preventDefault();
+          setIsExpanded((isExpanded) => !isExpanded);
+        }}
+      >
+        {children}
+      </Button>
+    ) : (
+      children
+    );
+
   return (
-    <VStack className="gap-4 rounded-lg border p-4 md:gap-4 lg:p-6">
+    <VStack
+      className={cn(
+        "rounded-lg border p-1",
+        { "lg:p-2": !isCollapsible },
+        className,
+      )}
+    >
       <VStack as="header" className="gap-4">
         {header ? (
           header
         ) : (
-          <>
-            <HStack className="flex-wrap items-baseline justify-between gap-4 lg:gap-16 lg:pr-4">
+          <HeaderWrapper>
+            <HStack
+              className={cn(
+                "flex-wrap items-baseline justify-between gap-4 lg:gap-16 lg:pr-4",
+                {
+                  "w-full p-3": isCollapsible,
+                },
+              )}
+            >
               <Text
                 asElement="h3"
                 style="header-medium-semibold"
@@ -73,18 +108,7 @@ export const Card: React.FC<CardProps> = ({
               {!!badge && badge}
               {(!!isCollapsible || hasButton) && (
                 <HStack className="flex items-start gap-2">
-                  {isCollapsible && (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={(clickEvent) => {
-                        clickEvent.preventDefault();
-                        setIsExpanded((isExpanded) => !isExpanded);
-                      }}
-                    >
-                      {isExpanded ? <CaretUp /> : <CaretDown />}
-                    </Button>
-                  )}
+                  {isCollapsible && (isExpanded ? <CaretUp /> : <CaretDown />)}
                   {hasButton && (
                     <Button
                       size="sm"
@@ -101,13 +125,13 @@ export const Card: React.FC<CardProps> = ({
                 </HStack>
               )}
             </HStack>
-          </>
+          </HeaderWrapper>
         )}
       </VStack>
       {shouldShowChildren && (
         <VStack>
-          <hr className="mb-4 bg-slate-100" />
-          {children}
+          <hr className={cn("mt-1 bg-slate-100 lg:mt-2")} />
+          <div className={cn("p-4")}>{children}</div>
         </VStack>
       )}
     </VStack>

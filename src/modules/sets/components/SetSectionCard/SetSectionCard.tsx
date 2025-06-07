@@ -1,9 +1,10 @@
-import { VStack } from "@components/VStack";
-import { type SetSectionWithSongs } from "@lib/types";
-import { SongItem } from "@modules/SetListCard";
-import { useState, type FC } from "react";
-import { EditSetSectionTypeForm } from "../forms/EditSetSectionTypeForm";
+import { type FC, useState } from "react";
+
 import { Card } from "@components/Card/Card";
+import { SongItem } from "@modules/SetListCard";
+import { type SetSectionWithSongs } from "@lib/types";
+
+import { EditSetSectionTypeForm } from "../forms/EditSetSectionTypeForm";
 
 export type SetSectionCardProps = {
   /** The section data including songs, type, and position */
