@@ -236,6 +236,7 @@ export const setRouter = createTRPCRouter({
         .select({
           id: sets.id,
           date: sets.date,
+          eventTypeId: sets.eventTypeId,
           eventType: eventTypes.name,
           songCount: sql<number>`COUNT(${setSectionSongs.songId})`
             .mapWith(Number)
@@ -249,7 +250,7 @@ export const setRouter = createTRPCRouter({
           eq(setSectionSongs.setSectionId, setSections.id),
         )
         .where(and(...whereClauses))
-        .groupBy(sets.id, sets.date, eventTypes.name)
+        .groupBy(sets.id, sets.date, sets.eventTypeId, eventTypes.name)
         .orderBy(asc(sets.date), asc(sets.eventTypeId))
         .limit(limit + 1);
 
