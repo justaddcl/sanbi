@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import { Plus } from "@phosphor-icons/react";
+import { type inferProcedureOutput } from "@trpc/server";
 
 import { Button } from "@components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@components/ui/dialog";
@@ -9,8 +10,10 @@ import {
   SetSelectionStep,
 } from "@modules/songs/forms/AddSongToSet/components";
 import { type SetType } from "@lib/types";
+import { type AppRouter } from "@server/api/root";
 
 import { SetSectionSelectionStep } from "./SetSectionSelectionStep";
+import { SetSongPositionStep } from "./SetSongPositionStep";
 
 export type SelectedSet = Pick<SetType, "id"> & {
   // TODO: return this directly from the set/get route
@@ -56,7 +59,13 @@ const contentMap: Record<
   },
 };
 
-export const AddSongToSetDialog: React.FC = ({}) => {
+type AddSongToSetDialogProps = {
+  song: inferProcedureOutput<AppRouter["song"]["get"]>;
+};
+
+export const AddSongToSetDialog: React.FC<AddSongToSetDialogProps> = ({
+  song,
+}) => {
   const [isOpen, setIsOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(
     AddSongToSetDialogStep.SELECT_SET,
@@ -111,6 +120,19 @@ export const AddSongToSetDialog: React.FC = ({}) => {
             onSelectSetSection={(setSectionId) => {
               setSelectedSetSection(setSectionId);
               setCurrentStep(AddSongToSetDialogStep.SET_POSITION);
+            }}
+          />
+        );
+      case AddSongToSetDialogStep.SET_POSITION:
+        return (
+          <SetSongPositionStep
+            selectedSetSection={selectedSetSection}
+            song={song}
+            onSongPositionSet={(songPosition) => {
+              console.log(
+                "🚀 ~ AddSongToSetDialog.tsx:120 ~ renderStepContent ~ songPosition:",
+                songPosition,
+              );
             }}
           />
         );

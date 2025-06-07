@@ -79,7 +79,7 @@ export const SongDetailsPageHeader: React.FC<SongDetailsPageHeaderProps> = ({
           <Heart weight={song.favoritedAt ? "fill" : "regular"} />
         </Button>
         <div className="hidden md:flex">
-          <AddSongToSetDialog />
+          <AddSongToSetDialog song={song} />
         </div>
         <SongActionsMenu
           songId={song.id}
