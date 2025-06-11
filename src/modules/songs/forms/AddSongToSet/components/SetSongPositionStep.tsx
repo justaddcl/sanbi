@@ -2,10 +2,16 @@ import { type inferProcedureOutput } from "@trpc/server";
 
 import { Text } from "@components/Text";
 import { VStack } from "@components/VStack";
-import { SongContent } from "@modules/SetListCard/components/SongContent";
+import { DraggableSongItem } from "@modules/shared/components/DraggableSongItem/DraggableSongItem";
+import {
+  DraggableSongList,
+  DraggableSongListProps,
+} from "@modules/shared/components/DraggableSongList/DraggableSongList";
 import { useUserQuery } from "@modules/users/api/queries";
 import { type AppRouter } from "@server/api/root";
 import { api } from "@/trpc/react";
+import { Song } from "@lib/types";
+import { draggable } from "@atlaskit/pragmatic-drag-and-drop/dist/types/adapter/element-adapter";
 
 type SetSongPositionStepProps = {
   selectedSetSection: string | null;
@@ -34,6 +40,21 @@ export const SetSongPositionStep: React.FC<SetSongPositionStepProps> = ({
     return null;
   }
 
+  const draggableSongItems: DraggableSongListProps["songs"] =
+    setSectionData.songs.map((setSectionSong) => ({
+      id: setSectionSong.id,
+      songKey: setSectionSong.key,
+      name: setSectionSong.song.name,
+    }));
+
+  // adds new song to song items
+  // TODO: add some way of indicating this is the new song
+  draggableSongItems.push({
+    id: song.id,
+    songKey: song.preferredKey,
+    name: song.name,
+  });
+
   return (
     <VStack className="gap-4 p-4 pt-2">
       {/* <VStack className="gap-1">
@@ -56,17 +77,7 @@ export const SetSongPositionStep: React.FC<SetSongPositionStepProps> = ({
         <Text className="text-lg font-medium text-slate-900">
           When in the section will you play {song.name}?
         </Text>
-        <VStack className="gap-2">
-          {setSectionData.songs &&
-            setSectionData.songs.length > 0 &&
-            setSectionData.songs.map((setSectionSong, songPosition) => (
-              <SongContent
-                key={setSectionSong.id}
-                setSectionSong={setSectionSong}
-                index={songPosition + 1}
-              />
-            ))}
-        </VStack>
+        <DraggableSongList songs={draggableSongItems} />
       </VStack>
     </VStack>
   );

@@ -1,16 +1,29 @@
-import { cn } from "@/lib/utils";
-import { type PolymorphicComponentProps } from "@lib/types";
+import React from "react";
 
-export const HStack = <HTMLElement extends React.ElementType = "div">({
-  as,
-  children,
-  className,
-  ...props
-}: PolymorphicComponentProps<HTMLElement>) => {
-  const HTMLElement = as ?? "div";
-  return (
-    <HTMLElement className={cn(`flex flex-row`, className)} {...props}>
-      {children}
-    </HTMLElement>
-  );
-};
+import { type PolymorphicComponentProps } from "@lib/types";
+import { cn } from "@/lib/utils";
+
+export const HStack = React.forwardRef(
+  <HTMLElement extends React.ElementType = "div">(
+    {
+      as,
+      children,
+      className,
+      ...props
+    }: PolymorphicComponentProps<HTMLElement>,
+    ref: React.ComponentPropsWithRef<HTMLElement>["ref"],
+  ) => {
+    const HTMLElement = as ?? "div";
+    return (
+      <HTMLElement
+        ref={ref}
+        className={cn(`flex flex-row`, className)}
+        {...props}
+      >
+        {children}
+      </HTMLElement>
+    );
+  },
+);
+
+HStack.displayName = "HStack";

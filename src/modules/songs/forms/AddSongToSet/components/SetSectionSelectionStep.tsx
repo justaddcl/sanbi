@@ -87,7 +87,9 @@ export const SetSectionSelectionStep: React.FC<
                   section.songs.map((setSectionSong, songPosition) => (
                     <SongContent
                       key={setSectionSong.id}
-                      setSectionSong={setSectionSong}
+                      songKey={setSectionSong.key}
+                      name={setSectionSong.song.name}
+                      notes={setSectionSong.notes}
                       index={songPosition + 1}
                     />
                   ))}

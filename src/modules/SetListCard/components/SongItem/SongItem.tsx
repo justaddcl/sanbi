@@ -179,7 +179,12 @@ export const SongItem: React.FC<SongItemProps> = ({
                 updateForm={updateSetSectionSongForm}
               />
             ) : (
-              <SongContent setSectionSong={setSectionSong} index={index} />
+              <SongContent
+                songKey={setSectionSong.key}
+                name={setSectionSong.song.name}
+                notes={setSectionSong.notes}
+                index={index}
+              />
             )}
             {props.withActionsMenu && !isEditingDetails && (
               <SongActionMenu

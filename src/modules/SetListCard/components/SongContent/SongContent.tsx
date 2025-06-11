@@ -4,11 +4,14 @@ import { HStack } from "@components/HStack";
 import { SongKey } from "@components/SongKey";
 import { Text } from "@components/Text";
 import { VStack } from "@components/VStack";
-import { type SetSectionSongWithSongData } from "@lib/types";
+import { type Song } from "@lib/types";
 
 export type SongContentProps = {
-  /** The set section song object containing song details and metadata */
-  setSectionSong: SetSectionSongWithSongData;
+  songKey: Song["preferredKey"];
+
+  name: Song["name"];
+
+  notes?: string | null;
 
   /** The 1-based index position of this song in the overall set list */
   index: number;
@@ -19,7 +22,9 @@ export type SongContentProps = {
  * Used as an internal component within SongItem
  */
 export const SongContent: React.FC<SongContentProps> = ({
-  setSectionSong,
+  songKey,
+  name,
+  notes,
   index,
 }) => {
   return (
@@ -33,14 +38,14 @@ export const SongContent: React.FC<SongContentProps> = ({
       </Text>
       <VStack className="flex flex-grow flex-col gap-4">
         <HStack className="flex items-baseline gap-2">
-          <SongKey songKey={setSectionSong.key} />
+          <SongKey songKey={songKey} />
           <Text fontWeight="semibold" className="text-sm">
-            {setSectionSong.song.name}
+            {name}
           </Text>
         </HStack>
-        {setSectionSong.notes ? (
+        {notes ? (
           <Text style="small" color="slate-700">
-            {unescapeHTML(setSectionSong.notes)}
+            {unescapeHTML(notes)}
           </Text>
         ) : null}
       </VStack>
