@@ -14,7 +14,7 @@ import {
 
 export type DraggableSongItem = {
   id: string;
-  songKey: SongContentProps["songKey"];
+  songKey?: SongContentProps["songKey"];
   name: SongContentProps["name"];
   index: SongContentProps["index"];
 };

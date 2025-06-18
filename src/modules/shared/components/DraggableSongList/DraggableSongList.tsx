@@ -26,7 +26,7 @@ import { cn } from "@lib/utils";
 import { DraggableSongListContext } from "../DraggableSongListContext/DraggableSongListContext";
 
 type ActiveDraggableSongItem = Pick<Song, "id" | "name"> & {
-  songKey: Song["preferredKey"];
+  songKey?: Song["preferredKey"];
   index: SetSectionSong["position"];
 };
 

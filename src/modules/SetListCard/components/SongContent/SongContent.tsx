@@ -8,7 +8,7 @@ import { type Song } from "@lib/types";
 import { cn } from "@lib/utils";
 
 export type SongContentProps = {
-  songKey: Song["preferredKey"];
+  songKey?: Song["preferredKey"];
 
   name: Song["name"];
 
@@ -52,7 +52,7 @@ export const SongContent: React.FC<SongContentProps> = ({
       )}
       <VStack className="flex flex-grow flex-col gap-4">
         <HStack className="flex items-baseline gap-2">
-          <SongKey songKey={songKey} />
+          {songKey && <SongKey songKey={songKey} />}
           <Text
             fontWeight="semibold"
             className={cn("text-sm", { "text-slate-500": disabled })}

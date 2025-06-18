@@ -11,9 +11,10 @@ import { useUserQuery } from "@modules/users/api/queries";
 import { type AppRouter } from "@server/api/root";
 import { api } from "@/trpc/react";
 
-export type DraggableSongListItem = DraggableSongItem & {
-  type: "new" | "existing";
-};
+export type DraggableSongListItem = Omit<DraggableSongItem, "songKey"> &
+  Partial<Pick<DraggableSongItem, "songKey">> & {
+    type: "new" | "existing";
+  };
 
 type SetSongPositionStepProps = {
   selectedSetSection: string | null;
@@ -62,7 +63,6 @@ export const SetSongPositionStep: React.FC<SetSongPositionStepProps> = ({
     0,
     {
       id: song.id,
-      songKey: song.preferredKey,
       name: song.name,
       index: setSectionData.songs.length + 1,
       type: "new",
