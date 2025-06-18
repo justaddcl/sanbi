@@ -1,29 +1,40 @@
+import { useState } from "react";
+import { draggable } from "@atlaskit/pragmatic-drag-and-drop/dist/types/adapter/element-adapter";
+import { PhoneNumber } from "@clerk/nextjs/server";
 import { type inferProcedureOutput } from "@trpc/server";
 
 import { Text } from "@components/Text";
 import { VStack } from "@components/VStack";
-import { DraggableSongItem } from "@modules/shared/components/DraggableSongItem/DraggableSongItem";
+import { type DraggableSongItem } from "@modules/shared/components/DraggableSongItem/DraggableSongItem";
 import {
   DraggableSongList,
-  DraggableSongListProps,
+  type DraggableSongListProps,
 } from "@modules/shared/components/DraggableSongList/DraggableSongList";
 import { useUserQuery } from "@modules/users/api/queries";
+import { Song } from "@lib/types";
 import { type AppRouter } from "@server/api/root";
 import { api } from "@/trpc/react";
-import { Song } from "@lib/types";
-import { draggable } from "@atlaskit/pragmatic-drag-and-drop/dist/types/adapter/element-adapter";
+
+export type DraggableSongListItem = DraggableSongItem & {
+  type: "new" | "existing";
+};
 
 type SetSongPositionStepProps = {
   selectedSetSection: string | null;
   song: inferProcedureOutput<AppRouter["song"]["get"]>;
+  newSongInitialPosition: number;
   onSongPositionSet: (songPosition: number) => void;
 };
 
 export const SetSongPositionStep: React.FC<SetSongPositionStepProps> = ({
   selectedSetSection,
   song,
+  newSongInitialPosition,
   onSongPositionSet,
 }) => {
+  const [selectedPosition, setSelectedPosition] = useState<number>(
+    newSongInitialPosition,
+  );
   const { userMembership } = useUserQuery();
 
   if (!selectedSetSection || !userMembership) {
@@ -40,20 +51,27 @@ export const SetSongPositionStep: React.FC<SetSongPositionStepProps> = ({
     return null;
   }
 
-  const draggableSongItems: DraggableSongListProps["songs"] =
-    setSectionData.songs.map((setSectionSong) => ({
+  const draggableSongItems: DraggableSongListItem[] = setSectionData.songs.map(
+    (setSectionSong) => ({
       id: setSectionSong.id,
       songKey: setSectionSong.key,
       name: setSectionSong.song.name,
-    }));
+      index: setSectionSong.position,
+      type: "existing",
+    }),
+  );
 
-  // adds new song to song items
-  // TODO: add some way of indicating this is the new song
-  draggableSongItems.push({
-    id: song.id,
-    songKey: song.preferredKey,
-    name: song.name,
-  });
+  const draggableSongItemsWithNewSong = draggableSongItems.toSpliced(
+    newSongInitialPosition,
+    0,
+    {
+      id: song.id,
+      songKey: song.preferredKey,
+      name: song.name,
+      index: setSectionData.songs.length + 1,
+      type: "new",
+    },
+  );
 
   return (
     <VStack className="gap-4 p-4 pt-2">
@@ -77,7 +95,14 @@ export const SetSongPositionStep: React.FC<SetSongPositionStepProps> = ({
         <Text className="text-lg font-medium text-slate-900">
           When in the section will you play {song.name}?
         </Text>
-        <DraggableSongList songs={draggableSongItems} />
+        <DraggableSongList
+          songs={draggableSongItemsWithNewSong}
+          onDragEnd={(songItems) => {
+            setSelectedPosition(
+              songItems.findIndex((songItem) => songItem.id === song.id),
+            );
+          }}
+        />
       </VStack>
     </VStack>
   );

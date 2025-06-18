@@ -13,7 +13,10 @@ import { api } from "@/trpc/react";
 
 type SetSectionSelectionStepProps = {
   selectedSet: SelectedSet | null;
-  onSelectSetSection: (setSectionId: string) => void;
+  onSelectSetSection: (
+    setSectionId: string,
+    setSectionSongCount: number,
+  ) => void;
 };
 
 export const SetSectionSelectionStep: React.FC<
@@ -70,7 +73,7 @@ export const SetSectionSelectionStep: React.FC<
                   size="sm"
                   onClick={(clickEvent) => {
                     clickEvent.stopPropagation();
-                    onSelectSetSection(section.id);
+                    onSelectSetSection(section.id, section.songs.length);
                   }}
                 >
                   <span className="md:hidden">Select</span>

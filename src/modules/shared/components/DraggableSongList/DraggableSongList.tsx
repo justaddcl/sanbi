@@ -1,113 +1,174 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { monitorForElements } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
-
-import { VStack } from "@components/VStack";
-import { type SongContentProps } from "@modules/SetListCard/components/SongContent";
-
 import {
-  DraggableSongItem,
-  DraggableSongItemProps,
-  isDraggableSongItem,
-} from "@modules/shared/components/DraggableSongItem/DraggableSongItem";
-import { extractClosestEdge } from "@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge";
-import { flushSync } from "react-dom";
-import { reorderWithEdge } from "@atlaskit/pragmatic-drag-and-drop-hitbox/util/reorder-with-edge";
-import { triggerPostMoveFlash } from "@atlaskit/pragmatic-drag-and-drop-flourish/trigger-post-move-flash";
+  type DragOverEvent,
+  DragOverlay,
+  type DragStartEvent,
+  KeyboardSensor,
+  PointerSensor,
+  type UniqueIdentifier,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { DotsSixVertical } from "@phosphor-icons/react";
+import React, { useState } from "react";
+import { createPortal } from "react-dom";
+
+import { HStack } from "@components/HStack";
+import { VStack } from "@components/VStack";
+import { type SetSectionSong, type Song } from "@lib/types";
+import { cn } from "@lib/utils";
+import { SongContent } from "@modules/SetListCard/components/SongContent";
+import { DraggableSongItem } from "@modules/shared/components/DraggableSongItem/DraggableSongItem";
+
+import { DraggableSongListItem } from "@modules/songs/forms/AddSongToSet/components/SetSongPositionStep";
+import { DraggableSongListContext } from "../DraggableSongListContext/DraggableSongListContext";
+
+type ActiveDraggableSongItem = Pick<Song, "id" | "name"> & {
+  songKey: Song["preferredKey"];
+  index: SetSectionSong["position"];
+};
 
 export type DraggableSongListProps = {
-  songs: Omit<DraggableSongItemProps["song"], "index">[];
+  songs: DraggableSongListItem[];
+  onDragEnd: (songItems: DraggableSongItem[]) => void;
 };
 
 export const DraggableSongList: React.FC<DraggableSongListProps> = ({
   songs,
+  onDragEnd,
 }) => {
-  const [songItems, setSongItems] =
-    useState<DraggableSongListProps["songs"]>(songs);
+  const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
+  const [activeSongItem, setActiveSongItem] =
+    useState<ActiveDraggableSongItem | null>(null);
+  const [songItems, setSongItems] = useState<DraggableSongListItem[]>(songs);
 
-  useEffect(() => {
-    return monitorForElements({
-      canMonitor: ({ source }) => isDraggableSongItem(source.data),
-      onDrop({ location, source }) {
-        const [target] = location.current.dropTargets;
-        if (!target) {
-          return;
-        }
-
-        const sourceData = source.data;
-        const targetData = target.data;
-
-        console.log("🚀 ~ DraggableSongList.tsx:32 ~ onDrop:", {
-          sourceData,
-          targetData,
-        });
-
-        if (
-          !isDraggableSongItem(sourceData) ||
-          !isDraggableSongItem(targetData)
-        ) {
-          return;
-        }
-
-        const indexOfSource = songItems.findIndex(
-          (song) => song.id === sourceData.id,
-        );
-        const indexOfTarget = songItems.findIndex(
-          (song) => song.id === targetData.id,
-        );
-
-        console.log(
-          "🚀 ~ DraggableSongList.tsx:56 ~ onDrop ~ index Of Source and target:",
-          { indexOfSource, indexOfTarget },
-        );
-
-        if (indexOfTarget < 0 || indexOfSource < 0) {
-          return;
-        }
-
-        const closestEdgeOfTarget = extractClosestEdge(targetData);
-
-        console.log(
-          "🚀 ~ DraggableSongList.tsx:57 ~ onDrop ~ closestEdgeOfTarget:",
-          closestEdgeOfTarget,
-        );
-
-        flushSync(() => {
-          setSongItems(
-            reorderWithEdge({
-              list: songItems,
-              startIndex: indexOfSource,
-              indexOfTarget,
-              closestEdgeOfTarget,
-              axis: "vertical",
-            }),
-          );
-        });
-
-        const element = document.querySelector(
-          `[data-song-id="${sourceData.id}"]`,
-        );
-        if (element instanceof HTMLElement) {
-          triggerPostMoveFlash(element);
-        }
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
       },
-    });
-  }, [songItems]);
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  );
+
+  const handleDragStart = (dragStartEvent: DragStartEvent) => {
+    const { active } = dragStartEvent;
+
+    setActiveId(active.id);
+
+    const songBeingDragged = songItems.find(
+      (songItem) => songItem.id === active.id,
+    );
+
+    if (songBeingDragged) {
+      setActiveSongItem({
+        ...songBeingDragged,
+        index:
+          songItems.findIndex(
+            (songItem) => songItem.id === songBeingDragged.id,
+          ) + 1,
+      });
+    }
+  };
+
+  const handleDragOver = (dragOverEvent: DragOverEvent) => {
+    const { active, over } = dragOverEvent;
+
+    if (over?.id && active.id !== over.id) {
+      setSongItems((songItems) => {
+        const oldIndex = songItems.findIndex(
+          (songItem) => songItem.id === active.id,
+        );
+        const newIndex = songItems.findIndex(
+          (songItem) => songItem.id === over?.id,
+        );
+
+        const updatedSongItems = arrayMove(songItems, oldIndex, newIndex);
+
+        const updatedActiveSongItem = updatedSongItems.find(
+          (updatedSongItem) => updatedSongItem.id === active.id,
+        );
+
+        if (updatedActiveSongItem) {
+          setActiveSongItem({
+            ...updatedActiveSongItem,
+            index:
+              updatedSongItems.findIndex(
+                (updatedSongItem) =>
+                  updatedSongItem.id === updatedActiveSongItem.id,
+              ) + 1,
+          });
+        }
+
+        return updatedSongItems;
+      });
+    }
+  };
+
+  const handleDragEnd = () => {
+    setActiveId(null);
+    setActiveSongItem(null);
+
+    onDragEnd(songItems);
+  };
 
   return (
-    <VStack className="gap-2 rounded-lg border p-2">
-      {songItems.map((song, index) => (
-        <DraggableSongItem
-          key={song.id}
-          song={{
-            id: song.id,
-            songKey: song.songKey,
-            name: song.name,
-            index: index + 1,
-          }}
-        />
-      ))}
-    </VStack>
+    <DraggableSongListContext
+      sensors={sensors}
+      onDragStart={handleDragStart}
+      onDragOver={handleDragOver}
+      onDragEnd={handleDragEnd}
+    >
+      <SortableContext
+        items={songItems.map((songItem) => songItem.id)}
+        strategy={verticalListSortingStrategy}
+      >
+        <VStack className="gap-2 rounded-lg border p-2">
+          {songItems.map((song, index) => (
+            <DraggableSongItem
+              id={song.id}
+              disabled={song.type === "existing"}
+              active={song.id === activeId}
+              key={song.id}
+              song={{
+                id: song.id,
+                songKey: song.songKey,
+                name: song.name,
+                index: index + 1,
+              }}
+            />
+          ))}
+        </VStack>
+      </SortableContext>
+      {createPortal(
+        <DragOverlay>
+          {activeId && activeSongItem ? (
+            <HStack
+              className={cn(
+                "max-w-fit gap-1 rounded-lg border bg-white p-3 hover:cursor-grab",
+              )}
+              id={`${activeId}a`}
+            >
+              <DotsSixVertical />
+              <SongContent
+                songKey={activeSongItem.songKey}
+                name={activeSongItem.name}
+                index={activeSongItem.index}
+              />
+            </HStack>
+          ) : null}
+        </DragOverlay>,
+        document.body,
+      )}
+    </DraggableSongListContext>
   );
 };

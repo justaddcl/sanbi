@@ -5,6 +5,7 @@ import { SongKey } from "@components/SongKey";
 import { Text } from "@components/Text";
 import { VStack } from "@components/VStack";
 import { type Song } from "@lib/types";
+import { cn } from "@lib/utils";
 
 export type SongContentProps = {
   songKey: Song["preferredKey"];
@@ -14,7 +15,9 @@ export type SongContentProps = {
   notes?: string | null;
 
   /** The 1-based index position of this song in the overall set list */
-  index: number;
+  index?: number;
+
+  disabled?: boolean;
 };
 
 /**
@@ -26,20 +29,26 @@ export const SongContent: React.FC<SongContentProps> = ({
   name,
   notes,
   index,
+  disabled,
 }) => {
   return (
     <HStack className="w-full items-baseline gap-3 text-xs font-semibold">
-      <Text
-        style="header-medium-semibold"
-        align="right"
-        className="min-w-4 text-slate-400"
-      >
-        {index}.
-      </Text>
+      {index && (
+        <Text
+          style="header-medium-semibold"
+          align="right"
+          className="min-w-4 text-slate-400"
+        >
+          {index}.
+        </Text>
+      )}
       <VStack className="flex flex-grow flex-col gap-4">
         <HStack className="flex items-baseline gap-2">
           <SongKey songKey={songKey} />
-          <Text fontWeight="semibold" className="text-sm">
+          <Text
+            fontWeight="semibold"
+            className={cn("text-sm", { "text-slate-500": disabled })}
+          >
             {name}
           </Text>
         </HStack>

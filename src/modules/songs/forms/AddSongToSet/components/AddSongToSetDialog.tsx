@@ -77,6 +77,7 @@ export const AddSongToSetDialog: React.FC<AddSongToSetDialogProps> = ({
     null,
   );
 
+  const [initialSongPosition, setInitialSongPosition] = useState(0);
   const [songPosition, setSongPosition] = useState<number | null>(null);
 
   const totalSteps = Object.values(AddSongToSetDialogStep).filter(
@@ -122,9 +123,10 @@ export const AddSongToSetDialog: React.FC<AddSongToSetDialogProps> = ({
         return (
           <SetSectionSelectionStep
             selectedSet={selectedSet}
-            onSelectSetSection={(setSectionId) => {
+            onSelectSetSection={(setSectionId, setSectionSongCount) => {
               setSelectedSetSection(setSectionId);
               setCurrentStep(AddSongToSetDialogStep.SET_POSITION);
+              setInitialSongPosition(setSectionSongCount);
             }}
           />
         );
@@ -133,6 +135,7 @@ export const AddSongToSetDialog: React.FC<AddSongToSetDialogProps> = ({
           <SetSongPositionStep
             selectedSetSection={selectedSetSection}
             song={song}
+            newSongInitialPosition={initialSongPosition}
             onSongPositionSet={(songPosition) => {
               console.log(
                 "🚀 ~ AddSongToSetDialog.tsx:120 ~ renderStepContent ~ songPosition:",
