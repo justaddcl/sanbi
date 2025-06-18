@@ -70,7 +70,7 @@ export const SetSelectionStep: React.FC<SetSelectionStepProps> = ({
     <VStack>
       <VStack className="gap-4 px-4 lg:gap-1 lg:px-10">
         <SetSelectionFilters
-          eventTypeFilter={eventTypeFilters}
+          eventTypeFilters={eventTypeFilters}
           setEventTypeFilter={setEventTypeFilters}
           dateFilter={dateFilter}
           setDateFilter={setDateFilter}

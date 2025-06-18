@@ -24,7 +24,7 @@ import { useResponsive } from "@/hooks/useResponsive";
 import { api } from "@/trpc/react";
 
 type SetSelectionFiltersProps = {
-  eventTypeFilter: SetSelectionEventTypeFilters;
+  eventTypeFilters: SetSelectionEventTypeFilters;
   setEventTypeFilter: Dispatch<SetStateAction<SetSelectionEventTypeFilters>>;
   dateFilter?: DatePickerValue<"range">;
   setDateFilter: Dispatch<SetStateAction<DatePickerValue<"range"> | undefined>>;
@@ -32,7 +32,7 @@ type SetSelectionFiltersProps = {
 };
 
 export const SetSelectionFilters: React.FC<SetSelectionFiltersProps> = ({
-  eventTypeFilter,
+  eventTypeFilters,
   setEventTypeFilter,
   dateFilter,
   setDateFilter,
@@ -63,10 +63,10 @@ export const SetSelectionFilters: React.FC<SetSelectionFiltersProps> = ({
   const isLoading = !isAuthLoaded || userQueryLoading || eventTypeQueryLoading;
   const isError = !!userQueryError || !!eventTypeQueryError;
 
-  const eventTypeFilterIds = eventTypeFilter.map((eventType) => eventType.id);
+  const eventTypeFilterIds = eventTypeFilters.map((eventType) => eventType.id);
 
   const handleOnSelectEventType = (eventTypeId: string) => {
-    if (eventTypeFilter.some((filter) => filter.id === eventTypeId)) {
+    if (eventTypeFilters.some((filter) => filter.id === eventTypeId)) {
       setEventTypeFilter((currentFilters) =>
         currentFilters.filter((filter) => filter.id !== eventTypeId),
       );
@@ -75,7 +75,7 @@ export const SetSelectionFilters: React.FC<SetSelectionFiltersProps> = ({
         (eventType) => eventType.id === eventTypeId,
       );
       setEventTypeFilter([
-        ...eventTypeFilter,
+        ...eventTypeFilters,
         { id: eventTypeId, name: eventType?.name ?? "" },
       ]);
     }
@@ -118,7 +118,7 @@ export const SetSelectionFilters: React.FC<SetSelectionFiltersProps> = ({
                     <HStack key={eventType.id} className="items-center gap-3">
                       <Checkbox
                         id={eventType.id}
-                        checked={eventTypeFilter.some(
+                        checked={eventTypeFilters.some(
                           (filter) => filter.id === eventType.id,
                         )}
                         onClick={() => handleOnSelectEventType(eventType.id)}
