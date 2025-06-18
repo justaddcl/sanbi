@@ -138,7 +138,7 @@ export const EditSetSectionTypeForm: React.FC<EditSetSectionTypeFormProps> = ({
         onSubmit={updateSetSectionForm.handleSubmit(handleUpdateSetSection)}
       >
         {!isEditing && (
-          <HStack className="w-full flex-wrap items-center justify-between gap-4 lg:pr-4">
+          <HStack className="w-full flex-wrap items-center justify-between gap-4">
             <Button
               size="sm"
               variant="ghost"

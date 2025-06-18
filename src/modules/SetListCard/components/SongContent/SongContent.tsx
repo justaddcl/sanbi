@@ -18,6 +18,8 @@ export type SongContentProps = {
   index?: number;
 
   disabled?: boolean;
+
+  className?: string;
 };
 
 /**
@@ -30,9 +32,15 @@ export const SongContent: React.FC<SongContentProps> = ({
   notes,
   index,
   disabled,
+  className,
 }) => {
   return (
-    <HStack className="w-full items-baseline gap-3 text-xs font-semibold">
+    <HStack
+      className={cn(
+        "w-full items-baseline gap-3 text-xs font-semibold",
+        className,
+      )}
+    >
       {index && (
         <Text
           style="header-medium-semibold"

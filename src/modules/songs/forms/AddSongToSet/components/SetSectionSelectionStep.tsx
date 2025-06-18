@@ -67,8 +67,9 @@ export const SetSectionSelectionStep: React.FC<
             <Card
               key={section.id}
               title={section.type.name}
-              headerClassName="px-3 py-1"
-              badge={
+              headerClassName="p-0"
+              titleClassName="md:text-lg"
+              button={
                 <Button
                   size="sm"
                   onClick={(clickEvent) => {
@@ -80,11 +81,10 @@ export const SetSectionSelectionStep: React.FC<
                   <span className="hidden md:inline">Select section</span>
                 </Button>
               }
-              badgeAlignEnd
               collapsible
               initialIsExpanded={false}
             >
-              <VStack className="gap-2">
+              <VStack className="gap-3 md:gap-4">
                 {section.songs &&
                   section.songs.length > 0 &&
                   section.songs.map((setSectionSong, songPosition) => (

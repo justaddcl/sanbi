@@ -17,6 +17,7 @@ type CardPropsWithHeader = BaseCardProps & {
   header: React.ReactElement;
   headerClassName?: never;
   title?: never;
+  titleClassName?: never;
   badge?: never;
   badgeAlignStart?: never;
   badgeAlignEnd?: never;
@@ -25,8 +26,7 @@ type CardPropsWithHeader = BaseCardProps & {
   collapsible?: never;
   externalIsExpanded?: boolean;
   initialIsExpanded?: never;
-  buttonLabel?: never;
-  buttonOnClick?: never;
+  button?: never;
   actionMenu?: never;
 };
 
@@ -34,6 +34,7 @@ type CardPropsWithoutHeader = BaseCardProps & {
   header?: never;
   headerClassName?: string;
   title: string;
+  titleClassName?: string;
   badge?: React.ReactElement;
   badgeAlignStart?: boolean;
   badgeAlignEnd?: boolean;
@@ -42,8 +43,7 @@ type CardPropsWithoutHeader = BaseCardProps & {
   collapsible?: boolean;
   externalIsExpanded?: never;
   initialIsExpanded?: boolean;
-  buttonLabel?: React.ReactNode;
-  buttonOnClick?: () => void;
+  button?: React.ReactElement;
   actionMenu?: React.ReactElement;
 };
 
@@ -53,6 +53,7 @@ export const Card: React.FC<CardProps> = ({
   header,
   headerClassName,
   title,
+  titleClassName,
   badge,
   badgeAlignStart = true,
   badgeAlignEnd,
@@ -61,8 +62,7 @@ export const Card: React.FC<CardProps> = ({
   collapsible: isCollapsible,
   externalIsExpanded,
   initialIsExpanded,
-  buttonLabel,
-  buttonOnClick,
+  button,
   actionMenu,
   className,
   children,
@@ -71,7 +71,6 @@ export const Card: React.FC<CardProps> = ({
     initialIsExpanded ?? true,
   );
 
-  const hasButton = !!buttonLabel && !!buttonOnClick;
   const shouldShowChildren =
     externalIsExpanded ?? (isCollapsible ? isExpanded : true);
   const shouldShowBadge =
@@ -80,22 +79,16 @@ export const Card: React.FC<CardProps> = ({
       (!isExpanded && !hideBadgeWhenCollapsed));
 
   return (
-    <VStack
-      className={cn(
-        "rounded-lg border p-1",
-        { "lg:p-2": !isCollapsible },
-        className,
-      )}
-    >
+    <VStack className={cn("rounded-lg border p-1 lg:p-2", className)}>
       <VStack as="header" className="gap-4">
         {header ? (
           header
         ) : (
           <HStack
             className={cn(
-              "flex-wrap items-center gap-2 md:gap-4 lg:pr-4",
+              "flex-wrap items-center gap-2",
               {
-                "w-full p-3": isCollapsible,
+                "w-full": isCollapsible,
               },
               headerClassName,
             )}
@@ -103,7 +96,9 @@ export const Card: React.FC<CardProps> = ({
             <Button
               size="sm"
               variant="ghost"
-              className="flex h-full flex-1 px-0 hover:bg-slate-50"
+              className={cn("flex h-full flex-1 p-2 hover:bg-slate-100", {
+                "p-3": !button,
+              })}
               onClick={(clickEvent) => {
                 clickEvent.preventDefault();
                 setIsExpanded((isExpanded) => !isExpanded);
@@ -118,15 +113,20 @@ export const Card: React.FC<CardProps> = ({
                 <Text
                   asElement="h3"
                   style="header-medium-semibold"
-                  className="font-medium md:text-lg md:text-slate-700 lg:font-semibold"
+                  className={cn(
+                    "font-medium md:text-xl md:text-slate-700 lg:font-semibold",
+                    titleClassName,
+                  )}
                 >
                   {title}
                 </Text>
                 {shouldShowBadge && badge}
               </HStack>
             </Button>
-            {(!!isCollapsible || hasButton) && (
+            {(!!isCollapsible || !!button) && (
               <HStack className="flex items-start gap-1 md:gap-2">
+                {button}
+                {!!actionMenu && actionMenu}
                 {isCollapsible && (
                   <Button
                     size="sm"
@@ -139,19 +139,6 @@ export const Card: React.FC<CardProps> = ({
                     {isExpanded ? <CaretUp /> : <CaretDown />}
                   </Button>
                 )}
-                {hasButton && (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={(clickEvent) => {
-                      clickEvent.preventDefault();
-                      buttonOnClick?.();
-                    }}
-                  >
-                    {buttonLabel}
-                  </Button>
-                )}
-                {!!actionMenu && actionMenu}
               </HStack>
             )}
           </HStack>
@@ -160,7 +147,7 @@ export const Card: React.FC<CardProps> = ({
       {shouldShowChildren && (
         <VStack className="mt-1 md:mt-2">
           <hr className={cn("bg-slate-100")} />
-          <div className={cn("p-3")}>{children}</div>
+          <div className={cn("px-3 py-4 md:py-6")}>{children}</div>
         </VStack>
       )}
     </VStack>
