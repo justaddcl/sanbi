@@ -1,33 +1,28 @@
 "use client";
 
+import React, { useState } from "react";
+import { createPortal } from "react-dom";
 import {
   type DragOverEvent,
   DragOverlay,
   type DragStartEvent,
-  KeyboardSensor,
-  PointerSensor,
   type UniqueIdentifier,
-  useSensor,
-  useSensors,
 } from "@dnd-kit/core";
 import {
   arrayMove,
   SortableContext,
-  sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { DotsSixVertical } from "@phosphor-icons/react";
-import React, { useState } from "react";
-import { createPortal } from "react-dom";
 
 import { HStack } from "@components/HStack";
 import { VStack } from "@components/VStack";
-import { type SetSectionSong, type Song } from "@lib/types";
-import { cn } from "@lib/utils";
 import { SongContent } from "@modules/SetListCard/components/SongContent";
 import { DraggableSongItem } from "@modules/shared/components/DraggableSongItem/DraggableSongItem";
+import { type DraggableSongListItem } from "@modules/songs/forms/AddSongToSet/components/SetSongPositionStep";
+import { type SetSectionSong, type Song } from "@lib/types";
+import { cn } from "@lib/utils";
 
-import { DraggableSongListItem } from "@modules/songs/forms/AddSongToSet/components/SetSongPositionStep";
 import { DraggableSongListContext } from "../DraggableSongListContext/DraggableSongListContext";
 
 type ActiveDraggableSongItem = Pick<Song, "id" | "name"> & {
@@ -48,17 +43,6 @@ export const DraggableSongList: React.FC<DraggableSongListProps> = ({
   const [activeSongItem, setActiveSongItem] =
     useState<ActiveDraggableSongItem | null>(null);
   const [songItems, setSongItems] = useState<DraggableSongListItem[]>(songs);
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    }),
-  );
 
   const handleDragStart = (dragStartEvent: DragStartEvent) => {
     const { active } = dragStartEvent;
@@ -123,7 +107,6 @@ export const DraggableSongList: React.FC<DraggableSongListProps> = ({
 
   return (
     <DraggableSongListContext
-      sensors={sensors}
       onDragStart={handleDragStart}
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}

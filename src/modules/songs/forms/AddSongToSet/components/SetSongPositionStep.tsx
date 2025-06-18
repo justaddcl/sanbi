@@ -1,17 +1,11 @@
 import { useState } from "react";
-import { draggable } from "@atlaskit/pragmatic-drag-and-drop/dist/types/adapter/element-adapter";
-import { PhoneNumber } from "@clerk/nextjs/server";
 import { type inferProcedureOutput } from "@trpc/server";
 
 import { Text } from "@components/Text";
 import { VStack } from "@components/VStack";
 import { type DraggableSongItem } from "@modules/shared/components/DraggableSongItem/DraggableSongItem";
-import {
-  DraggableSongList,
-  type DraggableSongListProps,
-} from "@modules/shared/components/DraggableSongList/DraggableSongList";
+import { DraggableSongList } from "@modules/shared/components/DraggableSongList/DraggableSongList";
 import { useUserQuery } from "@modules/users/api/queries";
-import { Song } from "@lib/types";
 import { type AppRouter } from "@server/api/root";
 import { api } from "@/trpc/react";
 
