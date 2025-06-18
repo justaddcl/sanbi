@@ -7,13 +7,16 @@ import { Button } from "@components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@components/ui/dialog";
 import {
   AddSongToSetDialogHeader,
+  ReviewStep,
   SetSelectionStep,
+  SetSongKeyStep,
 } from "@modules/songs/forms/AddSongToSet/components";
 import { type SetType } from "@lib/types";
 import { type AppRouter } from "@server/api/root";
 
 import { SetSectionSelectionStep } from "./SetSectionSelectionStep";
 import { SetSongPositionStep } from "./SetSongPositionStep";
+import { SongKey } from "@lib/constants";
 
 export type SelectedSet = Pick<SetType, "id"> & {
   // TODO: return this directly from the set/get route
@@ -79,6 +82,7 @@ export const AddSongToSetDialog: React.FC<AddSongToSetDialogProps> = ({
 
   const [initialSongPosition, setInitialSongPosition] = useState(0);
   const [songPosition, setSongPosition] = useState<number | null>(null);
+  const [selectedKey, setSelectedKey] = useState<SongKey | null>(null);
 
   const totalSteps = Object.values(AddSongToSetDialogStep).filter(
     (value) => typeof value === "number",
@@ -101,7 +105,9 @@ export const AddSongToSetDialog: React.FC<AddSongToSetDialogProps> = ({
     setCurrentStep(AddSongToSetDialogStep.SELECT_SET);
     setSelectedSet(null);
     setSelectedSetSection(null);
+    setInitialSongPosition(0);
     setSongPosition(null);
+    setSelectedKey(null);
   };
 
   const renderStepContent = () => {
@@ -135,7 +141,9 @@ export const AddSongToSetDialog: React.FC<AddSongToSetDialogProps> = ({
           <SetSongPositionStep
             selectedSetSection={selectedSetSection}
             song={song}
-            newSongInitialPosition={initialSongPosition}
+            newSongInitialPosition={
+              songPosition !== null ? songPosition : initialSongPosition
+            }
             onSongPositionSet={(songPosition) => {
               setSongPosition(songPosition);
               setCurrentStep(AddSongToSetDialogStep.SET_KEY);
@@ -143,7 +151,18 @@ export const AddSongToSetDialog: React.FC<AddSongToSetDialogProps> = ({
           />
         );
       case AddSongToSetDialogStep.SET_KEY:
-        return null;
+        return (
+          <SetSongKeyStep
+            songId={song.id}
+            preferredKey={song.preferredKey!} // TODO: can we drop this non-null assertion?
+            onKeySelect={(selectedKey) => {
+              setSelectedKey(selectedKey);
+              setCurrentStep(AddSongToSetDialogStep.ADD_NOTES);
+            }}
+          />
+        );
+      case AddSongToSetDialogStep.ADD_NOTES:
+        return <ReviewStep />;
       default:
         return null;
     }
