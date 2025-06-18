@@ -15,7 +15,7 @@ export const SetListCardSection: React.FC<
       >
         {title}
       </Text>
-      <div className="flex flex-col gap-1">{children}</div>
+      <div className="flex flex-col gap-2 md:gap-3">{children}</div>
     </section>
   );
 };

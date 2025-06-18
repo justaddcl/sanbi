@@ -33,11 +33,13 @@ type ActiveDraggableSongItem = Pick<Song, "id" | "name"> & {
 export type DraggableSongListProps = {
   songs: DraggableSongListItem[];
   onDragEnd: (songItems: DraggableSongItem[]) => void;
+  className?: string;
 };
 
 export const DraggableSongList: React.FC<DraggableSongListProps> = ({
   songs,
   onDragEnd,
+  className,
 }) => {
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
   const [activeSongItem, setActiveSongItem] =
@@ -115,7 +117,7 @@ export const DraggableSongList: React.FC<DraggableSongListProps> = ({
         items={songItems.map((songItem) => songItem.id)}
         strategy={verticalListSortingStrategy}
       >
-        <VStack className="gap-2 rounded-lg border p-2">
+        <VStack className={cn("gap-2", className)}>
           {songItems.map((song, index) => (
             <DraggableSongItem
               id={song.id}

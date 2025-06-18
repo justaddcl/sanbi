@@ -137,14 +137,13 @@ export const AddSongToSetDialog: React.FC<AddSongToSetDialogProps> = ({
             song={song}
             newSongInitialPosition={initialSongPosition}
             onSongPositionSet={(songPosition) => {
-              console.log(
-                "🚀 ~ AddSongToSetDialog.tsx:120 ~ renderStepContent ~ songPosition:",
-                songPosition,
-              );
               setSongPosition(songPosition);
+              setCurrentStep(AddSongToSetDialogStep.SET_KEY);
             }}
           />
         );
+      case AddSongToSetDialogStep.SET_KEY:
+        return null;
       default:
         return null;
     }

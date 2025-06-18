@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { type inferProcedureOutput } from "@trpc/server";
 
+import { Button } from "@components/ui/button";
+import { Card } from "@components/Card/Card";
 import { Text } from "@components/Text";
 import { VStack } from "@components/VStack";
 import { type DraggableSongItem } from "@modules/shared/components/DraggableSongItem/DraggableSongItem";
@@ -68,36 +70,29 @@ export const SetSongPositionStep: React.FC<SetSongPositionStepProps> = ({
   );
 
   return (
-    <VStack className="gap-4 p-4 pt-2">
-      {/* <VStack className="gap-1">
-        <Text className="font-medium text-slate-700">Selected set</Text>
-        <HStack className="items-center justify-between rounded-lg border border-slate-200 p-3">
-          <VStack>
-            <Text className="font-medium md:text-lg">
-              {formatFriendlyDate(setData.date)}
-            </Text>
-            <Text className="text-sm text-slate-500">
-              {setData.eventType.name}
-            </Text>
-          </VStack>
-          <Badge variant="secondary">
-            {`${setSectionsCount} ${pluralize(setSectionsCount, { singular: "section", plural: "sections" })}`}
-          </Badge>
-        </HStack>
-      </VStack> */}
-      <VStack className="gap-2">
+    <VStack className="gap-4 p-6 pt-2">
+      <VStack className="gap-4">
         <Text className="text-lg font-medium text-slate-900">
-          When in the section will you play {song.name}?
+          Set song position
         </Text>
-        <DraggableSongList
-          songs={draggableSongItemsWithNewSong}
-          onDragEnd={(songItems) => {
-            setSelectedPosition(
-              songItems.findIndex((songItem) => songItem.id === song.id),
-            );
-          }}
-        />
+        <Card title={setSectionData.type.name} childrenClassName="md:py-4 px-3">
+          <DraggableSongList
+            songs={draggableSongItemsWithNewSong}
+            onDragEnd={(songItems) => {
+              setSelectedPosition(
+                songItems.findIndex((songItem) => songItem.id === song.id),
+              );
+            }}
+          />
+        </Card>
       </VStack>
+      <Button
+        onClick={() => {
+          onSongPositionSet(selectedPosition);
+        }}
+      >
+        Confirm song position
+      </Button>
     </VStack>
   );
 };

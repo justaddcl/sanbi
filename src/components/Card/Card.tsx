@@ -11,6 +11,7 @@ import { cn } from "@lib/utils";
 
 type BaseCardProps = React.PropsWithChildren & {
   className?: string;
+  childrenClassName?: string;
 };
 
 type CardPropsWithHeader = BaseCardProps & {
@@ -66,6 +67,7 @@ export const Card: React.FC<CardProps> = ({
   actionMenu,
   className,
   children,
+  childrenClassName,
 }) => {
   const [isExpanded, setIsExpanded] = useState<boolean>(
     initialIsExpanded ?? true,
@@ -96,7 +98,9 @@ export const Card: React.FC<CardProps> = ({
             <Button
               size="sm"
               variant="ghost"
-              className={cn("flex h-full flex-1 p-2 hover:bg-slate-100", {
+              className={cn("flex h-full flex-1 p-2", {
+                "hover:bg-slate-100": isCollapsible,
+                "cursor-default hover:bg-inherit": !isCollapsible,
                 "p-3": !button,
               })}
               onClick={(clickEvent) => {
@@ -147,7 +151,9 @@ export const Card: React.FC<CardProps> = ({
       {shouldShowChildren && (
         <VStack className="mt-1 md:mt-2">
           <hr className={cn("bg-slate-100")} />
-          <div className={cn("px-3 py-4 md:py-6")}>{children}</div>
+          <div className={cn("px-3 py-4 md:py-6", childrenClassName)}>
+            {children}
+          </div>
         </VStack>
       )}
     </VStack>
