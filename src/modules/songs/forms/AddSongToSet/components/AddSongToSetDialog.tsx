@@ -141,9 +141,7 @@ export const AddSongToSetDialog: React.FC<AddSongToSetDialogProps> = ({
           <SetSongPositionStep
             selectedSetSection={selectedSetSection}
             song={song}
-            newSongInitialPosition={
-              songPosition !== null ? songPosition : initialSongPosition
-            }
+            newSongInitialPosition={songPosition ?? initialSongPosition}
             onSongPositionSet={(songPosition) => {
               setSongPosition(songPosition);
               setCurrentStep(AddSongToSetDialogStep.SET_KEY);
@@ -162,7 +160,14 @@ export const AddSongToSetDialog: React.FC<AddSongToSetDialogProps> = ({
           />
         );
       case AddSongToSetDialogStep.ADD_NOTES:
-        return <ReviewStep />;
+        return (
+          <ReviewStep
+            selectedSetSection={selectedSetSection!} // TODO: can we drop this assertion? There should be a set section selected if the user is on this step
+            song={song}
+            position={songPosition!} // TODO: can we drop this assertion? There should be a songPosition set if the user is on this step
+            songKey={selectedKey!} // TODO: can we drop this assertion? There should be a songKey set if the user is on this step
+          />
+        );
       default:
         return null;
     }
