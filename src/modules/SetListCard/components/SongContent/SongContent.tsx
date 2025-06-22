@@ -6,6 +6,7 @@ import { Text } from "@components/Text";
 import { VStack } from "@components/VStack";
 import { type Song } from "@lib/types";
 import { cn } from "@lib/utils";
+import { useResponsive } from "@/hooks/useResponsive";
 
 export type SongContentProps = {
   songKey?: Song["preferredKey"];
@@ -17,7 +18,7 @@ export type SongContentProps = {
   /** The 1-based index position of this song in the overall set list */
   index?: number;
 
-  disabled?: boolean;
+  muted?: boolean;
 
   className?: string;
 };
@@ -31,9 +32,16 @@ export const SongContent: React.FC<SongContentProps> = ({
   name,
   notes,
   index,
-  disabled,
+  muted,
   className,
 }) => {
+  const textStyles = {
+    default: "font-semibold leading-tight text-slate-500 text-sm md:text-base",
+    muted: "font-medium text-slate-300",
+  };
+
+  const { isMobile } = useResponsive();
+
   return (
     <HStack
       className={cn(
@@ -43,19 +51,30 @@ export const SongContent: React.FC<SongContentProps> = ({
     >
       {index && (
         <Text
-          style="header-medium-semibold"
           align="right"
-          className="min-w-4 text-slate-400"
+          className={cn(
+            "min-w-4 font-semibold leading-tight text-slate-400 ",
+            [textStyles.default],
+            { [textStyles.muted]: muted },
+          )}
         >
           {index}.
         </Text>
       )}
       <VStack className="flex flex-grow flex-col gap-4">
-        <HStack className="flex items-baseline gap-2">
-          {songKey && <SongKey songKey={songKey} />}
+        <HStack className="flex items-baseline gap-2 md:items-center">
+          {songKey && (
+            <SongKey
+              songKey={songKey}
+              muted={muted}
+              size={isMobile ? "small" : "medium"}
+            />
+          )}
           <Text
             fontWeight="semibold"
-            className={cn("text-sm", { "text-slate-500": disabled })}
+            className={cn("text-sm", [textStyles.default], "text-slate-900", {
+              [textStyles.muted]: muted,
+            })}
           >
             {name}
           </Text>

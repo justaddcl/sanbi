@@ -1,15 +1,16 @@
-import { VStack } from "@components/VStack";
-import { SongKey } from "@lib/constants";
-import { SongContent } from "@modules/SetListCard/components/SongContent";
 import React from "react";
-import { Text } from "@components/Text";
+import { type inferProcedureOutput } from "@trpc/server";
+
 import { Button } from "@components/ui/button";
-import { useUserQuery } from "@modules/users/api/queries";
-import { api } from "@/trpc/react";
 import { Card } from "@components/Card/Card";
+import { Text } from "@components/Text";
+import { VStack } from "@components/VStack";
+import { SongContent } from "@modules/SetListCard/components/SongContent";
+import { useUserQuery } from "@modules/users/api/queries";
+import { type SongKey } from "@lib/constants";
 import { cn } from "@lib/utils";
-import { inferProcedureOutput } from "@trpc/server";
-import { AppRouter } from "@server/api/root";
+import { type AppRouter } from "@server/api/root";
+import { api } from "@/trpc/react";
 
 type ReviewStepProps = {
   selectedSetSection: string;
@@ -71,7 +72,7 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
                 name={song.name}
                 index={index + 1}
                 songKey={song.songKey}
-                disabled={song.type === "existing"}
+                muted={song.type === "existing"}
               />
             ))}
           </VStack>
