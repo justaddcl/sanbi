@@ -1,16 +1,16 @@
 "use client";
 
+import type React from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { DotsSixVertical } from "@phosphor-icons/react";
-import type React from "react";
 
 import { HStack } from "@components/HStack";
-import { cn } from "@lib/utils";
 import {
   SongContent,
   type SongContentProps,
 } from "@modules/SetListCard/components/SongContent";
+import { cn } from "@lib/utils";
 
 export type DraggableSongItem = {
   id: string;
@@ -58,7 +58,7 @@ export const DraggableSongItem: React.FC<DraggableSongItemProps> = ({
         songKey={song.songKey}
         name={song.name}
         index={song.index}
-        disabled={disabled}
+        muted={disabled}
       />
     </HStack>
   );
