@@ -1,21 +1,21 @@
 import type React from "react";
-
-import { Button } from "@components/ui/button";
-import { Text } from "@components/Text";
-import { VStack } from "@components/VStack";
-import { type SongKey, songKeys } from "@lib/constants";
-import { formatSongKey } from "@lib/string/formatSongKey";
 import {
   CircleNotch,
   ClockCounterClockwise,
   Heart,
 } from "@phosphor-icons/react";
+
+import { Button } from "@components/ui/button";
+import { Skeleton } from "@components/ui/skeleton";
 import { HStack } from "@components/HStack";
+import { Text } from "@components/Text";
+import { VStack } from "@components/VStack";
+import { useUserQuery } from "@modules/users/api/queries";
+import { type SongKey, songKeys } from "@lib/constants";
+import { formatSongKey } from "@lib/string/formatSongKey";
+import { cn } from "@lib/utils";
 import { useResponsive } from "@/hooks/useResponsive";
 import { api } from "@/trpc/react";
-import { Skeleton } from "@components/ui/skeleton";
-import { useUserQuery } from "@modules/users/api/queries";
-import { cn } from "@lib/utils";
 
 type SetSongKeyStepProps = {
   songId: string;
@@ -51,9 +51,7 @@ export const SetSongKeyStep: React.FC<SetSongKeyStepProps> = ({
   return (
     <VStack className="gap-4 p-6 pt-2">
       <VStack className="gap-4">
-        <Text className="text-lg font-medium text-slate-900">
-          What key will you play in?
-        </Text>
+        <Text className="text-lg font-medium text-slate-900">Select a key</Text>
         <div className="grid grid-cols-3 gap-2 md:grid-cols-4 lg:grid-cols-6">
           {songKeys.map((key) => (
             <Button
