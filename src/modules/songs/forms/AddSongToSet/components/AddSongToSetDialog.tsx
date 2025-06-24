@@ -11,12 +11,12 @@ import {
   SetSelectionStep,
   SetSongKeyStep,
 } from "@modules/songs/forms/AddSongToSet/components";
+import { type SongKey } from "@lib/constants";
 import { type SetType } from "@lib/types";
 import { type AppRouter } from "@server/api/root";
 
 import { SetSectionSelectionStep } from "./SetSectionSelectionStep";
 import { SetSongPositionStep } from "./SetSongPositionStep";
-import { SongKey } from "@lib/constants";
 
 export type SelectedSet = Pick<SetType, "id"> & {
   // TODO: return this directly from the set/get route
@@ -94,6 +94,11 @@ export const AddSongToSetDialog: React.FC<AddSongToSetDialogProps> = ({
     } else if (currentStep > AddSongToSetDialogStep.SELECT_SET) {
       setCurrentStep(currentStep - 1);
       // setCurrentStep((step) => step - 1);
+
+      // reset selected song position if user goes back from the set position step
+      if (currentStep === AddSongToSetDialogStep.SET_POSITION) {
+        setSongPosition(null);
+      }
     } else {
       resetDialog();
     }
@@ -162,6 +167,7 @@ export const AddSongToSetDialog: React.FC<AddSongToSetDialogProps> = ({
       case AddSongToSetDialogStep.ADD_NOTES:
         return (
           <ReviewStep
+            selectedSetId={selectedSet!.id}
             selectedSetSection={selectedSetSection!} // TODO: can we drop this assertion? There should be a set section selected if the user is on this step
             song={song}
             position={songPosition!} // TODO: can we drop this assertion? There should be a songPosition set if the user is on this step
@@ -192,7 +198,7 @@ export const AddSongToSetDialog: React.FC<AddSongToSetDialogProps> = ({
         fixed
         minimalPadding
         closeButton={null}
-        className="max-h-[90%] gap-0 overflow-y-auto p-0 lg:max-h-[65%] lg:p-0"
+        className="max-h-[90%] gap-0 overflow-y-auto p-0 lg:max-h-[75%] lg:p-0"
       >
         {/* TODO: move within each step's component */}
         <AddSongToSetDialogHeader

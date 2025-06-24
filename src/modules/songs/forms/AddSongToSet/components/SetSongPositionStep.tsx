@@ -1,13 +1,16 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { type inferProcedureOutput } from "@trpc/server";
 
 import { Button } from "@components/ui/button";
+import { Input } from "@components/ui/input";
 import { Card } from "@components/Card/Card";
+import { HStack } from "@components/HStack";
 import { Text } from "@components/Text";
 import { VStack } from "@components/VStack";
 import { type DraggableSongItem } from "@modules/shared/components/DraggableSongItem/DraggableSongItem";
 import { DraggableSongList } from "@modules/shared/components/DraggableSongList/DraggableSongList";
 import { useUserQuery } from "@modules/users/api/queries";
+import { clamp } from "@lib/numbers";
 import { type AppRouter } from "@server/api/root";
 import { api } from "@/trpc/react";
 
@@ -32,56 +35,129 @@ export const SetSongPositionStep: React.FC<SetSongPositionStepProps> = ({
   const [selectedPosition, setSelectedPosition] = useState<number>(
     newSongInitialPosition,
   );
+  const [inputPositionValue, setInputPositionValue] = useState(
+    newSongInitialPosition,
+  );
+  const [songItems, setSongItems] = useState<DraggableSongListItem[]>([]);
+
   const { userMembership } = useUserQuery();
+
+  const { data: setSectionData } = api.setSection.get.useQuery(
+    {
+      setSectionId: selectedSetSection ?? "",
+      organizationId: userMembership?.organizationId ?? "",
+    },
+    {
+      enabled: !!selectedSetSection && !!userMembership,
+    },
+  );
+
+  useEffect(() => {
+    if (!setSectionData) {
+      return;
+    }
+
+    console.log(
+      "🚀 ~ SetSongPositionStep.tsx:57 ~ useEffect ~ setSectionData:",
+      setSectionData,
+    );
+
+    const existingItems: DraggableSongListItem[] = setSectionData.songs.map(
+      (song) => ({
+        id: song.id,
+        songKey: song.key,
+        name: song.song.name,
+        index: song.position,
+        type: "existing",
+      }),
+    );
+
+    const songPosition = clamp(inputPositionValue, {
+      min: 0,
+      max: existingItems.length,
+    });
+
+    const newSongItem: DraggableSongListItem = {
+      id: song.id,
+      name: song.name,
+      index: existingItems.length + 1,
+      type: "new",
+    };
+
+    setSongItems(existingItems.toSpliced(songPosition, 0, newSongItem));
+  }, [inputPositionValue, setSectionData, song]);
 
   if (!selectedSetSection || !userMembership) {
     return null;
   }
-
-  const { data: setSectionData } = api.setSection.get.useQuery({
-    setSectionId: selectedSetSection,
-    organizationId: userMembership.organizationId,
-  });
 
   // FIXME: how do we handle this case?
   if (!setSectionData) {
     return null;
   }
 
-  const draggableSongItems: DraggableSongListItem[] = setSectionData.songs.map(
-    (setSectionSong) => ({
-      id: setSectionSong.id,
-      songKey: setSectionSong.key,
-      name: setSectionSong.song.name,
-      index: setSectionSong.position,
-      type: "existing",
-    }),
-  );
+  // const draggableSongItems: DraggableSongListItem[] = setSectionData.songs.map(
+  //   (setSectionSong) => ({
+  //     id: setSectionSong.id,
+  //     songKey: setSectionSong.key,
+  //     name: setSectionSong.song.name,
+  //     index: setSectionSong.position,
+  //     type: "existing",
+  //   }),
+  // );
 
-  const draggableSongItemsWithNewSong = draggableSongItems.toSpliced(
-    newSongInitialPosition,
-    0,
-    {
-      id: song.id,
-      name: song.name,
-      index: setSectionData.songs.length + 1,
-      type: "new",
-    },
-  );
+  // const draggableSongItemsWithNewSong = draggableSongItems.toSpliced(
+  //   newSongInitialPosition,
+  //   0,
+  //   {
+  //     id: song.id,
+  //     name: song.name,
+  //     index: setSectionData.songs.length + 1,
+  //     type: "new",
+  //   },
+  // );
 
   return (
     <VStack className="gap-4 p-6 pt-2">
       <VStack className="gap-4">
-        <Text className="text-lg font-medium text-slate-900">
-          Set song position
-        </Text>
+        <HStack className="justify-between">
+          <Text className="text-lg font-medium text-slate-900">
+            Set song position
+          </Text>
+          <HStack className="items-center gap-2">
+            <Input
+              type="number"
+              value={inputPositionValue + 1}
+              className="max-w-14 p-2"
+              onChange={(changeEvent) => {
+                const parsedInput = Number.parseInt(changeEvent.target.value);
+
+                // FIXME:
+                // this disables clearing the field/backspace... is this what we want?
+                if (Number.isNaN(parsedInput)) {
+                  return;
+                }
+
+                setInputPositionValue(
+                  clamp(parsedInput - 1, {
+                    min: 0,
+                    max: setSectionData.songs.length,
+                  }),
+                );
+              }}
+            />
+            <Text> of {setSectionData.songs.length + 1}</Text>
+          </HStack>
+        </HStack>
         <Card title={setSectionData.type.name} childrenClassName="md:py-4 px-3">
           <DraggableSongList
-            songs={draggableSongItemsWithNewSong}
+            songs={songItems}
             onDragEnd={(songItems) => {
-              setSelectedPosition(
-                songItems.findIndex((songItem) => songItem.id === song.id),
+              const songPosition = songItems.findIndex(
+                (songItem) => songItem.id === song.id,
               );
+              setSelectedPosition(songPosition);
+              setInputPositionValue(songPosition);
             }}
           />
         </Card>

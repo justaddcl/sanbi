@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import {
   type DragOverEvent,
@@ -44,7 +44,11 @@ export const DraggableSongList: React.FC<DraggableSongListProps> = ({
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
   const [activeSongItem, setActiveSongItem] =
     useState<ActiveDraggableSongItem | null>(null);
-  const [songItems, setSongItems] = useState<DraggableSongListItem[]>(songs);
+  const [songItems, setSongItems] = useState<DraggableSongListItem[]>([]);
+
+  useEffect(() => {
+    setSongItems(songs);
+  }, [songs]);
 
   const handleDragStart = (dragStartEvent: DragStartEvent) => {
     const { active } = dragStartEvent;
