@@ -10,25 +10,38 @@ import { type RouterOutputs } from "@/trpc/react";
 
 type SelectedSetCardProps = {
   set: RouterOutputs["set"]["get"];
+  countShown?: "sections" | "songs";
 };
 
-export const SelectedSetCard: React.FC<SelectedSetCardProps> = ({ set }) => {
+export const SelectedSetCard: React.FC<SelectedSetCardProps> = ({
+  set,
+  countShown,
+}) => {
   const setSectionsCount = set.sections.length;
+  const setSectionSongsCount =
+    set.sections.reduce(
+      (songCount, section) => songCount + section.songs.length,
+      0,
+    ) + 1; // +1 to account for the song about to be added
+
+  const { itemsCount, singular, plural } = {
+    itemsCount:
+      countShown === "songs" ? setSectionSongsCount : setSectionsCount,
+    singular: countShown === "songs" ? "song" : "section",
+    plural: countShown === "songs" ? "songs" : "sections",
+  };
 
   return (
-    <VStack className="gap-1">
-      <Text className="font-medium text-slate-700">Selected set</Text>
-      <HStack className="items-center justify-between rounded-lg border border-slate-200 p-3">
-        <VStack>
-          <Text className="font-medium md:text-lg">
-            {formatFriendlyDate(set.date)}
-          </Text>
-          <Text className="text-sm text-slate-500">{set.eventType.name}</Text>
-        </VStack>
-        <Badge variant="secondary">
-          {`${setSectionsCount} ${pluralize(setSectionsCount, { singular: "section", plural: "sections" })}`}
-        </Badge>
-      </HStack>
-    </VStack>
+    <HStack className="items-center justify-between rounded-lg border border-slate-200 p-3">
+      <VStack>
+        <Text className="font-medium md:text-lg">
+          {formatFriendlyDate(set.date)}
+        </Text>
+        <Text className="text-sm text-slate-500">{set.eventType.name}</Text>
+      </VStack>
+      <Badge variant="secondary">
+        {`${itemsCount} ${pluralize(itemsCount, { singular, plural })}`}
+      </Badge>
+    </HStack>
   );
 };
