@@ -9,11 +9,11 @@ import { HStack } from "@components/HStack";
 import { Text } from "@components/Text";
 import { VStack } from "@components/VStack";
 import {
-  formatFriendlyDate,
   SetSelectionSection,
   SetSelectionSetItem,
 } from "@modules/songs/forms/AddSongToSet/components";
 import { useUserQuery } from "@modules/users/api/queries";
+import { formatFriendlyDate } from "@lib/date";
 import { pluralize } from "@lib/string";
 import { api } from "@/trpc/react";
 

@@ -6,8 +6,8 @@ import { Text } from "@components/Text";
 import { VStack } from "@components/VStack";
 import { SongContent } from "@modules/SetListCard/components/SongContent";
 import { type SelectedSet } from "@modules/songs/forms/AddSongToSet/components/AddSongToSetDialog";
-import { formatFriendlyDate } from "@modules/songs/forms/AddSongToSet/components/SetSelectionUpcomingSets";
 import { useUserQuery } from "@modules/users/api/queries";
+import { formatFriendlyDate } from "@lib/date";
 import { pluralize } from "@lib/string";
 import { api } from "@/trpc/react";
 

@@ -1,11 +1,5 @@
 import { useState } from "react";
 import { Funnel } from "@phosphor-icons/react";
-import {
-  differenceInCalendarWeeks,
-  format,
-  isToday,
-  isTomorrow,
-} from "date-fns";
 import { toast } from "sonner";
 
 import { Button } from "@components/ui/button";
@@ -18,32 +12,11 @@ import {
   type SetSelectionStepProps,
 } from "@modules/songs/forms/AddSongToSet/components";
 import { useUserQuery } from "@modules/users/api/queries";
+import { formatFriendlyDate } from "@lib/date";
 import { pluralize } from "@lib/string";
 import { api } from "@/trpc/react";
 
 // TODO: move to utils and add tests
-export const formatFriendlyDate = (date: string) => {
-  if (isToday(date)) {
-    return "Today";
-  }
-
-  if (isTomorrow(date)) {
-    return "Tomorrow";
-  }
-
-  const weekDiff = differenceInCalendarWeeks(date, new Date(), {
-    weekStartsOn: 0,
-  });
-  if (weekDiff === 0) {
-    return `This ${format(date, "EEEE")}`;
-  }
-
-  if (weekDiff === 1) {
-    return `Next ${format(date, "EEEE")}`;
-  }
-
-  return format(date, "EEEE, MMM dd");
-};
 
 type SetSelectionAllUpcomingSetsProps = {
   onSetSelect: SetSelectionStepProps["onSetSelect"];
