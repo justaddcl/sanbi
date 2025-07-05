@@ -28,7 +28,7 @@ export enum AddSongToSetDialogStep {
   SELECT_SET_SECTION = 2,
   SET_POSITION = 3,
   SET_KEY = 4,
-  ADD_NOTES = 5,
+  REVIEW = 5,
 }
 
 const contentMap: Record<
@@ -57,8 +57,8 @@ const contentMap: Record<
   [AddSongToSetDialogStep.SET_KEY]: {
     title: "What key will you play in?",
   },
-  [AddSongToSetDialogStep.ADD_NOTES]: {
-    title: "Add notes",
+  [AddSongToSetDialogStep.REVIEW]: {
+    title: "Review",
   },
 };
 
@@ -160,11 +160,11 @@ export const AddSongToSetDialog: React.FC<AddSongToSetDialogProps> = ({
             preferredKey={song.preferredKey!} // TODO: can we drop this non-null assertion?
             onKeySelect={(selectedKey) => {
               setSelectedKey(selectedKey);
-              setCurrentStep(AddSongToSetDialogStep.ADD_NOTES);
+              setCurrentStep(AddSongToSetDialogStep.REVIEW);
             }}
           />
         );
-      case AddSongToSetDialogStep.ADD_NOTES:
+      case AddSongToSetDialogStep.REVIEW:
         return (
           <ReviewStep
             selectedSetId={selectedSet!.id}

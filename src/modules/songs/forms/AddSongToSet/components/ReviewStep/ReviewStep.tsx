@@ -5,12 +5,13 @@ import { Button } from "@components/ui/button";
 import { Textarea } from "@components/ui/textarea";
 import { Card } from "@components/Card/Card";
 import { HStack } from "@components/HStack";
+import { SongKey } from "@components/SongKey";
 import { Text } from "@components/Text";
 import { VStack } from "@components/VStack";
 import { SongContent } from "@modules/SetListCard/components/SongContent";
 import { SelectedSetCard } from "@modules/songs/forms/AddSongToSet/components";
 import { useUserQuery } from "@modules/users/api/queries";
-import { type SongKey } from "@lib/constants";
+import { type SongKey as SongKeyType } from "@lib/constants";
 import { type AppRouter } from "@server/api/root";
 import { api } from "@/trpc/react";
 
@@ -18,7 +19,7 @@ type ReviewStepProps = {
   selectedSetId: string;
   selectedSetSection: string;
   song: inferProcedureOutput<AppRouter["song"]["get"]>;
-  songKey: SongKey;
+  songKey: SongKeyType;
   position: number;
 };
 
@@ -82,11 +83,17 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
           </HStack>
         </VStack>
         <VStack className="gap-1">
-          <Text className="font-medium text-slate-700">To set:</Text>
+          <Text className="font-medium text-slate-700">Played in</Text>
+          <HStack className="items-center justify-between rounded-lg border border-slate-200 p-3">
+            <SongKey songKey={songKey} size="large" />
+          </HStack>
+        </VStack>
+        <VStack className="gap-1">
+          <Text className="font-medium text-slate-700">To set</Text>
           <SelectedSetCard set={setData} countShown="songs" />
         </VStack>
         <VStack className="gap-1">
-          <Text className="font-medium text-slate-700">In section:</Text>
+          <Text className="font-medium text-slate-700">In section</Text>
           <Card
             title={setSectionData.type.name}
             childrenClassName="md:py-4 px-3"
@@ -104,15 +111,15 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
             </VStack>
           </Card>
         </VStack>
-      </VStack>
-      <VStack className="gap-1">
-        <Text className="text-lg font-medium text-slate-900">Song notes?</Text>
-        <Textarea
-          value={notes}
-          onChange={(changeEvent) => {
-            setNotes(changeEvent.target.value);
-          }}
-        />
+        <VStack className="gap-1">
+          <Text className="font-medium text-slate-700">Song notes</Text>
+          <Textarea
+            value={notes}
+            onChange={(changeEvent) => {
+              setNotes(changeEvent.target.value);
+            }}
+          />
+        </VStack>
       </VStack>
       <Button>Add song to set</Button>
     </VStack>
