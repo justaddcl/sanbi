@@ -5,6 +5,8 @@ import {
   isTomorrow,
 } from "date-fns";
 
+export const FRIENDLY_FORMAT_CALENDAR_WEEK_DIFFERENCE_THRESHOLD = 2;
+
 export const formatFriendlyDate = (date: string) => {
   if (isToday(date)) {
     return "Today";

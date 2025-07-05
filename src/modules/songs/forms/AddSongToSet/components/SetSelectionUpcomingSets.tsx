@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Funnel } from "@phosphor-icons/react";
+import { differenceInCalendarWeeks } from "date-fns";
 import { toast } from "sonner";
 
 import { Button } from "@components/ui/button";
@@ -12,7 +13,11 @@ import {
   type SetSelectionStepProps,
 } from "@modules/songs/forms/AddSongToSet/components";
 import { useUserQuery } from "@modules/users/api/queries";
-import { formatFriendlyDate } from "@lib/date";
+import {
+  formatDate,
+  formatFriendlyDate,
+  FRIENDLY_FORMAT_CALENDAR_WEEK_DIFFERENCE_THRESHOLD,
+} from "@lib/date";
 import { pluralize } from "@lib/string";
 import { api } from "@/trpc/react";
 
@@ -112,6 +117,13 @@ export const SetSelectionUpcomingSets: React.FC<
         <SetSelectionSetItem
           key={upcomingSet.setId}
           title={formatFriendlyDate(upcomingSet.setDate)}
+          titleTooltip={
+            differenceInCalendarWeeks(upcomingSet.setDate, new Date(), {
+              weekStartsOn: 0,
+            }) < FRIENDLY_FORMAT_CALENDAR_WEEK_DIFFERENCE_THRESHOLD
+              ? formatDate(upcomingSet.setDate)
+              : undefined
+          }
           subtitle={upcomingSet.eventType}
           label={`${upcomingSet.songCount} ${pluralize(upcomingSet.songCount, { singular: "song", plural: "songs" })}`}
           onClick={() => {

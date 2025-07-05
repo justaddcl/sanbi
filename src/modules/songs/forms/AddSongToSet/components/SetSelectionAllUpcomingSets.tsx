@@ -1,5 +1,6 @@
 import React from "react";
 import { Plus } from "@phosphor-icons/react/dist/ssr";
+import { differenceInCalendarWeeks } from "date-fns";
 import { toast } from "sonner";
 
 import { Button } from "@components/ui/button";
@@ -13,7 +14,11 @@ import {
   SetSelectionSetItem,
 } from "@modules/songs/forms/AddSongToSet/components";
 import { useUserQuery } from "@modules/users/api/queries";
-import { formatFriendlyDate } from "@lib/date";
+import {
+  formatDate,
+  formatFriendlyDate,
+  FRIENDLY_FORMAT_CALENDAR_WEEK_DIFFERENCE_THRESHOLD,
+} from "@lib/date";
 import { pluralize } from "@lib/string";
 import { api } from "@/trpc/react";
 
@@ -134,6 +139,13 @@ export const SetSelectionAllUpcomingSets: React.FC<
             <SetSelectionSetItem
               key={set.id}
               title={formatFriendlyDate(set.date)}
+              titleTooltip={
+                differenceInCalendarWeeks(set.date, new Date(), {
+                  weekStartsOn: 0,
+                }) < FRIENDLY_FORMAT_CALENDAR_WEEK_DIFFERENCE_THRESHOLD
+                  ? formatDate(set.date)
+                  : undefined
+              }
               subtitle={set.eventType!} // eventType is marked as notNull:true, so not sure why the type is nullable, but this appeases TS for now
               label={`${set.songCount} ${pluralize(set.songCount, { singular: "song", plural: "songs" })}`}
               onClick={() => {
