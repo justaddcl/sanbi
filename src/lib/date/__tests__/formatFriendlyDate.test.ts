@@ -56,13 +56,13 @@ describe("formatFriendlyDate", () => {
 
   it("formats dates beyond next week using default format", () => {
     const target = "2025-07-08";
-    const expected = format(new Date(target), FRIENDLY_DATE_DEFAULT_FORMAT); // Jul 08 (Tuesday)
+    const expected = format(new Date(target), FRIENDLY_DATE_DEFAULT_FORMAT); // July 08 (Tue)
     expect(formatFriendlyDate(target)).toBe(expected);
   });
 
   it("formats dates before last week using default format", () => {
     const target = "2025-05-01";
-    const expected = format(new Date(target), FRIENDLY_DATE_DEFAULT_FORMAT); // May 01 (Friday)
+    const expected = format(new Date(target), FRIENDLY_DATE_DEFAULT_FORMAT); // May 01 (Fri)
     expect(formatFriendlyDate(target)).toBe(expected);
   });
 });

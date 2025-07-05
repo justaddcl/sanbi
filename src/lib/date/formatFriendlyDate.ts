@@ -9,9 +9,15 @@ import {
 
 export const FRIENDLY_FORMAT_CALENDAR_WEEK_DIFFERENCE_THRESHOLD = 2;
 
-export const DAY_OF_THE_WEEK_FULL_FORMAT = "EEEE";
+export const MONTH_FULL_FORMAT = "MMMM";
+export const MONTH_SHORT_FORMAT = "MMM";
 
-export const FRIENDLY_DATE_DEFAULT_FORMAT = `MMM dd (${DAY_OF_THE_WEEK_FULL_FORMAT})`;
+export const DAY_OF_THE_MONTH_TWO_DIGIT_FORMAT = "dd";
+
+export const DAY_OF_THE_WEEK_FULL_FORMAT = "EEEE";
+export const DAY_OF_THE_WEEK_SHORT_FORMAT = "E";
+
+export const FRIENDLY_DATE_DEFAULT_FORMAT = `${MONTH_FULL_FORMAT} ${DAY_OF_THE_MONTH_TWO_DIGIT_FORMAT} (${DAY_OF_THE_WEEK_SHORT_FORMAT})`;
 
 export const formatFriendlyDate = (date: string) => {
   if (isToday(date)) {
