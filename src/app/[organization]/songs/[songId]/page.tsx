@@ -65,9 +65,6 @@ export default async function SetListPage({
     <>
       <SongDetailsPageHeader song={song} userMembership={userMembership} />
       {song?.isArchived && <ArchivedBanner itemType="song" songId={song.id} />}
-      <div className="md:hidden">
-        <AddSongToSetDialog song={song} />
-      </div>
       <Card title="Song details" collapsible>
         <VStack as="dl" className="gap-4 md:gap-6">
           <SongDetailsItem icon="MusicNoteSimple" label="Preferred Key">

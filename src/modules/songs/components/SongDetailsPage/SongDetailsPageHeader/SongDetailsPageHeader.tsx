@@ -62,7 +62,7 @@ export const SongDetailsPageHeader: React.FC<SongDetailsPageHeaderProps> = ({
   };
 
   return (
-    <HStack className="justify-between gap-4">
+    <div className="flex flex-col justify-between gap-4 md:flex-row md:gap-8">
       <SongDetailsPageName
         song={song}
         userMembership={userMembership}
@@ -70,6 +70,7 @@ export const SongDetailsPageHeader: React.FC<SongDetailsPageHeaderProps> = ({
         setIsEditing={setIsEditingName}
       />
       <HStack className="items-start gap-2">
+        <AddSongToSetDialog song={song} />
         <Button
           variant="outline"
           onClick={updateSongFavoriteStatus}
@@ -78,9 +79,6 @@ export const SongDetailsPageHeader: React.FC<SongDetailsPageHeaderProps> = ({
         >
           <Heart weight={song.favoritedAt ? "fill" : "regular"} />
         </Button>
-        <div className="hidden md:flex">
-          <AddSongToSetDialog song={song} />
-        </div>
         <SongActionsMenu
           songId={song.id}
           organizationId={userMembership.organizationId}
@@ -88,6 +86,6 @@ export const SongDetailsPageHeader: React.FC<SongDetailsPageHeaderProps> = ({
           setIsEditingName={setIsEditingName}
         />
       </HStack>
-    </HStack>
+    </div>
   );
 };
