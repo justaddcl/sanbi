@@ -60,12 +60,12 @@ const baseComponents = {
 export function CalendarSingle(props: Omit<DayPickerSingleProps, "mode">) {
   return (
     <DayPicker
+      {...props}
       mode="single"
       showOutsideDays={true}
       className={cn("p-3", props.className)}
       classNames={{ ...baseClassNames, ...props.classNames }}
       components={baseComponents}
-      {...props}
     />
   );
 }
@@ -73,12 +73,12 @@ export function CalendarSingle(props: Omit<DayPickerSingleProps, "mode">) {
 export function CalendarMultiple(props: Omit<DayPickerMultipleProps, "mode">) {
   return (
     <DayPicker
+      {...props}
       mode="multiple"
       showOutsideDays={true}
       className={cn("p-3", props.className)}
       classNames={{ ...baseClassNames, ...props.classNames }}
       components={baseComponents}
-      {...props}
     />
   );
 }
@@ -86,12 +86,12 @@ export function CalendarMultiple(props: Omit<DayPickerMultipleProps, "mode">) {
 export function CalendarRange(props: Omit<DayPickerRangeProps, "mode">) {
   return (
     <DayPicker
+      {...props}
       mode="range"
       showOutsideDays={true}
       className={cn("p-3", props.className)}
       classNames={{ ...baseClassNames, ...props.classNames }}
       components={baseComponents}
-      {...props}
     />
   );
 }

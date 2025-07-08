@@ -150,13 +150,11 @@ export const DatePicker = <Mode extends CalendarMode = "single">({
     if (mode === "single") {
       return (
         <CalendarSingle
+          {...props}
           selected={date as Date}
-          onSelect={(value) =>
-            value && onDateChange(value as DatePickerValue<Mode>)
-          }
+          onSelect={(value) => onDateChange(value as DatePickerValue<Mode>)}
           month={viewMonth}
           onMonthChange={setViewMonth}
-          {...props}
         />
       );
     }
@@ -165,7 +163,7 @@ export const DatePicker = <Mode extends CalendarMode = "single">({
         <CalendarMultiple
           selected={date as Date[]}
           onSelect={(value) =>
-            value && onDateChange(value as DatePickerValue<Mode>, false)
+            onDateChange(value as DatePickerValue<Mode>, false)
           }
           month={viewMonth}
           onMonthChange={setViewMonth}
@@ -176,13 +174,13 @@ export const DatePicker = <Mode extends CalendarMode = "single">({
     if (mode === "range") {
       return (
         <CalendarRange
+          {...props}
           selected={date as DateRange}
           onSelect={(value) =>
-            value && onDateChange(value as DatePickerValue<Mode>, false)
+            onDateChange(value as DatePickerValue<Mode>, false)
           }
           month={viewMonth}
           onMonthChange={setViewMonth}
-          {...props}
         />
       );
     }
@@ -249,7 +247,10 @@ export const DatePicker = <Mode extends CalendarMode = "single">({
         <div className="rounded-md border">{renderCalendarVariant(mode)}</div>
         {mode !== "single" && (
           <HStack className="justify-end gap-2">
-            <Button variant="outline" onClick={() => onDateChange(undefined)}>
+            <Button
+              variant="outline"
+              onClick={() => onDateChange(undefined, false)}
+            >
               Clear
             </Button>
             <Button onClick={() => setOpen(false)}>Use these dates</Button>
