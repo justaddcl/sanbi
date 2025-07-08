@@ -75,7 +75,6 @@ export const SetSongKeyStep: React.FC<SetSongKeyStepProps> = ({
             <Heart />
             <Text style={isDesktop ? "body-small" : "small"}>
               Preferred key: {formatSongKey(preferredKey)}
-              {/* used the non-null assertion since all songs should have a selected key */}
             </Text>
           </HStack>
           {isLastPlayInstanceQueryLoading && <Skeleton className="h-4 w-40" />}

@@ -56,6 +56,16 @@ const isDateRange = (value: Date | Date[] | DateRange): value is DateRange =>
 export type DatePickerValue<Mode extends CalendarMode = "single"> =
   Mode extends "single" ? Date : Mode extends "multiple" ? Date[] : DateRange;
 
+const formatDateRange = (from: Date, to: Date | undefined): string => {
+  if (!to) {
+    return format(from, "LLL dd");
+  }
+
+  const fromFormat = `LLL dd${isSameYear(to, from) ? "" : ", yyyy"}`;
+  const toFormat = `LLL dd${isSameYear(to, from) ? "" : ", yyyy"}`;
+  return `${format(from, fromFormat)} - ${format(to, toFormat)}`;
+};
+
 const getDatePickerLabel = <Mode extends CalendarMode = "single">(
   placeholder: DatePickerProps["placeholder"],
   date: DatePickerValue<Mode> | undefined,
@@ -77,12 +87,7 @@ const getDatePickerLabel = <Mode extends CalendarMode = "single">(
 
   if (mode === "range") {
     const range = date as DateRange;
-    return range.from
-      ? range.to
-        ? `${format(range.from, `LLL dd${isSameYear(range.to, range.from) ? "" : ", yyyy"}`)} -${" "}
-          ${format(range.to, `LLL dd${isSameYear(range.to, range.from) ? "" : ", yyyy"}`)}`
-        : format(range.from, `LLL dd`)
-      : "Pick a date";
+    return range.from ? formatDateRange(range.from, range.to) : "Pick a date";
   }
 
   return format(date as DatePickerValue<"single">, DATE_FORMAT);
@@ -106,6 +111,7 @@ type DatePickerProps<Mode extends CalendarMode = "single"> = Partial<
     placeholder?: string;
     alwaysShowPlaceholder?: boolean;
     date?: DatePickerValue<Mode>;
+    primaryButtonLabel?: string;
   };
 
 export const DatePicker = <Mode extends CalendarMode = "single">({
@@ -117,6 +123,7 @@ export const DatePicker = <Mode extends CalendarMode = "single">({
   alwaysShowPlaceholder,
   date,
   onChange,
+  primaryButtonLabel,
   ...props
 }: DatePickerProps<Mode>) => {
   const [open, setOpen] = React.useState(false);
@@ -136,17 +143,17 @@ export const DatePicker = <Mode extends CalendarMode = "single">({
     return initialDate ?? new Date();
   });
 
-  const onDateChange = (
-    selectedDate: DatePickerValue<Mode> | undefined,
-    closePicker = true,
-  ) => {
-    onChange?.(selectedDate);
-    if (closePicker) {
-      setOpen(false);
-    }
-  };
+  const onDateChange = React.useCallback(
+    (selectedDate: DatePickerValue<Mode> | undefined, closePicker = true) => {
+      onChange?.(selectedDate);
+      if (closePicker) {
+        setOpen(false);
+      }
+    },
+    [onChange, setOpen],
+  );
 
-  const renderCalendarVariant = (mode: Mode) => {
+  const memoizedCalendarVariant = React.useMemo(() => {
     if (mode === "single") {
       return (
         <CalendarSingle
@@ -184,7 +191,7 @@ export const DatePicker = <Mode extends CalendarMode = "single">({
         />
       );
     }
-  };
+  }, [mode, date, onDateChange, viewMonth, setViewMonth, props]);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -244,7 +251,7 @@ export const DatePicker = <Mode extends CalendarMode = "single">({
             </SelectContent>
           </Select>
         )}
-        <div className="rounded-md border">{renderCalendarVariant(mode)}</div>
+        <div className="rounded-md border">{memoizedCalendarVariant}</div>
         {mode !== "single" && (
           <HStack className="justify-end gap-2">
             <Button
@@ -253,7 +260,9 @@ export const DatePicker = <Mode extends CalendarMode = "single">({
             >
               Clear
             </Button>
-            <Button onClick={() => setOpen(false)}>Use these dates</Button>
+            <Button onClick={() => setOpen(false)}>
+              {primaryButtonLabel ?? "Use these dates"}
+            </Button>
           </HStack>
         )}
       </PopoverContent>

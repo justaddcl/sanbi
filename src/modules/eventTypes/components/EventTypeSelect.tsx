@@ -87,17 +87,6 @@ export const EventTypeSelect: React.FC<EventTypeSelectProps> = ({
     );
   }
 
-  // const handleSelect = (selectedEventTypeId: string): void => {
-  //   const eventTypeId =
-  //     selectedEventTypeId === value ? "" : selectedEventTypeId;
-  //   console.log("🚀 ~ EventTypeSelect.tsx:62 ~ handleSelect ~ eventTypeId:", {
-  //     selectedEventTypeId,
-  //     value,
-  //     eventTypeId,
-  //   });
-  //   setSelectedEventType?.(eventTypeId);
-  // };
-
   const displayValue = (value?: string) => {
     if (!value) {
       return placeholder ?? "Select event type";

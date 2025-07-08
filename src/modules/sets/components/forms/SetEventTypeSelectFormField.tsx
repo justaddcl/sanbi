@@ -20,7 +20,7 @@ export const SetEventTypeSelectFormField: React.FC = () => {
           <FormLabel>Event type *</FormLabel>
           <FormControl>
             <EventTypeSelect
-              value={field.value as string} // asserting the type since TS can't tell due to the form context
+              value={typeof field.value === "string" ? field.value : ""}
               onSelectChange={field.onChange}
             />
           </FormControl>

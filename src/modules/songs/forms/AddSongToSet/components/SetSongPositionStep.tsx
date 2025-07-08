@@ -57,11 +57,6 @@ export const SetSongPositionStep: React.FC<SetSongPositionStepProps> = ({
       return;
     }
 
-    console.log(
-      "🚀 ~ SetSongPositionStep.tsx:57 ~ useEffect ~ setSectionData:",
-      setSectionData,
-    );
-
     const existingItems: DraggableSongListItem[] = setSectionData.songs.map(
       (song) => ({
         id: song.id,
@@ -95,27 +90,6 @@ export const SetSongPositionStep: React.FC<SetSongPositionStepProps> = ({
   if (!setSectionData) {
     return null;
   }
-
-  // const draggableSongItems: DraggableSongListItem[] = setSectionData.songs.map(
-  //   (setSectionSong) => ({
-  //     id: setSectionSong.id,
-  //     songKey: setSectionSong.key,
-  //     name: setSectionSong.song.name,
-  //     index: setSectionSong.position,
-  //     type: "existing",
-  //   }),
-  // );
-
-  // const draggableSongItemsWithNewSong = draggableSongItems.toSpliced(
-  //   newSongInitialPosition,
-  //   0,
-  //   {
-  //     id: song.id,
-  //     name: song.name,
-  //     index: setSectionData.songs.length + 1,
-  //     type: "new",
-  //   },
-  // );
 
   return (
     <VStack className="gap-4 p-6 pt-2">

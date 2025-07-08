@@ -14,9 +14,10 @@ export const SetSelectionSection: React.FC<SetSelectionSectionProps> = ({
   title,
   label,
   children,
+  ...props
 }) => {
   return (
-    <VStack className="lg:gap-1 lg:px-6">
+    <VStack className="lg:gap-1 lg:px-6" {...props}>
       <HStack className="items-center justify-between px-4">
         <Text className="text-slate-500">{title}</Text>
         {label && typeof label === "string" ? (

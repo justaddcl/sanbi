@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { CaretDown, CaretUp } from "@phosphor-icons/react";
 
 import { Button } from "@components/ui/button";
@@ -75,10 +75,18 @@ export const Card: React.FC<CardProps> = ({
 
   const shouldShowChildren =
     externalIsExpanded ?? (isCollapsible ? isExpanded : true);
-  const shouldShowBadge =
-    !!badge &&
-    ((isExpanded && !hideBadgeWhenExpanded) ||
-      (!isExpanded && !hideBadgeWhenCollapsed));
+
+  const shouldShowBadge = React.useMemo(() => {
+    if (!badge) {
+      return false;
+    }
+
+    if (isExpanded) {
+      return !hideBadgeWhenExpanded;
+    }
+
+    return !hideBadgeWhenCollapsed;
+  }, [badge, isExpanded, hideBadgeWhenExpanded, hideBadgeWhenCollapsed]);
 
   return (
     <VStack className={cn("rounded-lg border p-1 lg:p-2", className)}>

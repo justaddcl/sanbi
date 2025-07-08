@@ -30,9 +30,13 @@ export const SetSectionSelectionStep: React.FC<
     organizationId: userMembership.organizationId,
   });
 
-  // FIXME: how do we handle this case?
   if (!setData) {
-    return null;
+    return (
+      <div className="p-4 text-center text-muted-foreground">
+        Unable to load set details. Please go back a step and try re-selecting
+        the set.
+      </div>
+    );
   }
 
   return (

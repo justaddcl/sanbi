@@ -51,6 +51,7 @@ export const setRouter = createTRPCRouter({
               songs: {
                 orderBy: (songs, { asc }) => [asc(songs.position)],
                 with: {
+                  // TODO: see if we can return the notes value with the unescaped HTML
                   song: true,
                 },
               },

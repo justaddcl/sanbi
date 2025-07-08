@@ -22,6 +22,7 @@ export const SetSelectionSetItem: React.FC<SetSelectionSetItemProps> = ({
   label,
   className,
   onClick,
+  ...props
 }) => {
   return (
     <HStack
@@ -30,6 +31,7 @@ export const SetSelectionSetItem: React.FC<SetSelectionSetItemProps> = ({
         className,
       )}
       onClick={onClick}
+      {...props}
     >
       <div className="flex flex-col lg:flex-row lg:items-center lg:gap-2">
         {titleTooltip ? (

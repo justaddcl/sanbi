@@ -10,6 +10,7 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { cn } from "@lib/utils";
 
 export type MultiSelectOption = {
   value: string;
@@ -21,6 +22,7 @@ type MultiSelectProps = {
   options: MultiSelectOption[];
   selected: string[];
   onSelectChange: (selectedValue: string) => void;
+  className?: string;
 };
 
 export const MultiSelect: React.FC<MultiSelectProps> = ({
@@ -28,16 +30,17 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
   options,
   selected,
   onSelectChange,
+  className,
 }) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="outline">
-          {label ?? "Open"}
+          {label}
           <CaretDown />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56">
+      <DropdownMenuContent className={cn("w-56", className)}>
         {options.map((option) => (
           <DropdownMenuCheckboxItem
             key={option.value}

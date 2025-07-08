@@ -98,6 +98,7 @@ export const EditSongContentFormFields: React.FC<
                 <FormControl>
                   <Textarea
                     {...field}
+                    // TODO: see if we can get the unescaped HTML for the notes directly from TRPC instead of having to do that here
                     value={unescapeHTML(field.value)}
                     className="font-normal"
                   />

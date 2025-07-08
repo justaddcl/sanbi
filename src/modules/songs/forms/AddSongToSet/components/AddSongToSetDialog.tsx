@@ -19,7 +19,6 @@ import { SetSectionSelectionStep } from "./SetSectionSelectionStep";
 import { SetSongPositionStep } from "./SetSongPositionStep";
 
 export type SelectedSet = Pick<SetType, "id"> & {
-  // TODO: return this directly from the set/get route
   songCount: number;
 };
 
@@ -36,23 +35,17 @@ const contentMap: Record<
   {
     title: string;
     alternateTitle?: string;
-    subtitle?: (songName: string) => string;
   }
 > = {
   [AddSongToSetDialogStep.SELECT_SET]: {
     title: "Add to which set?",
     alternateTitle: "Create new set",
-    subtitle: (songName: string) =>
-      `Select the set you want to add ${songName} to`,
   },
   [AddSongToSetDialogStep.SELECT_SET_SECTION]: {
     title: "Which section?",
-    subtitle: (songName: string) =>
-      `Select the set section to add ${songName} to`,
   },
   [AddSongToSetDialogStep.SET_POSITION]: {
     title: "When will you play it?",
-    subtitle: (songName: string) => `Set when you'll play ${songName}`,
   },
   [AddSongToSetDialogStep.SET_KEY]: {
     title: "What key will you play in?",
@@ -84,16 +77,13 @@ export const AddSongToSetDialog: React.FC<AddSongToSetDialogProps> = ({
   const [songPosition, setSongPosition] = useState<number | null>(null);
   const [selectedKey, setSelectedKey] = useState<SongKey | null>(null);
 
-  const totalSteps = Object.values(AddSongToSetDialogStep).filter(
-    (value) => typeof value === "number",
-  ).length;
+  const totalSteps = Object.keys(AddSongToSetDialogStep).length / 2; // this is divided by 2 since the length property combines the number of keys and values
 
   const goBack = () => {
     if (currentStep === AddSongToSetDialogStep.SELECT_SET && isCreatingNewSet) {
       setIsCreatingNewSet(false);
     } else if (currentStep > AddSongToSetDialogStep.SELECT_SET) {
-      setCurrentStep(currentStep - 1);
-      // setCurrentStep((step) => step - 1);
+      setCurrentStep((step) => step - 1);
 
       // reset selected song position if user goes back from the set position step
       if (currentStep === AddSongToSetDialogStep.SET_POSITION) {
@@ -165,13 +155,33 @@ export const AddSongToSetDialog: React.FC<AddSongToSetDialogProps> = ({
           />
         );
       case AddSongToSetDialogStep.REVIEW:
+        if (!selectedSet) {
+          setCurrentStep(AddSongToSetDialogStep.SELECT_SET);
+          return null;
+        }
+
+        if (!selectedSetSection) {
+          setCurrentStep(AddSongToSetDialogStep.SELECT_SET_SECTION);
+          return null;
+        }
+
+        if (!songPosition) {
+          setCurrentStep(AddSongToSetDialogStep.SET_POSITION);
+          return null;
+        }
+
+        if (!selectedKey) {
+          setCurrentStep(AddSongToSetDialogStep.SET_KEY);
+          return null;
+        }
+
         return (
           <ReviewStep
-            selectedSetId={selectedSet!.id}
-            selectedSetSection={selectedSetSection!} // TODO: can we drop this assertion? There should be a set section selected if the user is on this step
+            selectedSetId={selectedSet.id}
+            selectedSetSection={selectedSetSection}
             song={song}
-            position={songPosition!} // TODO: can we drop this assertion? There should be a songPosition set if the user is on this step
-            songKey={selectedKey!} // TODO: can we drop this assertion? There should be a songKey set if the user is on this step
+            position={songPosition}
+            songKey={selectedKey}
           />
         );
       default:
@@ -200,7 +210,6 @@ export const AddSongToSetDialog: React.FC<AddSongToSetDialogProps> = ({
         closeButton={null}
         className="max-h-[90%] gap-0 overflow-y-auto p-0 lg:max-h-[75%] lg:p-0"
       >
-        {/* TODO: move within each step's component */}
         <AddSongToSetDialogHeader
           title={
             currentStep === AddSongToSetDialogStep.SELECT_SET &&

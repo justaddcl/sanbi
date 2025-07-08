@@ -46,8 +46,14 @@ export const SetSelectionAllUpcomingSets: React.FC<
   const userMembership = userData?.memberships[0];
 
   if (!userMembership) {
-    // TODO: how do we best handle this case?
-    return null;
+    return (
+      <SetSelectionSection title="All upcoming sets">
+        <div className="p-4 text-center text-muted-foreground">
+          Unable to load sets. Looks like we can&apos;t verify which team
+          you&apos;re a part of
+        </div>
+      </SetSelectionSection>
+    );
   }
 
   const {
@@ -75,24 +81,30 @@ export const SetSelectionAllUpcomingSets: React.FC<
     },
   );
 
-  // FIXME: add skeleton to mimic mobile styles
   if (isLoading) {
     return (
       <SetSelectionSection title="All upcoming sets">
-        <VStack className="gap-4 px-3">
+        <VStack className="gap-4 px-3 py-4 lg:gap-6">
           <HStack className="justify-between">
-            <HStack className="gap-2">
+            <div className="flex flex-col gap-1 lg:flex-row lg:gap-2">
               <Skeleton className="h-5 w-20" />
               <Skeleton className="h-5 w-40" />
-            </HStack>
-            <Skeleton className="h-5 w-20" />
+            </div>
+            <Skeleton className="h-5 w-16" />
           </HStack>
           <HStack className="justify-between">
-            <HStack className="gap-2">
+            <div className="flex flex-col gap-1 lg:flex-row lg:gap-2">
               <Skeleton className="h-5 w-36" />
-              <Skeleton className="h-5 w-32" />
-            </HStack>
-            <Skeleton className="h-5 w-20" />
+              <Skeleton className="h-5 w-24" />
+            </div>
+            <Skeleton className="h-5 w-16" />
+          </HStack>
+          <HStack className="justify-between">
+            <div className="flex flex-col gap-1 lg:flex-row lg:gap-2">
+              <Skeleton className="h-5 w-36" />
+              <Skeleton className="h-5 w-24" />
+            </div>
+            <Skeleton className="h-5 w-16" />
           </HStack>
         </VStack>
       </SetSelectionSection>
@@ -105,7 +117,13 @@ export const SetSelectionAllUpcomingSets: React.FC<
   }
 
   if (!setsData) {
-    return <div>No sets found...</div>;
+    return (
+      <SetSelectionSection title="All upcoming sets">
+        <div className="p-4 text-center text-muted-foreground">
+          No sets found. Try adjusting your filters or create a new set.
+        </div>
+      </SetSelectionSection>
+    );
   }
 
   return (
