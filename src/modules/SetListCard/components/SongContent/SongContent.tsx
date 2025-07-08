@@ -49,7 +49,7 @@ export const SongContent: React.FC<SongContentProps> = ({
         className,
       )}
     >
-      {index && (
+      {index != null && (
         <Text
           align="right"
           className={cn(
@@ -81,6 +81,7 @@ export const SongContent: React.FC<SongContentProps> = ({
         </HStack>
         {notes ? (
           <Text style="small" color="slate-700">
+            {/* TODO: get the unescaped HTML notes directly in TRPC */}
             {unescapeHTML(notes)}
           </Text>
         ) : null}

@@ -32,7 +32,7 @@ type ActiveDraggableSongItem = Pick<Song, "id" | "name"> & {
 
 export type DraggableSongListProps = {
   songs: DraggableSongListItem[];
-  onDragEnd: (songItems: DraggableSongItem[]) => void;
+  onDragEnd: (songItems: DraggableSongListItem[]) => void;
   className?: string;
 };
 

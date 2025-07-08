@@ -38,8 +38,8 @@ export const SetSelectionUpcomingSets: React.FC<
     error: userQueryError,
     isLoading: userQueryLoading,
     isAuthLoaded,
+    userMembership,
   } = useUserQuery();
-  const userMembership = userData?.memberships[0];
 
   if (!userMembership) {
     return (
