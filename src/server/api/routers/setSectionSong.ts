@@ -402,7 +402,6 @@ export const setSectionSongRouter = createTRPCRouter({
             message: "Could not create new setSectionSong",
           });
         }
-        const newSetSectionSongDbId = insertedSetSectionSong.id;
 
         // 4. Prepare updates for all songs based on the final desired order
         const currentPositionMap = new Map<string, number>();
@@ -417,7 +416,7 @@ export const setSectionSongRouter = createTRPCRouter({
             // Determine the actual DB ID for the current song in the loop
             const setSectionSongId =
               songIdInOrderedList === newSongTempId
-                ? newSetSectionSongDbId
+                ? insertedSetSectionSong.id
                 : songIdInOrderedList;
 
             const currentPosition = currentPositionMap.get(setSectionSongId);
@@ -427,10 +426,12 @@ export const setSectionSongRouter = createTRPCRouter({
               currentPosition === undefined ||
               currentPosition !== desiredPosition
             ) {
-              updatedSetSectionSongs.push({
-                id: setSectionSongId,
-                position: desiredPosition,
-              });
+              if (setSectionSongId !== insertedSetSectionSong.id) {
+                updatedSetSectionSongs.push({
+                  id: setSectionSongId,
+                  position: desiredPosition,
+                });
+              }
 
               updatePromises.push(
                 transaction
@@ -449,11 +450,14 @@ export const setSectionSongRouter = createTRPCRouter({
         await Promise.all(updatePromises);
 
         console.info(
-          `🤖 - [setSectionSong/addAndReorderSongs] - Successfully added new song ${newSetSectionSongDbId} and reordered songs for set section ${setSectionId}`,
+          `🤖 - [setSectionSong/addAndReorderSongs] - Successfully added new setSectionSong ${insertedSetSectionSong.id} and reordered songs for set section ${setSectionId}`,
           { newSetSectionSongData, updatedSetSectionSongs },
         );
 
-        return { success: true, newSetSectionSongId: newSetSectionSongDbId };
+        return {
+          success: true,
+          newSetSectionSongId: insertedSetSectionSong.id,
+        };
       });
     }),
 });

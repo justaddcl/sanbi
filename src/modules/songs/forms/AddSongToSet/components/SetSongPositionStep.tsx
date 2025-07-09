@@ -23,7 +23,7 @@ type SetSongPositionStepProps = {
   selectedSetSection: string | null;
   song: inferProcedureOutput<AppRouter["song"]["get"]>;
   newSongInitialPosition: number;
-  onSongPositionSet: (songPosition: number) => void;
+  onSongPositionSet: (orderedSongIds: string[]) => void;
 };
 
 export const SetSongPositionStep: React.FC<SetSongPositionStepProps> = ({
@@ -32,9 +32,6 @@ export const SetSongPositionStep: React.FC<SetSongPositionStepProps> = ({
   newSongInitialPosition,
   onSongPositionSet,
 }) => {
-  const [selectedPosition, setSelectedPosition] = useState<number>(
-    newSongInitialPosition,
-  );
   const [inputPositionValue, setInputPositionValue] = useState(
     newSongInitialPosition,
   );
@@ -130,7 +127,6 @@ export const SetSongPositionStep: React.FC<SetSongPositionStepProps> = ({
               const songPosition = songItems.findIndex(
                 (songItem) => songItem.id === song.id,
               );
-              setSelectedPosition(songPosition);
               setInputPositionValue(songPosition);
             }}
           />
@@ -138,7 +134,8 @@ export const SetSongPositionStep: React.FC<SetSongPositionStepProps> = ({
       </VStack>
       <Button
         onClick={() => {
-          onSongPositionSet(selectedPosition);
+          const orderedSongIds = songItems.map((songItem) => songItem.id);
+          onSongPositionSet(orderedSongIds);
         }}
       >
         Confirm song position

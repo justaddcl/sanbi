@@ -75,6 +75,9 @@ export const AddSongToSetDialog: React.FC<AddSongToSetDialogProps> = ({
 
   const [initialSongPosition, setInitialSongPosition] = useState(0);
   const [songPosition, setSongPosition] = useState<number | null>(null);
+  const [updatedSetSectionOrderedSongIds, setUpdatedSetSectionOrderedSongIds] =
+    useState<string[]>([]);
+
   const [selectedKey, setSelectedKey] = useState<SongKey | null>(null);
 
   const totalSteps = Object.keys(AddSongToSetDialogStep).length / 2; // this is divided by 2 since the length property combines the number of keys and values
@@ -137,8 +140,12 @@ export const AddSongToSetDialog: React.FC<AddSongToSetDialogProps> = ({
             selectedSetSection={selectedSetSection}
             song={song}
             newSongInitialPosition={songPosition ?? initialSongPosition}
-            onSongPositionSet={(songPosition) => {
+            onSongPositionSet={(orderedSongIds) => {
+              const songPosition = orderedSongIds.findIndex(
+                (songId) => songId === song.id,
+              );
               setSongPosition(songPosition);
+              setUpdatedSetSectionOrderedSongIds(orderedSongIds);
               setCurrentStep(AddSongToSetDialogStep.SET_KEY);
             }}
           />
@@ -165,7 +172,10 @@ export const AddSongToSetDialog: React.FC<AddSongToSetDialogProps> = ({
           return null;
         }
 
-        if (!songPosition) {
+        if (
+          !updatedSetSectionOrderedSongIds ||
+          updatedSetSectionOrderedSongIds.length === 0
+        ) {
           setCurrentStep(AddSongToSetDialogStep.SET_POSITION);
           return null;
         }
@@ -180,8 +190,12 @@ export const AddSongToSetDialog: React.FC<AddSongToSetDialogProps> = ({
             selectedSetId={selectedSet.id}
             selectedSetSection={selectedSetSection}
             song={song}
-            position={songPosition}
+            orderedSongIds={updatedSetSectionOrderedSongIds}
             songKey={selectedKey}
+            onAddSong={() => {
+              setIsOpen(false);
+              resetDialog();
+            }}
           />
         );
       default:

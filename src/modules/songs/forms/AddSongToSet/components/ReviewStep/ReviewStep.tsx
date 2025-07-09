@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { type inferProcedureOutput } from "@trpc/server";
+import { toast } from "sonner";
 
 import { Button } from "@components/ui/button";
 import { Textarea } from "@components/ui/textarea";
@@ -20,7 +21,8 @@ type ReviewStepProps = {
   selectedSetSection: string;
   song: inferProcedureOutput<AppRouter["song"]["get"]>;
   songKey: SongKeyType;
-  position: number;
+  orderedSongIds: string[];
+  onAddSong?: () => void;
 };
 
 export const ReviewStep: React.FC<ReviewStepProps> = ({
@@ -28,7 +30,8 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
   selectedSetSection,
   song,
   songKey,
-  position,
+  orderedSongIds,
+  onAddSong,
 }) => {
   const [notes, setNotes] = useState<string>("");
 
@@ -37,6 +40,10 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
   if (!userMembership) {
     return null;
   }
+
+  const apiUtils = api.useUtils();
+  const addSetSectionSongAndReorderSongsMutation =
+    api.setSectionSong.addAndReorderSongs.useMutation();
 
   const { data: setData } = api.set.get.useQuery({
     setId: selectedSetId,
@@ -61,13 +68,57 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
     type: "existing",
   }));
 
-  const setSectionSongsWithNewSong = setSectionSongs.toSpliced(position, 0, {
-    id: song.id,
-    name: song.name,
-    index: position + 1,
-    songKey: songKey,
-    type: "new",
-  });
+  const songPosition = orderedSongIds.findIndex((songId) => song.id === songId);
+
+  const setSectionSongsWithNewSong = setSectionSongs.toSpliced(
+    songPosition,
+    0,
+    {
+      id: song.id,
+      name: song.name,
+      index: songPosition + 1,
+      songKey: songKey,
+      type: "new",
+    },
+  );
+
+  const handleAddSongToSetSubmit = async () => {
+    const toastId = toast.loading("Adding song to set...");
+
+    addSetSectionSongAndReorderSongsMutation.mutate(
+      {
+        setSectionId: selectedSetSection,
+        newSong: {
+          songId: song.id,
+          key: songKey,
+          notes,
+        },
+        newSongTempId: song.id,
+        orderedSongIds,
+        organizationId: userMembership.organizationId,
+      },
+      {
+        async onSuccess() {
+          toast.success("Song added to set!", { id: toastId });
+
+          await apiUtils.song.get.invalidate({ songId: song.id });
+          await apiUtils.set.get.invalidate({ setId: selectedSetId });
+          // FIXME: doesn't seem to update the SSR data on the song page
+          // await apiUtils.song.getPlayHistory.invalidate({
+          //   songId: song.id,
+          //   // organizationId: userMembership.organizationId,
+          // });
+
+          onAddSong?.();
+        },
+        onError(addSongError) {
+          toast.error(`Could not add song to set: ${addSongError.message}`, {
+            id: toastId,
+          });
+        },
+      },
+    );
+  };
 
   return (
     <VStack className="gap-4 p-6 pt-2 md:gap-8">
@@ -121,8 +172,12 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
           />
         </VStack>
       </VStack>
-      {/* TODO: actually add the song to the set */}
-      <Button>Add song to set</Button>
+      <Button
+        onClick={handleAddSongToSetSubmit}
+        disabled={addSetSectionSongAndReorderSongsMutation.isPending}
+      >
+        Add song to set
+      </Button>
     </VStack>
   );
 };
