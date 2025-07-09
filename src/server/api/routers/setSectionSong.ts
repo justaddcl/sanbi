@@ -1,5 +1,9 @@
+import { TRPCError } from "@trpc/server";
+import { and, eq, gt, sql } from "drizzle-orm";
+
 import { type NewSetSectionSong } from "@lib/types";
 import {
+  addAndReorderSongsSchema,
   deleteSetSectionSongSchema,
   insertSetSectionSongSchema,
   moveSetSectionSongToAdjacentSetSectionSchema,
@@ -12,10 +16,8 @@ import {
   createTRPCRouter,
   organizationProcedure,
 } from "@server/api/trpc";
-import { setSectionSongs, songs } from "@server/db/schema";
+import { setSections, setSectionSongs, songs } from "@server/db/schema";
 import { moveSongToAdjacentSection, swapSongPosition } from "@server/mutations";
-import { TRPCError } from "@trpc/server";
-import { and, eq, gt, sql } from "drizzle-orm";
 
 export const setSectionSongRouter = createTRPCRouter({
   create: organizationProcedure
@@ -48,6 +50,7 @@ export const setSectionSongRouter = createTRPCRouter({
         .values(newSetSectionSong)
         .returning();
     }),
+
   delete: adminProcedure
     .input(deleteSetSectionSongSchema)
     .mutation(async ({ ctx, input }) => {
@@ -310,5 +313,147 @@ export const setSectionSongRouter = createTRPCRouter({
       );
 
       return updatedSong;
+    }),
+
+  addAndReorderSongs: organizationProcedure
+    .input(addAndReorderSongsSchema)
+    .mutation(async ({ ctx, input }) => {
+      console.log(
+        `🤖 - [setSectionSong/addAndReorderSongs] - attempting to add a new song and reorder songs in set section ${input.setSectionId}`,
+        input,
+      );
+
+      const { user } = ctx;
+      const { setSectionId, newSong, newSongTempId, orderedSongIds } = input;
+      const organizationId = user.membership.organizationId;
+
+      // 1. Verify the setSectionId belongs to the user's organization
+      const setSection = await ctx.db.query.setSections.findFirst({
+        where: eq(setSections.id, setSectionId),
+      });
+
+      if (!setSection) {
+        console.error(
+          `🤖 - [setSectionSong/addAndReorderSongs] - could not find set section ${setSectionId}`,
+        );
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: `Cannot find the set section`,
+        });
+      }
+
+      if (setSection.organizationId !== organizationId) {
+        console.error(
+          `🤖 - [setSectionSong/addAndReorderSongs] - User ${user.id} not authorized to update set section ${setSectionId}`,
+        );
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Not authorized to update this set section",
+        });
+      }
+
+      return await ctx.db.transaction(async (transaction) => {
+        // 2. Determine the position for the new song from orderedSongIds
+        const newSongPosition = orderedSongIds.indexOf(newSongTempId);
+
+        if (newSongPosition === -1) {
+          console.error(
+            `🤖 - [setSectionSong/addAndReorderSongs] - New song's temporary ID ${newSongTempId} not found in the provided ordered list.`,
+          );
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "New song's temporary ID not found in ordered list.",
+          });
+        }
+
+        const newSetSectionSongData: NewSetSectionSong = {
+          songId: newSong.songId,
+          setSectionId: setSectionId,
+          key: newSong.key,
+          position: newSongPosition,
+          notes: newSong.notes ?? null,
+          organizationId: organizationId,
+        };
+
+        // 3. Execute fetching current state and inserting new song in parallel
+        const [currentSetSectionSongs, [insertedSetSectionSong]] =
+          await Promise.all([
+            transaction.query.setSectionSongs.findMany({
+              where: eq(setSectionSongs.setSectionId, setSectionId),
+              columns: {
+                id: true,
+                position: true,
+              },
+            }),
+            transaction
+              .insert(setSectionSongs)
+              .values(newSetSectionSongData)
+              .returning(),
+          ]);
+
+        if (!insertedSetSectionSong) {
+          console.error(
+            `🤖 - [setSectionSong/addAndReorderSongs] - could not create a new setSectionSong using the input`,
+            newSetSectionSongData,
+          );
+
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Could not create new setSectionSong",
+          });
+        }
+        const newSetSectionSongDbId = insertedSetSectionSong.id;
+
+        // 4. Prepare updates for all songs based on the final desired order
+        const currentPositionMap = new Map<string, number>();
+        currentSetSectionSongs.forEach((song) => {
+          currentPositionMap.set(song.id, song.position);
+        });
+
+        const updatedSetSectionSongs: { id: string; position: number }[] = [];
+
+        const updatePromises = orderedSongIds.reduce<Promise<unknown>[]>(
+          (updatePromises, songIdInOrderedList, desiredPosition) => {
+            // Determine the actual DB ID for the current song in the loop
+            const setSectionSongId =
+              songIdInOrderedList === newSongTempId
+                ? newSetSectionSongDbId
+                : songIdInOrderedList;
+
+            const currentPosition = currentPositionMap.get(setSectionSongId);
+
+            // If the song is new or an existing song whose position has changed
+            if (
+              currentPosition === undefined ||
+              currentPosition !== desiredPosition
+            ) {
+              updatedSetSectionSongs.push({
+                id: setSectionSongId,
+                position: desiredPosition,
+              });
+
+              updatePromises.push(
+                transaction
+                  .update(setSectionSongs)
+                  .set({ position: desiredPosition })
+                  .where(eq(setSectionSongs.id, setSectionSongId))
+                  .execute(),
+              );
+            }
+            return updatePromises;
+          },
+          [],
+        );
+
+        // 5. Execute all position updates in parallel
+        await Promise.all(updatePromises);
+
+        console.info(
+          `🤖 - [setSectionSong/addAndReorderSongs] - Successfully added new song ${newSetSectionSongDbId} and reordered songs for set section ${setSectionId}`,
+          { newSetSectionSongData, updatedSetSectionSongs },
+        );
+
+        return { success: true, newSetSectionSongId: newSetSectionSongDbId };
+      });
     }),
 });

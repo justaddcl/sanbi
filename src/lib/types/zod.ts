@@ -196,6 +196,17 @@ export const updateSetSectionSongSchema = insertSetSectionSongSchema
     songId: true,
   });
 
+export const addAndReorderSongsSchema = z.object({
+  setSectionId: z.string().uuid(),
+  newSong: z.object({
+    songId: z.string().uuid(),
+    key: z.enum(songKeys),
+    notes: z.string().optional(),
+  }),
+  newSongTempId: z.string(),
+  orderedSongIds: z.array(z.string()),
+});
+
 /**
  * Tag schemas
  */
