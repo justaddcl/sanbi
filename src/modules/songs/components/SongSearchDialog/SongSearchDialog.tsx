@@ -1,15 +1,17 @@
 "use client";
 
-import { CommandDialog } from "@components/ui/command";
-import { useAuth } from "@clerk/nextjs";
-import { Text } from "@components/Text";
-import { redirect, useSearchParams } from "next/navigation";
 import { useState } from "react";
+import { redirect, useSearchParams } from "next/navigation";
+import { useAuth } from "@clerk/nextjs";
+
+import { CommandDialog } from "@components/ui/command";
+import { Text } from "@components/Text";
 import {
   SongSearch,
   type SongSearchResult,
 } from "@modules/songs/components/SongSearch";
 import { type SetSectionWithSongs } from "@lib/types";
+
 import {
   ConfigureSongForSet,
   type ConfigureSongForSetProps,

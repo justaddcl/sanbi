@@ -92,6 +92,7 @@ export const EditSetSectionTypeForm: React.FC<EditSetSectionTypeFormProps> = ({
 
   const openAddSongDialogWithPrePopulatedSection = () => {
     const params = new URLSearchParams(searchParams.toString());
+    // opens the SongSearchDialog component
     params.set("addSongDialogOpen", "1");
     params.set("setSectionId", section.id);
 

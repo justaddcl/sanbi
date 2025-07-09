@@ -17,7 +17,6 @@ import {
 import { SongDetailsItem } from "@modules/songs/components/SongDetailsItem/SongDetailsItem";
 import { SongKeySelect } from "@modules/songs/components/SongKeySelect/SongKeySelect";
 import { SongTags } from "@modules/songs/components/SongTags/SongTags";
-import { AddSongToSetDialog } from "@modules/songs/forms/AddSongToSet/components/AddSongToSetDialog";
 import { api } from "@/trpc/server";
 
 export default async function SetListPage({
