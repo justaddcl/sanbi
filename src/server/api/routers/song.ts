@@ -1,3 +1,6 @@
+import { TRPCError } from "@trpc/server";
+import { and, asc, desc, eq, lte, sql } from "drizzle-orm";
+
 import { type NewSong } from "@lib/types/db";
 import {
   archiveSongSchema,
@@ -28,8 +31,6 @@ import {
   songTags,
   tags,
 } from "@server/db/schema";
-import { TRPCError } from "@trpc/server";
-import { and, asc, desc, eq, lte, sql } from "drizzle-orm";
 
 const TRIGRAM_SIMILARITY_THRESHOLD = 0.1;
 
@@ -376,12 +377,7 @@ export const songRouter = createTRPCRouter({
           )
           .innerJoin(eventTypes, eq(sets.eventTypeId, eventTypes.id))
           .innerJoin(songs, eq(setSectionSongs.songId, songs.id))
-          .where(
-            and(
-              eq(setSectionSongs.songId, input.songId),
-              lte(sets.date, new Date().toLocaleDateString("en-CA")), // en-CA is a locale that uses the 'YYYY-MM-DD' format
-            ),
-          )
+          .where(eq(setSectionSongs.songId, input.songId))
           .orderBy(desc(sets.date), desc(setSections.position));
 
         console.log(
