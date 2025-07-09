@@ -8,6 +8,11 @@ import { type Song } from "@lib/types";
 import { cn } from "@lib/utils";
 import { useResponsive } from "@/hooks/useResponsive";
 
+const textStyles = {
+  default: "font-semibold leading-tight text-slate-500 text-sm md:text-base",
+  muted: "font-medium text-slate-300",
+};
+
 export type SongContentProps = {
   songKey?: Song["preferredKey"];
 
@@ -35,11 +40,6 @@ export const SongContent: React.FC<SongContentProps> = ({
   muted,
   className,
 }) => {
-  const textStyles = {
-    default: "font-semibold leading-tight text-slate-500 text-sm md:text-base",
-    muted: "font-medium text-slate-300",
-  };
-
   const { isMobile } = useResponsive();
 
   return (

@@ -55,17 +55,16 @@ export const DraggableSongList: React.FC<DraggableSongListProps> = ({
 
     setActiveId(active.id);
 
-    const songBeingDragged = songItems.find(
+    const songBeingDraggedIndex = songItems.findIndex(
       (songItem) => songItem.id === active.id,
     );
+
+    const songBeingDragged = songItems[songBeingDraggedIndex];
 
     if (songBeingDragged) {
       setActiveSongItem({
         ...songBeingDragged,
-        index:
-          songItems.findIndex(
-            (songItem) => songItem.id === songBeingDragged.id,
-          ) + 1,
+        index: songBeingDraggedIndex + 1,
       });
     }
   };
@@ -84,18 +83,12 @@ export const DraggableSongList: React.FC<DraggableSongListProps> = ({
 
         const updatedSongItems = arrayMove(songItems, oldIndex, newIndex);
 
-        const updatedActiveSongItem = updatedSongItems.find(
-          (updatedSongItem) => updatedSongItem.id === active.id,
-        );
+        const updatedActiveSongItem = updatedSongItems[newIndex];
 
         if (updatedActiveSongItem) {
           setActiveSongItem({
             ...updatedActiveSongItem,
-            index:
-              updatedSongItems.findIndex(
-                (updatedSongItem) =>
-                  updatedSongItem.id === updatedActiveSongItem.id,
-              ) + 1,
+            index: newIndex + 1,
           });
         }
 

@@ -121,6 +121,7 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
           />
         </VStack>
       </VStack>
+      {/* TODO: actually add the song to the set */}
       <Button>Add song to set</Button>
     </VStack>
   );
