@@ -140,7 +140,7 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
           </HStack>
         </VStack>
         <VStack className="gap-1">
-          <Text className="font-medium text-slate-700">To set</Text>
+          <Text className="font-medium text-slate-700">In set</Text>
           <SelectedSetCard set={setData} countShown="songs" />
         </VStack>
         <VStack className="gap-1">

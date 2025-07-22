@@ -403,6 +403,20 @@ export const setSectionSongRouter = createTRPCRouter({
           });
         }
 
+        console.info(
+          `🤖 - [setSectionSong/addAndReorderSongs] - Created new setSectionSong`,
+          {
+            insertedSetSectionSong,
+          },
+        );
+
+        console.info(
+          `🤖 - [setSectionSong/addAndReorderSongs] - Current song positions for set section ${setSectionId}`,
+          {
+            currentSetSectionSongs,
+          },
+        );
+
         // 4. Prepare updates for all songs based on the final desired order
         const currentPositionMap = new Map<string, number>();
         currentSetSectionSongs.forEach((song) => {
@@ -433,6 +447,15 @@ export const setSectionSongRouter = createTRPCRouter({
                 });
               }
 
+              console.info(
+                `🤖 - [setSectionSong/addAndReorderSongs] - Attempting to update song position affected by adding the new song`,
+                {
+                  setSectionSongId,
+                  currentPosition,
+                  desiredPosition,
+                },
+              );
+
               updatePromises.push(
                 transaction
                   .update(setSectionSongs)
@@ -451,7 +474,7 @@ export const setSectionSongRouter = createTRPCRouter({
 
         console.info(
           `🤖 - [setSectionSong/addAndReorderSongs] - Successfully added new setSectionSong ${insertedSetSectionSong.id} and reordered songs for set section ${setSectionId}`,
-          { newSetSectionSongData, updatedSetSectionSongs },
+          { insertedSetSectionSong, updatedSetSectionSongs },
         );
 
         return {
