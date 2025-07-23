@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { redirect, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
 
 import { CommandDialog } from "@components/ui/command";
@@ -36,6 +36,7 @@ export const SongSearchDialog: React.FC<SongSearchDialogProps> = ({
 }) => {
   const searchParams = useSearchParams();
   const { userId, isLoaded } = useAuth();
+  const router = useRouter();
 
   const [dialogStep, setDialogStep] = useState<SongSearchDialogSteps>("search");
   const [selectedSong, setSelectedSong] = useState<SongSearchResult | null>(
@@ -43,7 +44,7 @@ export const SongSearchDialog: React.FC<SongSearchDialogProps> = ({
   );
 
   if (!userId) {
-    redirect("/");
+    router.replace("/");
   }
 
   if (!isLoaded) {

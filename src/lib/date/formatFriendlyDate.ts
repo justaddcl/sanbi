@@ -19,6 +19,18 @@ export const DAY_OF_THE_WEEK_SHORT_FORMAT = "E";
 
 export const FRIENDLY_DATE_DEFAULT_FORMAT = `${MONTH_FULL_FORMAT} ${DAY_OF_THE_MONTH_TWO_DIGIT_FORMAT} (${DAY_OF_THE_WEEK_SHORT_FORMAT})`;
 
+/**
+ * Formats a date string into a human-friendly textual representation.
+ *
+ * @param date - The date string to format
+ * @returns A friendly string representation like "Today", "Next Monday", "March 15 (Fri)", etc.
+ *
+ * @example
+ * formatFriendlyDate('2024-01-15') // "Today" (if today is Jan 15, 2024)
+ * formatFriendlyDate('2024-01-22') // "Next Monday" (if today is Jan 15, 2024)
+ *
+ * Note: Week calculations use Sunday as the first day of the week.
+ */
 export const formatFriendlyDate = (date: string) => {
   if (isToday(date)) {
     return "Today";

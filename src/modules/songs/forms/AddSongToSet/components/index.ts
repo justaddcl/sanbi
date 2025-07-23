@@ -7,4 +7,5 @@ export * from "./SetSelectionSection";
 export * from "./SetSelectionSetItem";
 export * from "./SetSelectionStep";
 export * from "./SetSelectionUpcomingSets";
+export * from "./SetSelectionUpcomingSetsLabel/SetSelectionUpcomingSetsLabel";
 export * from "./SetSongKeyStep/SetSongKeyStep";

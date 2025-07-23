@@ -330,6 +330,10 @@ export const setSectionSongRouter = createTRPCRouter({
       // 1. Verify the setSectionId belongs to the user's organization
       const setSection = await ctx.db.query.setSections.findFirst({
         where: eq(setSections.id, setSectionId),
+        columns: {
+          id: true,
+          organizationId: true,
+        },
       });
 
       if (!setSection) {
@@ -433,6 +437,11 @@ export const setSectionSongRouter = createTRPCRouter({
                 ? insertedSetSectionSong.id
                 : songIdInOrderedList;
 
+            // Skip updating the newly inserted song as it already has the correct position
+            if (setSectionSongId === insertedSetSectionSong.id) {
+              return updatePromises;
+            }
+
             const currentPosition = currentPositionMap.get(setSectionSongId);
 
             // If the song is new or an existing song whose position has changed
@@ -440,12 +449,10 @@ export const setSectionSongRouter = createTRPCRouter({
               currentPosition === undefined ||
               currentPosition !== desiredPosition
             ) {
-              if (setSectionSongId !== insertedSetSectionSong.id) {
-                updatedSetSectionSongs.push({
-                  id: setSectionSongId,
-                  position: desiredPosition,
-                });
-              }
+              updatedSetSectionSongs.push({
+                id: setSectionSongId,
+                position: desiredPosition,
+              });
 
               console.info(
                 `🤖 - [setSectionSong/addAndReorderSongs] - Attempting to update song position affected by adding the new song`,

@@ -41,8 +41,8 @@ export const SetSongPositionStep: React.FC<SetSongPositionStepProps> = ({
 
   const { data: setSectionData } = api.setSection.get.useQuery(
     {
-      setSectionId: selectedSetSection ?? "",
-      organizationId: userMembership?.organizationId ?? "",
+      setSectionId: selectedSetSection!,
+      organizationId: userMembership!.organizationId,
     },
     {
       enabled: !!selectedSetSection && !!userMembership,
@@ -72,7 +72,7 @@ export const SetSongPositionStep: React.FC<SetSongPositionStepProps> = ({
     const newSongItem: DraggableSongListItem = {
       id: song.id,
       name: song.name,
-      index: existingItems.length + 1,
+      index: existingItems.length,
       type: "new",
     };
 
@@ -103,16 +103,19 @@ export const SetSongPositionStep: React.FC<SetSongPositionStepProps> = ({
               onChange={(changeEvent) => {
                 const parsedInput = Number.parseInt(changeEvent.target.value);
 
-                // FIXME:
-                // this disables clearing the field/backspace... is this what we want?
-                if (Number.isNaN(parsedInput)) {
+                // Allow clearing the field, default to the end position
+                if (
+                  Number.isNaN(parsedInput) ||
+                  changeEvent.target.value === ""
+                ) {
+                  setInputPositionValue(setSectionData.songs.length);
                   return;
                 }
 
                 setInputPositionValue(
                   clamp(parsedInput - 1, {
                     min: 0,
-                    max: setSectionData.songs.length,
+                    max: setSectionData.songs.length, // This should match useEffect clamping
                   }),
                 );
               }}

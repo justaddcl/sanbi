@@ -35,12 +35,12 @@ export const SetSectionSelectionStep: React.FC<
   const { textSize, isDesktop } = useResponsive();
   const { userMembership } = useUserQuery();
 
+  const createSetSectionMutation = api.setSection.create.useMutation();
+  const apiUtils = api.useUtils();
+
   if (!selectedSet || !userMembership) {
     return null;
   }
-
-  const createSetSectionMutation = api.setSection.create.useMutation();
-  const apiUtils = api.useUtils();
 
   const { data: setData } = api.set.get.useQuery({
     setId: selectedSet.id,
@@ -149,7 +149,7 @@ export const SetSectionSelectionStep: React.FC<
                   <span className="hidden md:inline">Select section</span>
                 </Button>
               }
-              collapsible
+              // collapsible
               initialIsExpanded={false}
             >
               <VStack className="gap-3 md:gap-4">

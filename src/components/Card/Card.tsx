@@ -88,6 +88,11 @@ export const Card: React.FC<CardProps> = ({
     return !hideBadgeWhenCollapsed;
   }, [badge, isExpanded, hideBadgeWhenExpanded, hideBadgeWhenCollapsed]);
 
+  const handleToggleExpansion = (clickEvent: React.MouseEvent) => {
+    clickEvent.preventDefault();
+    setIsExpanded((isExpanded) => !isExpanded);
+  };
+
   return (
     <VStack className={cn("rounded-lg border p-1 lg:p-2", className)}>
       <VStack as="header" className="gap-4">
@@ -112,8 +117,7 @@ export const Card: React.FC<CardProps> = ({
                 "p-3": !button,
               })}
               onClick={(clickEvent) => {
-                clickEvent.preventDefault();
-                setIsExpanded((isExpanded) => !isExpanded);
+                handleToggleExpansion(clickEvent);
               }}
             >
               <HStack
@@ -144,8 +148,7 @@ export const Card: React.FC<CardProps> = ({
                     size="sm"
                     variant="ghost"
                     onClick={(clickEvent) => {
-                      clickEvent.preventDefault();
-                      setIsExpanded((isExpanded) => !isExpanded);
+                      handleToggleExpansion(clickEvent);
                     }}
                   >
                     {isExpanded ? <CaretUp /> : <CaretDown />}

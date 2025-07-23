@@ -74,10 +74,12 @@ export const SetSelectionFilters: React.FC<SetSelectionFiltersProps> = ({
       const eventType = eventTypeData?.find(
         (eventType) => eventType.id === eventTypeId,
       );
-      setEventTypeFilter([
-        ...eventTypeFilters,
-        { id: eventTypeId, name: eventType?.name ?? "" },
-      ]);
+      if (eventType) {
+        setEventTypeFilter((currentFilters) => [
+          ...currentFilters,
+          { id: eventTypeId, name: eventType.name },
+        ]);
+      }
     }
   };
 
@@ -121,7 +123,7 @@ export const SetSelectionFilters: React.FC<SetSelectionFiltersProps> = ({
                         checked={eventTypeFilters.some(
                           (filter) => filter.id === eventType.id,
                         )}
-                        onClick={() => handleOnSelectEventType(eventType.id)}
+                        onChange={() => handleOnSelectEventType(eventType.id)}
                       />
                       <label htmlFor={eventType.id} className="text-slate-900">
                         {eventType.name}
@@ -184,9 +186,7 @@ export const SetSelectionFilters: React.FC<SetSelectionFiltersProps> = ({
         variant="secondary"
         size="sm"
         className="font-medium"
-        onClick={() => {
-          onCreateSetClick();
-        }}
+        onClick={onCreateSetClick}
       >
         <Plus /> Create set
       </Button>

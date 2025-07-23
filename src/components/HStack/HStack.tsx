@@ -13,15 +13,15 @@ export const HStack = React.forwardRef(
     }: PolymorphicComponentProps<HTMLElement>,
     ref: React.ComponentPropsWithRef<HTMLElement>["ref"],
   ) => {
-    const HTMLElement = as ?? "div";
+    const ComponentTag = as ?? "div";
     return (
-      <HTMLElement
+      <ComponentTag
         ref={ref}
-        className={cn(`flex flex-row`, className)}
+        className={cn("flex flex-row", className)}
         {...props}
       >
         {children}
-      </HTMLElement>
+      </ComponentTag>
     );
   },
 );

@@ -24,8 +24,8 @@ export const MAX_SONG_NAME_LENGTH = 100;
 export const MAX_SONG_NOTES_LENGTH = 1000;
 
 export const dateRangeSchema = z.object({
-  from: z.string(),
-  to: z.string().nullish(),
+  from: z.string().date(),
+  to: z.string().date().nullish(),
 });
 
 /**
@@ -61,7 +61,7 @@ export const getInfiniteSetsSchema = z.object({
       id: z.string().uuid(),
     })
     .nullish(),
-  limit: z.number().min(1).max(48).nullish(),
+  limit: z.number().min(1).max(48).default(10),
   eventTypeFilters: z.array(z.string().uuid()).optional(),
   dateRange: dateRangeSchema.nullish(),
 });
@@ -204,7 +204,7 @@ export const addAndReorderSongsSchema = z.object({
     notes: z.string().optional(),
   }),
   newSongTempId: z.string(),
-  orderedSongIds: z.array(z.string()),
+  orderedSongIds: z.array(z.string().uuid()).min(1),
 });
 
 /**

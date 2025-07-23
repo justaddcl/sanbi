@@ -1,9 +1,7 @@
 import { useState } from "react";
-import { Funnel } from "@phosphor-icons/react";
 import { differenceInCalendarWeeks } from "date-fns";
 import { toast } from "sonner";
 
-import { Button } from "@components/ui/button";
 import { Skeleton } from "@components/ui/skeleton";
 import { HStack } from "@components/HStack";
 import { VStack } from "@components/VStack";
@@ -11,6 +9,7 @@ import {
   SetSelectionSection,
   SetSelectionSetItem,
   type SetSelectionStepProps,
+  SetSelectionUpcomingSetsLabel,
 } from "@modules/songs/forms/AddSongToSet/components";
 import { useUserQuery } from "@modules/users/api/queries";
 import {
@@ -20,8 +19,6 @@ import {
 } from "@lib/date";
 import { pluralize } from "@lib/string";
 import { api } from "@/trpc/react";
-
-// TODO: move to utils and add tests
 
 type SetSelectionAllUpcomingSetsProps = {
   onSetSelect: SetSelectionStepProps["onSetSelect"];
@@ -96,28 +93,15 @@ export const SetSelectionUpcomingSets: React.FC<
     return null;
   }
 
-  const SetSelectionUpcomingSetsLabel = () => {
-    return (
-      <Button size="sm" variant="ghost">
-        <HStack
-          className="items-center gap-1"
-          onClick={() =>
-            setShouldShowFilteredList(
-              (shouldShowFilteredList) => !shouldShowFilteredList,
-            )
-          }
-        >
-          <Funnel />
-          See {shouldShowFilteredList ? "all" : "only favorites"}
-        </HStack>
-      </Button>
-    );
-  };
-
   return (
     <SetSelectionSection
       title="Next sets"
-      label={<SetSelectionUpcomingSetsLabel />}
+      label={
+        <SetSelectionUpcomingSetsLabel
+          shouldShowFilteredList={shouldShowFilteredList}
+          setShouldShowFilteredList={setShouldShowFilteredList}
+        />
+      }
     >
       {upcomingSetsList?.map((upcomingSet) => (
         <SetSelectionSetItem

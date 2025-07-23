@@ -140,7 +140,7 @@ export const DatePicker = <Mode extends CalendarMode = "single">({
       return initialDate.from ?? new Date();
     }
 
-    return initialDate ?? new Date();
+    return initialDate;
   });
 
   const onDateChange = React.useCallback(

@@ -106,6 +106,7 @@ export const AddSongToSetDialog: React.FC<AddSongToSetDialogProps> = ({
     setInitialSongPosition(0);
     setSongPosition(null);
     setSelectedKey(null);
+    setUpdatedSetSectionOrderedSongIds([]);
   };
 
   const renderStepContent = () => {
@@ -228,7 +229,8 @@ export const AddSongToSetDialog: React.FC<AddSongToSetDialogProps> = ({
           title={
             currentStep === AddSongToSetDialogStep.SELECT_SET &&
             isCreatingNewSet
-              ? contentMap[AddSongToSetDialogStep.SELECT_SET].alternateTitle! // using a non-null type assertion since we know this specific alternateTitle shouldn't be undefined
+              ? contentMap[AddSongToSetDialogStep.SELECT_SET].alternateTitle ??
+                "Create new set"
               : contentMap[currentStep].title
           }
           step={currentStep}

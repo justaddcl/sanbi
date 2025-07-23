@@ -58,7 +58,7 @@ export const SetSongKeyStep: React.FC<SetSongKeyStepProps> = ({
               key={key}
               variant="outline"
               className={cn({
-                // FIXME: update colors
+                // TODO: update colors when brand colors are decided on
                 "border-red-300": key === preferredKey,
                 "border-blue-300": key === lastPlayInstance?.song.key,
               })}

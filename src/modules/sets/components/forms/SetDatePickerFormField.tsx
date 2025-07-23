@@ -53,14 +53,14 @@ export const SetDatePickerFormField: React.FC = () => {
           <FormControl>
             <DatePicker
               {...field}
-              date={field.value as DatePickerValue<"single">}
-              onChange={(selectedDate) => {
+              date={
+                field.value
+                  ? new Date(field.value as DatePickerValue<"single">)
+                  : undefined
+              }
+              onChange={(selectedDate: DatePickerValue<"single">) => {
                 field.onChange(
-                  selectedDate
-                    ? (
-                        selectedDate as DatePickerValue<"single">
-                      ).toLocaleDateString("en-CA")
-                    : undefined,
+                  selectedDate?.toLocaleDateString("en-CA") ?? undefined,
                 );
               }}
               presets={datePresets}
