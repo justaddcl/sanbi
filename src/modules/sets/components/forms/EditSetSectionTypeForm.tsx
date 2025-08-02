@@ -1,7 +1,11 @@
-import { useResponsive } from "@/hooks/useResponsive";
-import { api } from "@/trpc/react";
-import { HStack } from "@components/HStack";
-import { Text } from "@components/Text";
+import React, { type Dispatch, type SetStateAction, useState } from "react";
+import { type SubmitHandler, useForm } from "react-hook-form";
+import { redirect, useRouter, useSearchParams } from "next/navigation";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { CaretDown, CaretUp, Plus } from "@phosphor-icons/react";
+import { toast } from "sonner";
+import { type z } from "zod";
+
 import { Badge } from "@components/ui/badge";
 import { Button } from "@components/ui/button";
 import { type ComboboxOption } from "@components/ui/combobox";
@@ -12,21 +16,19 @@ import {
   FormItem,
   FormLabel,
 } from "@components/ui/form";
+import { HStack } from "@components/HStack";
+import { Text } from "@components/Text";
 import { VStack } from "@components/VStack";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { pluralize } from "@lib/string";
-import { insertSetSectionSchema } from "@lib/types/zod";
-import { cn } from "@lib/utils";
 import { SetSectionActionMenu } from "@modules/SetListCard/components/SetSectionActionMenu";
 import { SetSectionTypeCombobox } from "@modules/sets/components/SetSectionTypeCombobox";
 import { useSectionTypesOptions } from "@modules/sets/hooks/useSetSectionTypes";
 import { useUserQuery } from "@modules/users/api/queries";
-import { CaretDown, CaretUp, Plus } from "@phosphor-icons/react";
-import { redirect, useRouter, useSearchParams } from "next/navigation";
-import React, { useState, type Dispatch, type SetStateAction } from "react";
-import { useForm, type SubmitHandler } from "react-hook-form";
-import { toast } from "sonner";
-import { type z } from "zod";
+import { pluralize } from "@lib/string";
+import { insertSetSectionSchema } from "@lib/types/zod";
+import { cn } from "@lib/utils";
+import { useResponsive } from "@/hooks/useResponsive";
+import { api } from "@/trpc/react";
+
 import { type SetSectionCardProps } from "../SetSectionCard";
 
 const updateSetSectionSchema = insertSetSectionSchema.pick({
@@ -90,6 +92,7 @@ export const EditSetSectionTypeForm: React.FC<EditSetSectionTypeFormProps> = ({
 
   const openAddSongDialogWithPrePopulatedSection = () => {
     const params = new URLSearchParams(searchParams.toString());
+    // opens the SongSearchDialog component
     params.set("addSongDialogOpen", "1");
     params.set("setSectionId", section.id);
 
@@ -132,46 +135,48 @@ export const EditSetSectionTypeForm: React.FC<EditSetSectionTypeFormProps> = ({
   return (
     <Form {...updateSetSectionForm}>
       <form
+        className="w-full"
         onSubmit={updateSetSectionForm.handleSubmit(handleUpdateSetSection)}
       >
         {!isEditing && (
-          <HStack className="flex-wrap items-baseline justify-between gap-4 lg:gap-16 lg:pr-4">
-            <HStack className="gap-2 lg:gap-4">
-              <Text
-                asElement="h3"
-                style="header-medium-semibold"
-                className="text-l flex-wrap md:text-xl"
-              >
-                {section.type.name}
-              </Text>
-              {!isExpanded ? (
-                <Badge variant="secondary">
-                  <span>{section.songs.length}</span>
-                  <span className="hidden md:ml-1 md:inline-block">
-                    {pluralize(section.songs.length, {
-                      singular: "song",
-                      plural: "songs",
-                    })}
-                  </span>
-                </Badge>
-              ) : null}
-            </HStack>
-            <HStack className="flex items-start gap-2">
+          <HStack className="w-full flex-wrap items-center justify-between gap-4">
+            <Button
+              size="sm"
+              variant="ghost"
+              className="hover:bg-initial flex h-full flex-1 justify-between p-3"
+              onClick={(clickEvent) => {
+                clickEvent.preventDefault();
+                setIsExpanded((isExpanded) => !isExpanded);
+              }}
+            >
+              <HStack className="items-center gap-2 lg:gap-4">
+                <Text
+                  asElement="h3"
+                  style="header-medium-semibold"
+                  className="text-wrap text-lg md:text-xl"
+                >
+                  {section.type.name}
+                </Text>
+                {!isExpanded ? (
+                  <Badge variant="secondary">
+                    <span>{section.songs.length}</span>
+                    <span className="hidden md:ml-1 md:inline-block">
+                      {pluralize(section.songs.length, {
+                        singular: "song",
+                        plural: "songs",
+                      })}
+                    </span>
+                  </Badge>
+                ) : null}
+              </HStack>
+            </Button>
+            <HStack className="flex items-center gap-1 md:gap-2">
               <Button
                 size="sm"
                 variant="ghost"
                 onClick={(clickEvent) => {
                   clickEvent.preventDefault();
-                  setIsExpanded((isExpanded) => !isExpanded);
-                }}
-              >
-                {isExpanded ? <CaretUp /> : <CaretDown />}
-              </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={(clickEvent) => {
-                  clickEvent.preventDefault();
+                  clickEvent.stopPropagation();
                   openAddSongDialogWithPrePopulatedSection();
                 }}
               >
@@ -187,11 +192,22 @@ export const EditSetSectionTypeForm: React.FC<EditSetSectionTypeFormProps> = ({
                   setIsEditingSectionType={setIsEditing}
                 />
               )}
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={(clickEvent) => {
+                  clickEvent.preventDefault();
+                  clickEvent.stopPropagation();
+                  setIsExpanded((isExpanded) => !isExpanded);
+                }}
+              >
+                {isExpanded ? <CaretUp /> : <CaretDown />}
+              </Button>
             </HStack>
           </HStack>
         )}
         {isEditing && (
-          <VStack className="gap-4">
+          <VStack className="gap-4 p-3">
             <FormField
               control={updateSetSectionForm.control}
               name="sectionTypeId"

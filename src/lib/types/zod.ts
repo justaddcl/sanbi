@@ -1,3 +1,6 @@
+import { createInsertSchema, createSelectSchema } from "drizzle-zod";
+import { z } from "zod";
+
 import { songKeys } from "@lib/constants";
 import { songNameRegex } from "@lib/constants/regex";
 import { formatNumber } from "@lib/numbers/formatNumber";
@@ -13,14 +16,17 @@ import {
   songTags,
   tags,
 } from "@server/db/schema";
-import { createInsertSchema, createSelectSchema } from "drizzle-zod";
-import { z } from "zod";
 
 /**
  * Constants
  */
 export const MAX_SONG_NAME_LENGTH = 100;
 export const MAX_SONG_NOTES_LENGTH = 1000;
+
+export const dateRangeSchema = z.object({
+  from: z.string().date(),
+  to: z.string().date().nullish(),
+});
 
 /**
  * Organization schemas
@@ -48,6 +54,17 @@ export const insertOrganizationMembershipSchema = createInsertSchema(
  * Set schemas
  */
 export const getSetSchema = z.object({ setId: z.string().uuid() });
+export const getInfiniteSetsSchema = z.object({
+  cursor: z
+    .object({
+      date: z.string().date(),
+      id: z.string().uuid(),
+    })
+    .nullish(),
+  limit: z.number().min(1).max(48).default(10),
+  eventTypeFilters: z.array(z.string().uuid()).optional(),
+  dateRange: dateRangeSchema.nullish(),
+});
 export const insertSetSchema = createInsertSchema(sets);
 const setIdSchema = z.object({
   setId: z.string().uuid(),
@@ -142,6 +159,7 @@ export const setSectionIdSchema = z.object({
   setSectionId: z.string().uuid(),
 });
 export const insertSetSectionSchema = createInsertSchema(setSections);
+export const getSetSectionSchema = setSectionIdSchema;
 export const getSectionsForSet = z.object({ setId: z.string().uuid() });
 export const updateSetSectionType = insertSetSectionSchema
   .pick({
@@ -177,6 +195,17 @@ export const updateSetSectionSongSchema = insertSetSectionSongSchema
     setSectionId: true,
     songId: true,
   });
+
+export const addAndReorderSongsSchema = z.object({
+  setSectionId: z.string().uuid(),
+  newSong: z.object({
+    songId: z.string().uuid(),
+    key: z.enum(songKeys),
+    notes: z.string().optional(),
+  }),
+  newSongTempId: z.string(),
+  orderedSongIds: z.array(z.string().uuid()).min(1),
+});
 
 /**
  * Tag schemas

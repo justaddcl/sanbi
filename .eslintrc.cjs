@@ -74,25 +74,27 @@ const config = {
 
           // 2. Internal aliases with sub-groups
           // 2a. ShadCN UI components
-          ["^@components/ui"],
+          [
+            "^@components/ui",
 
-          // 2b. custom components
-          ["^@components"],
+            // 2b. custom components
+            "^@components",
 
-          // 2c. Feature module imports
-          ["^@modules"],
+            // 2c. Feature module imports
+            "^@modules",
 
-          // 2d. Utility/library imports
-          ["^@lib"],
+            // 2d. Utility/library imports
+            "^@lib",
 
-          // 2e. Server-related imports
-          ["^@server"],
+            // 2e. Server-related imports
+            "^@server",
 
-          // 2f. App-related imports
-          ["^@app"],
+            // 2f. App-related imports
+            "^@app",
 
-          // 2g. Other root-level internal imports
-          ["^@/"],
+            // 2g. Other root-level internal imports
+            "^@/",
+          ],
 
           // 3. Relative imports
           [

@@ -1,5 +1,9 @@
 import { useMediaQuery } from "usehooks-ts";
-import { DESKTOP_MEDIA_QUERY_STRING } from "@lib/constants/mediaQueries";
+
+import {
+  DESKTOP_MEDIA_QUERY_STRING,
+  MOBILE_MEDIA_QUERY_STRING,
+} from "@lib/constants/mediaQueries";
 
 /**
  * A hook that provides responsive utilities for desktop vs mobile views.
@@ -19,10 +23,12 @@ import { DESKTOP_MEDIA_QUERY_STRING } from "@lib/constants/mediaQueries";
  * );
  */
 export const useResponsive = () => {
+  const isMobile = useMediaQuery(MOBILE_MEDIA_QUERY_STRING);
   const isDesktop = useMediaQuery(DESKTOP_MEDIA_QUERY_STRING);
   const textSize = isDesktop ? "text-base" : "text-xs";
 
   return {
+    isMobile,
     isDesktop,
     textSize,
   } as const;

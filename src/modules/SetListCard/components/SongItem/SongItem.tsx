@@ -1,22 +1,24 @@
 "use client";
 
-import { HStack } from "@components/HStack";
-import { SongActionMenu } from "../SongActionMenu/SongActionMenu";
-import { type SetSectionSongWithSongData } from "@lib/types";
-import { type SetSectionCardProps } from "@modules/sets/components/SetSectionCard";
-import { SongContent } from "@modules/SetListCard/components/SongContent";
 import { useState } from "react";
-import { VStack } from "@components/VStack";
-import { Button } from "@components/ui/button";
-import { insertSetSectionSongSchema } from "@lib/types/zod";
-import { type z } from "zod";
 import { type SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Form } from "@components/ui/form";
-import { api } from "@/trpc/react";
 import { toast } from "sonner";
+import { type z } from "zod";
+
+import { Button } from "@components/ui/button";
+import { Form } from "@components/ui/form";
+import { HStack } from "@components/HStack";
+import { VStack } from "@components/VStack";
+import { SongContent } from "@modules/SetListCard/components/SongContent";
+import { EditSongContentFormFields } from "@modules/SetListCard/forms/EditSongContent/components";
 import { useUserQuery } from "@modules/users/api/queries";
+import { type SetSectionSongWithSongData } from "@lib/types";
+import { insertSetSectionSongSchema } from "@lib/types/zod";
 import { cn } from "@lib/utils";
+import { api } from "@/trpc/react";
+
+import { SongActionMenu } from "../SongActionMenu/SongActionMenu";
 
 type BaseSongItemProps = {
   /** set section song object */
@@ -160,19 +162,30 @@ export const SongItem: React.FC<SongItemProps> = ({
         <VStack
           className={cn(
             "gap-4 rounded-lg",
-            [small && "p-1"],
-            [!small && "py-3 pl-2 md:px-4"],
-            [isEditingDetails && "border border-slate-200 bg-slate-50 p-6"],
-            [!isEditingDetails && "py-2 hover:bg-slate-50 md:px-4"],
+            [small && "pl-1"],
+            [!small && "pl-2 md:px-4"],
+            [
+              isEditingDetails &&
+                "mt-4 border border-slate-200 bg-slate-50 p-4 lg:p-6",
+            ],
+            [!isEditingDetails && "hover:bg-slate-50 md:px-4"],
           )}
         >
           <HStack className="items-baseline justify-between">
-            <SongContent
-              setSectionSong={setSectionSong}
-              index={index}
-              isEditing={isEditingDetails}
-              updateForm={updateSetSectionSongForm}
-            />
+            {isEditingDetails ? (
+              <EditSongContentFormFields
+                setSectionSong={setSectionSong}
+                index={index}
+                updateForm={updateSetSectionSongForm}
+              />
+            ) : (
+              <SongContent
+                songKey={setSectionSong.key}
+                name={setSectionSong.song.name}
+                notes={setSectionSong.notes}
+                index={index}
+              />
+            )}
             {props.withActionsMenu && !isEditingDetails && (
               <SongActionMenu
                 setSectionSong={setSectionSong}

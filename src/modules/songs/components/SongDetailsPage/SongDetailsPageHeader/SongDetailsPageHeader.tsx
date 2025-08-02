@@ -1,17 +1,19 @@
 "use client";
 
-import { api } from "@/trpc/react";
-import { HStack } from "@components/HStack";
-import { Button } from "@components/ui/button";
-import { type UserData } from "@lib/types/api";
-import { SongActionsMenu } from "@modules/songs/components/SongActionsMenu";
-import { Heart, Plus } from "@phosphor-icons/react";
-import { type AppRouter } from "@server/api/root";
-import { type inferProcedureOutput } from "@trpc/server";
-import { useRouter } from "next/navigation";
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Heart } from "@phosphor-icons/react";
+import { type inferProcedureOutput } from "@trpc/server";
 import { toast } from "sonner";
+
+import { Button } from "@components/ui/button";
+import { HStack } from "@components/HStack";
 import { SongDetailsPageName } from "@modules/songs/components";
+import { SongActionsMenu } from "@modules/songs/components/SongActionsMenu";
+import { AddSongToSetDialog } from "@modules/songs/forms/AddSongToSet/components/AddSongToSetDialog";
+import { type UserData } from "@lib/types/api";
+import { type AppRouter } from "@server/api/root";
+import { api } from "@/trpc/react";
 
 export type SongDetailsPageHeaderProps = {
   song: inferProcedureOutput<AppRouter["song"]["get"]>;
@@ -60,7 +62,7 @@ export const SongDetailsPageHeader: React.FC<SongDetailsPageHeaderProps> = ({
   };
 
   return (
-    <HStack className="justify-between gap-4">
+    <div className="flex flex-col justify-between gap-4 md:flex-row md:gap-8">
       <SongDetailsPageName
         song={song}
         userMembership={userMembership}
@@ -68,6 +70,7 @@ export const SongDetailsPageHeader: React.FC<SongDetailsPageHeaderProps> = ({
         setIsEditing={setIsEditingName}
       />
       <HStack className="items-start gap-2">
+        <AddSongToSetDialog song={song} />
         <Button
           variant="outline"
           onClick={updateSongFavoriteStatus}
@@ -76,9 +79,6 @@ export const SongDetailsPageHeader: React.FC<SongDetailsPageHeaderProps> = ({
         >
           <Heart weight={song.favoritedAt ? "fill" : "regular"} />
         </Button>
-        <Button className="hidden md:flex">
-          <Plus /> Add to a set
-        </Button>
         <SongActionsMenu
           songId={song.id}
           organizationId={userMembership.organizationId}
@@ -86,6 +86,6 @@ export const SongDetailsPageHeader: React.FC<SongDetailsPageHeaderProps> = ({
           setIsEditingName={setIsEditingName}
         />
       </HStack>
-    </HStack>
+    </div>
   );
 };

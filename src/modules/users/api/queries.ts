@@ -1,6 +1,7 @@
-import { api } from "@/trpc/react";
 import { useAuth } from "@clerk/nextjs";
 import { validate as uuidValidate } from "uuid";
+
+import { api } from "@/trpc/react";
 
 export const useUserQuery = () => {
   const { userId, isLoaded: isAuthLoaded } = useAuth();
@@ -16,5 +17,7 @@ export const useUserQuery = () => {
     },
   );
 
-  return { ...user, isAuthLoaded };
+  const userMembership = user.data?.memberships[0];
+
+  return { ...user, isAuthLoaded, userMembership };
 };

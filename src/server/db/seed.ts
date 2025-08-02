@@ -1,47 +1,48 @@
+import { faker } from "@faker-js/faker";
+import { sql as vercelSql } from "@vercel/postgres";
+import { addWeeks, subMonths } from "date-fns";
+import { sql } from "drizzle-orm";
 import {
   drizzle as LocalDrizzle,
   type PostgresJsDatabase,
 } from "drizzle-orm/postgres-js";
+import {
+  drizzle as VercelDrizzle,
+  type VercelPgDatabase,
+} from "drizzle-orm/vercel-postgres";
 import postgres from "postgres";
 
+import {
+  type NewEventType,
+  type NewOrganization,
+  type NewOrganizationMembership,
+  type NewSet,
+  type NewSetSection,
+  type NewSetSectionSong,
+  type NewSetSectionType,
+  type NewSong,
+  type NewSongTag,
+  type NewTag,
+  type NewUser,
+  type SetSection,
+} from "@lib/types/db";
 import { env } from "@/env";
+import { getRandomValues } from "@/lib/array";
+
 import * as schema from "./schema";
 import {
   eventTypes,
   organizationMemberships,
   organizations,
+  sets,
+  setSections,
   setSectionSongs,
   setSectionTypes,
-  setSections,
-  sets,
-  songTags,
   songs,
+  songTags,
   tags,
   users,
 } from "./schema";
-import {
-  type NewOrganizationMembership,
-  type NewOrganization,
-  type NewUser,
-  type NewEventType,
-  type NewSetSectionType,
-  type NewTag,
-  type NewSong,
-  type NewSongTag,
-  type NewSet,
-  type NewSetSection,
-  type NewSetSectionSong,
-  type SetSection,
-} from "@lib/types/db";
-import { faker } from "@faker-js/faker";
-import { sql } from "drizzle-orm";
-import { getRandomValues } from "@/lib/array";
-import {
-  type VercelPgDatabase,
-  drizzle as VercelDrizzle,
-} from "drizzle-orm/vercel-postgres";
-import { sql as vercelSql } from "@vercel/postgres";
-import { addWeeks, subMonths } from "date-fns";
 
 /**
  * Cache the database connection in development. This avoids creating a new connection on every HMR
@@ -64,10 +65,10 @@ if (env.NODE_ENV === "development") {
 }
 
 const TAGS_PER_SONG_SEED_COUNT = 3;
-const NUMBER_OF_SETS = 10;
+const NUMBER_OF_SETS = 50;
 
-const SET_DATE_MONTHS_IN_THE_PAST_BOUNDARY = 3;
-const SET_DATE_WEEKS_IN_THE_FUTURE_BOUNDARY = 2;
+const SET_DATE_MONTHS_IN_THE_PAST_BOUNDARY = 8;
+const SET_DATE_WEEKS_IN_THE_FUTURE_BOUNDARY = 8;
 const SET_DATE_FROM_BOUNDARY = subMonths(
   new Date(),
   SET_DATE_MONTHS_IN_THE_PAST_BOUNDARY,
@@ -148,9 +149,18 @@ const seed = async () => {
   console.log("🚀 ~ seed ~ orgMembership:", orgMembership);
 
   /** seed the event types table */
+  const eventTypesFavoritedAt = new Date();
   const seedEventTypes: NewEventType[] = [
-    { name: "Sunday service", organizationId },
-    { name: "Team Stoneway", organizationId },
+    {
+      name: "Sunday service",
+      organizationId,
+      favoritedAt: eventTypesFavoritedAt,
+    },
+    {
+      name: "Team Stoneway",
+      organizationId,
+      favoritedAt: eventTypesFavoritedAt,
+    },
     { name: "Discipleship Community", organizationId },
   ];
 
@@ -299,23 +309,49 @@ const seed = async () => {
   /** seed the sets table */
   await db.execute(sql`TRUNCATE TABLE sanbi_sets CASCADE`);
 
-  const seedSets: NewSet[] = Array.from({ length: NUMBER_OF_SETS }, () => {
-    const [randomEventType] = getRandomValues(seededEventTypes, 1);
-    const fakeDate = faker.date.between({
-      from: SET_DATE_FROM_BOUNDARY,
-      to: SET_DATE_TO_BOUNDARY,
-    });
-    if (!randomEventType) {
-      throw new Error("Failed to create seed random event type");
-    }
-    const formattedFakeDate = fakeDate.toLocaleDateString("en-CA"); // en-CA is a locale that uses the 'YYYY-MM-DD' format
-    return {
-      eventTypeId: randomEventType.id,
-      date: formattedFakeDate,
-      organizationId,
-      isArchived: false,
-    };
-  });
+  const seedSetsFromPast: NewSet[] = Array.from(
+    { length: NUMBER_OF_SETS / 2 },
+    () => {
+      const [randomEventType] = getRandomValues(seededEventTypes, 1);
+      const fakeDate = faker.date.between({
+        from: SET_DATE_FROM_BOUNDARY,
+        to: new Date(),
+      });
+      if (!randomEventType) {
+        throw new Error("Failed to create seed random event type");
+      }
+      const formattedFakeDate = fakeDate.toLocaleDateString("en-CA"); // en-CA is a locale that uses the 'YYYY-MM-DD' format
+      return {
+        eventTypeId: randomEventType.id,
+        date: formattedFakeDate,
+        organizationId,
+        isArchived: false,
+      };
+    },
+  );
+
+  const seedSetsFromFuture: NewSet[] = Array.from(
+    { length: NUMBER_OF_SETS / 2 },
+    () => {
+      const [randomEventType] = getRandomValues(seededEventTypes, 1);
+      const fakeDate = faker.date.between({
+        from: new Date(),
+        to: SET_DATE_TO_BOUNDARY,
+      });
+      if (!randomEventType) {
+        throw new Error("Failed to create seed random event type");
+      }
+      const formattedFakeDate = fakeDate.toLocaleDateString("en-CA"); // en-CA is a locale that uses the 'YYYY-MM-DD' format
+      return {
+        eventTypeId: randomEventType.id,
+        date: formattedFakeDate,
+        organizationId,
+        isArchived: false,
+      };
+    },
+  );
+
+  const seedSets = [...seedSetsFromPast, ...seedSetsFromFuture];
 
   const seededSets = await db
     .insert(sets)

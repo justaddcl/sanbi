@@ -1,9 +1,11 @@
-import { VStack } from "@components/VStack";
-import { type SetSectionWithSongs } from "@lib/types";
-import { SongItem } from "@modules/SetListCard";
-import { useState, type FC } from "react";
-import { EditSetSectionTypeForm } from "../forms/EditSetSectionTypeForm";
+import { type FC, useState } from "react";
+
 import { Card } from "@components/Card/Card";
+import { VStack } from "@components/VStack";
+import { SongItem } from "@modules/SetListCard";
+import { type SetSectionWithSongs } from "@lib/types";
+
+import { EditSetSectionTypeForm } from "../forms/EditSetSectionTypeForm";
 
 export type SetSectionCardProps = {
   /** The section data including songs, type, and position */
@@ -53,22 +55,24 @@ export const SetSectionCard: FC<SetSectionCardProps> = ({
         />
       }
     >
-      {songs &&
-        songs.length > 0 &&
-        section.songs.map((setSectionSong) => (
-          <SongItem
-            key={setSectionSong.id}
-            setSectionSong={setSectionSong}
-            index={sectionStartIndex + setSectionSong.position}
-            setId={setId}
-            setSectionType={type.name}
-            isInFirstSection={isFirstSection}
-            isInLastSection={isLastSection}
-            isFirstSong={setSectionSong.position === 0}
-            isLastSong={setSectionSong.position === section.songs.length - 1}
-            withActionsMenu
-          />
-        ))}
+      <VStack className="gap-1">
+        {songs &&
+          songs.length > 0 &&
+          section.songs.map((setSectionSong) => (
+            <SongItem
+              key={setSectionSong.id}
+              setSectionSong={setSectionSong}
+              index={sectionStartIndex + setSectionSong.position}
+              setId={setId}
+              setSectionType={type.name}
+              isInFirstSection={isFirstSection}
+              isInLastSection={isLastSection}
+              isFirstSong={setSectionSong.position === 0}
+              isLastSong={setSectionSong.position === section.songs.length - 1}
+              withActionsMenu
+            />
+          ))}
+      </VStack>
     </Card>
   );
 };

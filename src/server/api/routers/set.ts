@@ -1,3 +1,19 @@
+import { TRPCError } from "@trpc/server";
+import { and, asc, eq, gt, gte, inArray, lte, or, sql } from "drizzle-orm";
+
+import { pluralize } from "@lib/string";
+import { type NewSet } from "@lib/types";
+import {
+  archiveSetSchema,
+  deleteSetSchema,
+  duplicateSetSchema,
+  getInfiniteSetsSchema,
+  getSetSchema,
+  insertSetSchema,
+  unarchiveSetSchema,
+  updateSetDetailsSchema,
+  updateSetNotesSchema,
+} from "@lib/types/zod";
 import {
   adminProcedure,
   createTRPCRouter,
@@ -9,21 +25,12 @@ import {
   setSections,
   setSectionSongs,
 } from "@server/db/schema";
-import { type NewSet } from "@lib/types";
-import { eq, inArray } from "drizzle-orm";
-import {
-  archiveSetSchema,
-  deleteSetSchema,
-  duplicateSetSchema,
-  getSetSchema,
-  insertSetSchema,
-  unarchiveSetSchema,
-  updateSetDetailsSchema,
-  updateSetNotesSchema,
-} from "@lib/types/zod";
-import { TRPCError } from "@trpc/server";
+
+type WhereClause = ReturnType<typeof eq> | ReturnType<typeof and>;
+const DATE_LOCALE = "en-CA";
 
 export const setRouter = createTRPCRouter({
+  // Queries
   get: organizationProcedure
     .input(getSetSchema)
     .query(async ({ ctx, input }) => {
@@ -44,6 +51,7 @@ export const setRouter = createTRPCRouter({
               songs: {
                 orderBy: (songs, { asc }) => [asc(songs.position)],
                 with: {
+                  // TODO: see if we can return the notes value with the unescaped HTML
                   song: true,
                 },
               },
@@ -66,6 +74,210 @@ export const setRouter = createTRPCRouter({
       return setData;
     }),
 
+  getUpcoming: organizationProcedure.query(async ({ ctx, input }) => {
+    const { organizationId } = ctx.user.membership;
+    console.log(
+      `🤖 - [set/getUpcoming] - attempting to get the upcoming sets for ${organizationId}`,
+    );
+
+    const upcomingSetsSubquery = ctx.db.$with("next_sets").as(
+      ctx.db
+        .selectDistinctOn([sets.eventTypeId], {
+          eventTypeId: sets.eventTypeId,
+          setId: sets.id,
+          setDate: sets.date,
+        })
+        .from(sets)
+        .where(
+          and(
+            eq(sets.organizationId, input.organizationId),
+            gte(sets.date, new Date().toLocaleDateString("en-CA")), // en-CA is a locale that uses the 'YYYY-MM-DD' format
+          ),
+        )
+        .orderBy(sets.eventTypeId, sets.date),
+    );
+
+    // 2) Consume the CTE: join to get names, count songs, group & order
+    const upcomingSets = await ctx.db
+      .with(upcomingSetsSubquery)
+      .select({
+        eventTypeId: upcomingSetsSubquery.eventTypeId,
+        setId: upcomingSetsSubquery.setId,
+        setDate: upcomingSetsSubquery.setDate,
+        eventType: eventTypes.name,
+        songCount: sql<number>`COUNT(${setSectionSongs.id})`
+          .mapWith(Number)
+          .as("songCount"),
+        favoritedAt: eventTypes.favoritedAt,
+      })
+      .from(upcomingSetsSubquery)
+      .innerJoin(
+        eventTypes,
+        eq(eventTypes.id, upcomingSetsSubquery.eventTypeId),
+      )
+      .leftJoin(setSections, eq(setSections.setId, upcomingSetsSubquery.setId))
+      .leftJoin(
+        setSectionSongs,
+        eq(setSectionSongs.setSectionId, setSections.id),
+      )
+      .groupBy(
+        upcomingSetsSubquery.eventTypeId,
+        upcomingSetsSubquery.setId,
+        upcomingSetsSubquery.setDate,
+        eventTypes.name,
+        eventTypes.favoritedAt,
+      )
+      .orderBy(upcomingSetsSubquery.setDate, eventTypes.name);
+
+    console.log(
+      `🤖 - [set/getUpcoming] - ${upcomingSets.length} upcoming ${pluralize(upcomingSets.length, { singular: "set", plural: "sets" })} found for ${input.organizationId}`,
+      { queryInput: input, upcomingSets },
+    );
+
+    return upcomingSets;
+  }),
+
+  getInfinite: organizationProcedure
+    .input(getInfiniteSetsSchema)
+    .query(async ({ ctx, input }) => {
+      console.log(
+        `🤖 - [set/getInfinite] - attempting to query sets for organization ${input.organizationId}`,
+        { queryInput: input },
+      );
+
+      const limit = input.limit ?? 10;
+
+      const validEventTypesIds = input.eventTypeFilters
+        ? (
+            await ctx.db
+              .select({ id: eventTypes.id })
+              .from(eventTypes)
+              .where(
+                and(
+                  inArray(eventTypes.id, input.eventTypeFilters),
+                  eq(eventTypes.organizationId, input.organizationId),
+                ),
+              )
+          ).map((row) => row.id)
+        : [];
+
+      const buildWhereClauses = () => {
+        const clauses: WhereClause[] = [];
+
+        // always filter by org
+        clauses.push(eq(sets.organizationId, input.organizationId));
+
+        // 1) cursor paging
+        if (input.cursor) {
+          clauses.push(
+            or(
+              gt(
+                sets.date,
+                new Date(input.cursor.date).toLocaleDateString(DATE_LOCALE),
+              ),
+              and(
+                eq(
+                  sets.date,
+                  new Date(input.cursor.date).toLocaleDateString(DATE_LOCALE),
+                ),
+                gt(sets.id, input.cursor.id),
+              ),
+            ),
+          );
+        }
+
+        // 2) eventType filter
+        if (validEventTypesIds.length > 0) {
+          clauses.push(inArray(sets.eventTypeId, validEventTypesIds));
+        }
+
+        // 3) date‐range filters
+        if (input.dateRange) {
+          // determine if should match exact date if only one date is given
+          if (!input.dateRange.to) {
+            clauses.push(
+              eq(
+                sets.date,
+                new Date(input.dateRange.from).toLocaleDateString(DATE_LOCALE),
+              ),
+            );
+          } else {
+            // or use a date range
+            clauses.push(
+              gte(
+                sets.date,
+                new Date(input.dateRange.from).toLocaleDateString(DATE_LOCALE),
+              ),
+            );
+          }
+
+          if (input.dateRange.to) {
+            clauses.push(
+              lte(
+                sets.date,
+                new Date(input.dateRange.to).toLocaleDateString(DATE_LOCALE),
+              ),
+            );
+          }
+        } else {
+          // 4) default “upcoming” filter when no dateRange is provided
+          //    (using en-CA ensures YYYY-MM-DD format)
+          const today = new Date().toLocaleDateString(DATE_LOCALE);
+          clauses.push(
+            gte(sets.date, new Date(today).toLocaleDateString(DATE_LOCALE)),
+          );
+        }
+
+        return clauses;
+      };
+
+      const whereClauses = buildWhereClauses();
+
+      const setsResults = await ctx.db
+        .select({
+          id: sets.id,
+          date: sets.date,
+          eventTypeId: sets.eventTypeId,
+          eventType: eventTypes.name,
+          songCount: sql<number>`COUNT(${setSectionSongs.songId})`
+            .mapWith(Number)
+            .as("songCount"),
+        })
+        .from(sets)
+        .leftJoin(eventTypes, eq(eventTypes.id, sets.eventTypeId))
+        .leftJoin(setSections, eq(setSections.setId, sets.id))
+        .leftJoin(
+          setSectionSongs,
+          eq(setSectionSongs.setSectionId, setSections.id),
+        )
+        .where(and(...whereClauses))
+        .groupBy(sets.id, sets.date, sets.eventTypeId, eventTypes.name)
+        .orderBy(asc(sets.date), asc(sets.eventTypeId))
+        .limit(limit + 1);
+
+      const setItems = setsResults.slice(0, limit);
+      const setItemForCursor = setsResults.at(limit);
+      const nextCursor = setItemForCursor
+        ? { date: setItemForCursor.date, id: setItemForCursor.id }
+        : undefined;
+
+      console.log(
+        `🤖 - [set/getInfinite] - ${setsResults.length} ${pluralize(setsResults.length, { singular: "result", plural: "results" })} using cursor id ${input.cursor?.id} and date ${input.cursor?.date ?? new Date().toLocaleDateString(DATE_LOCALE)}`,
+        {
+          queryInput: input,
+          setItems,
+          setsResults,
+          nextCursor,
+        },
+      );
+
+      return {
+        sets: setItems,
+        nextCursor,
+      };
+    }),
+
+  // Mutations
   create: organizationProcedure
     .input(insertSetSchema)
     .mutation(async ({ ctx, input }) => {
@@ -78,6 +290,34 @@ export const setRouter = createTRPCRouter({
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: `Organization ID does not match authenticated user's team ID`,
+        });
+      }
+
+      const eventType = await ctx.db.query.eventTypes.findFirst({
+        where: eq(eventTypes.id, input.eventTypeId),
+      });
+
+      if (!eventType) {
+        console.error(
+          `🤖 - [set/create] - could not find event type ${input.eventTypeId}`,
+          { mutationInput: input },
+        );
+
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Could not find event type",
+        });
+      }
+
+      if (eventType.organizationId !== input.organizationId) {
+        console.error(
+          `🤖 - [set/create] - user ${ctx.user.id} is not authorized to use event type ${input.eventTypeId}`,
+          { mutationInput: input },
+        );
+
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "User is not authorized to use event type",
         });
       }
 
@@ -260,6 +500,7 @@ export const setRouter = createTRPCRouter({
         };
       });
     }),
+
   updateNotes: organizationProcedure
     .input(updateSetNotesSchema)
     .mutation(async ({ ctx, input }) => {

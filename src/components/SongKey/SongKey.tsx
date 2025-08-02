@@ -1,6 +1,6 @@
-import { type Song } from "@/lib/types";
 import { Text } from "@components/Text";
 import { cn } from "@lib/utils";
+import { type Song } from "@/lib/types";
 
 export type SongKeyProps = SongKeyGeneralProps &
   (SongKeyFlatProps | SongKeySharpProps);
@@ -12,6 +12,9 @@ type SongKeyGeneralProps = {
 
   /** size variant */
   size?: "small" | "medium" | "large";
+
+  /** should the typography use muted styles? */
+  muted?: boolean;
 };
 
 // FIXME: update types to no longer include sharp/flat since that will come from the db type
@@ -34,6 +37,7 @@ export type SongKeyFlatProps = {
 export const SongKey: React.FC<SongKeyProps> = ({
   songKey,
   size = "small",
+  muted,
   // flat,
   // sharp,
 }) => {
@@ -49,6 +53,9 @@ export const SongKey: React.FC<SongKeyProps> = ({
         [size === "small" && "size-4"],
         [size === "medium" && "size-5"],
         [size === "large" && "size-9 font-semibold"],
+        {
+          "bg-slate-50 text-slate-300": muted,
+        },
       )}
     >
       <span>{songKeyLetter?.toUpperCase()}</span>

@@ -1,22 +1,23 @@
 // Example model schema from the Drizzle docs
 // https://orm.drizzle.team/docs/sql-schema-declaration
 
-import { songKeys } from "@lib/constants";
 import { relations, sql } from "drizzle-orm";
 import {
+  boolean,
   date,
   index,
   integer,
   pgEnum,
   pgTableCreator,
   primaryKey,
-  uuid,
   text,
   timestamp,
   uniqueIndex,
+  uuid,
   varchar,
-  boolean,
 } from "drizzle-orm/pg-core";
+
+import { songKeys } from "@lib/constants";
 
 const updatedAt = timestamp("updatedAt")
   .defaultNow()
@@ -175,28 +176,38 @@ export const eventTypes = createTable("event_types", {
   organizationId: uuid("organization_id")
     .references(() => organizations.id)
     .notNull(),
+  favoritedAt: timestamp("favorited_at"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),
   updatedAt,
 });
 
-export const sets = createTable("sets", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  eventTypeId: uuid("event_type_id")
-    .references(() => eventTypes.id)
-    .notNull(),
-  date: date("date").notNull(),
-  notes: text("notes"),
-  organizationId: uuid("organization_id")
-    .references(() => organizations.id)
-    .notNull(),
-  isArchived: boolean("is_archived").notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .default(sql`CURRENT_TIMESTAMP`)
-    .notNull(),
-  updatedAt,
-});
+export const sets = createTable(
+  "sets",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    eventTypeId: uuid("event_type_id")
+      .references(() => eventTypes.id)
+      .notNull(),
+    date: date("date").notNull(),
+    notes: text("notes"),
+    organizationId: uuid("organization_id")
+      .references(() => organizations.id)
+      .notNull(),
+    isArchived: boolean("is_archived").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+    updatedAt,
+  },
+  (setsTable) => ({
+    eventTypeDateIndex: index("sets_event_type_date_index").on(
+      setsTable.eventTypeId,
+      setsTable.date,
+    ),
+  }),
+);
 
 export const setSectionTypes = createTable("set_section_types", {
   id: uuid("id").primaryKey().defaultRandom(),

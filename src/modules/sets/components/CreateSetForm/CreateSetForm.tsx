@@ -1,34 +1,21 @@
 "use client";
 
-import { api } from "@/trpc/react";
-import { useAuth } from "@clerk/nextjs";
-import { Text } from "@components/Text";
-import { Button } from "@components/ui/button";
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-} from "@components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@components/ui/select";
-import { Textarea } from "@components/ui/textarea";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { insertSetSchema } from "@lib/types/zod";
-import { skipToken } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
 import { FormProvider, useForm } from "react-hook-form";
+import { useAuth } from "@clerk/nextjs";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { skipToken } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { type z } from "zod";
-import { SetDatePickerFormField } from "../forms/SetDatePickerFormField";
-import { SetEventTypeSelectFormField } from "../forms/SetEventTypeSelectFormField";
+
+import { Button } from "@components/ui/button";
 import { TextareaFormField } from "@components/TextareaFormField";
 import { sanitizeInput } from "@lib/string";
+import { type SetType } from "@lib/types";
+import { insertSetSchema } from "@lib/types/zod";
+import { api } from "@/trpc/react";
+
+import { SetDatePickerFormField } from "../forms/SetDatePickerFormField";
+import { SetEventTypeSelectFormField } from "../forms/SetEventTypeSelectFormField";
 
 const createSetFormSchema = insertSetSchema.pick({
   date: true,
@@ -43,11 +30,12 @@ export type CreateSetFormFields = Omit<
 };
 
 type CreateSetFormProps = {
-  onSubmit: () => void;
+  onCreationSuccess: (newSet: SetType) => void;
 };
 
-export const CreateSetForm: React.FC<CreateSetFormProps> = ({ onSubmit }) => {
-  const router = useRouter();
+export const CreateSetForm: React.FC<CreateSetFormProps> = ({
+  onCreationSuccess,
+}) => {
   const { userId } = useAuth();
 
   const createSetForm = useForm<CreateSetFormFields>({
@@ -104,9 +92,15 @@ export const CreateSetForm: React.FC<CreateSetFormProps> = ({ onSubmit }) => {
             const [newSet] = data;
 
             toast.success("Set was created", { id: toastId });
-            router.push(
-              `/${organizationMembership.organizationId}/sets/${newSet?.id}`,
-            );
+
+            if (newSet) {
+              onCreationSuccess?.(newSet);
+            } else {
+              toast.warning(
+                "Set was created, but the set data wasn't returned...",
+                { id: toastId },
+              );
+            }
           },
           onError(error) {
             console.log("🤖 [createSetMutation/onError] ~ error:", error);
@@ -116,7 +110,6 @@ export const CreateSetForm: React.FC<CreateSetFormProps> = ({ onSubmit }) => {
           },
         },
       );
-      onSubmit?.();
     }
   };
 

@@ -1,11 +1,13 @@
 "use client";
 
-import { api, type RouterOutputs } from "@/trpc/react";
-import { HStack } from "@components/HStack";
-import { Badge } from "@components/ui/badge";
-import { Skeleton } from "@components/ui/skeleton";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+
+import { Badge } from "@components/ui/badge";
+import { Skeleton } from "@components/ui/skeleton";
+import { HStack } from "@components/HStack";
+import { api, type RouterOutputs } from "@/trpc/react";
+
 import { SongTagSelector } from "../SongTagSelector/SongTagSelector";
 
 type SongTagsProps = {
@@ -101,10 +103,10 @@ export const SongTags: React.FC<SongTagsProps> = ({
             variant="secondary"
             key={tag.tagId}
             dismissable
-            onClose={() => {
+            onDismiss={() => {
               deleteSongTag(tag.tagId);
             }}
-            onClosePending={tagIdPendingDeletion === tag.tagId}
+            onDismissPending={tagIdPendingDeletion === tag.tagId}
           >
             {tag.tag.tag}
           </Badge>
