@@ -42,7 +42,7 @@ export const SetSongPositionStep: React.FC<SetSongPositionStepProps> = ({
   const { data: setSectionData } = api.setSection.get.useQuery(
     {
       setSectionId: selectedSetSection!,
-      organizationId: userMembership!.organizationId,
+      organizationId: userMembership?.organizationId ?? "",
     },
     {
       enabled: !!selectedSetSection && !!userMembership,

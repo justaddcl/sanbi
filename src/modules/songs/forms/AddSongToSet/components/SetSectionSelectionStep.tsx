@@ -38,14 +38,19 @@ export const SetSectionSelectionStep: React.FC<
   const createSetSectionMutation = api.setSection.create.useMutation();
   const apiUtils = api.useUtils();
 
+  const { data: setData } = api.set.get.useQuery(
+    {
+      setId: selectedSet!.id,
+      organizationId: userMembership!.organizationId,
+    },
+    {
+      enabled: !!selectedSet && !!userMembership,
+    },
+  );
+
   if (!selectedSet || !userMembership) {
     return null;
   }
-
-  const { data: setData } = api.set.get.useQuery({
-    setId: selectedSet.id,
-    organizationId: userMembership.organizationId,
-  });
 
   if (!setData) {
     return (

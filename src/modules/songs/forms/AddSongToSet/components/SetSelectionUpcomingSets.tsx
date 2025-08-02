@@ -38,6 +38,19 @@ export const SetSelectionUpcomingSets: React.FC<
     userMembership,
   } = useUserQuery();
 
+  const {
+    data: upcomingSetsData,
+    isLoading: isUpcomingSetsQueryLoading,
+    error: upcomingSetsQueryError,
+  } = api.set.getUpcoming.useQuery(
+    {
+      organizationId: userMembership?.organizationId ?? "",
+    },
+    {
+      enabled: !!userMembership?.organizationId,
+    },
+  );
+
   if (!userMembership) {
     return (
       <SetSelectionSection title="All upcoming sets">
@@ -48,14 +61,6 @@ export const SetSelectionUpcomingSets: React.FC<
       </SetSelectionSection>
     );
   }
-
-  const {
-    data: upcomingSetsData,
-    isLoading: isUpcomingSetsQueryLoading,
-    error: upcomingSetsQueryError,
-  } = api.set.getUpcoming.useQuery({
-    organizationId: userMembership?.organizationId,
-  });
 
   const upcomingSetsList = shouldShowFilteredList
     ? upcomingSetsData?.filter((upcomingSet) => !!upcomingSet.favoritedAt)

@@ -1,9 +1,5 @@
 import type React from "react";
-import {
-  CircleNotch,
-  ClockCounterClockwise,
-  Heart,
-} from "@phosphor-icons/react";
+import { ClockCounterClockwise, Heart } from "@phosphor-icons/react";
 
 import { Button } from "@components/ui/button";
 import { Skeleton } from "@components/ui/skeleton";
@@ -37,16 +33,21 @@ export const SetSongKeyStep: React.FC<SetSongKeyStepProps> = ({
     userMembership,
   } = useUserQuery();
 
+  const { data: lastPlayInstance, isLoading: isLastPlayInstanceQueryLoading } =
+    api.song.getLastPlayInstance.useQuery(
+      {
+        organizationId: userMembership?.organizationId ?? "",
+        songId,
+      },
+      {
+        enabled: !!userMembership?.organizationId,
+      },
+    );
+
   // TODO: how do we properly handle this case?
   if (!userMembership) {
     return null;
   }
-
-  const { data: lastPlayInstance, isLoading: isLastPlayInstanceQueryLoading } =
-    api.song.getLastPlayInstance.useQuery({
-      organizationId: userMembership.organizationId,
-      songId,
-    });
 
   return (
     <VStack className="gap-4 p-6 pt-2">
