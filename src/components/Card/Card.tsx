@@ -4,8 +4,8 @@ import React, { useState } from "react";
 import { CaretDown, CaretUp } from "@phosphor-icons/react";
 
 import { Button } from "@components/ui/button";
+import { CardTitleSection } from "@components/Card/CardTitleSection";
 import { HStack } from "@components/HStack";
-import { Text } from "@components/Text";
 import { VStack } from "@components/VStack";
 import { cn } from "@lib/utils";
 
@@ -120,24 +120,14 @@ export const Card: React.FC<CardProps> = ({
                 handleToggleExpansion(clickEvent);
               }}
             >
-              <HStack
-                className={cn("flex-1 items-center gap-4", {
-                  "justify-start": badgeAlignStart,
-                  "justify-between": badgeAlignEnd,
-                })}
-              >
-                <Text
-                  asElement="h3"
-                  style="header-medium-semibold"
-                  className={cn(
-                    "font-medium md:text-xl md:text-slate-700 lg:font-semibold",
-                    titleClassName,
-                  )}
-                >
-                  {title}
-                </Text>
-                {shouldShowBadge && badge}
-              </HStack>
+              <CardTitleSection
+                badge={badge}
+                badgeAlignEnd={badgeAlignEnd}
+                badgeAlignStart={badgeAlignStart}
+                shouldShowBadge={shouldShowBadge}
+                title={title}
+                titleClassName={titleClassName}
+              />
             </Button>
             {(!!isCollapsible || !!button) && (
               <HStack className="flex items-start gap-1 md:gap-2">
