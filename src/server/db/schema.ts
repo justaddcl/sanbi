@@ -4,6 +4,7 @@
 import { relations, sql } from "drizzle-orm";
 import {
   boolean,
+  check,
   date,
   index,
   integer,
@@ -278,7 +279,7 @@ export const resources = createTable(
     organizationId: uuid("organization_id")
       .references(() => organizations.id)
       .notNull(),
-    url: varchar("url").notNull(),
+    url: text("url").notNull(),
     title: varchar("title", { length: 255 }).notNull(),
     status: resourceStatusEnum("status").default("queued").notNull(),
     metaTitle: varchar("meta_title", { length: 300 }),
@@ -292,6 +293,7 @@ export const resources = createTable(
     updatedAt,
   },
   (resourcesTable) => [
+    check("resources_url_scheme_check", sql`"url" ~* '^https?://'`),
     index("resource_song_id_index").on(resourcesTable.songId),
     index("resources_url_index").on(resourcesTable.url),
     index("resource_organization_id_index").on(resourcesTable.organizationId),
