@@ -294,7 +294,6 @@ export const resources = createTable(
   },
   (resourcesTable) => [
     check("resources_url_scheme_check", sql`"url" ~* '^https?://'`),
-    index("resources_song_id_idx").on(resourcesTable.songId),
     index("resources_url_idx").on(resourcesTable.url),
     index("resources_organization_id_idx").on(resourcesTable.organizationId),
     uniqueIndex("resources_song_id_url_unique_idx").on(
