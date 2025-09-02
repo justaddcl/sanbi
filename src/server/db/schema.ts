@@ -4,6 +4,7 @@
 import { relations, sql } from "drizzle-orm";
 import {
   boolean,
+  check,
   date,
   index,
   integer,
@@ -17,7 +18,7 @@ import {
   varchar,
 } from "drizzle-orm/pg-core";
 
-import { songKeys } from "@lib/constants";
+import { resourceStatuses, songKeys } from "@lib/constants";
 
 const updatedAt = timestamp("updatedAt")
   .defaultNow()
@@ -33,6 +34,7 @@ export const memberPermissionTypeEnum = pgEnum("member_permission_types", [
 ]);
 
 export const songKeyEnum = pgEnum("song_keys", songKeys);
+export const resourceStatusEnum = pgEnum("resource_statuses", resourceStatuses);
 
 export const users = createTable(
   "users",
@@ -114,7 +116,7 @@ export const tags = createTable(
   },
   (tagsTable) => ({
     tagOrganizationUniqueIndex: uniqueIndex(
-      "tags_organization_tag_unique_index",
+      "tags_organization_tag_unique_idx",
     ).on(tagsTable.organizationId, tagsTable.tag),
   }),
 );
@@ -202,7 +204,7 @@ export const sets = createTable(
     updatedAt,
   },
   (setsTable) => ({
-    eventTypeDateIndex: index("sets_event_type_date_index").on(
+    eventTypeDateIndex: index("sets_event_type_date_idx").on(
       setsTable.eventTypeId,
       setsTable.date,
     ),
@@ -267,6 +269,40 @@ export const setSectionSongs = createTable("set_section_songs", {
   updatedAt,
 });
 
+export const resources = createTable(
+  "resources",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    songId: uuid("song_id")
+      .references(() => songs.id, { onDelete: "cascade" })
+      .notNull(),
+    organizationId: uuid("organization_id")
+      .references(() => organizations.id)
+      .notNull(),
+    url: text("url").notNull(),
+    title: varchar("title", { length: 255 }).notNull(),
+    status: resourceStatusEnum("status").default("queued").notNull(),
+    metaTitle: varchar("meta_title", { length: 300 }),
+    metaDescription: varchar("meta_description", { length: 500 }),
+    faviconUrl: text("favicon_url"),
+    imageUrl: text("image_url"),
+    lastFetchedAt: timestamp("last_fetched_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+    updatedAt,
+  },
+  (resourcesTable) => [
+    check("resources_url_scheme_check", sql`"url" ~* '^https?://'`),
+    index("resources_url_idx").on(resourcesTable.url),
+    index("resources_organization_id_idx").on(resourcesTable.organizationId),
+    uniqueIndex("resources_song_id_url_unique_idx").on(
+      resourcesTable.songId,
+      resourcesTable.url,
+    ),
+  ],
+);
+
 /** drizzle relationships */
 export const organizationsRelations = relations(organizations, ({ many }) => ({
   members: many(organizationMemberships),
@@ -275,6 +311,7 @@ export const organizationsRelations = relations(organizations, ({ many }) => ({
   setSectionSongs: many(setSectionSongs),
   eventTypes: many(eventTypes),
   tags: many(tags),
+  resources: many(resources),
 }));
 
 export const organizationMembersRelations = relations(
@@ -307,6 +344,7 @@ export const songsRelations = relations(songs, ({ one, many }) => ({
   }),
   songTags: many(songTags),
   sets: many(setSectionSongs),
+  resources: many(resources),
 }));
 
 export const songTagsRelations = relations(songTags, ({ one }) => ({
@@ -382,6 +420,17 @@ export const eventTypesRelations = relations(eventTypes, ({ one, many }) => ({
   sets: many(sets),
   organizations: one(organizations, {
     fields: [eventTypes.organizationId],
+    references: [organizations.id],
+  }),
+}));
+
+export const resourcesRelations = relations(resources, ({ one }) => ({
+  song: one(songs, {
+    fields: [resources.songId],
+    references: [songs.id],
+  }),
+  organization: one(organizations, {
+    fields: [resources.organizationId],
     references: [organizations.id],
   }),
 }));

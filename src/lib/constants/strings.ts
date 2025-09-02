@@ -19,3 +19,7 @@ export const songKeys = [
 ] as const;
 
 export type SongKey = (typeof songKeys)[number];
+
+export const resourceStatuses = ["queued", "ready", "failed"] as const;
+
+export type ResourceStatus = (typeof resourceStatuses)[number];
