@@ -295,6 +295,10 @@ export const resources = createTable(
     index("resource_song_id_index").on(resourcesTable.songId),
     index("resources_url_index").on(resourcesTable.url),
     index("resource_organization_id_index").on(resourcesTable.organizationId),
+    uniqueIndex("resource_song_id_url_unique_index").on(
+      resourcesTable.songId,
+      resourcesTable.url,
+    ),
   ],
 );
 
@@ -306,6 +310,7 @@ export const organizationsRelations = relations(organizations, ({ many }) => ({
   setSectionSongs: many(setSectionSongs),
   eventTypes: many(eventTypes),
   tags: many(tags),
+  resources: many(resources),
 }));
 
 export const organizationMembersRelations = relations(

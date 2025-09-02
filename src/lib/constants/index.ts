@@ -1,2 +1,2 @@
-export * from "./strings";
 export * from "./mediaQueries";
+export * from "./strings";
