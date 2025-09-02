@@ -17,7 +17,7 @@ import {
   varchar,
 } from "drizzle-orm/pg-core";
 
-import { songKeys } from "@lib/constants";
+import { resourceStatuses, songKeys } from "@lib/constants";
 
 const updatedAt = timestamp("updatedAt")
   .defaultNow()
@@ -33,6 +33,7 @@ export const memberPermissionTypeEnum = pgEnum("member_permission_types", [
 ]);
 
 export const songKeyEnum = pgEnum("song_keys", songKeys);
+export const resourceStatusEnum = pgEnum("resource_statuses", resourceStatuses);
 
 export const users = createTable(
   "users",
@@ -267,6 +268,36 @@ export const setSectionSongs = createTable("set_section_songs", {
   updatedAt,
 });
 
+export const resources = createTable(
+  "resources",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    songId: uuid("song_id")
+      .references(() => songs.id, { onDelete: "cascade" })
+      .notNull(),
+    organizationId: uuid("organization_id")
+      .references(() => organizations.id)
+      .notNull(),
+    url: varchar("url").notNull(),
+    title: varchar("title", { length: 255 }).notNull(),
+    status: resourceStatusEnum("status").default("queued").notNull(),
+    metaTitle: varchar("meta_title", { length: 300 }),
+    metaDescription: varchar("meta_description", { length: 500 }),
+    faviconUrl: text("favicon_url"),
+    imageUrl: text("image_url"),
+    lastFetchedAt: timestamp("last_fetched_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+    updatedAt,
+  },
+  (resourcesTable) => [
+    index("resource_song_id_index").on(resourcesTable.songId),
+    index("resources_url_index").on(resourcesTable.url),
+    index("resource_organization_id_index").on(resourcesTable.organizationId),
+  ],
+);
+
 /** drizzle relationships */
 export const organizationsRelations = relations(organizations, ({ many }) => ({
   members: many(organizationMemberships),
@@ -307,6 +338,7 @@ export const songsRelations = relations(songs, ({ one, many }) => ({
   }),
   songTags: many(songTags),
   sets: many(setSectionSongs),
+  resources: many(resources),
 }));
 
 export const songTagsRelations = relations(songTags, ({ one }) => ({
@@ -382,6 +414,17 @@ export const eventTypesRelations = relations(eventTypes, ({ one, many }) => ({
   sets: many(sets),
   organizations: one(organizations, {
     fields: [eventTypes.organizationId],
+    references: [organizations.id],
+  }),
+}));
+
+export const resourcesRelations = relations(resources, ({ one }) => ({
+  song: one(songs, {
+    fields: [resources.songId],
+    references: [songs.id],
+  }),
+  organization: one(organizations, {
+    fields: [resources.organizationId],
     references: [organizations.id],
   }),
 }));
