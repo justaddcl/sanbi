@@ -116,7 +116,7 @@ export const tags = createTable(
   },
   (tagsTable) => ({
     tagOrganizationUniqueIndex: uniqueIndex(
-      "tags_organization_tag_unique_index",
+      "tags_organization_tag_unique_idx",
     ).on(tagsTable.organizationId, tagsTable.tag),
   }),
 );
@@ -204,7 +204,7 @@ export const sets = createTable(
     updatedAt,
   },
   (setsTable) => ({
-    eventTypeDateIndex: index("sets_event_type_date_index").on(
+    eventTypeDateIndex: index("sets_event_type_date_idx").on(
       setsTable.eventTypeId,
       setsTable.date,
     ),
@@ -294,10 +294,10 @@ export const resources = createTable(
   },
   (resourcesTable) => [
     check("resources_url_scheme_check", sql`"url" ~* '^https?://'`),
-    index("resource_song_id_index").on(resourcesTable.songId),
-    index("resources_url_index").on(resourcesTable.url),
-    index("resource_organization_id_index").on(resourcesTable.organizationId),
-    uniqueIndex("resource_song_id_url_unique_index").on(
+    index("resources_song_id_idx").on(resourcesTable.songId),
+    index("resources_url_idx").on(resourcesTable.url),
+    index("resources_organization_id_idx").on(resourcesTable.organizationId),
+    uniqueIndex("resources_song_id_url_unique_idx").on(
       resourcesTable.songId,
       resourcesTable.url,
     ),
