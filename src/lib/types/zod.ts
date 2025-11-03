@@ -8,6 +8,7 @@ import { sanitizeInput } from "@lib/string";
 import {
   organizationMemberships,
   organizations,
+  resources,
   sets,
   setSections,
   setSectionSongs,
@@ -279,4 +280,17 @@ export const createSongTagSchema = createInsertSchema(songTags).omit({
 export const deleteSongTagSchema = z.object({
   songId: z.string().uuid(),
   tagId: z.string().uuid(),
+});
+
+/**
+ * Resource schemas
+ */
+export const insertResourceSchema = createInsertSchema(resources).pick({
+  organizationId: true,
+  songId: true,
+  url: true,
+  title: true,
+});
+export const deleteResourceSchema = z.object({
+  resourceId: z.string().uuid(),
 });

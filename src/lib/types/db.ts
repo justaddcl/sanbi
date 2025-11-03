@@ -1,17 +1,18 @@
-import { type RouterOutputs } from "@/trpc/react";
 import {
-  type organizations,
-  type setSectionTypes,
   type eventTypes,
   type organizationMemberships,
-  type users,
-  type tags,
-  type songs,
-  type songTags,
+  type organizations,
+  type resources,
   type sets,
   type setSections,
   type setSectionSongs,
+  type setSectionTypes,
+  type songs,
+  type songTags,
+  type tags,
+  type users,
 } from "@server/db/schema";
+import { type RouterOutputs } from "@/trpc/react";
 
 export type NewOrganization = typeof organizations.$inferInsert;
 export type Organization = typeof organizations.$inferSelect;
@@ -72,3 +73,6 @@ export type SetSectionProps = {
   section: SetSectionWithSongs;
   sectionStartIndex: number;
 };
+
+export type NewResource = typeof resources.$inferInsert;
+export type Resource = typeof resources.$inferSelect;
