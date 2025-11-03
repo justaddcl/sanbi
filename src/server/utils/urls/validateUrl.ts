@@ -17,6 +17,26 @@ export const DEFAULTS = {
   bannedHosts: new Set<string>([]),
 };
 
+/**
+ * Validates and normalizes a URL string for song resource creation.
+ *
+ * Enforces security constraints:
+ * - Only https protocol allowed
+ * - No embedded credentials
+ * - No IP addresses (SSRF protection)
+ * - No explicit ports
+ * - Hostname must be valid and not banned
+ *
+ * Performs normalization:
+ * - Trims whitespace
+ * - Converts hostname to lowercase ASCII (Punycode)
+ * - Removes trailing dots from hostname
+ * - Collapses consecutive slashes in pathname
+ *
+ * @param input - The URL string to validate
+ * @returns The normalized URL string
+ * @throws {TRPCError} With BAD_REQUEST code and specific error message for validation failures
+ */
 export const validateUrl = (input: string): string => {
   if (!input) {
     throw new TRPCError({
@@ -60,7 +80,7 @@ export const validateUrl = (input: string): string => {
     throw new TRPCError({
       code: "BAD_REQUEST",
       message: ERROR_CONTAINS_CREDENTIALS,
-      cause: new Error(`URL contains username or password: ${url.toString()}`),
+      cause: new Error(`URL contains username or password`),
     });
   }
 
@@ -78,17 +98,17 @@ export const validateUrl = (input: string): string => {
     throw new TRPCError({
       code: "BAD_REQUEST",
       message: ERROR_INVALID_HOSTNAME,
-      cause: new Error(`URL contains invalid hostname: ${url.toString()}`),
+      cause: new Error(`URL contains invalid hostname`),
     });
   }
 
   url.hostname = punyHost;
 
-  if (url.port) {
+  if (url.port && !(url.protocol === "https:" && url.port === "443")) {
     throw new TRPCError({
       code: "BAD_REQUEST",
       message: ERROR_CONTAINS_PORT,
-      cause: new Error(`URL contains port: ${url.toString()}`),
+      cause: new Error(`URL contains port`),
     });
   }
 
@@ -96,7 +116,7 @@ export const validateUrl = (input: string): string => {
     throw new TRPCError({
       code: "BAD_REQUEST",
       message: ERROR_BANNED_HOSTNAME,
-      cause: new Error(`URL contains banned hostname: ${url.toString()}`),
+      cause: new Error(`URL contains banned hostname`),
     });
   }
 
@@ -104,10 +124,11 @@ export const validateUrl = (input: string): string => {
     throw new TRPCError({
       code: "BAD_REQUEST",
       message: ERROR_CONTAINS_IP,
-      cause: new Error(`URL contains IP address: ${url.toString()}`),
+      cause: new Error(`URL contains IP address`),
     });
   }
 
+  // Collapse consecutive slashes in the path for consistent formatting
   url.pathname = url.pathname.replace(/\/{2,}/g, "/");
 
   return url.toString();

@@ -76,8 +76,8 @@ export const resourceRouter = createTRPCRouter({
           `🤖 - [resource/create] - could not create resource ${url} for song ${songId}`,
         );
         throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Could not create resource",
+          code: "CONFLICT",
+          message: "A resource with this URL already exists for this song",
         });
       }
 

@@ -85,10 +85,18 @@ describe("validateUrl", () => {
     });
 
     it("banned hostname", () => {
-      DEFAULTS.bannedHosts.add("blocked.example");
-      expect(() => validateUrl("https://blocked.example/a")).toThrow(
-        ERROR_BANNED_HOSTNAME,
-      );
+      const bannedHost = "blocked.example";
+      const alreadyPresent = DEFAULTS.bannedHosts.has(bannedHost);
+      DEFAULTS.bannedHosts.add(bannedHost);
+      try {
+        expect(() => validateUrl("https://blocked.example/a")).toThrow(
+          ERROR_BANNED_HOSTNAME,
+        );
+      } finally {
+        if (!alreadyPresent) {
+          DEFAULTS.bannedHosts.delete(bannedHost);
+        }
+      }
     });
   });
 
