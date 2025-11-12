@@ -1,5 +1,5 @@
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
-import { z } from "zod";
+import * as z from "zod";
 
 import { songKeys } from "@lib/constants";
 import { songNameRegex } from "@lib/constants/regex";
@@ -25,13 +25,16 @@ export const MAX_SONG_NAME_LENGTH = 100;
 export const MAX_SONG_NOTES_LENGTH = 1000;
 
 export const dateRangeSchema = z.object({
-  from: z.string().date(),
-  to: z.string().date().nullish(),
+  from: z.date(),
+  to: z.date().nullish(),
 });
 
 /**
  * Organization schemas
  */
+export const organizationInputSchema = z.object({
+  organizationId: z.string().uuid(),
+});
 export const insertOrganizationSchema = createInsertSchema(organizations, {
   name: (schema) =>
     schema.name.min(1, {
@@ -58,7 +61,7 @@ export const getSetSchema = z.object({ setId: z.string().uuid() });
 export const getInfiniteSetsSchema = z.object({
   cursor: z
     .object({
-      date: z.string().date(),
+      date: z.date(),
       id: z.string().uuid(),
     })
     .nullish(),
@@ -73,22 +76,23 @@ const setIdSchema = z.object({
 export const archiveSetSchema = setIdSchema;
 export const unarchiveSetSchema = setIdSchema;
 export const deleteSetSchema = setIdSchema;
-export const updateSetDetailsSchema = setIdSchema.extend({
-  date: z.string().date(),
+export const updateSetDetailsSchema = z.object({
+  ...setIdSchema.shape,
+  date: z.date(),
   eventTypeId: z.string().uuid(),
 });
-export const updateSetNotesSchema = setIdSchema.extend({
+export const updateSetNotesSchema = z.object({
+  ...setIdSchema.shape,
   notes: z.string().trim(),
 });
-export const duplicateSetSchema = insertSetSchema
-  .pick({
+export const duplicateSetSchema = z.object({
+  ...insertSetSchema.pick({
     date: true,
     eventTypeId: true,
     notes: true,
-  })
-  .extend({
-    setToDuplicateId: z.string().uuid(),
-  });
+  }).shape,
+  setToDuplicateId: z.string().uuid(),
+});
 
 /**
  * Song schemas
@@ -102,7 +106,7 @@ export const songNameSchema = z
     for (const char of val) {
       if (!songNameRegex.test(char)) {
         ctx.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: "custom",
           message: `Invalid song name character: ${char}`,
           fatal: true,
         });
@@ -125,26 +129,26 @@ export const searchSongSchema = z.object({
 });
 export const songGetLastPlayInstanceSchema = songIdSchema;
 export const songGetPlayHistorySchema = songIdSchema;
-export const songUpdateNameSchema = songIdSchema.extend({
+export const songUpdateNameSchema = z.object({
+  ...songIdSchema.shape,
   name: songNameSchema,
 });
-export const songUpdateNotesSchema = createSelectSchema(songs)
-  .pick({
-    id: true,
-  })
-  .extend({
-    notes: z
-      .string()
-      .trim()
-      .max(MAX_SONG_NOTES_LENGTH, {
-        message: `Notes are too long. Please shorten to less than ${formatNumber(MAX_SONG_NOTES_LENGTH)} characters`,
-      })
-      .transform((notes) => sanitizeInput(notes)),
-  });
-export const songUpdatePreferredKeySchema = songIdSchema.extend({
+export const songUpdateNotesSchema = z.object({
+  ...createSelectSchema(songs).pick({ id: true }).shape,
+  notes: z
+    .string()
+    .trim()
+    .max(MAX_SONG_NOTES_LENGTH, {
+      message: `Notes are too long. Please shorten to less than ${formatNumber(MAX_SONG_NOTES_LENGTH)} characters`,
+    })
+    .transform((notes) => sanitizeInput(notes)),
+});
+export const songUpdatePreferredKeySchema = z.object({
+  ...songIdSchema.shape,
   preferredKey: z.enum(songKeys),
 });
-export const songUpdateFavoriteSchema = songIdSchema.extend({
+export const songUpdateFavoriteSchema = z.object({
+  ...songIdSchema.shape,
   isFavorite: z.boolean(),
 });
 
@@ -184,8 +188,9 @@ export const deleteSetSectionSongSchema = setSectionSongIdSchema;
 export const swapSetSectionSongSchema = setSectionSongIdSchema;
 export const moveSetSectionSongToAdjacentSetSectionSchema =
   setSectionSongIdSchema;
-export const replaceSetSectionSongSongSchema = setSectionSongIdSchema.extend({
-  replacementSong: z.string().uuid(),
+export const replaceSetSectionSongSongSchema = z.object({
+  ...setSectionSongIdSchema.shape,
+  replacementSongId: z.string().uuid(),
 });
 export const updateSetSectionSongSchema = insertSetSectionSongSchema
   .required({
@@ -244,7 +249,7 @@ export const tagNameSchema = z
     for (const char of chars) {
       if (!charPattern.test(char)) {
         ctx.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: "custom",
           message: `Tag contains invalid character: ${char}. Tags may only contain letters, numbers, spaces, underscores (_), hyphens (-), apostrophes (') or emojis.`,
           fatal: true,
         });
@@ -256,16 +261,15 @@ export const tagNameSchema = z
 export const getTagsByOrganizationSchema = z.object({
   organizationId: z.string().uuid(),
 });
-export const createTagSchema = createInsertSchema(tags)
-  .omit({
+export const createTagSchema = z.object({
+  ...createInsertSchema(tags).omit({
     id: true,
     createdAt: true,
     updatedAt: true,
     tag: true,
-  })
-  .extend({
-    tag: tagNameSchema,
-  });
+  }).shape,
+  tag: tagNameSchema,
+});
 
 /**
  * Song tag schemas
