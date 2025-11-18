@@ -76,6 +76,7 @@
     "lucide-react": "^0.411.0",
     "next": "^14.2.1",
     "next-themes": "^0.3.0",
+    "plugins": "link:@orpc/openapi/plugins",
     "postgres": "^3.4.4",
     "punycode": "^2.3.1",
     "react": "^18.3.0",
