@@ -1,6 +1,5 @@
 import { ORPCError } from "@orpc/server";
 import { eq } from "drizzle-orm";
-import * as z from "zod";
 
 import { getRouteLogger } from "@lib/loggers/logger";
 import { type NewResource } from "@lib/types";
@@ -20,26 +19,24 @@ export const createResource = organizationProcedure
     summary: "Creates a new resource for a song",
   })
   .input(insertResourceSchema)
-  .output(
-    z.object({
-      success: z.boolean(),
-      resource: getResourceSchema,
-      mutationInput: insertResourceSchema,
-    }),
-  )
+  .output(getResourceSchema)
   .handler(async ({ context, input }) => {
     const { user } = context;
-    console.log("🤖 - [resource/create] ~ attempting to create resource:", {
+
+    const logger = getRouteLogger(context, "resource/create", {
+      input,
       user,
-      mutationInput: input,
     });
+
+    logger?.info("Attempting to create resource");
 
     const { organizationId, songId, url, title } = input;
 
     if (organizationId !== context.user.membership.organizationId) {
-      console.error(
-        `🤖 - [resource/create] - user ${user.id} is not authorized to create resources for organization ${organizationId}`,
+      logger?.warn(
+        "User is not authorized to create resources for this organization",
       );
+
       throw new ORPCError("FORBIDDEN", {
         message:
           "User is not authorized to create resources for this organization",
@@ -51,16 +48,16 @@ export const createResource = organizationProcedure
     });
 
     if (!songToCreateResourceFor) {
-      console.error(`🤖 - [resource/create] - could not find song ${songId}`);
+      logger?.warn("Could not find song");
+
       throw new ORPCError("NOT_FOUND", {
         message: "Could not find target song",
       });
     }
 
     if (songToCreateResourceFor.organizationId !== organizationId) {
-      console.error(
-        `🤖 - [resource/create] - song ${songId} is not associated with organization ${organizationId}`,
-      );
+      logger?.warn("Song is not associated with organization");
+
       throw new ORPCError("FORBIDDEN", {
         message: "Song is not associated with this organization",
       });
@@ -82,20 +79,16 @@ export const createResource = organizationProcedure
       .returning();
 
     if (!createdResource) {
-      console.error(
-        `🤖 - [resource/create] - could not create resource ${url} for song ${songId}`,
-      );
+      logger?.warn("Could not create resource");
+
       throw new ORPCError("CONFLICT", {
         message: "A resource with this URL already exists for this song",
       });
     }
 
-    console.info(`🤖 - [resource/create] - new resource created`, {
-      createdResource,
-      mutationInput: input,
-    });
+    logger?.info("New resource created");
 
-    return { success: true, resource: createdResource, mutationInput: input };
+    return createdResource;
   });
 
 export const deleteResource = organizationProcedure
