@@ -289,12 +289,15 @@ export const deleteSongTagSchema = z.object({
 /**
  * Resource schemas
  */
+export const getResourceSchema = createSelectSchema(resources);
+
 export const insertResourceSchema = createInsertSchema(resources).pick({
   organizationId: true,
   songId: true,
   url: true,
   title: true,
 });
+
 export const deleteResourceSchema = z.object({
   resourceId: z.string().uuid(),
 });
