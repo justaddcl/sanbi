@@ -4,8 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "next build",
-    "db:start": "open -a Docker && sleep 1 && ./start-database.sh && pnpm db:studio",
+    "build": "turbo run build",
+    "db:start": "turbo run db:studio",
+    "db:start:raw": "open -a Docker && sleep 1 && ./start-database.sh && pnpm db:studio",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
@@ -18,10 +19,16 @@
     "db:update": "dotenvx run -- npx tsx ./src/server/db/clear.ts && drizzle-kit push && dotenvx run -- npx tsx ./src/server/db/seed.ts",
     "db:update:prod": "NODE_ENV=production dotenvx run -- npx tsx ./src/server/db/clear.ts && NODE_ENV=production drizzle-kit push && NODE_ENV=production dotenvx run -- npx tsx ./src/server/db/seed.ts",
     "dev": "next dev",
-    "lint": "next lint && npx tsc --noEmit --project tsconfig.json",
+    "dev:turbo": "turbo dev",
+    "docker:daemon": "tsx ./src/scripts/start-docker.ts",
+    "docker:wait": "tsx ./src/scripts/wait-for-docker.ts",
+    "db:up": "./start-database.sh",
+    "lint": "turbo run lint",
     "start": "next start",
-    "test": "jest",
-    "test:watch": "jest --watch"
+    "test": "turbo run test",
+    "test:watch": "jest --watch",
+    "lint:next": "next lint && npx tsc --noEmit --project tsconfig.json",
+    "test:jest": "jest"
   },
   "dependencies": {
     "@clerk/nextjs": "^5.1.6",
@@ -127,6 +134,7 @@
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "tsx": "^4.15.6",
+    "turbo": "^2.5.4",
     "typescript": "^5.5.4"
   },
   "ct3aMetadata": {

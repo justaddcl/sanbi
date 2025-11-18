@@ -1,0 +1,43 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "ui": "tui",
+  "tasks": {
+    "docker:daemon": {
+      "cache": false
+    },
+    "docker:wait": {
+      "cache": false,
+      "dependsOn": ["docker:daemon"]
+    },
+    "db:up": {
+      "cache": false,
+      "dependsOn": ["docker:wait"]
+    },
+    "db:studio": {
+      "cache": false,
+      "persistent": true,
+      "dependsOn": ["db:up"]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true,
+      "dependsOn": ["db:up"],
+      "with": ["db:studio"]
+    },
+    "build": {
+      "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "outputs": [".next/**", "!.next/cache/**"]
+    },
+    "lint": {
+      "dependsOn": ["^lint"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "outputs": []
+    },
+    "test": {
+      "dependsOn": ["build"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "outputs": ["coverage/**"]
+    }
+  }
+}
