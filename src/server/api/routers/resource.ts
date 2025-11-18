@@ -13,6 +13,12 @@ export const resourceRouter = createTRPCRouter({
    * Mutations
    */
   create: organizationProcedure
+    .meta({
+      route: {
+        path: "/resource/create",
+        summary: "Creates a new resource for a song",
+      },
+    })
     .input(insertResourceSchema)
     .mutation(async ({ ctx, input }) => {
       const { user } = ctx;
