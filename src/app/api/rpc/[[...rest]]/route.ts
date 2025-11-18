@@ -9,6 +9,7 @@ import { ZodToJsonSchemaConverter } from "@orpc/zod/zod4";
 import { logger } from "@lib/loggers/logger";
 import { createORPCContext } from "@server/orpc/base";
 import { appRouter } from "@server/orpc/routers";
+import { getBaseUrl } from "@server/utils/urls/getBaseUrl";
 
 const rpcHandler = new RPCHandler(appRouter, {
   interceptors: [
@@ -48,6 +49,11 @@ const apiHandler = new OpenAPIHandler(appRouter, {
           version: "1.0.0",
           description: "Sanbi API",
         },
+        servers: [
+          {
+            url: getBaseUrl() + "/api/rpc/",
+          },
+        ],
       },
     }),
   ],
