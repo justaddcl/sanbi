@@ -1,10 +1,12 @@
-import { OpenAPIHandler } from "@orpc/openapi/fetch"; // or '@orpc/server/node'
+import { getLogger, LoggingHandlerPlugin } from "@orpc/experimental-pino";
+import { OpenAPIHandler } from "@orpc/openapi/fetch";
 import { OpenAPIReferencePlugin } from "@orpc/openapi/plugins";
 import { onError } from "@orpc/server";
 import { RPCHandler } from "@orpc/server/fetch";
 import { CORSPlugin } from "@orpc/server/plugins";
 import { ZodToJsonSchemaConverter } from "@orpc/zod/zod4";
 
+import { logger } from "@lib/loggers/logger";
 import { createORPCContext } from "@server/orpc/base";
 import { appRouter } from "@server/orpc/routers";
 
@@ -12,6 +14,25 @@ const rpcHandler = new RPCHandler(appRouter, {
   interceptors: [
     onError((error) => {
       console.error(error);
+    }),
+    async ({ context, next }) => {
+      const start = process.hrtime.bigint();
+      const result = await next(); // correctly typed as StandardHandleResult
+      const end = process.hrtime.bigint();
+      const durationMs = Number(end - start) / 1_000_000;
+
+      const reqLogger = getLogger(context);
+      reqLogger?.info({ durationMs }, "request handled");
+
+      return result;
+    },
+  ],
+  plugins: [
+    new LoggingHandlerPlugin({
+      logger,
+      generateId: ({ request }) => crypto.randomUUID(),
+      logRequestResponse: true,
+      logRequestAbort: true,
     }),
   ],
 });
@@ -37,7 +58,7 @@ const apiHandler = new OpenAPIHandler(appRouter, {
   ],
 });
 
-export default async function handleRequest(request: Request) {
+export async function handleRequest(request: Request) {
   const rpcResult = await rpcHandler.handle(request, {
     prefix: "/api/rpc",
     context: await createORPCContext(request),
