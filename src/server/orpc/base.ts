@@ -2,7 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { type LoggerContext } from "@orpc/experimental-pino";
 import { ORPCError, os } from "@orpc/server";
 import { and, eq } from "drizzle-orm";
-import { type z } from "zod";
+import type * as z from "zod";
 
 import {
   type Organization,

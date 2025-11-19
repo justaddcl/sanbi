@@ -1,5 +1,5 @@
 import { ORPCError } from "@orpc/server";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 
 import { getRouteLogger } from "@lib/loggers/logger";
 import { type NewResource } from "@lib/types";
@@ -131,7 +131,12 @@ export const deleteResource = organizationProcedure
 
     const [deletedResource] = await db
       .delete(resources)
-      .where(eq(resources.id, input.resourceId))
+      .where(
+        and(
+          eq(resources.id, input.resourceId),
+          eq(resources.organizationId, user.membership.organizationId),
+        ),
+      )
       .returning();
 
     if (deletedResource) {

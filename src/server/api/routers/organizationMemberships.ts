@@ -74,7 +74,7 @@ export const organizationMembershipsRouter = createTRPCRouter({
       const newOrganizationMembership: NewOrganizationMembership = {
         organizationId: input.organizationId,
         userId: input.userId,
-        permissionType: (input.permissionType ||
+        permissionType: (input.permissionType ??
           "member") as NewOrganizationMembership["permissionType"],
       };
 
