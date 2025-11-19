@@ -23,9 +23,9 @@
     "docker:daemon": "tsx ./src/scripts/start-docker.ts",
     "docker:wait": "tsx ./src/scripts/wait-for-docker.ts",
     "db:up": "./start-database.sh",
-    "lint": "turbo run lint",
+    "lint": "next lint",
     "start": "next start",
-    "test": "turbo run test",
+    "test": "next test",
     "test:watch": "jest --watch",
     "lint:next": "next lint && npx tsc --noEmit --project tsconfig.json",
     "test:jest": "jest"
