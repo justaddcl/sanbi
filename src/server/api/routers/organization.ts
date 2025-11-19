@@ -1,18 +1,19 @@
+import { TRPCError } from "@trpc/server";
+import { eq, sql } from "drizzle-orm";
+import * as z from "zod";
+
 import {
   authedProcedure,
   createTRPCRouter,
   organizationProcedure,
 } from "@server/api/trpc";
 import { organizations } from "@server/db/schema";
+import { isValidSlug } from "@/lib/string";
 import { type NewOrganization } from "@/lib/types";
-import { eq, sql } from "drizzle-orm";
 import {
   deleteOrganizationSchema,
   insertOrganizationSchema,
 } from "@/lib/types/zod";
-import { isValidSlug } from "@/lib/string";
-import { TRPCError } from "@trpc/server";
-import { z } from "zod";
 
 export const organizationRouter = createTRPCRouter({
   organization: organizationProcedure.query(async ({ ctx }) => {
@@ -42,12 +43,13 @@ export const organizationRouter = createTRPCRouter({
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "URL contains invalid characters",
+          // FIXME: will need to migrate to something more like: `cause: { field: "slug" }`
           cause: new z.ZodError([
             {
-              code: "invalid_string",
+              code: "invalid_format",
               path: ["slug"],
               message: "URL contains invalid characters",
-              validation: "url",
+              format: "url",
             },
           ]),
         });
@@ -70,6 +72,7 @@ export const organizationRouter = createTRPCRouter({
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: `Another team is already using this name`,
+          // FIXME: will need to migrate to something more like: `cause: { field: "name" }`
           cause: new z.ZodError([
             {
               code: "custom",
@@ -96,6 +99,7 @@ export const organizationRouter = createTRPCRouter({
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: `Another team is already using this URL`,
+          // FIXME: will need to migrate to something more like: `cause: { field: "slug" }`
           cause: new z.ZodError([
             {
               code: "custom",

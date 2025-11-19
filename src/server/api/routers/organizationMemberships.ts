@@ -1,3 +1,7 @@
+import { TRPCError } from "@trpc/server";
+import { and, eq } from "drizzle-orm";
+import * as z from "zod";
+
 import { authedProcedure, createTRPCRouter } from "@server/api/trpc";
 import {
   organizationMemberships,
@@ -5,10 +9,7 @@ import {
   users,
 } from "@server/db/schema";
 import { type NewOrganizationMembership } from "@/lib/types";
-import { and, eq } from "drizzle-orm";
-import { TRPCError } from "@trpc/server";
 import { insertOrganizationMembershipSchema } from "@/lib/types/zod";
-import { z } from "zod";
 
 export const organizationMembershipsRouter = createTRPCRouter({
   create: authedProcedure
@@ -73,7 +74,8 @@ export const organizationMembershipsRouter = createTRPCRouter({
       const newOrganizationMembership: NewOrganizationMembership = {
         organizationId: input.organizationId,
         userId: input.userId,
-        permissionType: input.permissionType || "member",
+        permissionType: (input.permissionType ||
+          "member") as NewOrganizationMembership["permissionType"],
       };
 
       console.log(

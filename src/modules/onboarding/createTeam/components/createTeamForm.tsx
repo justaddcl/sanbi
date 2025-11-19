@@ -1,5 +1,11 @@
 "use client";
 
+import { useForm } from "react-hook-form";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@clerk/nextjs";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { type z } from "zod";
+
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -11,12 +17,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { insertOrganizationSchema } from "@/lib/types/zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { type z } from "zod";
-import { useRouter } from "next/navigation";
 import { api } from "@/trpc/react";
-import { useAuth } from "@clerk/nextjs";
 
 export type CreateTeamFormFields = z.infer<typeof insertOrganizationSchema>;
 
@@ -77,21 +78,27 @@ export const CreateTeamForm: React.FC = () => {
         );
       },
       onError(error) {
-        if (error.data?.zodError?.fieldErrors) {
-          const {
-            zodError: { fieldErrors },
-          } = error.data;
-
-          const fieldNames = Object.keys(
-            fieldErrors,
-          ) as (keyof CreateTeamFormFields)[]; // since TypeScript can't be more specific than type string for Object.keys() we assert that the field error keys match the create team form field names
-          if (fieldNames && fieldNames.length > 0) {
-            const fieldName = fieldNames[0]!;
-
-            const [fieldError] = fieldErrors[fieldName]!;
-            setError(fieldName, { type: "manual", message: fieldError });
-          }
-        }
+        // FIXME: migrating to zod 4 has apparently broken the form validation
+        // console.log(
+        //   "🚀 ~ createTeamForm.tsx:80 ~ handleCreateOrganizationMembershipSubmit ~ error:",
+        //   JSON.stringify({ errorData: error.data }, null, 2),
+        // );
+        // if (error.data?.zodError?.fieldErrors) {
+        //   const fieldErrors = error.data.zodError.fieldErrors as Partial<
+        //     Record<keyof CreateTeamFormFields, string[]>
+        //   >;
+        //   const fieldNames = Object.keys(
+        //     fieldErrors,
+        //   ) as (keyof CreateTeamFormFields)[];
+        //   if (fieldNames.length > 0) {
+        //     const fieldName = fieldNames[0];
+        //     const errorsForField = fieldErrors[fieldName];
+        //     if (errorsForField && errorsForField.length > 0) {
+        //       const [fieldError] = errorsForField;
+        //       setError(fieldName, { type: "manual", message: fieldError });
+        //     }
+        //   }
+        // }
       },
     });
   };

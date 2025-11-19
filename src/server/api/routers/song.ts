@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { and, asc, desc, eq, lte, sql } from "drizzle-orm";
 
-import { type NewSong } from "@lib/types/db";
+import { type NewSong, type Song } from "@lib/types/db";
 import {
   archiveSongSchema,
   deleteSongSchema,
@@ -164,7 +164,7 @@ export const songRouter = createTRPCRouter({
 
       const newSong: NewSong = {
         name,
-        preferredKey,
+        preferredKey: preferredKey as Song["preferredKey"],
         organizationId,
         notes,
         isArchived,

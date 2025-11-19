@@ -483,7 +483,7 @@ export const setRouter = createTRPCRouter({
         await updateTransaction
           .update(sets)
           .set({
-            date,
+            date: date.toLocaleDateString(DATE_LOCALE),
             eventTypeId,
           })
           .where(eq(sets.id, setId));

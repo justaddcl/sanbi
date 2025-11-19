@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { and, eq, gt, sql } from "drizzle-orm";
 
-import { type NewSetSectionSong } from "@lib/types";
+import { type NewSetSectionSong, type Song } from "@lib/types";
 import {
   addAndReorderSongsSchema,
   deleteSetSectionSongSchema,
@@ -39,7 +39,7 @@ export const setSectionSongRouter = createTRPCRouter({
       const newSetSectionSong: NewSetSectionSong = {
         songId,
         setSectionId,
-        key,
+        key: key as Song["preferredKey"],
         position,
         notes,
         organizationId,
@@ -260,7 +260,7 @@ export const setSectionSongRouter = createTRPCRouter({
   updateDetails: organizationProcedure
     .input(updateSetSectionSongSchema)
     .mutation(async ({ ctx, input }) => {
-      const { id: setSectionSongId, ...updates } = input;
+      const { id: setSectionSongId, key, ...updates } = input;
       const setSectionSong = await ctx.db.query.setSectionSongs.findFirst({
         where: eq(setSectionSongs.id, setSectionSongId),
         with: {
@@ -303,7 +303,10 @@ export const setSectionSongRouter = createTRPCRouter({
 
       const [updatedSong] = await ctx.db
         .update(setSectionSongs)
-        .set({ ...updates })
+        .set({
+          key: key as Song["preferredKey"],
+          ...updates,
+        })
         .where(eq(setSectionSongs.id, setSectionSongId))
         .returning();
 
