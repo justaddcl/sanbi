@@ -12,7 +12,7 @@ import { type ORPCMeta } from "@orpc/trpc";
 import { initTRPC, TRPCError } from "@trpc/server";
 import { and, eq } from "drizzle-orm";
 import superjson from "superjson";
-import { z, ZodError } from "zod";
+import * as z from "zod";
 
 import { db } from "@/server/db";
 
@@ -56,7 +56,9 @@ const t = initTRPC
         data: {
           ...shape.data,
           zodError:
-            error.cause instanceof ZodError ? error.cause.flatten() : null,
+            error.code === "BAD_REQUEST" && error.cause instanceof z.ZodError
+              ? z.treeifyError(error.cause)
+              : null,
         },
       };
     },

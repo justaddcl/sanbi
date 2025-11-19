@@ -9,7 +9,7 @@ export async function POST(request: Request) {
   console.log("🚀 ~ POST ~ input:", input);
 
   const validatedInput = z
-    .object({ organizationId: z.string().uuid() })
+    .object({ organizationId: z.uuid() })
     .safeParse(input);
 
   // Return early if the form data is invalid

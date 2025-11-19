@@ -33,7 +33,7 @@ export const dateRangeSchema = z.object({
  * Organization schemas
  */
 export const organizationInputSchema = z.object({
-  organizationId: z.string().uuid(),
+  organizationId: z.uuid(),
 });
 export const insertOrganizationSchema = createInsertSchema(organizations, {
   name: (schema) =>
@@ -47,7 +47,7 @@ export const insertOrganizationSchema = createInsertSchema(organizations, {
 });
 
 export const deleteOrganizationSchema = z.object({
-  organizationId: z.string().uuid(),
+  organizationId: z.uuid(),
 });
 
 export const insertOrganizationMembershipSchema = createInsertSchema(
@@ -57,21 +57,21 @@ export const insertOrganizationMembershipSchema = createInsertSchema(
 /**
  * Set schemas
  */
-export const getSetSchema = z.object({ setId: z.string().uuid() });
+export const getSetSchema = z.object({ setId: z.uuid() });
 export const getInfiniteSetsSchema = z.object({
   cursor: z
     .object({
       date: z.date(),
-      id: z.string().uuid(),
+      id: z.uuid(),
     })
     .nullish(),
   limit: z.number().min(1).max(48).default(10),
-  eventTypeFilters: z.array(z.string().uuid()).optional(),
+  eventTypeFilters: z.array(z.uuid()).optional(),
   dateRange: dateRangeSchema.nullish(),
 });
 export const insertSetSchema = createInsertSchema(sets);
 const setIdSchema = z.object({
-  setId: z.string().uuid(),
+  setId: z.uuid(),
 });
 export const archiveSetSchema = setIdSchema;
 export const unarchiveSetSchema = setIdSchema;
@@ -79,7 +79,7 @@ export const deleteSetSchema = setIdSchema;
 export const updateSetDetailsSchema = z.object({
   ...setIdSchema.shape,
   date: z.date(),
-  eventTypeId: z.string().uuid(),
+  eventTypeId: z.uuid(),
 });
 export const updateSetNotesSchema = z.object({
   ...setIdSchema.shape,
@@ -91,7 +91,7 @@ export const duplicateSetSchema = z.object({
     eventTypeId: true,
     notes: true,
   }).shape,
-  setToDuplicateId: z.string().uuid(),
+  setToDuplicateId: z.uuid(),
 });
 
 /**
@@ -117,7 +117,7 @@ export const songNameSchema = z
   });
 
 export const songIdSchema = z.object({
-  songId: z.string().uuid(),
+  songId: z.uuid(),
 });
 export const getSongSchema = songIdSchema;
 export const insertSongSchema = createInsertSchema(songs);
@@ -161,11 +161,11 @@ export const insertSetSectionTypeSchema = createInsertSchema(setSectionTypes);
  * Set section schemas
  */
 export const setSectionIdSchema = z.object({
-  setSectionId: z.string().uuid(),
+  setSectionId: z.uuid(),
 });
 export const insertSetSectionSchema = createInsertSchema(setSections);
 export const getSetSectionSchema = setSectionIdSchema;
-export const getSectionsForSet = z.object({ setId: z.string().uuid() });
+export const getSectionsForSet = z.object({ setId: z.uuid() });
 export const updateSetSectionType = insertSetSectionSchema
   .pick({
     id: true,
@@ -181,7 +181,7 @@ export const deleteSetSectionSchema = setSectionIdSchema;
  * Set section songs schemas
  */
 const setSectionSongIdSchema = z.object({
-  setSectionSongId: z.string().uuid(),
+  setSectionSongId: z.uuid(),
 });
 export const insertSetSectionSongSchema = createInsertSchema(setSectionSongs);
 export const deleteSetSectionSongSchema = setSectionSongIdSchema;
@@ -190,7 +190,7 @@ export const moveSetSectionSongToAdjacentSetSectionSchema =
   setSectionSongIdSchema;
 export const replaceSetSectionSongSongSchema = z.object({
   ...setSectionSongIdSchema.shape,
-  replacementSongId: z.string().uuid(),
+  replacementSongId: z.uuid(),
 });
 export const updateSetSectionSongSchema = insertSetSectionSongSchema
   .required({
@@ -203,14 +203,14 @@ export const updateSetSectionSongSchema = insertSetSectionSongSchema
   });
 
 export const addAndReorderSongsSchema = z.object({
-  setSectionId: z.string().uuid(),
+  setSectionId: z.uuid(),
   newSong: z.object({
-    songId: z.string().uuid(),
+    songId: z.uuid(),
     key: z.enum(songKeys),
     notes: z.string().optional(),
   }),
   newSongTempId: z.string(),
-  orderedSongIds: z.array(z.string().uuid()).min(1),
+  orderedSongIds: z.array(z.uuid()).min(1),
 });
 
 /**
@@ -259,7 +259,7 @@ export const tagNameSchema = z
   });
 
 export const getTagsByOrganizationSchema = z.object({
-  organizationId: z.string().uuid(),
+  organizationId: z.uuid(),
 });
 export const createTagSchema = z.object({
   ...createInsertSchema(tags).omit({
@@ -275,15 +275,15 @@ export const createTagSchema = z.object({
  * Song tag schemas
  */
 export const getSongTagsBySongIdSchema = z.object({
-  songId: z.string().uuid(),
+  songId: z.uuid(),
 });
 export const createSongTagSchema = createInsertSchema(songTags).omit({
   createdAt: true,
   updatedAt: true,
 });
 export const deleteSongTagSchema = z.object({
-  songId: z.string().uuid(),
-  tagId: z.string().uuid(),
+  songId: z.uuid(),
+  tagId: z.uuid(),
 });
 
 /**
@@ -299,5 +299,5 @@ export const insertResourceSchema = createInsertSchema(resources).pick({
 });
 
 export const deleteResourceSchema = z.object({
-  resourceId: z.string().uuid(),
+  resourceId: z.uuid(),
 });

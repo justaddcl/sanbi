@@ -92,7 +92,7 @@ export const organizationMembershipsRouter = createTRPCRouter({
   isMemberOfOrganization: authedProcedure
     .input(
       z.object({
-        organizationId: z.string().uuid(),
+        organizationId: z.uuid(),
       }),
     )
     .query(async ({ ctx, input }) => {
