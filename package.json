@@ -25,7 +25,7 @@
     "db:up": "./start-database.sh",
     "lint": "next lint",
     "start": "next start",
-    "test": "next test",
+    "test": "jest",
     "test:watch": "jest --watch",
     "lint:next": "next lint && npx tsc --noEmit --project tsconfig.json",
     "type-check": "npx tsc --noEmit --project tsconfig.json",
