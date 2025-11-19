@@ -64,7 +64,7 @@ const apiHandler = new OpenAPIHandler(appRouter, {
   ],
 });
 
-export async function handleRequest(request: Request) {
+async function handler(request: Request) {
   const rpcResult = await rpcHandler.handle(request, {
     prefix: "/api/rpc",
     context: await createORPCContext(request),
@@ -86,8 +86,10 @@ export async function handleRequest(request: Request) {
   return new Response("Not Found", { status: 404 });
 }
 
-export const GET = handleRequest;
-export const POST = handleRequest;
-export const PUT = handleRequest;
-export const PATCH = handleRequest;
-export const DELETE = handleRequest;
+export {
+  handler as DELETE,
+  handler as GET,
+  handler as PATCH,
+  handler as POST,
+  handler as PUT,
+};
