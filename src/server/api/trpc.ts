@@ -55,6 +55,11 @@ const t = initTRPC
         ...shape,
         data: {
           ...shape.data,
+          // FIXME: fix the types and expose the error.cause.field
+          // field:
+          //   error?.cause && Object.keys(error.cause).includes("field")
+          //     ? error.cause.field
+          //     : null,
           zodError:
             error.code === "BAD_REQUEST" && error.cause instanceof z.ZodError
               ? z.treeifyError(error.cause)
