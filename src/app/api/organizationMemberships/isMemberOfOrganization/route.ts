@@ -1,9 +1,14 @@
-import { api } from "@/trpc/server";
+import { NextResponse } from "next/server";
 import { TRPCError } from "@trpc/server";
 import { getHTTPStatusCodeFromError } from "@trpc/server/http";
-import { NextResponse } from "next/server";
 import { z } from "zod";
 
+import { api } from "@/trpc/server";
+
+/**
+ * @deprecated
+ * This isn't used as the RPC routes are preferred and should be removed
+ */
 export async function POST(request: Request) {
   const input = (await request.json()) as { organizationId: string };
   console.log("🚀 ~ POST ~ input:", input);

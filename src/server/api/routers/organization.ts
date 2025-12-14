@@ -43,13 +43,11 @@ export const organizationRouter = createTRPCRouter({
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "URL contains invalid characters",
-          // FIXME: will need to migrate to something more like: `cause: { field: "slug" }`
           cause: new z.ZodError([
             {
-              code: "invalid_format",
+              code: "custom",
               path: ["slug"],
               message: "URL contains invalid characters",
-              format: "url",
             },
           ]),
         });

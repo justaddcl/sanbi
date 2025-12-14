@@ -1,4 +1,4 @@
-import { getLogger } from "@orpc/experimental-pino";
+import { getLogger, type LoggerContext } from "@orpc/experimental-pino";
 import pino from "pino";
 
 const isDev = process.env.NODE_ENV !== "production";
@@ -26,7 +26,7 @@ export const logger = pino({
 });
 
 export const getRouteLogger = (
-  context: unknown,
+  context: LoggerContext | undefined,
   route: string,
   extra: Record<string, unknown> = {},
 ) => {

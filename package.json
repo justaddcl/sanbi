@@ -23,11 +23,11 @@
     "docker:daemon": "tsx ./src/scripts/start-docker.ts",
     "docker:wait": "tsx ./src/scripts/wait-for-docker.ts",
     "db:up": "./start-database.sh",
-    "lint": "next lint",
+    "lint:next": "next lint",
     "start": "next start",
     "test": "jest",
     "test:watch": "jest --watch",
-    "lint:next": "next lint && npx tsc --noEmit --project tsconfig.json",
+    "lint": "next lint && npx tsc --noEmit --project tsconfig.json",
     "type-check": "npx tsc --noEmit --project tsconfig.json",
     "test:jest": "jest"
   },

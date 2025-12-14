@@ -60,11 +60,6 @@ export default async function SetListPage({
     return <SongDetailsPageLoading />;
   }
 
-  // console.log(
-  //   "🚀 ~ page.tsx:70 ~ SetListPage ~ deleteResult:",
-  //   JSON.stringify({ result }, null, 2),
-  // );
-
   return (
     <>
       <SongDetailsPageHeader song={song} userMembership={userMembership} />

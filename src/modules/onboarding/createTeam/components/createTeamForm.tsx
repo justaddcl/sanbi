@@ -59,6 +59,10 @@ export const CreateTeamForm: React.FC = () => {
   const handleCreateOrganizationMembershipSubmit = async (
     formValues: CreateTeamFormFields,
   ) => {
+    console.log(
+      "🚀 ~ handleCreateOrganizationMembershipSubmit ~ formValues:",
+      JSON.stringify({ formValues }, null, 2),
+    );
     createOrganizationMutation.mutate(formValues, {
       onSuccess(data) {
         const [newOrganization] = data;
@@ -79,10 +83,10 @@ export const CreateTeamForm: React.FC = () => {
       },
       onError(error) {
         // FIXME: migrating to zod 4 has apparently broken the form validation
-        // console.log(
-        //   "🚀 ~ createTeamForm.tsx:80 ~ handleCreateOrganizationMembershipSubmit ~ error:",
-        //   JSON.stringify({ errorData: error.data }, null, 2),
-        // );
+        console.log(
+          "🚀 ~ createTeamForm.tsx:80 ~ handleCreateOrganizationMembershipSubmit ~ error:",
+          JSON.stringify({ error }, null, 2),
+        );
         // if (error.data?.zodError?.fieldErrors) {
         //   const fieldErrors = error.data.zodError.fieldErrors as Partial<
         //     Record<keyof CreateTeamFormFields, string[]>

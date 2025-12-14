@@ -37,11 +37,11 @@ export const organizationInputSchema = z.object({
 });
 export const insertOrganizationSchema = createInsertSchema(organizations, {
   name: (schema) =>
-    schema.min(1, {
+    schema.min(2, {
       message: "Team name must be at least 1 character",
     }),
   slug: (schema) =>
-    schema.min(1, {
+    schema.min(2, {
       message: "Team URL must be at least 1 character",
     }),
 });
@@ -300,4 +300,5 @@ export const insertResourceSchema = createInsertSchema(resources).pick({
 
 export const deleteResourceSchema = z.object({
   resourceId: z.uuid(),
+  organizationId: z.uuid(),
 });

@@ -65,9 +65,11 @@ const apiHandler = new OpenAPIHandler(appRouter, {
 });
 
 async function handler(request: Request) {
+  const context = await createORPCContext({ headers: request.headers });
+
   const rpcResult = await rpcHandler.handle(request, {
     prefix: "/api/rpc",
-    context: await createORPCContext(request),
+    context,
   });
 
   if (rpcResult.matched) {

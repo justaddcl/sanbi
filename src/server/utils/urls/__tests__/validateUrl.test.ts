@@ -1,3 +1,4 @@
+import { ORPCError } from "@orpc/client";
 import { TRPCError } from "@trpc/server";
 
 import {
@@ -13,23 +14,33 @@ import {
 } from "@server/utils/urls/validateUrl";
 
 jest.mock("@orpc/client", () => {
-  interface ORPCCauseOptions {
+  interface ORPCErrorOptions {
     message?: string;
     cause?: unknown;
+    status?: number;
+    data?: unknown;
+    defined?: unknown;
   }
 
-  class ORPCError extends TRPCError {
-    constructor(code: TRPCError["code"], opts: ORPCCauseOptions = {}) {
-      super({
-        code,
-        message: opts.message ?? "Mock ORPCError",
-        cause: opts.cause,
-      });
+  class ORPCError extends Error {
+    public readonly code: string;
+    public readonly status?: number;
+    public readonly data?: unknown;
+    public readonly defined?: unknown;
+
+    constructor(code: string, ...rest: [ORPCErrorOptions] | []) {
+      const opts: ORPCErrorOptions = rest[0] ?? {};
+      super(opts.message ?? `Mock ORPCError with code ${code}`);
       this.name = "ORPCError";
+      this.code = code;
+      this.cause = opts.cause;
+      this.status = opts.status;
+      this.data = opts.data;
+      this.defined = opts.defined;
     }
   }
 
-  return { ORPCError };
+  return { __esModule: true, ORPCError };
 });
 
 describe("validateUrl", () => {
@@ -52,7 +63,7 @@ describe("validateUrl", () => {
       expect(() => validateUrl("https//missing-colon.com")).toThrow(
         ERROR_URL_MALFORMED,
       );
-      expect(() => validateUrl("://no-scheme")).toThrow(ERROR_URL_MALFORMED);
+      expect(() => validateUrl(":://no-scheme")).toThrow(ERROR_URL_MALFORMED);
     });
 
     it("invalid scheme (http, javascript, data, etc.)", () => {
@@ -65,7 +76,7 @@ describe("validateUrl", () => {
       expect(() => validateUrl("data:text/html;base64,AAAA")).toThrow(
         ERROR_INVALID_SCHEME,
       );
-      expect(() => validateUrl("ftp://example.com")).toThrow(TRPCError);
+      expect(() => validateUrl("ftp://example.com")).toThrow(ORPCError);
     });
 
     it("username/password present", () => {
@@ -86,7 +97,7 @@ describe("validateUrl", () => {
     });
 
     it("port present (even default port)", () => {
-      expect(() => validateUrl("https://example.com:444/")).toThrow(TRPCError);
+      expect(() => validateUrl("https://example.com:444/")).toThrow(ORPCError);
 
       // WHATWG URL deop default ports when parsing/serializing so if :443, url.port === ""
       expect(() => validateUrl("https://example.com:443/path")).not.toThrow(

@@ -62,7 +62,8 @@ const t = initTRPC
           //     : null,
           zodError:
             error.code === "BAD_REQUEST" && error.cause instanceof z.ZodError
-              ? z.treeifyError(error.cause)
+              ? // TODO: see if we need to use z.flattenError() instead
+                z.treeifyError(error.cause)
               : null,
         },
       };
