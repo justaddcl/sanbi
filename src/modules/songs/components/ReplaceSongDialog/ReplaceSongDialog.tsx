@@ -1,26 +1,27 @@
 "use client";
 
+import { useState } from "react";
+import { ArrowRight, CaretLeft } from "@phosphor-icons/react";
+import { toast } from "sonner";
+
+import { Button } from "@components/ui/button";
 import {
   CommandDialog,
   CommandGroup,
   CommandList,
 } from "@components/ui/command";
+import { DialogDescription, DialogTitle } from "@components/ui/dialog";
+import { HStack } from "@components/HStack";
 import { Text } from "@components/Text";
-import { useState } from "react";
+import { VStack } from "@components/VStack";
 import {
   SongSearch,
   type SongSearchResult,
 } from "@modules/songs/components/SongSearch";
-import { type SetSectionSongWithSongData } from "@lib/types";
-import { Button } from "@components/ui/button";
-import { ArrowRight, CaretLeft } from "@phosphor-icons/react";
-import { DialogDescription, DialogTitle } from "@components/ui/dialog";
-import { HStack } from "@components/HStack";
-import { api } from "@/trpc/react";
 import { useUserQuery } from "@modules/users/api/queries";
-import { toast } from "sonner";
+import { type SetSectionSongWithSongData } from "@lib/types";
 import { cn } from "@lib/utils";
-import { VStack } from "@components/VStack";
+import { api } from "@/trpc/react";
 
 export type ReplaceSongDialogSteps = "search" | "confirm";
 
@@ -105,7 +106,7 @@ export const ReplaceSongDialog: React.FC<ReplaceSongDialogProps> = ({
         {
           organizationId: userMembership.organizationId,
           setSectionSongId: currentSong.id,
-          replacementSong: selectedSong?.songId,
+          replacementSongId: selectedSong?.songId,
         },
         {
           async onSuccess() {

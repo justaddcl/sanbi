@@ -1,0 +1,60 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "ui": "tui",
+  "globalEnv": [
+    "DATABASE_URL",
+    "POSTGRES_URL",
+    "POSTGRES_URL_NON_POOLING",
+    "POSTGRES_URL_NO_SSL",
+    "POSTGRES_PRISMA_URL",
+    "POSTGRES_USER",
+    "POSTGRES_PASSWORD",
+    "POSTGRES_HOST",
+    "POSTGRES_DATABASE",
+    "CLERK_SECRET_KEY",
+    "SENTRY_AUTH_TOKEN",
+    "CLERK_SIGN_UP_URL",
+    "CLERK_SIGN_IN_URL",
+    "CLERK_SIGN_UP_FORCE_REDIRECT_URL",
+    "CLERK_SIGN_IN_FORCE_REDIRECT_URL"
+  ],
+  "tasks": {
+    "docker:daemon": {
+      "cache": false
+    },
+    "docker:wait": {
+      "cache": false,
+      "dependsOn": ["docker:daemon"]
+    },
+    "db:up": {
+      "cache": false,
+      "dependsOn": ["docker:wait"]
+    },
+    "db:studio": {
+      "cache": false,
+      "persistent": true,
+      "dependsOn": ["db:up"]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true,
+      "dependsOn": ["db:up"],
+      "with": ["db:studio"]
+    },
+    "build": {
+      "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "outputs": [".next/**", "!.next/cache/**"]
+    },
+    "lint": {
+      "dependsOn": ["^lint"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "outputs": []
+    },
+    "test": {
+      "dependsOn": ["build"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "outputs": ["coverage/**"]
+    }
+  }
+}

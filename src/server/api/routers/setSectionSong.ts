@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { and, eq, gt, sql } from "drizzle-orm";
 
-import { type NewSetSectionSong } from "@lib/types";
+import { type NewSetSectionSong, type Song } from "@lib/types";
 import {
   addAndReorderSongsSchema,
   deleteSetSectionSongSchema,
@@ -39,7 +39,7 @@ export const setSectionSongRouter = createTRPCRouter({
       const newSetSectionSong: NewSetSectionSong = {
         songId,
         setSectionId,
-        key,
+        key: key as Song["preferredKey"],
         position,
         notes,
         organizationId,
@@ -174,7 +174,7 @@ export const setSectionSongRouter = createTRPCRouter({
     .input(replaceSetSectionSongSongSchema)
     .mutation(async ({ ctx, input }) => {
       console.log(
-        `🤖 - [setSectionSong/replaceSong] - attempting to update ${input.setSectionSongId}'s song to ${input.replacementSong}:`,
+        `🤖 - [setSectionSong/replaceSong] - attempting to update ${input.setSectionSongId}'s song to ${input.replacementSongId}:`,
       );
 
       return await ctx.db.transaction(async (replaceTransaction) => {
@@ -215,12 +215,12 @@ export const setSectionSongRouter = createTRPCRouter({
         }
 
         const replacementSong = await replaceTransaction.query.songs.findFirst({
-          where: eq(songs.id, input.replacementSong),
+          where: eq(songs.id, input.replacementSongId),
         });
 
         if (!replacementSong) {
           console.error(
-            `🤖 - [setSectionSong/replaceSong] - could not find song ${input.replacementSong}`,
+            `🤖 - [setSectionSong/replaceSong] - could not find song ${input.replacementSongId}`,
           );
 
           throw new TRPCError({
@@ -242,17 +242,17 @@ export const setSectionSongRouter = createTRPCRouter({
 
         await replaceTransaction
           .update(setSectionSongs)
-          .set({ songId: input.replacementSong })
+          .set({ songId: input.replacementSongId })
           .where(eq(setSectionSongs.id, input.setSectionSongId));
 
         console.info(
-          `🤖 - [setSectionSong/replaceSong] - Successfully updated ${input.setSectionSongId}'s song to ${input.replacementSong}`,
+          `🤖 - [setSectionSong/replaceSong] - Successfully updated ${input.setSectionSongId}'s song to ${input.replacementSongId}`,
         );
 
         return {
           success: true,
           setSectionSong: input.setSectionSongId,
-          replacementSong: input.replacementSong,
+          replacementSong: input.replacementSongId,
         };
       });
     }),
@@ -260,7 +260,7 @@ export const setSectionSongRouter = createTRPCRouter({
   updateDetails: organizationProcedure
     .input(updateSetSectionSongSchema)
     .mutation(async ({ ctx, input }) => {
-      const { id: setSectionSongId, ...updates } = input;
+      const { id: setSectionSongId, key, ...updates } = input;
       const setSectionSong = await ctx.db.query.setSectionSongs.findFirst({
         where: eq(setSectionSongs.id, setSectionSongId),
         with: {
@@ -303,7 +303,10 @@ export const setSectionSongRouter = createTRPCRouter({
 
       const [updatedSong] = await ctx.db
         .update(setSectionSongs)
-        .set({ ...updates })
+        .set({
+          key: key as Song["preferredKey"],
+          ...updates,
+        })
         .where(eq(setSectionSongs.id, setSectionSongId))
         .returning();
 

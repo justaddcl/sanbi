@@ -262,7 +262,7 @@ export const setRouter = createTRPCRouter({
         : undefined;
 
       console.log(
-        `🤖 - [set/getInfinite] - ${setsResults.length} ${pluralize(setsResults.length, { singular: "result", plural: "results" })} using cursor id ${input.cursor?.id} and date ${input.cursor?.date ?? new Date().toLocaleDateString(DATE_LOCALE)}`,
+        `🤖 - [set/getInfinite] - ${setsResults.length} ${pluralize(setsResults.length, { singular: "result", plural: "results" })} using cursor id ${input.cursor?.id} and date ${input.cursor?.date.toLocaleDateString(DATE_LOCALE)} ?? new Date().toLocaleDateString(DATE_LOCALE)}`,
         {
           queryInput: input,
           setItems,
@@ -483,7 +483,7 @@ export const setRouter = createTRPCRouter({
         await updateTransaction
           .update(sets)
           .set({
-            date,
+            date: date.toLocaleDateString(DATE_LOCALE),
             eventTypeId,
           })
           .where(eq(sets.id, setId));

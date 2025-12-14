@@ -1,16 +1,18 @@
-import { api } from "@/trpc/react";
-import { HStack } from "@components/HStack";
-import { Button } from "@components/ui/button";
-import { VStack } from "@components/VStack";
+import { type Dispatch, type SetStateAction } from "react";
+import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { type SetWithSectionsSongsAndEventType } from "@lib/types";
-import { updateSetDetailsSchema } from "@lib/types/zod";
+import { toast } from "sonner";
+
+import { Button } from "@components/ui/button";
+import { HStack } from "@components/HStack";
+import { VStack } from "@components/VStack";
 import { type CreateSetFormFields } from "@modules/sets/components/CreateSetForm";
 import { SetDatePickerFormField } from "@modules/sets/components/forms/SetDatePickerFormField";
 import { useUserQuery } from "@modules/users/api/queries";
-import { type Dispatch, type SetStateAction } from "react";
-import { FormProvider, useForm } from "react-hook-form";
-import { toast } from "sonner";
+import { type SetWithSectionsSongsAndEventType } from "@lib/types";
+import { updateSetDetailsSchema } from "@lib/types/zod";
+import { api } from "@/trpc/react";
+
 import { SetEventTypeSelectFormField } from "./SetEventTypeSelectFormField";
 
 const editSetDetailsFormSchema = updateSetDetailsSchema.pick({
@@ -70,7 +72,7 @@ export const EditSetDetailsForm: React.FC<EditSetDetailsFormProps> = ({
       {
         organizationId: userMembership.organizationId,
         setId: set.id,
-        date,
+        date: new Date(date),
         eventTypeId,
       },
       {

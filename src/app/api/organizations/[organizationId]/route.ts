@@ -13,7 +13,7 @@ export async function GET(
   context: { params: GetOrganizationParams },
 ) {
   const validatedParams = z
-    .object({ organizationId: z.string().uuid() })
+    .object({ organizationId: z.uuid() })
     .safeParse(context.params);
 
   // Return early if the form data is invalid

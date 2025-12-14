@@ -68,10 +68,8 @@ export const SetSelectionAllUpcomingSets: React.FC<
       organizationId: userMembership.organizationId,
       dateRange: dateFilter?.from
         ? {
-            from: dateFilter.from.toLocaleDateString("en-CA"),
-            to: dateFilter.to
-              ? dateFilter.to.toLocaleDateString("en-CA")
-              : null,
+            from: dateFilter.from,
+            to: dateFilter.to ? dateFilter.to : null,
           }
         : null,
       eventTypeFilters: eventTypeFilters.map((filter) => filter.id),
