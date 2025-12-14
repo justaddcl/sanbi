@@ -298,6 +298,13 @@ export const insertResourceSchema = createInsertSchema(resources).pick({
   title: true,
 });
 
+export const updateResourceSchema = z.object({
+  resourceId: z.uuid(),
+  organizationId: z.uuid(),
+  url: z.optional(z.url()),
+  title: z.optional(z.string()),
+});
+
 export const deleteResourceSchema = z.object({
   resourceId: z.uuid(),
   organizationId: z.uuid(),
