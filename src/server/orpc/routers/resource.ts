@@ -2,7 +2,6 @@ import { ORPCError } from "@orpc/server";
 import { and, eq } from "drizzle-orm";
 
 import { getRouteLogger } from "@lib/loggers/logger";
-import { sanitizeInput } from "@lib/string";
 import { type NewResource, type Resource } from "@lib/types";
 import {
   deleteResourceSchema,
