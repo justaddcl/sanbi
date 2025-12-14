@@ -71,7 +71,7 @@ export const createResource = organizationProcedure
       songId,
       organizationId,
       url: validatedUrl,
-      title: sanitizeInput(title),
+      title,
     };
 
     const [createdResource] = await context.db
@@ -147,10 +147,8 @@ export const updateResource = organizationProcedure
     const updateValues: Partial<Resource> = {};
 
     if (title !== undefined) {
-      const sanitizedTitle = sanitizeInput(title);
-
-      if (sanitizedTitle !== resourceToUpdate.title) {
-        updateValues.title = sanitizedTitle;
+      if (title !== resourceToUpdate.title) {
+        updateValues.title = title;
       }
     }
 
@@ -167,23 +165,34 @@ export const updateResource = organizationProcedure
       return resourceToUpdate;
     }
 
-    const [updatedResource] = await context.db
-      .update(resources)
-      .set(updateValues)
-      .where(eq(resources.id, resourceId))
-      .returning();
+    try {
+      const [updatedResource] = await context.db
+        .update(resources)
+        .set(updateValues)
+        .where(eq(resources.id, resourceId))
+        .returning();
 
-    if (!updatedResource) {
-      logger?.warn("Could not update resource");
+      if (!updatedResource) {
+        logger?.error("Could not update resource");
 
-      throw new ORPCError("CONFLICT", {
-        message: "A resource with this URL already exists for this song",
-      });
+        throw new ORPCError("CONFLICT", {
+          message: "Could not update resource",
+        });
+      }
+
+      logger?.info("Song resource has been updated!");
+
+      return updatedResource;
+    } catch (error) {
+      // Check for unique constraint violation (Postgres error code 23505)
+      if (error instanceof Error && "code" in error && error.code === "23505") {
+        logger?.warn("URL conflict detected");
+        throw new ORPCError("CONFLICT", {
+          message: "A resource with this URL already exists for this song",
+        });
+      }
+      throw error;
     }
-
-    logger?.info("Song resource has been updated!");
-
-    return updatedResource;
   });
 
 export const deleteResource = organizationProcedure
