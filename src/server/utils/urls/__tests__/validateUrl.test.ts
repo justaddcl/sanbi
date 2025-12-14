@@ -7,24 +7,23 @@ import {
   ERROR_CONTAINS_IP,
   ERROR_INVALID_HOSTNAME,
   ERROR_INVALID_SCHEME,
-  ERROR_NO_HOSTNAME,
   ERROR_URL_EMPTY,
   ERROR_URL_MALFORMED,
   validateUrl,
 } from "@server/utils/urls/validateUrl";
 
 jest.mock("@orpc/client", () => {
-  // Use the real TRPCError so instanceof checks still work
-  const { TRPCError } = require("@trpc/server");
+  interface ORPCCauseOptions {
+    message?: string;
+    cause?: unknown;
+  }
 
   class ORPCError extends TRPCError {
-    constructor(code: string, opts?: { message?: string; cause?: unknown }) {
-      // Your validateUrl always passes "BAD_REQUEST" as the code,
-      // which matches a valid TRPCError code.
+    constructor(code: TRPCError["code"], opts: ORPCCauseOptions = {}) {
       super({
-        code: code as any,
-        message: opts?.message ?? "Mock ORPCError",
-        cause: opts?.cause,
+        code,
+        message: opts.message ?? "Mock ORPCError",
+        cause: opts.cause,
       });
       this.name = "ORPCError";
     }
