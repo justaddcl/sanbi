@@ -59,10 +59,6 @@ export const CreateTeamForm: React.FC = () => {
   const handleCreateOrganizationMembershipSubmit = async (
     formValues: CreateTeamFormFields,
   ) => {
-    console.log(
-      "🚀 ~ handleCreateOrganizationMembershipSubmit ~ formValues:",
-      JSON.stringify({ formValues }, null, 2),
-    );
     createOrganizationMutation.mutate(formValues, {
       onSuccess(data) {
         const [newOrganization] = data;

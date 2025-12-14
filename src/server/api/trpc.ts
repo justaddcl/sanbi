@@ -7,7 +7,6 @@
  * need to use are documented accordingly near the end.
  */
 import { auth } from "@clerk/nextjs/server";
-import { toORPCError } from "@orpc/client";
 import { type ORPCMeta } from "@orpc/trpc";
 import { initTRPC, TRPCError } from "@trpc/server";
 import { and, eq } from "drizzle-orm";
