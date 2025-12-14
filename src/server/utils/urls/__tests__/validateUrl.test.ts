@@ -13,6 +13,26 @@ import {
   validateUrl,
 } from "@server/utils/urls/validateUrl";
 
+jest.mock("@orpc/client", () => {
+  // Use the real TRPCError so instanceof checks still work
+  const { TRPCError } = require("@trpc/server");
+
+  class ORPCError extends TRPCError {
+    constructor(code: string, opts?: { message?: string; cause?: unknown }) {
+      // Your validateUrl always passes "BAD_REQUEST" as the code,
+      // which matches a valid TRPCError code.
+      super({
+        code: code as any,
+        message: opts?.message ?? "Mock ORPCError",
+        cause: opts?.cause,
+      });
+      this.name = "ORPCError";
+    }
+  }
+
+  return { ORPCError };
+});
+
 describe("validateUrl", () => {
   describe("rejects", () => {
     it("empty input (undefined/null/empty string)", () => {
