@@ -71,7 +71,7 @@ export const createResource = organizationProcedure
       songId,
       organizationId,
       url: validatedUrl,
-      title,
+      title: sanitizeInput(title),
     };
 
     const [createdResource] = await context.db
@@ -144,25 +144,32 @@ export const updateResource = organizationProcedure
       });
     }
 
-    const sanitizedTitle = title ? sanitizeInput(title) : undefined;
-    const validatedUrl = url ? validateUrl(url) : undefined;
+    const updateValues: Partial<Resource> = {};
 
-    if (
-      (!title && !url) ||
-      (sanitizedTitle === resourceToUpdate.title &&
-        validatedUrl === resourceToUpdate.url)
-    ) {
+    if (title !== undefined) {
+      const sanitizedTitle = sanitizeInput(title);
+
+      if (sanitizedTitle !== resourceToUpdate.title) {
+        updateValues.title = sanitizedTitle;
+      }
+    }
+
+    if (url !== undefined) {
+      const validatedUrl = validateUrl(url);
+
+      if (validatedUrl !== resourceToUpdate.url) {
+        updateValues.url = validatedUrl;
+      }
+    }
+
+    if (Object.keys(updateValues).length === 0) {
       logger?.info("No updates needed");
-
       return resourceToUpdate;
     }
 
     const [updatedResource] = await context.db
       .update(resources)
-      .set({
-        title: sanitizedTitle,
-        url: validatedUrl,
-      })
+      .set(updateValues)
       .where(eq(resources.id, resourceId))
       .returning();
 

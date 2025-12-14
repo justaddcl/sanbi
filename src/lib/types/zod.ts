@@ -291,18 +291,25 @@ export const deleteSongTagSchema = z.object({
  */
 export const getResourceSchema = createSelectSchema(resources);
 
-export const insertResourceSchema = createInsertSchema(resources).pick({
-  organizationId: true,
-  songId: true,
-  url: true,
-  title: true,
+export const insertResourceSchema = z.object({
+  ...createInsertSchema(resources).pick({
+    organizationId: true,
+    songId: true,
+    url: true,
+  }).shape,
+  title: z.string().transform((title) => sanitizeInput(title)),
 });
 
 export const updateResourceSchema = z.object({
+  ...createSelectSchema(resources).pick({
+    organizationId: true,
+  }).shape,
   resourceId: z.uuid(),
-  organizationId: z.uuid(),
-  url: z.optional(z.url()),
-  title: z.optional(z.string()),
+  url: z.url().optional(),
+  title: z
+    .string()
+    .transform((title) => sanitizeInput(title))
+    .optional(),
 });
 
 export const deleteResourceSchema = z.object({
