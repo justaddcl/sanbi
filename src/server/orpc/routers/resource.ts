@@ -27,7 +27,7 @@ export const getResourcesBySongId = organizationProcedure
   .handler(async ({ context, input }) => {
     const { user } = context;
 
-    const logger = getRouteLogger(context, `${ROUTER_PREFIX}/song/{songId}`, {
+    const logger = getRouteLogger(context, `${ROUTER_PREFIX}/song`, {
       input,
       user,
     });

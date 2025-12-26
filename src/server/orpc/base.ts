@@ -1,8 +1,8 @@
 import { auth } from "@clerk/nextjs/server";
 import { type LoggerContext } from "@orpc/experimental-pino";
-import { ORPCError, os } from "@orpc/server";
+import { onError, ORPCError, os, ValidationError } from "@orpc/server";
+import { error } from "console";
 import { and, eq } from "drizzle-orm";
-import { validate as uuidValidate } from "uuid";
 import type * as z from "zod";
 
 import {
@@ -78,14 +78,6 @@ const requireOrganizationMembership = o
   .middleware(async ({ context, next }, input: unknown) => {
     const organizationInput = input as z.infer<typeof organizationInputSchema>;
     const { organizationId } = organizationInput;
-
-    const isOrganizationIdValid = uuidValidate(organizationId);
-
-    if (!organizationId || !isOrganizationIdValid) {
-      throw new ORPCError("FORBIDDEN", {
-        message: "Invalid Organization ID",
-      });
-    }
 
     const user = await context.db.query.users.findFirst({
       where: eq(users.id, context.auth.userId),
