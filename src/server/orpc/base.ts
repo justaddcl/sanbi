@@ -1,7 +1,6 @@
 import { auth } from "@clerk/nextjs/server";
 import { type LoggerContext } from "@orpc/experimental-pino";
-import { onError, ORPCError, os, ValidationError } from "@orpc/server";
-import { error } from "console";
+import { ORPCError, os } from "@orpc/server";
 import { and, eq } from "drizzle-orm";
 import type * as z from "zod";
 
