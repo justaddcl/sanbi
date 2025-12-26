@@ -5,18 +5,73 @@ import { getRouteLogger } from "@lib/loggers/logger";
 import { type NewResource, type Resource } from "@lib/types";
 import {
   deleteResourceSchema,
+  getResourcesBySongIdSchema,
   getResourceSchema,
   insertResourceSchema,
   updateResourceSchema,
 } from "@lib/types/zod";
 import { resources, songs } from "@server/db/schema";
-import { organizationProcedure } from "@server/orpc/base";
+import { authedProcedure, organizationProcedure } from "@server/orpc/base";
 import { validateUrl } from "@server/utils/urls/validateUrl";
+
+const ROUTER_PREFIX = "/resource";
+
+export const getResourcesBySongId = organizationProcedure
+  .route({
+    method: "GET",
+    path: "/song/{songId}",
+    summary: "Gets all resources for a song",
+  })
+  .input(getResourcesBySongIdSchema)
+  .output(getResourceSchema.array())
+  .handler(async ({ context, input }) => {
+    const { user } = context;
+
+    const logger = getRouteLogger(context, `${ROUTER_PREFIX}/song/{songId}`, {
+      input,
+      user,
+    });
+
+    logger?.info("Attempting to get resources by song ID");
+
+    const { songId } = input;
+
+    const song = await context.db.query.songs.findFirst({
+      where: eq(songs.id, songId),
+    });
+
+    if (!song) {
+      logger?.warn("Could not find song");
+
+      throw new ORPCError("NOT_FOUND", {
+        message: "Could not find target song",
+      });
+    }
+
+    if (song.organizationId !== context.user.membership.organizationId) {
+      logger?.error("Song is not associated with organization");
+
+      throw new ORPCError("FORBIDDEN", {
+        message: "Song is not associated with this organization",
+      });
+    }
+
+    const resourcesForSong = await context.db.query.resources.findMany({
+      where: and(
+        eq(resources.songId, songId),
+        eq(resources.organizationId, context.user.membership.organizationId),
+      ),
+    });
+
+    logger?.info("Successfully retrieved resources for song");
+
+    return resourcesForSong;
+  });
 
 export const createResource = organizationProcedure
   .route({
     method: "POST",
-    path: "/resource/create",
+    path: "/create",
     summary: "Creates a new resource for a song",
   })
   .input(insertResourceSchema)
@@ -24,7 +79,7 @@ export const createResource = organizationProcedure
   .handler(async ({ context, input }) => {
     const { user } = context;
 
-    const logger = getRouteLogger(context, "resource/create", {
+    const logger = getRouteLogger(context, `${ROUTER_PREFIX}/create`, {
       input,
       user,
     });
@@ -95,7 +150,7 @@ export const createResource = organizationProcedure
 export const updateResource = organizationProcedure
   .route({
     method: "PATCH",
-    path: "/resource/update",
+    path: "/update",
     summary: "Updates a song resource",
   })
   .input(updateResourceSchema)
@@ -103,7 +158,7 @@ export const updateResource = organizationProcedure
   .handler(async ({ context, input }) => {
     const { user } = context;
 
-    const logger = getRouteLogger(context, "resource/update", {
+    const logger = getRouteLogger(context, `${ROUTER_PREFIX}/update`, {
       input,
       user,
     });
@@ -197,7 +252,7 @@ export const updateResource = organizationProcedure
 export const deleteResource = organizationProcedure
   .route({
     method: "DELETE",
-    path: "/resource/delete",
+    path: "/delete",
     summary: "Deletes a song resource",
   })
   .input(deleteResourceSchema)
@@ -205,7 +260,7 @@ export const deleteResource = organizationProcedure
   .handler(async ({ context, input }) => {
     const { db, user } = context;
 
-    const logger = getRouteLogger(context, "resource/delete", {
+    const logger = getRouteLogger(context, `${ROUTER_PREFIX}/delete`, {
       input,
       user,
     });
@@ -255,8 +310,12 @@ export const deleteResource = organizationProcedure
     }
   });
 
-export const resourceRouter = {
+export const resourceRouter = authedProcedure.prefix(ROUTER_PREFIX).router({
+  // QUERIES
+  song: getResourcesBySongId,
+
+  // MUTATIONS
   create: createResource,
   update: updateResource,
   delete: deleteResource,
-};
+});

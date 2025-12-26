@@ -291,6 +291,10 @@ export const deleteSongTagSchema = z.object({
  */
 export const getResourceSchema = createSelectSchema(resources);
 
+export const getResourcesBySongIdSchema = z.object({
+  songId: z.uuid(),
+});
+
 export const insertResourceSchema = z.object({
   ...createInsertSchema(resources).pick({
     organizationId: true,
