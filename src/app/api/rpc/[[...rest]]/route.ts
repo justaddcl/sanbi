@@ -11,6 +11,9 @@ import { createORPCContext } from "@server/orpc/base";
 import { appRouter } from "@server/orpc/routers";
 import { getBaseUrl } from "@server/utils/urls/getBaseUrl";
 
+const RPC_PREFIX = "/api/rpc";
+const REST_PREFIX = "/api/rpc/rest";
+
 const rpcHandler = new RPCHandler(appRouter, {
   interceptors: [
     onError((error) => {
@@ -51,7 +54,7 @@ const apiHandler = new OpenAPIHandler(appRouter, {
         },
         servers: [
           {
-            url: getBaseUrl() + "/api/rpc/",
+            url: getBaseUrl() + REST_PREFIX,
           },
         ],
       },
@@ -65,27 +68,26 @@ const apiHandler = new OpenAPIHandler(appRouter, {
 });
 
 async function handler(request: Request) {
+  const url = new URL(request.url);
   const context = await createORPCContext({ headers: request.headers });
 
+  // If it's a REST/OpenAPI request, don't even try the RPC handler
+  if (url.pathname.startsWith(REST_PREFIX)) {
+    const apiResult = await apiHandler.handle(request, {
+      prefix: REST_PREFIX,
+      context,
+    });
+
+    return apiResult.response ?? new Response("Not Found", { status: 404 });
+  }
+
+  // Otherwise, treat it as a normal RPC request
   const rpcResult = await rpcHandler.handle(request, {
-    prefix: "/api/rpc",
+    prefix: RPC_PREFIX,
     context,
   });
 
-  if (rpcResult.matched) {
-    return rpcResult.response;
-  }
-
-  const apiResult = await apiHandler.handle(request, {
-    prefix: "/api/rpc/api-reference",
-    context: await createORPCContext(request),
-  });
-
-  if (apiResult.response) {
-    return apiResult.response;
-  }
-
-  return new Response("Not Found", { status: 404 });
+  return rpcResult.response ?? new Response("Not Found", { status: 404 });
 }
 
 export {
