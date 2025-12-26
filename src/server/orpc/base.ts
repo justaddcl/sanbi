@@ -76,6 +76,7 @@ const requireOrganizationMembership = o
   .$context<AuthedContext>() // the user is not null since this is an authed procedure, which would have thrown an "unauthorized" error already
   .middleware(async ({ context, next }, input: unknown) => {
     const organizationInput = input as z.infer<typeof organizationInputSchema>;
+    const { organizationId } = organizationInput;
 
     const user = await context.db.query.users.findFirst({
       where: eq(users.id, context.auth.userId),
@@ -88,7 +89,7 @@ const requireOrganizationMembership = o
     }
 
     const organization = await context.db.query.organizations.findFirst({
-      where: eq(organizations.id, organizationInput.organizationId),
+      where: eq(organizations.id, organizationId),
     });
 
     if (!organization) {
@@ -100,10 +101,7 @@ const requireOrganizationMembership = o
     const membership = await context.db.query.organizationMemberships.findFirst(
       {
         where: and(
-          eq(
-            organizationMemberships.organizationId,
-            organizationInput.organizationId,
-          ),
+          eq(organizationMemberships.organizationId, organizationId),
           eq(organizationMemberships.userId, user.id),
         ),
         with: {
