@@ -5,9 +5,9 @@ import { RPCLink } from "@orpc/client/fetch";
 import { type RouterClient } from "@orpc/server";
 import { createTanstackQueryUtils } from "@orpc/tanstack-query";
 
+import { RPC_PREFIX } from "@server/orpc/base";
 import { type appRouter } from "@server/orpc/routers";
 import { getBaseUrl } from "@server/utils/urls/getBaseUrl";
-import { RPC_PREFIX } from "@app/api/rpc/[[...rest]]/route";
 
 const link = new RPCLink({
   url: getBaseUrl() + RPC_PREFIX,
