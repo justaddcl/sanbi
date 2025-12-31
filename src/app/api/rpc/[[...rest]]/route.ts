@@ -11,8 +11,8 @@ import { createORPCContext } from "@server/orpc/base";
 import { appRouter } from "@server/orpc/routers";
 import { getBaseUrl } from "@server/utils/urls/getBaseUrl";
 
-const RPC_PREFIX = "/api/rpc";
-const REST_PREFIX = "/api/rpc/rest";
+export const RPC_PREFIX = "/api/rpc";
+export const REST_PREFIX = "/api/rpc/rest";
 
 const rpcHandler = new RPCHandler(appRouter, {
   interceptors: [

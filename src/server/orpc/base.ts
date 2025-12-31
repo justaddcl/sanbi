@@ -14,11 +14,11 @@ import { db } from "@/server/db";
 
 import { organizationMemberships, organizations, users } from "../db/schema";
 
-export const createORPCContext = async (opts: { headers: Headers }) => {
+export const createORPCContext = async (opts: { headers: HeadersInit }) => {
   return {
     db,
     auth: auth(),
-    ...opts,
+    headers: new Headers(opts.headers),
   };
 };
 
