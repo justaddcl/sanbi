@@ -1,25 +1,37 @@
+import Link from "next/link";
+
 import { Text } from "@components/Text";
-import { Link } from "@phosphor-icons/react/dist/ssr";
+import { type Resource } from "@lib/types";
+
+import { ResourceCardImage } from "../ResourceCardImage";
 
 export type ResourceCardProps = {
-  title: string;
-  url: string;
+  resource: Resource;
 };
 
-export const ResourceCard: React.FC<ResourceCardProps> = ({ title, url }) => {
+const getDisplayUrl = (url: string) => {
+  return new URL(url).hostname;
+};
+
+export const ResourceCard: React.FC<ResourceCardProps> = ({ resource }) => {
+  const { title, url } = resource;
+
   return (
-    <div className="flex flex-col rounded bg-slate-200">
-      <div className="flex h-full flex-[6] items-center justify-center rounded-t bg-slate-300">
-        <Link className="text-slate-400" size={24} />
-      </div>
-      <div className="flex-[4] px-2 py-1">
-        <Text style="small-semibold" color="slate-700">
-          {title}
-        </Text>
-        <Text fontSize="[8px]" color="slate-500">
-          {url}
-        </Text>
-      </div>
-    </div>
+    <li>
+      <Link
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center gap-2 rounded bg-slate-50 px-3 py-2"
+      >
+        <ResourceCardImage resource={resource} />
+        <div className="px-2 py-1">
+          <Text className="text-base font-semibold text-slate-900">
+            {title}
+          </Text>
+          <Text className="text-xs text-slate-400">{getDisplayUrl(url)}</Text>
+        </div>
+      </Link>
+    </li>
   );
 };
