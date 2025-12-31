@@ -12,6 +12,8 @@ import { TRPCReactProvider } from "@/trpc/react";
 
 import "@/styles/globals.css";
 
+import "@lib/orpc/server-client";
+
 const poppins = Poppins({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
