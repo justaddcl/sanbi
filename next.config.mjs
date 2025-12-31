@@ -2,13 +2,22 @@
  * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially useful
  * for Docker builds.
  */
+// Injected content via Sentry wizard below
+import { withSentryConfig } from "@sentry/nextjs";
+
 await import("./src/env.js");
 
 /** @type {import("next").NextConfig} */
-const coreConfig = {};
-
-// Injected content via Sentry wizard below
-import { withSentryConfig } from "@sentry/nextjs";
+const coreConfig = {
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "**",
+      },
+    ],
+  },
+};
 
 const config = withSentryConfig(coreConfig, {
   // For all available options, see:
