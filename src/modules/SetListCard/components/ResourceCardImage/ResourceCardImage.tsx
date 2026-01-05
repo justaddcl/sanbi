@@ -8,7 +8,7 @@ import * as Sentry from "@sentry/nextjs";
 
 import { type Resource } from "@lib/types";
 
-const RESOURCE_IMAGE_MAX_SIZE = 40;
+export const RESOURCE_IMAGE_MAX_SIZE = 48;
 
 type ResourceCardImageProps = {
   resource: Resource;
@@ -28,7 +28,7 @@ export const ResourceCardImage: React.FC<ResourceCardImageProps> = ({
       <Image
         src={imageSrc}
         alt={`Image for ${title}`}
-        className="size-10 rounded"
+        className="rounded"
         width={RESOURCE_IMAGE_MAX_SIZE}
         height={RESOURCE_IMAGE_MAX_SIZE}
         unoptimized
@@ -46,7 +46,7 @@ export const ResourceCardImage: React.FC<ResourceCardImageProps> = ({
   }
 
   return (
-    <div className="flex items-center justify-center rounded bg-slate-200 p-2">
+    <div className="flex size-12 items-center justify-center rounded bg-slate-200 p-2">
       <Link className="text-slate-400" size={24} />
     </div>
   );

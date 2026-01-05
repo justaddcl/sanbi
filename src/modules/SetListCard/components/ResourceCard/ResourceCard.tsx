@@ -31,11 +31,11 @@ export const ResourceCard: React.FC<ResourceCardProps> = ({ resource }) => {
         href={url}
         target="_blank"
         rel="noopener noreferrer"
-        className="flex items-center gap-2 rounded bg-slate-50 px-3 py-2"
+        className="grid h-full grid-cols-[48px_1fr] items-center gap-2 rounded bg-slate-50 px-3 py-2"
       >
         <ResourceCardImage resource={resource} />
-        <div className="px-2 py-1">
-          <Text className="text-base font-semibold text-slate-900">
+        <div className="flex flex-col gap-1 px-2 py-1">
+          <Text className="text-base font-semibold leading-4 text-slate-900">
             {title}
           </Text>
           <Text className="text-xs text-slate-400">{getDisplayUrl(url)}</Text>
