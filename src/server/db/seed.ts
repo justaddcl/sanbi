@@ -446,7 +446,9 @@ const seed = async () => {
         (): NewResource => ({
           songId: song.id,
           organizationId,
-          url: faker.internet.url(),
+          url: faker.internet.url({
+            protocol: "https",
+          }),
           title: faker.music.songName(),
           faviconUrl: faker.image.url({
             width: 48,
