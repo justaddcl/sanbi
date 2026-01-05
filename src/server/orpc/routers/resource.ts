@@ -142,7 +142,7 @@ export const createResource = organizationProcedure
       });
     }
 
-    logger?.info("New resource created");
+    logger?.info({ resourceCreated: createdResource }, "New resource created");
 
     return createdResource;
   });
