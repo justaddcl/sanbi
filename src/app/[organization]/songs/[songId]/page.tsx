@@ -7,7 +7,7 @@ import { Card } from "@components/Card/Card";
 import { HStack } from "@components/HStack";
 import { Text } from "@components/Text";
 import { VStack } from "@components/VStack";
-import { PlayHistoryItem, ResourceCard } from "@modules/SetListCard";
+import { PlayHistoryItem } from "@modules/SetListCard";
 import { ArchivedBanner } from "@modules/shared/components";
 import {
   SongDetailsPageHeader,
@@ -16,6 +16,7 @@ import {
 } from "@modules/songs/components";
 import { SongDetailsItem } from "@modules/songs/components/SongDetailsItem/SongDetailsItem";
 import { SongKeySelect } from "@modules/songs/components/SongKeySelect/SongKeySelect";
+import { SongResources } from "@modules/songs/components/SongResources";
 import { SongTags } from "@modules/songs/components/SongTags/SongTags";
 import { serverApi } from "@lib/orpc/server";
 import { api } from "@/trpc/server";
@@ -124,31 +125,7 @@ export default async function SetListPage({
           <SongNotes songId={song.id} organizationId={params.organization} />
         </VStack>
       </Card>
-      <Card
-        title="Resources"
-        collapsible
-        // buttonLabel={
-        //   <>
-        //     <Plus />
-        //     Add resource
-        //   </>
-        // }
-        // buttonOnClick={async () => {
-        //   "use server";
-        //   console.log("🤖 - song details page - buttonOnClick");
-        // }}
-      >
-        <ul className="grid gap-3 md:grid-cols-2">
-          {songResources.length > 0 &&
-            songResources.map((songResource) => (
-              <ResourceCard key={songResource.id} resource={songResource} />
-            ))}
-          {songResources.length === 0 && (
-            // Empty state will be implemented in SWY-118
-            <div>No song resources yet. Create one?</div>
-          )}
-        </ul>
-      </Card>
+      <SongResources songId={params.songId} songResources={songResources} />
       <Card title="Play history" collapsible>
         <div className="grid grid-cols-[16px_1fr] gap-y-4">
           {playHistory.length > 0 &&
