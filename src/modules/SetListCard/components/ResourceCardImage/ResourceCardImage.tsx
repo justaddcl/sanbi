@@ -1,4 +1,5 @@
 import type React from "react";
+import { useState } from "react";
 import Image from "next/image";
 import { Link } from "@phosphor-icons/react/dist/ssr";
 import * as Sentry from "@sentry/nextjs";
@@ -16,9 +17,11 @@ export const ResourceCardImage: React.FC<ResourceCardImageProps> = ({
 }) => {
   const { title, imageUrl, faviconUrl } = resource;
 
+  const [hasImageError, setHasImageError] = useState(false);
+
   const imageSrc = imageUrl ?? faviconUrl;
 
-  if (imageSrc) {
+  if (imageSrc && !hasImageError) {
     return (
       <Image
         src={imageSrc}
@@ -27,8 +30,14 @@ export const ResourceCardImage: React.FC<ResourceCardImageProps> = ({
         width={RESOURCE_IMAGE_MAX_SIZE}
         height={RESOURCE_IMAGE_MAX_SIZE}
         unoptimized
-        onError={(error) => {
-          Sentry.captureException(error, { extra: { imageSrc } });
+        loading="lazy"
+        onError={() => {
+          Sentry.captureMessage("Failed to load resource image", {
+            level: "warning",
+            extra: { imageSrc },
+          });
+
+          setHasImageError(true);
         }}
       />
     );

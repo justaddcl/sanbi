@@ -14,7 +14,10 @@ const getDisplayUrl = (url: string) => {
   try {
     return new URL(url).hostname;
   } catch (error) {
-    Sentry.captureException(error);
+    Sentry.captureMessage("Failed to parse resource URL", {
+      level: "warning",
+      extra: { url, error },
+    });
     return url;
   }
 };
