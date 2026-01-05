@@ -7,7 +7,8 @@ import { CORSPlugin } from "@orpc/server/plugins";
 import { ZodToJsonSchemaConverter } from "@orpc/zod/zod4";
 
 import { logger } from "@lib/loggers/logger";
-import { createORPCContext, REST_PREFIX, RPC_PREFIX } from "@server/orpc/base";
+import { REST_PREFIX, RPC_PREFIX } from "@lib/orpc/shared";
+import { createORPCContext } from "@server/orpc/base";
 import { appRouter } from "@server/orpc/routers";
 import { getBaseUrl } from "@server/utils/urls/getBaseUrl";
 
