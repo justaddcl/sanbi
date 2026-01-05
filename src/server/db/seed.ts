@@ -16,6 +16,7 @@ import {
   type NewEventType,
   type NewOrganization,
   type NewOrganizationMembership,
+  type NewResource,
   type NewSet,
   type NewSetSection,
   type NewSetSectionSong,
@@ -34,6 +35,7 @@ import {
   eventTypes,
   organizationMemberships,
   organizations,
+  resources,
   sets,
   setSections,
   setSectionSongs,
@@ -80,6 +82,8 @@ const SET_DATE_TO_BOUNDARY = addWeeks(
 
 const MIN_AMOUNT_OF_SONGS_PER_SECTION = 1;
 const MAX_AMOUNT_OF_SONGS_PER_SECTION = 4;
+
+const MAX_AMOUNT_OF_RESOURCES_PER_SONG = 5;
 
 const seedOrganization: NewOrganization = {
   name: "Stoneway",
@@ -428,6 +432,49 @@ const seed = async () => {
 
   const seededSetSectionSongs = await Promise.all(flattenedPromises);
   console.log("🚀 ~ seed ~ seededSetSectionSongs:", seededSetSectionSongs);
+
+  /** seed the resources table */
+  await db.execute(sql`TRUNCATE TABLE sanbi_resources CASCADE`);
+  const insertResourcesPromises = seededSongs.map(async (song) => {
+    const randomAmountOfResources = Math.floor(
+      Math.random() * MAX_AMOUNT_OF_RESOURCES_PER_SONG,
+    );
+
+    if (randomAmountOfResources > 0) {
+      const resourceValues = Array.from(
+        { length: randomAmountOfResources },
+        (): NewResource => ({
+          songId: song.id,
+          organizationId,
+          url: faker.internet.url({
+            protocol: "https",
+          }),
+          title: faker.music.songName(),
+          faviconUrl: faker.image.url({
+            width: 48,
+            height: 48,
+          }),
+          imageUrl: faker.image.url({
+            width: 640,
+            height: 640,
+          }),
+          status: "ready",
+          lastFetchedAt: new Date(),
+          // TODO: are these needed?
+          metaTitle: faker.lorem.sentence(),
+          metaDescription: faker.lorem.paragraph(),
+        }),
+      );
+      return await db
+        .insert(resources)
+        .values(resourceValues)
+        .onConflictDoNothing()
+        .returning();
+    }
+  });
+
+  const seededResources = await Promise.all(insertResourcesPromises);
+  console.log("🚀 ~ seed ~ seededResources:", seededResources);
 };
 
 seed()

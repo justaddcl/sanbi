@@ -312,7 +312,7 @@ export const deleteResource = organizationProcedure
 
 export const resourceRouter = authedProcedure.prefix(ROUTER_PREFIX).router({
   // QUERIES
-  song: getResourcesBySongId,
+  getBySongId: getResourcesBySongId,
 
   // MUTATIONS
   create: createResource,

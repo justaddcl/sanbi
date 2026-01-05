@@ -7,12 +7,9 @@ import { CORSPlugin } from "@orpc/server/plugins";
 import { ZodToJsonSchemaConverter } from "@orpc/zod/zod4";
 
 import { logger } from "@lib/loggers/logger";
-import { createORPCContext } from "@server/orpc/base";
+import { createORPCContext, REST_PREFIX, RPC_PREFIX } from "@server/orpc/base";
 import { appRouter } from "@server/orpc/routers";
 import { getBaseUrl } from "@server/utils/urls/getBaseUrl";
-
-const RPC_PREFIX = "/api/rpc";
-const REST_PREFIX = "/api/rpc/rest";
 
 const rpcHandler = new RPCHandler(appRouter, {
   interceptors: [

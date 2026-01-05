@@ -1,13 +1,16 @@
+"use client";
+
 import { createORPCClient, onError } from "@orpc/client";
 import { RPCLink } from "@orpc/client/fetch";
 import { type RouterClient } from "@orpc/server";
 import { createTanstackQueryUtils } from "@orpc/tanstack-query";
 
+import { RPC_PREFIX } from "@server/orpc/base";
 import { type appRouter } from "@server/orpc/routers";
 import { getBaseUrl } from "@server/utils/urls/getBaseUrl";
 
 const link = new RPCLink({
-  url: getBaseUrl() + "/api/rpc",
+  url: getBaseUrl() + RPC_PREFIX,
   interceptors: [
     onError((error) => {
       console.error(error);

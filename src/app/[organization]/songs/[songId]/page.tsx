@@ -17,6 +17,7 @@ import {
 import { SongDetailsItem } from "@modules/songs/components/SongDetailsItem/SongDetailsItem";
 import { SongKeySelect } from "@modules/songs/components/SongKeySelect/SongKeySelect";
 import { SongTags } from "@modules/songs/components/SongTags/SongTags";
+import { serverApi } from "@lib/orpc/server";
 import { api } from "@/trpc/server";
 
 export default async function SetListPage({
@@ -59,6 +60,11 @@ export default async function SetListPage({
   if (!song) {
     return <SongDetailsPageLoading />;
   }
+
+  const songResources = await serverApi.resource.getBySongId({
+    organizationId: userMembership.organizationId,
+    songId: params.songId,
+  });
 
   return (
     <>
@@ -132,10 +138,16 @@ export default async function SetListPage({
         //   console.log("🤖 - song details page - buttonOnClick");
         // }}
       >
-        <div className="grid grid-cols-[repeat(auto-fill,_124px)] grid-rows-[repeat(auto-fill,_92px)] gap-2">
-          <ResourceCard title="In My Place" url="theworshipinitiative.com" />
-          <ResourceCard title="In My Place" url="open.spotify.com" />
-        </div>
+        <ul className="grid gap-3 md:grid-cols-2">
+          {songResources.length > 0 &&
+            songResources.map((songResource) => (
+              <ResourceCard key={songResource.id} resource={songResource} />
+            ))}
+          {songResources.length === 0 && (
+            // Empty state will be implemented in SWY-118
+            <div>No song resources yet. Create one?</div>
+          )}
+        </ul>
       </Card>
       <Card title="Play history" collapsible>
         <div className="grid grid-cols-[16px_1fr] gap-y-4">
