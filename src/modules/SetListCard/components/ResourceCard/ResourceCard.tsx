@@ -1,4 +1,5 @@
 import Link from "next/link";
+import * as Sentry from "@sentry/nextjs";
 
 import { Text } from "@components/Text";
 import { type Resource } from "@lib/types";
@@ -10,7 +11,12 @@ export type ResourceCardProps = {
 };
 
 const getDisplayUrl = (url: string) => {
-  return new URL(url).hostname;
+  try {
+    return new URL(url).hostname;
+  } catch (error) {
+    Sentry.captureException(error);
+    return url;
+  }
 };
 
 export const ResourceCard: React.FC<ResourceCardProps> = ({ resource }) => {

@@ -1,6 +1,7 @@
 import type React from "react";
 import Image from "next/image";
 import { Link } from "@phosphor-icons/react/dist/ssr";
+import * as Sentry from "@sentry/nextjs";
 
 import { type Resource } from "@lib/types";
 
@@ -25,6 +26,10 @@ export const ResourceCardImage: React.FC<ResourceCardImageProps> = ({
         className="size-10 rounded"
         width={RESOURCE_IMAGE_MAX_SIZE}
         height={RESOURCE_IMAGE_MAX_SIZE}
+        unoptimized
+        onError={(error) => {
+          Sentry.captureException(error, { extra: { imageSrc } });
+        }}
       />
     );
   }
