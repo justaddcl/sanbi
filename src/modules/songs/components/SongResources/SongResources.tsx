@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Plus } from "@phosphor-icons/react";
 
 import { Button } from "@components/ui/button";
+import { Skeleton } from "@components/ui/skeleton";
 import { Card } from "@components/Card/Card";
 import {
   ResponsiveDialog,
@@ -12,24 +13,47 @@ import {
   ResponsiveDialogTrigger,
 } from "@components/ResponsiveDialog";
 import { CreateResourceForm } from "@modules/songs/forms/CreateResourceForm";
-import { type Resource } from "@lib/types";
+import { useSongResources } from "@modules/songs/queries/useSongResources";
 
 import { ResourceCard } from "../ResourceCard";
 
 type SongResourcesProps = {
   songId: string;
-  songResources: Resource[];
 };
 
-export const SongResources: React.FC<SongResourcesProps> = ({
-  songId,
-  songResources,
-}) => {
+export const SongResources: React.FC<SongResourcesProps> = ({ songId }) => {
   const [isAddResourceDialogOpen, setIsAddResourceDialogOpen] = useState(false);
+
+  const {
+    data: songResources,
+    isLoading: isSongResourcesLoading,
+    error: songResourcesError,
+  } = useSongResources(songId);
 
   const onSuccess = () => {
     setIsAddResourceDialogOpen(false);
   };
+
+  if (isSongResourcesLoading) {
+    return (
+      <Card
+        title="Resources"
+        collapsible
+        button={
+          <Button size="sm" variant="ghost" disabled>
+            <Plus className="text-slate-900" size={16} />
+            <span className="hidden sm:inline">Add resource</span>
+          </Button>
+        }
+      >
+        <ul className="grid gap-3 md:grid-cols-2">
+          <Skeleton className="h-16" />
+          <Skeleton className="h-16" />
+          <Skeleton className="h-16" />
+        </ul>
+      </Card>
+    );
+  }
 
   return (
     <ResponsiveDialog
@@ -49,11 +73,12 @@ export const SongResources: React.FC<SongResourcesProps> = ({
         }
       >
         <ul className="grid gap-3 md:grid-cols-2">
-          {songResources.length > 0 &&
+          {songResources &&
+            songResources.length > 0 &&
             songResources.map((songResource) => (
               <ResourceCard key={songResource.id} resource={songResource} />
             ))}
-          {songResources.length === 0 && (
+          {!songResources && (
             // Empty state will be implemented in SWY-118
             <div>No song resources yet. Create one?</div>
           )}

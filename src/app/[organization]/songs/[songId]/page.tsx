@@ -126,7 +126,7 @@ export default async function SetListPage({
           <SongNotes songId={song.id} organizationId={params.organization} />
         </VStack>
       </Card>
-      <SongResources songId={params.songId} songResources={songResources} />
+      <SongResources songId={params.songId} />
       <Card title="Play history" collapsible>
         <div className="grid grid-cols-[16px_1fr] gap-y-4">
           {playHistory.length > 0 &&
