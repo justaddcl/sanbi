@@ -7,18 +7,14 @@ import unescapeHTML from "validator/es/lib/unescape";
 import { Button } from "@components/ui/button";
 import { Skeleton } from "@components/ui/skeleton";
 import { Textarea } from "@components/ui/textarea";
-
 import { HStack } from "@components/HStack";
 import { Text } from "@components/Text";
 import { VStack } from "@components/VStack";
-
 import { SongDetailsItem } from "@modules/songs/components";
-
 import { formatNumber } from "@lib/numbers/formatNumber";
+import { trpc } from "@lib/trpc";
 import { MAX_SONG_NOTES_LENGTH } from "@lib/types/zod";
 import { cn } from "@lib/utils";
-
-import { api } from "@/trpc/react";
 
 type SongNotesProps = {
   songId: string;
@@ -33,13 +29,13 @@ export const SongNotes: React.FC<SongNotesProps> = ({
     data: song,
     isLoading: isSongQueryLoading,
     error: songQueryError,
-  } = api.song.get.useQuery({ songId, organizationId });
+  } = trpc.song.get.useQuery({ songId, organizationId });
 
   const [isEditingNotes, setIsEditingNotes] = useState<boolean>(false);
   const [notes, setNotes] = useState<string>(song?.notes ?? "");
 
-  const updateNotesMutation = api.song.updateNotes.useMutation();
-  const apiUtils = api.useUtils();
+  const updateNotesMutation = trpc.song.updateNotes.useMutation();
+  const apiUtils = trpc.useUtils();
 
   const handleUpdateNotes = () => {
     const toastId = toast.loading("Updating song notes...");

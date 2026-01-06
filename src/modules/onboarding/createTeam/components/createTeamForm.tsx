@@ -6,6 +6,7 @@ import { useAuth } from "@clerk/nextjs";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { type z } from "zod";
 
+import { trpc } from "@lib/trpc";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -17,7 +18,6 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { insertOrganizationSchema } from "@/lib/types/zod";
-import { api } from "@/trpc/react";
 
 export type CreateTeamFormFields = z.infer<typeof insertOrganizationSchema>;
 
@@ -38,11 +38,11 @@ export const CreateTeamForm: React.FC = () => {
     mode: "onBlur",
   });
 
-  const createOrganizationMutation = api.organization.create.useMutation();
-  const deleteOrganizationMutation = api.organization.delete.useMutation();
+  const createOrganizationMutation = trpc.organization.create.useMutation();
+  const deleteOrganizationMutation = trpc.organization.delete.useMutation();
 
   const createOrganizationMembershipMutation =
-    api.organizationMemberships.create.useMutation({
+    trpc.organizationMemberships.create.useMutation({
       onError(error, variables) {
         deleteOrganizationMutation.mutate({
           organizationId: variables.organizationId,

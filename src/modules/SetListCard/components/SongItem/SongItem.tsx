@@ -13,10 +13,10 @@ import { VStack } from "@components/VStack";
 import { SongContent } from "@modules/SetListCard/components/SongContent";
 import { EditSongContentFormFields } from "@modules/SetListCard/forms/EditSongContent/components";
 import { useUserQuery } from "@modules/users/api/queries";
+import { trpc } from "@lib/trpc";
 import { type SetSectionSongWithSongData } from "@lib/types";
 import { insertSetSectionSongSchema } from "@lib/types/zod";
 import { cn } from "@lib/utils";
-import { api } from "@/trpc/react";
 
 import { SongActionMenu } from "../SongActionMenu/SongActionMenu";
 
@@ -83,9 +83,9 @@ export const SongItem: React.FC<SongItemProps> = ({
 }) => {
   const [isEditingDetails, setIsEditingDetails] = useState<boolean>(false);
 
-  const apiUtils = api.useUtils();
+  const apiUtils = trpc.useUtils();
   const updateSetSectionSongMutation =
-    api.setSectionSong.updateDetails.useMutation();
+    trpc.setSectionSong.updateDetails.useMutation();
 
   const updateSetSectionSongForm = useForm({
     resolver: zodResolver(updateSetSectionSongsSchema),

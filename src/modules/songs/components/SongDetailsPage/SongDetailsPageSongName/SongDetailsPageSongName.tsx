@@ -1,27 +1,27 @@
 "use client";
 
-import { api } from "@/trpc/react";
-import { HStack } from "@components/HStack";
-import { PageTitle } from "@components/PageTitle";
-import { Badge as ShadCNBadge } from "@components/ui/badge";
-import { Button } from "@components/ui/button";
-import { Textarea } from "@components/ui/textarea";
-import { VStack } from "@components/VStack";
-import { songNameSchema } from "@lib/types/zod";
-import { cn } from "@lib/utils";
-import { type SongDetailsPageHeaderProps } from "@modules/songs/components/";
-import { Archive } from "@phosphor-icons/react";
-import { useRouter } from "next/navigation";
 import React, {
   type Dispatch,
   type SetStateAction,
   useEffect,
-  useLayoutEffect,
   useRef,
   useState,
 } from "react";
+import { useRouter } from "next/navigation";
+import { Archive } from "@phosphor-icons/react";
 import { toast } from "sonner";
+
+import { Badge as ShadCNBadge } from "@components/ui/badge";
+import { Button } from "@components/ui/button";
+import { Textarea } from "@components/ui/textarea";
+import { HStack } from "@components/HStack";
+import { PageTitle } from "@components/PageTitle";
 import { Text } from "@components/Text";
+import { VStack } from "@components/VStack";
+import { type SongDetailsPageHeaderProps } from "@modules/songs/components/";
+import { trpc } from "@lib/trpc";
+import { songNameSchema } from "@lib/types/zod";
+import { cn } from "@lib/utils";
 
 type SongDetailsPageNameProps = {
   song: SongDetailsPageHeaderProps["song"];
@@ -42,8 +42,8 @@ export const SongDetailsPageName: React.FC<SongDetailsPageNameProps> = ({
 
   const router = useRouter();
 
-  const updateSongNameMutation = api.song.updateName.useMutation();
-  const apiUtils = api.useUtils();
+  const updateSongNameMutation = trpc.song.updateName.useMutation();
+  const apiUtils = trpc.useUtils();
 
   useEffect(() => {
     setSongName(song.name);

@@ -1,4 +1,11 @@
-import { Input } from "@components/ui/input";
+import { useForm } from "react-hook-form";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@clerk/nextjs";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
+import { z } from "zod";
+
+import { Button } from "@components/ui/button";
 import {
   Form,
   FormControl,
@@ -6,11 +13,7 @@ import {
   FormItem,
   FormLabel,
 } from "@components/ui/form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { insertSongSchema } from "@lib/types/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { Button } from "@components/ui/button";
+import { Input } from "@components/ui/input";
 import {
   Select,
   SelectContent,
@@ -18,14 +21,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@components/ui/select";
+import { sanitizeInput } from "@lib/string";
+import { trpc } from "@lib/trpc";
+import { insertSongSchema } from "@lib/types/zod";
 import { Textarea } from "@/components/ui/textarea";
 import { songKeys } from "@/lib/constants";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@clerk/nextjs";
-import { api } from "@/trpc/react";
-import { toast } from "sonner";
 import { formatSongKey } from "@/lib/string/formatSongKey";
-import { sanitizeInput } from "@lib/string";
 
 const createSongFormSchema = insertSongSchema
   .pick({
@@ -60,14 +61,14 @@ export const CreateSongForm: React.FC<CreateSongFormProps> = ({ onSubmit }) => {
     mode: "onChange",
   });
 
-  const createSongMutation = api.song.create.useMutation();
+  const createSongMutation = trpc.song.create.useMutation();
 
   if (!userId) {
     return null;
   }
 
   const { data: userData, isError: isGetUserQueryError } =
-    api.user.getUser.useQuery({
+    trpc.user.getUser.useQuery({
       userId,
     });
 

@@ -11,9 +11,9 @@ import { HStack } from "@components/HStack";
 import { SongDetailsPageName } from "@modules/songs/components";
 import { SongActionsMenu } from "@modules/songs/components/SongActionsMenu";
 import { AddSongToSetDialog } from "@modules/songs/forms/AddSongToSet/components/AddSongToSetDialog";
+import { trpc } from "@lib/trpc";
 import { type UserData } from "@lib/types/api";
 import { type AppRouter } from "@server/api/root";
-import { api } from "@/trpc/react";
 
 export type SongDetailsPageHeaderProps = {
   song: inferProcedureOutput<AppRouter["song"]["get"]>;
@@ -29,7 +29,7 @@ export const SongDetailsPageHeader: React.FC<SongDetailsPageHeaderProps> = ({
   const router = useRouter();
 
   const updateSongFavoriteStatusMutation =
-    api.song.updateFavoriteStatus.useMutation();
+    trpc.song.updateFavoriteStatus.useMutation();
 
   const updateSongFavoriteStatus = () => {
     const toastId = toast.loading(

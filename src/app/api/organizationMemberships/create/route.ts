@@ -1,14 +1,15 @@
-import { type NewOrganizationMembership } from "@/lib/types";
-import { api } from "@/trpc/server";
+import { NextResponse } from "next/server";
 import { TRPCError } from "@trpc/server";
 import { getHTTPStatusCodeFromError } from "@trpc/server/http";
-import { NextResponse } from "next/server";
+
+import { trpc } from "@lib/trpc/server";
+import { type NewOrganizationMembership } from "@/lib/types";
 
 export async function POST(request: Request) {
   const createOrganizationMembershipInput: NewOrganizationMembership =
     (await request.json()) as NewOrganizationMembership;
   try {
-    const newOrganizationMembership = await api.organizationMemberships.create(
+    const newOrganizationMembership = await trpc.organizationMemberships.create(
       createOrganizationMembershipInput,
     );
     return NextResponse.json({ newOrganizationMembership });

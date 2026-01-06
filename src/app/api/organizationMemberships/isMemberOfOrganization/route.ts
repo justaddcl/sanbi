@@ -3,7 +3,7 @@ import { TRPCError } from "@trpc/server";
 import { getHTTPStatusCodeFromError } from "@trpc/server/http";
 import { z } from "zod";
 
-import { api } from "@/trpc/server";
+import { trpc } from "@lib/trpc/server";
 
 /**
  * @deprecated
@@ -26,7 +26,7 @@ export async function POST(request: Request) {
 
   try {
     const isMemberOfOrganization =
-      await api.organizationMemberships.isMemberOfOrganization(input);
+      await trpc.organizationMemberships.isMemberOfOrganization(input);
     return NextResponse.json({ isMemberOfOrganization });
   } catch (error: unknown) {
     if (error instanceof TRPCError) {

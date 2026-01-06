@@ -9,9 +9,9 @@ import { VStack } from "@components/VStack";
 import { useUserQuery } from "@modules/users/api/queries";
 import { type SongKey, songKeys } from "@lib/constants";
 import { formatSongKey } from "@lib/string/formatSongKey";
+import { trpc } from "@lib/trpc";
 import { cn } from "@lib/utils";
 import { useResponsive } from "@/hooks/useResponsive";
-import { api } from "@/trpc/react";
 
 type SetSongKeyStepProps = {
   songId: string;
@@ -34,7 +34,7 @@ export const SetSongKeyStep: React.FC<SetSongKeyStepProps> = ({
   } = useUserQuery();
 
   const { data: lastPlayInstance, isLoading: isLastPlayInstanceQueryLoading } =
-    api.song.getLastPlayInstance.useQuery(
+    trpc.song.getLastPlayInstance.useQuery(
       {
         organizationId: userMembership?.organizationId ?? "",
         songId,

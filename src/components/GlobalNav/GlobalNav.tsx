@@ -1,16 +1,17 @@
 "use client";
 
+import { useAuth } from "@clerk/nextjs";
 import {
   HouseLine,
   MagnifyingGlass,
   MusicNoteSimple,
   Playlist,
 } from "@phosphor-icons/react/dist/ssr";
-import { NavLink } from "@components/NavLink";
-import { useAuth } from "@clerk/nextjs";
-import { api } from "@/trpc/react";
-import { Skeleton } from "@components/ui/skeleton";
 import { skipToken } from "@tanstack/react-query";
+
+import { Skeleton } from "@components/ui/skeleton";
+import { NavLink } from "@components/NavLink";
+import { trpc } from "@lib/trpc";
 import { NewItemResponsiveDialog } from "@/modules/shared/components";
 
 export const GlobalNav = () => {
@@ -19,7 +20,7 @@ export const GlobalNav = () => {
     isPending,
     isError,
     data: userData,
-  } = api.user.getUser.useQuery(userId ? { userId } : skipToken);
+  } = trpc.user.getUser.useQuery(userId ? { userId } : skipToken);
   const user = userData;
 
   if (isPending) {

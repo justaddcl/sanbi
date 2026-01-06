@@ -18,7 +18,7 @@ import {
   FRIENDLY_FORMAT_CALENDAR_WEEK_DIFFERENCE_THRESHOLD,
 } from "@lib/date";
 import { pluralize } from "@lib/string";
-import { api } from "@/trpc/react";
+import { trpc } from "@lib/trpc";
 
 type SetSelectionAllUpcomingSetsProps = {
   onSetSelect: SetSelectionStepProps["onSetSelect"];
@@ -42,7 +42,7 @@ export const SetSelectionUpcomingSets: React.FC<
     data: upcomingSetsData,
     isLoading: isUpcomingSetsQueryLoading,
     error: upcomingSetsQueryError,
-  } = api.set.getUpcoming.useQuery(
+  } = trpc.set.getUpcoming.useQuery(
     {
       organizationId: userMembership?.organizationId ?? "",
     },

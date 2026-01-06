@@ -10,9 +10,9 @@ import { type z } from "zod";
 import { Button } from "@components/ui/button";
 import { TextareaFormField } from "@components/TextareaFormField";
 import { sanitizeInput } from "@lib/string";
+import { trpc } from "@lib/trpc";
 import { type SetType } from "@lib/types";
 import { insertSetSchema } from "@lib/types/zod";
-import { api } from "@/trpc/react";
 
 import { SetDatePickerFormField } from "../forms/SetDatePickerFormField";
 import { SetEventTypeSelectFormField } from "../forms/SetEventTypeSelectFormField";
@@ -43,20 +43,20 @@ export const CreateSetForm: React.FC<CreateSetFormProps> = ({
     mode: "onChange",
   });
 
-  const createSetMutation = api.set.create.useMutation();
+  const createSetMutation = trpc.set.create.useMutation();
 
   if (!userId) {
     return null;
   }
 
-  const { data: userData, isError } = api.user.getUser.useQuery({ userId });
+  const { data: userData, isError } = trpc.user.getUser.useQuery({ userId });
 
   const {
     data: eventTypeData,
     isError: eventTypeQueryError,
     isFetching: isEventTypeQueryFetching,
     isFetched: isEventTypeQueryFetched,
-  } = api.eventType.getEventTypes.useQuery(
+  } = trpc.eventType.getEventTypes.useQuery(
     userData?.memberships[0]
       ? { organizationId: userData.memberships[0].organizationId }
       : skipToken,

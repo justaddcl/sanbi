@@ -20,8 +20,8 @@ import { VStack } from "@components/VStack";
 import { EventTypeSelect } from "@modules/eventTypes/components";
 import { type SetSelectionEventTypeFilters } from "@modules/songs/forms/AddSongToSet/components/SetSelectionStep";
 import { useUserQuery } from "@modules/users/api/queries";
+import { trpc } from "@lib/trpc";
 import { useResponsive } from "@/hooks/useResponsive";
-import { api } from "@/trpc/react";
 
 type SetSelectionFiltersProps = {
   eventTypeFilters: SetSelectionEventTypeFilters;
@@ -54,7 +54,7 @@ export const SetSelectionFilters: React.FC<SetSelectionFiltersProps> = ({
     data: eventTypeData,
     isError: eventTypeQueryError,
     isLoading: eventTypeQueryLoading,
-  } = api.eventType.getEventTypes.useQuery(
+  } = trpc.eventType.getEventTypes.useQuery(
     userMembership
       ? { organizationId: userMembership.organizationId }
       : skipToken,

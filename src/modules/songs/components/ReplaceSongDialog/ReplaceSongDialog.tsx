@@ -19,9 +19,9 @@ import {
   type SongSearchResult,
 } from "@modules/songs/components/SongSearch";
 import { useUserQuery } from "@modules/users/api/queries";
+import { trpc } from "@lib/trpc";
 import { type SetSectionSongWithSongData } from "@lib/types";
 import { cn } from "@lib/utils";
-import { api } from "@/trpc/react";
 
 export type ReplaceSongDialogSteps = "search" | "confirm";
 
@@ -49,7 +49,7 @@ export const ReplaceSongDialog: React.FC<ReplaceSongDialogProps> = ({
   currentSong,
   setId,
 }) => {
-  const apiUtils = api.useUtils();
+  const apiUtils = trpc.useUtils();
   const {
     data: userData,
     isLoading: userQueryLoading,
@@ -64,7 +64,7 @@ export const ReplaceSongDialog: React.FC<ReplaceSongDialogProps> = ({
   );
 
   const replaceSongMutation =
-    api.setSectionSong.replaceSong.useMutation<Error>();
+    trpc.setSectionSong.replaceSong.useMutation<Error>();
 
   if (!userData || !userMembership) {
     return null;

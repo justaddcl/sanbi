@@ -13,8 +13,8 @@ import { SongContent } from "@modules/SetListCard/components/SongContent";
 import { SelectedSetCard } from "@modules/songs/forms/AddSongToSet/components";
 import { useUserQuery } from "@modules/users/api/queries";
 import { type SongKey as SongKeyType } from "@lib/constants";
+import { trpc } from "@lib/trpc";
 import { type AppRouter } from "@server/api/root";
-import { api } from "@/trpc/react";
 
 type ReviewStepProps = {
   selectedSetId: string;
@@ -41,16 +41,16 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
     return null;
   }
 
-  const apiUtils = api.useUtils();
+  const apiUtils = trpc.useUtils();
   const addSetSectionSongAndReorderSongsMutation =
-    api.setSectionSong.addAndReorderSongs.useMutation();
+    trpc.setSectionSong.addAndReorderSongs.useMutation();
 
-  const { data: setData } = api.set.get.useQuery({
+  const { data: setData } = trpc.set.get.useQuery({
     setId: selectedSetId,
     organizationId: userMembership.organizationId,
   });
 
-  const { data: setSectionData } = api.setSection.get.useQuery({
+  const { data: setSectionData } = trpc.setSection.get.useQuery({
     setSectionId: selectedSetSection,
     organizationId: userMembership.organizationId,
   });

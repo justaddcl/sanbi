@@ -19,7 +19,7 @@ import { SongKeySelect } from "@modules/songs/components/SongKeySelect/SongKeySe
 import { SongResources } from "@modules/songs/components/SongResources";
 import { SongTags } from "@modules/songs/components/SongTags/SongTags";
 import { serverApi } from "@lib/orpc/server";
-import { api } from "@/trpc/server";
+import { HydrateClient, trpc } from "@lib/trpc/server";
 
 export default async function SetListPage({
   params,
@@ -34,7 +34,7 @@ export default async function SetListPage({
     redirect("/");
   }
 
-  const userData = await api.user.getUser({ userId });
+  const userData = await trpc.user.getUser({ userId });
   const userMembership = userData?.memberships[0];
 
   if (!userMembership) {
@@ -42,11 +42,12 @@ export default async function SetListPage({
   }
 
   const song = await api.song.get({
+  const song = await trpc.song.get({
     organizationId: userMembership.organizationId,
     songId: params.songId,
   });
 
-  const playHistory = await api.song.getPlayHistory({
+  const playHistory = await trpc.song.getPlayHistory({
     organizationId: userMembership.organizationId,
     songId: params.songId,
   });

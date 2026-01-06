@@ -9,9 +9,9 @@ import { VStack } from "@components/VStack";
 import { type CreateSetFormFields } from "@modules/sets/components/CreateSetForm";
 import { SetDatePickerFormField } from "@modules/sets/components/forms/SetDatePickerFormField";
 import { useUserQuery } from "@modules/users/api/queries";
+import { trpc } from "@lib/trpc";
 import { type SetWithSectionsSongsAndEventType } from "@lib/types";
 import { updateSetDetailsSchema } from "@lib/types/zod";
-import { api } from "@/trpc/react";
 
 import { SetEventTypeSelectFormField } from "./SetEventTypeSelectFormField";
 
@@ -31,8 +31,8 @@ export const EditSetDetailsForm: React.FC<EditSetDetailsFormProps> = ({
   set,
   setIsEditing,
 }) => {
-  const updateSetDetailsMutation = api.set.updateDetails.useMutation();
-  const apiUtils = api.useUtils();
+  const updateSetDetailsMutation = trpc.set.updateDetails.useMutation();
+  const apiUtils = trpc.useUtils();
 
   const {
     data: userData,

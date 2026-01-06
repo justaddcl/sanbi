@@ -1,5 +1,20 @@
 "use client";
 
+import { useState } from "react";
+import { redirect } from "next/navigation";
+import { useAuth } from "@clerk/nextjs";
+import { CaretRight } from "@phosphor-icons/react/dist/ssr";
+import { CommandLoading } from "cmdk";
+import { useDebounceValue } from "usehooks-ts";
+
+import { Text } from "@components/Text";
+import {
+  SongListItem,
+  type SongListItemProps,
+} from "@modules/songs/components/SongListItem";
+import { useUserQuery } from "@modules/users/api/queries";
+import { trpc } from "@lib/trpc";
+import { type Song, type Tag } from "@lib/types";
 import {
   CommandEmpty,
   CommandGroup,
@@ -7,20 +22,6 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { api } from "@/trpc/react";
-import { useAuth } from "@clerk/nextjs";
-import { Text } from "@components/Text";
-import { useUserQuery } from "@modules/users/api/queries";
-import { CommandLoading } from "cmdk";
-import { redirect } from "next/navigation";
-import { useState } from "react";
-import { useDebounceValue } from "usehooks-ts";
-import {
-  SongListItem,
-  type SongListItemProps,
-} from "@modules/songs/components/SongListItem";
-import { CaretRight } from "@phosphor-icons/react/dist/ssr";
-import { type Tag, type Song } from "@lib/types";
 
 export type SongSearchResult =
   | (Pick<Song, "name" | "preferredKey" | "isArchived"> & {
@@ -61,7 +62,7 @@ export const SongSearch: React.FC<SongSearchProps> = ({
     data: songSearchData,
     error: songSearchError,
     isLoading: songSearchLoading,
-  } = api.song.search.useQuery(
+  } = trpc.song.search.useQuery(
     {
       organizationId: userMembership!.organizationId, // we use a type assertion here since if this isn't true, the query will be disabled
       searchInput: debouncedSearchQuery,

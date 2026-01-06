@@ -1,17 +1,18 @@
 "use client";
 
-import { HStack } from "@components/HStack";
-import { Alert, AlertDescription, AlertTitle } from "@components/ui/alert";
-import { Button } from "@components/ui/button";
-import { VStack } from "@components/VStack";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@clerk/nextjs";
 import { Archive, CaretDown } from "@phosphor-icons/react";
 import { CaretUp } from "@phosphor-icons/react/dist/ssr";
-import { useState } from "react";
-import { Text } from "@components/Text";
-import { api } from "@/trpc/react";
 import { toast } from "sonner";
-import { useAuth } from "@clerk/nextjs";
-import { useRouter } from "next/navigation";
+
+import { Alert, AlertDescription, AlertTitle } from "@components/ui/alert";
+import { Button } from "@components/ui/button";
+import { HStack } from "@components/HStack";
+import { Text } from "@components/Text";
+import { VStack } from "@components/VStack";
+import { trpc } from "@lib/trpc";
 
 // This is needed since setting text-amber-900 on the icons doesn't seem to work
 const AMBER_900 = "#78350f";
@@ -40,15 +41,15 @@ export const ArchivedBanner: React.FC<ArchivedBannerProps> = ({
   const { userId, isLoaded: isAuthLoaded } = useAuth();
   const router = useRouter();
 
-  const { data: userData, error: userQueryError } = api.user.getUser.useQuery(
+  const { data: userData, error: userQueryError } = trpc.user.getUser.useQuery(
     { userId: userId ?? "" },
     { enabled: Boolean(userId) },
   );
   const userMembership = userData?.memberships?.[0];
 
-  const unarchiveSetMutation = api.set.unarchive.useMutation();
-  const unarchiveSongMutation = api.song.unarchive.useMutation();
-  const apiUtils = api.useUtils();
+  const unarchiveSetMutation = trpc.set.unarchive.useMutation();
+  const unarchiveSongMutation = trpc.song.unarchive.useMutation();
+  const apiUtils = trpc.useUtils();
 
   if (!isAuthLoaded || !userData || !!userQueryError || !userMembership) {
     return null;

@@ -18,7 +18,7 @@ import { Skeleton } from "@components/ui/skeleton";
 import { Text } from "@components/Text";
 import { VStack } from "@components/VStack";
 import { useUserQuery } from "@modules/users/api/queries";
-import { api } from "@/trpc/react";
+import { trpc } from "@lib/trpc";
 
 type EventTypeSelectBaseProps = Omit<SelectProps, "value"> & {
   onSelectChange: (eventTypeId: string) => void;
@@ -58,7 +58,7 @@ export const EventTypeSelect: React.FC<EventTypeSelectProps> = ({
     data: eventTypeData,
     isError: eventTypeQueryError,
     isLoading: eventTypeQueryLoading,
-  } = api.eventType.getEventTypes.useQuery(
+  } = trpc.eventType.getEventTypes.useQuery(
     userMembership
       ? { organizationId: userMembership.organizationId }
       : skipToken,

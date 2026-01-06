@@ -1,12 +1,10 @@
 "use client";
 
-import {
-  type DropdownMenuContentProps,
-  DropdownMenuSeparator,
-} from "@components/ui/dropdown-menu";
-import { api } from "@/trpc/react";
-import { toast } from "sonner";
+import { type Dispatch, type SetStateAction, useState } from "react";
 import { useRouter } from "next/navigation";
+import { AlertDialogDescription } from "@radix-ui/react-alert-dialog";
+import { toast } from "sonner";
+
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -15,10 +13,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@components/ui/alert-dialog";
-import { AlertDialogDescription } from "@radix-ui/react-alert-dialog";
-import { type SetStateAction, type Dispatch, useState } from "react";
 import { Button } from "@components/ui/button";
+import {
+  type DropdownMenuContentProps,
+  DropdownMenuSeparator,
+} from "@components/ui/dropdown-menu";
 import { ActionMenu, ActionMenuItem } from "@components/ActionMenu";
+import { trpc } from "@lib/trpc";
+
 import { DuplicateSetDialog } from "../DuplicateSetDialog/DuplicateSetDialog";
 
 export type SetActionsMenuProps = {
@@ -48,10 +50,10 @@ export const SetActionsMenu: React.FC<SetActionsMenuProps> = ({
     useState<boolean>(false);
   const [isDuplicatingSet, setIsDuplicatingSet] = useState<boolean>(false);
 
-  const deleteSetMutation = api.set.delete.useMutation();
-  const archiveSetMutation = api.set.archive.useMutation();
-  const unarchiveSetMutation = api.set.unarchive.useMutation();
-  const apiUtils = api.useUtils();
+  const deleteSetMutation = trpc.set.delete.useMutation();
+  const archiveSetMutation = trpc.set.archive.useMutation();
+  const unarchiveSetMutation = trpc.set.unarchive.useMutation();
+  const apiUtils = trpc.useUtils();
 
   // TODO: move to mutations
   const deleteSet = () => {

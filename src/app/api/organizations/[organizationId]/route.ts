@@ -1,8 +1,9 @@
-import { api } from "@/trpc/server";
+import { NextResponse } from "next/server";
 import { TRPCError } from "@trpc/server";
 import { getHTTPStatusCodeFromError } from "@trpc/server/http";
-import { NextResponse } from "next/server";
 import { z } from "zod";
+
+import { trpc } from "@lib/trpc/server";
 
 type GetOrganizationParams = {
   organizationId: string;
@@ -24,7 +25,7 @@ export async function GET(
   }
 
   try {
-    const isMemberOfOrganization = await api.organization.organization(
+    const isMemberOfOrganization = await trpc.organization.organization(
       validatedParams.data,
     );
     return NextResponse.json({ isMemberOfOrganization });

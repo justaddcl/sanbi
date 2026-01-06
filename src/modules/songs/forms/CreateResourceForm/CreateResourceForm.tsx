@@ -18,8 +18,8 @@ import {
 import { Input } from "@components/ui/input";
 import { VStack } from "@components/VStack";
 import { orpc } from "@lib/orpc/client";
+import { trpc } from "@lib/trpc";
 import { insertResourceSchema } from "@lib/types/zod";
-import { api as trpcApi } from "@/trpc/react";
 
 const createResourceFormSchema = insertResourceSchema.pick({
   title: true,
@@ -54,7 +54,7 @@ export const CreateResourceForm: React.FC<CreateResourceFormProps> = ({
   });
 
   // TODO: handle if there is no user data (assume this will be handled before it reaches here though?)
-  const { data: userData } = trpcApi.user.getUser.useQuery(
+  const { data: userData } = trpc.user.getUser.useQuery(
     {
       userId: userId!, // using non-null assertion since this query is only enabled if userId is not null
     },

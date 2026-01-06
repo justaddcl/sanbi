@@ -1,7 +1,9 @@
 "use client";
 
-import { api } from "@/trpc/react";
-import { SongKey } from "@components/SongKey";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+
 import { Button } from "@components/ui/button";
 import {
   Select,
@@ -9,13 +11,12 @@ import {
   SelectItem,
   SelectTrigger,
 } from "@components/ui/select";
+import { SongKey } from "@components/SongKey";
 import { type SongKey as SongKeyType, songKeys } from "@lib/constants";
 import { formatSongKey } from "@lib/string/formatSongKey";
+import { trpc } from "@lib/trpc";
 import { type Song } from "@lib/types";
 import { type UserData } from "@lib/types/api";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { toast } from "sonner";
 
 type SongKeySelectProps = {
   songId: string;
@@ -29,7 +30,7 @@ export const SongKeySelect: React.FC<SongKeySelectProps> = ({
   userMembership,
 }) => {
   const updateSongPreferredKeyMutation =
-    api.song.updatePreferredKey.useMutation();
+    trpc.song.updatePreferredKey.useMutation();
   const router = useRouter();
   const [songKey, setSongKey] = useState<Song["preferredKey"]>(
     preferredKey ?? null,

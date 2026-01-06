@@ -1,22 +1,16 @@
 "use client";
 
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@components/ui/dropdown-menu";
+import { type Dispatch, type SetStateAction, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Archive,
   BoxArrowUp,
   DotsThree,
   Trash,
 } from "@phosphor-icons/react/dist/ssr";
-import { Text } from "@components/Text";
-import { api } from "@/trpc/react";
+import { AlertDialogDescription } from "@radix-ui/react-alert-dialog";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
+
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -25,10 +19,17 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@components/ui/alert-dialog";
-import { AlertDialogDescription } from "@radix-ui/react-alert-dialog";
-import { type Dispatch, type SetStateAction, useState } from "react";
 import { Button } from "@components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@components/ui/dropdown-menu";
 import { ActionMenu, ActionMenuItem } from "@components/ActionMenu";
+import { Text } from "@components/Text";
+import { trpc } from "@lib/trpc";
 
 type SongActionsMenuProps = {
   songId: string;
@@ -51,7 +52,7 @@ export const SongActionsMenu: React.FC<SongActionsMenuProps> = ({
     useState<boolean>(false);
 
   // TODO: move to mutations
-  const deleteSongMutation = api.song.delete.useMutation();
+  const deleteSongMutation = trpc.song.delete.useMutation();
   const deleteSong = (organizationId: string, songId: string) => {
     setIsConfirmationDialogOpen(false);
 
@@ -70,7 +71,7 @@ export const SongActionsMenu: React.FC<SongActionsMenuProps> = ({
   };
 
   // TODO: move to mutations
-  const archiveSongMutation = api.song.archive.useMutation();
+  const archiveSongMutation = trpc.song.archive.useMutation();
   const archiveSong = (organizationId: string, songId: string) => {
     setIsSongActionsMenuOpen(false);
     archiveSongMutation.mutate(
@@ -88,7 +89,7 @@ export const SongActionsMenu: React.FC<SongActionsMenuProps> = ({
   };
 
   // TODO: move to mutations
-  const unarchiveSongMutation = api.song.unarchive.useMutation();
+  const unarchiveSongMutation = trpc.song.unarchive.useMutation();
   const unarchiveSong = (organizationId: string, songId: string) => {
     setIsSongActionsMenuOpen(false);
     unarchiveSongMutation.mutate(
