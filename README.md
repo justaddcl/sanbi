@@ -1,4 +1,9 @@
-# Sanbi set planner app
+<h1 align="center">賛美 Sanbi Set Planner</h1>
+
+![GitHub License](https://img.shields.io/github/license/justaddcl/sanbi?style=flat-square)
+![CircleCI](https://img.shields.io/circleci/build/github/justaddcl/sanbi?style=flat-square)
+![Issues](https://img.shields.io/github/issues/justaddcl/sanbi?style=flat-square)
+![Contributor Covenant](https://img.shields.io/badge/code%20of%20conduct-contributor%20covenant-4baaaa.svg?style)
 
 This project is a Next.js web app (bootstrapped by the [T3 Stack](https://create.t3.gg)) with a TRPC back-end serving from a postgres database. We use `pnpm` as our package manager.
 
