@@ -128,7 +128,7 @@ export const SongItem: React.FC<SongItemProps> = ({
         id: setSectionSong.id,
         organizationId: userMembership.organizationId,
         ...formValues,
-        notes: formValues.notes ?? null,
+        notes: formValues.notes ? formValues.notes : null,
       },
       {
         async onSuccess() {

@@ -124,7 +124,7 @@ export const CreateResourceForm: React.FC<CreateResourceFormProps> = ({
             name="title"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Name</FormLabel>
+                <FormLabel>Name *</FormLabel>
                 <FormControl>
                   <Input {...field} size="medium" />
                 </FormControl>
@@ -137,7 +137,7 @@ export const CreateResourceForm: React.FC<CreateResourceFormProps> = ({
             name="url"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>URL</FormLabel>
+                <FormLabel>URL *</FormLabel>
                 <FormControl>
                   <Input {...field} size="medium" />
                 </FormControl>
