@@ -16,7 +16,7 @@ import {
   FRIENDLY_FORMAT_CALENDAR_WEEK_DIFFERENCE_THRESHOLD,
 } from "@lib/date";
 import { pluralize } from "@lib/string";
-import { type RouterOutputs } from "@/trpc/react";
+import { type RouterOutputs } from "@lib/trpc";
 
 type SelectedSetCardProps = {
   set: RouterOutputs["set"]["get"];
