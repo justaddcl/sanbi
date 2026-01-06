@@ -1,10 +1,10 @@
+import "server-only";
+
 import { createRouterClient, type RouterClient } from "@orpc/server";
 import * as Sentry from "@sentry/nextjs";
 
 import { createORPCContext } from "@server/orpc/base";
 import { appRouter } from "@server/orpc/routers";
-
-import "server-only";
 
 declare global {
   // eslint-disable-next-line no-var
