@@ -76,39 +76,46 @@ export const CreateResourceForm: React.FC<CreateResourceFormProps> = ({
   ) => {
     const toastId = toast.loading("Creating resource...");
 
-    if (userData) {
-      const organizationMembership = userData.memberships[0];
+    if (!userData) {
+      Sentry.captureException(new Error("No user data available"));
+      toast.error("Could not create resource: invalid user", { id: toastId });
 
-      if (!organizationMembership) {
-        Sentry.captureException(new Error("No organization membership found"));
-        toast.error("Could not create resource: invalid team membership");
-
-        return;
-      }
-
-      await createResourceMutation.mutateAsync(
-        {
-          songId,
-          organizationId: organizationMembership.organizationId,
-          title: formValues.title,
-          url: formValues.url,
-        },
-        {
-          onSuccess() {
-            toast.success("Resource was created", { id: toastId });
-            onSuccess();
-            createResourceForm.reset();
-          },
-          onError(error) {
-            Sentry.captureException(error);
-
-            toast.error(`Could not create resource: ${error.message}`, {
-              id: toastId,
-            });
-          },
-        },
-      );
+      return;
     }
+
+    const organizationMembership = userData.memberships[0];
+
+    if (!organizationMembership) {
+      Sentry.captureException(new Error("No organization membership found"));
+      toast.error("Could not create resource: invalid team membership", {
+        id: toastId,
+      });
+
+      return;
+    }
+
+    await createResourceMutation.mutateAsync(
+      {
+        songId,
+        organizationId: organizationMembership.organizationId,
+        title: formValues.title,
+        url: formValues.url,
+      },
+      {
+        onSuccess() {
+          toast.success("Resource was created", { id: toastId });
+          onSuccess();
+          createResourceForm.reset();
+        },
+        onError(error) {
+          Sentry.captureException(error);
+
+          toast.error(`Could not create resource: ${error.message}`, {
+            id: toastId,
+          });
+        },
+      },
+    );
   };
 
   const shouldSubmitButtonBeDisabled = !isDirty || !isValid || isSubmitting;
