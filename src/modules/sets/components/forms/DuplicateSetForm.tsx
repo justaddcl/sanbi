@@ -1,30 +1,32 @@
-import { api } from "@/trpc/react";
-import { HStack } from "@components/HStack";
-import { Button } from "@components/ui/button";
-import { VStack } from "@components/VStack";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { insertSetSchema } from "@lib/types/zod";
-import { type CreateSetFormFields } from "@modules/sets/components/CreateSetForm";
-import { SetDatePickerFormField } from "@modules/sets/components/forms/SetDatePickerFormField";
-import { useUserQuery } from "@modules/users/api/queries";
-import { useState, type Dispatch, type SetStateAction } from "react";
+import { type Dispatch, type SetStateAction, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
+import { useRouter } from "next/navigation";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { CaretDown, CaretUp } from "@phosphor-icons/react/dist/ssr";
 import { toast } from "sonner";
-import { SetEventTypeSelectFormField } from "./SetEventTypeSelectFormField";
-import { TextareaFormField } from "@components/TextareaFormField";
+
+import { Button } from "@components/ui/button";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@components/ui/collapsible";
+import { HStack } from "@components/HStack";
 import { Text } from "@components/Text";
-import { CaretDown, CaretUp } from "@phosphor-icons/react/dist/ssr";
+import { TextareaFormField } from "@components/TextareaFormField";
+import { VStack } from "@components/VStack";
 import { useSetQuery } from "@modules/sets/api";
-import { type SetSectionWithSongs } from "@lib/types";
-import { SetSectionList } from "../SetSectionList/SetSectionList";
+import { type CreateSetFormFields } from "@modules/sets/components/CreateSetForm";
+import { SetDatePickerFormField } from "@modules/sets/components/forms/SetDatePickerFormField";
+import { useUserQuery } from "@modules/users/api/queries";
 import { sanitizeInput } from "@lib/string";
-import { useRouter } from "next/navigation";
+import { type SetSectionWithSongs } from "@lib/types";
+import { insertSetSchema } from "@lib/types/zod";
 import { useResponsive } from "@/hooks/useResponsive";
+import { api } from "@/trpc/react";
+
+import { SetEventTypeSelectFormField } from "./SetEventTypeSelectFormField";
+import { SetSectionList } from "../SetSectionList/SetSectionList";
 
 const duplicateSetFormSchema = insertSetSchema.pick({
   date: true,
@@ -69,7 +71,7 @@ export const DuplicateSetForm: React.FC<DuplicateSetFormProps> = ({
     userId: userData?.id ?? "", // we use a non-null assertion here since the redirect would have already fired if userId is falsy
   });
 
-  const editSetDetailsForm = useForm<DuplicateSetFields>({
+  const editSetDetailsForm = useForm({
     resolver: zodResolver(duplicateSetFormSchema),
     defaultValues: {
       date: undefined,
@@ -100,7 +102,7 @@ export const DuplicateSetForm: React.FC<DuplicateSetFormProps> = ({
         setToDuplicateId,
         date,
         eventTypeId,
-        notes: sanitizeInput(notes),
+        notes: notes ? sanitizeInput(notes) : null,
         organizationId: userMembership.organizationId,
       },
       {

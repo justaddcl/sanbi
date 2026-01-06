@@ -78,7 +78,7 @@ export const unarchiveSetSchema = setIdSchema;
 export const deleteSetSchema = setIdSchema;
 export const updateSetDetailsSchema = z.object({
   ...setIdSchema.shape,
-  date: z.date(),
+  ...insertSetSchema.pick({ date: true }).shape,
   eventTypeId: z.uuid(),
 });
 export const updateSetNotesSchema = z.object({

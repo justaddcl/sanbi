@@ -75,7 +75,18 @@ export const SetSelectionAllUpcomingSets: React.FC<
       eventTypeFilters: eventTypeFilters.map((filter) => filter.id),
     },
     {
-      getNextPageParam: (last) => last.nextCursor,
+      getNextPageParam: (last) => {
+        const cursor = last.nextCursor;
+
+        if (!cursor) {
+          return undefined;
+        }
+
+        return {
+          ...cursor,
+          date: new Date(cursor.date),
+        };
+      },
     },
   );
 

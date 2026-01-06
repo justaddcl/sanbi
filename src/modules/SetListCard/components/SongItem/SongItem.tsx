@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { type SubmitHandler, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { type z } from "zod";
@@ -65,12 +65,9 @@ const updateSetSectionSongsSchema = insertSetSectionSongSchema.pick({
   notes: true,
 });
 
-export type UpdateSetSectionSongFormFields = Omit<
-  z.infer<typeof updateSetSectionSongsSchema>,
-  "notes"
-> & {
-  notes: NonNullable<z.infer<typeof updateSetSectionSongsSchema>["notes"]>;
-};
+export type UpdateSetSectionSongFormFields = z.infer<
+  typeof updateSetSectionSongsSchema
+>;
 
 export type SongItemProps =
   | SongItemWithActionsMenuProps
@@ -90,7 +87,7 @@ export const SongItem: React.FC<SongItemProps> = ({
   const updateSetSectionSongMutation =
     api.setSectionSong.updateDetails.useMutation();
 
-  const updateSetSectionSongForm = useForm<UpdateSetSectionSongFormFields>({
+  const updateSetSectionSongForm = useForm({
     resolver: zodResolver(updateSetSectionSongsSchema),
     defaultValues: {
       key: setSectionSong.key,
@@ -121,9 +118,9 @@ export const SongItem: React.FC<SongItemProps> = ({
     return null;
   }
 
-  const handleUpdateSetSectionSong: SubmitHandler<
-    UpdateSetSectionSongFormFields
-  > = async (formValues: UpdateSetSectionSongFormFields) => {
+  const handleUpdateSetSectionSong = async (
+    formValues: UpdateSetSectionSongFormFields,
+  ) => {
     toast.loading("Updating song...");
 
     updateSetSectionSongMutation.mutate(
@@ -131,6 +128,7 @@ export const SongItem: React.FC<SongItemProps> = ({
         id: setSectionSong.id,
         organizationId: userMembership.organizationId,
         ...formValues,
+        notes: formValues.notes ?? "",
       },
       {
         async onSuccess() {
