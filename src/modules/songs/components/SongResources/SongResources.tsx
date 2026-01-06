@@ -78,7 +78,7 @@ export const SongResources: React.FC<SongResourcesProps> = ({ songId }) => {
             songResources.map((songResource) => (
               <ResourceCard key={songResource.id} resource={songResource} />
             ))}
-          {!songResources && (
+          {songResources && songResources.length === 0 && (
             // Empty state will be implemented in SWY-118
             <div>No song resources yet. Create one?</div>
           )}
