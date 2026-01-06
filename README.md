@@ -1,9 +1,9 @@
 <h1 align="center">賛美 Sanbi Set Planner</h1>
 
-![GitHub License](https://img.shields.io/github/license/justaddcl/sanbi?logo=apachelucene&style=flat-square)
-![CircleCI](https://img.shields.io/circleci/build/github/justaddcl/sanbi?logo=circleci&style=flat-square)
-![Issues](https://img.shields.io/github/issues/justaddcl/sanbi?logo=github&style=flat-square)
-![Contributor Covenant](https://img.shields.io/badge/code%20of%20conduct-contributor%20covenant-5e0c73.svg?logo=contributorcovenant&style=flat-square)
+[![GitHub License](https://img.shields.io/github/license/justaddcl/sanbi?logo=apachelucene&style=flat-square)](./LICENSE)
+[![CircleCI](https://img.shields.io/circleci/build/github/justaddcl/sanbi?logo=circleci&style=flat-square)](https://app.circleci.com/pipelines/github/justaddcl/sanbi)
+[![Issues](https://img.shields.io/github/issues/justaddcl/sanbi?logo=github&style=flat-square)](../../issues)
+[![Contributor Covenant](https://img.shields.io/badge/code%20of%20conduct-contributor%20covenant-5e0c73.svg?logo=contributorcovenant&style=flat-square)](./CODE_OF_CONDUCT.md)
 
 This project is a Next.js web app (bootstrapped by the [T3 Stack](https://create.t3.gg)) with a TRPC back-end serving from a postgres database. We use `pnpm` as our package manager.
 
