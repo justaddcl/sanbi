@@ -41,14 +41,7 @@ export const SongResources: React.FC<SongResourcesProps> = ({
         collapsible
         button={
           <ResponsiveDialogTrigger asChild>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={(clickEvent) => {
-                setIsAddResourceDialogOpen(true);
-                clickEvent.preventDefault();
-              }}
-            >
+            <Button size="sm" variant="ghost">
               <Plus className="text-slate-900" size={16} />
               <span className="hidden sm:inline">Add resource</span>
             </Button>

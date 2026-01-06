@@ -53,14 +53,19 @@ export const CreateResourceForm: React.FC<CreateResourceFormProps> = ({
     reValidateMode: "onBlur",
   });
 
+  // TODO: handle if there is no user data (assume this will be handled before it reaches here though?)
+  const { data: userData } = trpcApi.user.getUser.useQuery(
+    {
+      userId: userId!, // using non-null assertion since this query is only enabled if userId is not null
+    },
+    {
+      enabled: !!userId,
+    },
+  );
+
   if (!userId) {
     return null;
   }
-
-  // TODO: handle if there is no user data (assume this will be handled before it reaches here though?)
-  const { data: userData } = trpcApi.user.getUser.useQuery({
-    userId,
-  });
 
   const {
     formState: { isSubmitting, isValid, isDirty },
