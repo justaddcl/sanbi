@@ -2,13 +2,9 @@ import { Poppins } from "next/font/google";
 import { ClerkProvider, SignedIn } from "@clerk/nextjs";
 import { auth } from "@clerk/nextjs/server";
 
-import { Toaster } from "@components/ui/sonner";
-import { TooltipProvider } from "@components/ui/tooltip";
 import { GlobalNav } from "@components/GlobalNav";
 import { Navbar } from "@components/Navbar";
 import { OrganizationHeader } from "@/components/OrganizationHeader";
-import { SanbiStoreProvider } from "@/providers/sanbi-store-provider";
-import { TRPCReactProvider } from "@/trpc/react";
 
 import { Providers } from "./providers";
 
