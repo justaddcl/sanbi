@@ -1,3 +1,5 @@
+import "server-only";
+
 import { cache } from "react";
 import { headers } from "next/headers";
 import { createHydrationHelpers } from "@trpc/react-query/rsc";
@@ -5,8 +7,6 @@ import { createHydrationHelpers } from "@trpc/react-query/rsc";
 import { makeQueryClient } from "@lib/tanstack/query-client";
 import { type appRouter, createCaller } from "@/server/api/root";
 import { createTRPCContext } from "@/server/api/trpc";
-
-import "server-only";
 
 export const getQueryClient = cache(makeQueryClient);
 /**
