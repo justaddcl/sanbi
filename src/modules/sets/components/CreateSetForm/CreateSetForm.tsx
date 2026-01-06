@@ -22,12 +22,7 @@ const createSetFormSchema = insertSetSchema.pick({
   eventTypeId: true,
   notes: true,
 });
-export type CreateSetFormFields = Omit<
-  z.infer<typeof createSetFormSchema>,
-  "notes"
-> & {
-  notes: NonNullable<z.infer<typeof createSetFormSchema>["notes"]>;
-};
+export type CreateSetFormFields = z.infer<typeof createSetFormSchema>;
 
 type CreateSetFormProps = {
   onCreationSuccess: (newSet: SetType) => void;
@@ -38,7 +33,7 @@ export const CreateSetForm: React.FC<CreateSetFormProps> = ({
 }) => {
   const { userId } = useAuth();
 
-  const createSetForm = useForm<CreateSetFormFields>({
+  const createSetForm = useForm({
     resolver: zodResolver(createSetFormSchema),
     defaultValues: {
       date: undefined,
@@ -82,7 +77,7 @@ export const CreateSetForm: React.FC<CreateSetFormProps> = ({
         {
           date,
           eventTypeId,
-          notes: sanitizeInput(notes) || null,
+          notes: notes ? sanitizeInput(notes) : null,
           organizationId: organizationMembership.organizationId,
           isArchived: false,
         },

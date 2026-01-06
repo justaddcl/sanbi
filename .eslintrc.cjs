@@ -14,6 +14,7 @@ const config = {
     "next/core-web-vitals",
     "plugin:@typescript-eslint/recommended-type-checked",
     "plugin:@typescript-eslint/stylistic-type-checked",
+    "plugin:@tanstack/query/recommended",
   ],
   rules: {
     // warn when using code marked as @deprecated

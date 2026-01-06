@@ -14,9 +14,6 @@ import { db } from "@/server/db";
 
 import { organizationMemberships, organizations, users } from "../db/schema";
 
-export const RPC_PREFIX = "/api/rpc";
-export const REST_PREFIX = "/api/rpc/rest";
-
 export const createORPCContext = async (opts: { headers: HeadersInit }) => {
   return {
     db,

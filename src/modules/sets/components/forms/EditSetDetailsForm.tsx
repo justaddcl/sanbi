@@ -42,7 +42,7 @@ export const EditSetDetailsForm: React.FC<EditSetDetailsFormProps> = ({
   } = useUserQuery();
   const userMembership = userData?.memberships[0];
 
-  const editSetDetailsForm = useForm<EditSetDetailsFields>({
+  const editSetDetailsForm = useForm({
     resolver: zodResolver(editSetDetailsFormSchema),
     defaultValues: {
       date: set.date,
@@ -72,7 +72,7 @@ export const EditSetDetailsForm: React.FC<EditSetDetailsFormProps> = ({
       {
         organizationId: userMembership.organizationId,
         setId: set.id,
-        date: new Date(date),
+        date,
         eventTypeId,
       },
       {

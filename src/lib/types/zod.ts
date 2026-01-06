@@ -78,7 +78,7 @@ export const unarchiveSetSchema = setIdSchema;
 export const deleteSetSchema = setIdSchema;
 export const updateSetDetailsSchema = z.object({
   ...setIdSchema.shape,
-  date: z.date(),
+  ...insertSetSchema.pick({ date: true }).shape,
   eventTypeId: z.uuid(),
 });
 export const updateSetNotesSchema = z.object({
@@ -301,9 +301,16 @@ export const insertResourceSchema = z.object({
   ...createInsertSchema(resources).pick({
     organizationId: true,
     songId: true,
-    url: true,
   }).shape,
-  title: z.string().transform((title) => sanitizeInput(title)),
+  url: z.url({
+    protocol: /^https?$/,
+    hostname: z.regexes.domain,
+    error: "Please enter a valid URL",
+  }),
+  title: z
+    .string()
+    .min(1, "Please give your resource a name or title")
+    .transform((title) => sanitizeInput(title)),
 });
 
 export const updateResourceSchema = z.object({

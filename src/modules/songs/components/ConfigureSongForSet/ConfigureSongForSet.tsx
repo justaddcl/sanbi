@@ -1,6 +1,18 @@
-import { api } from "@/trpc/react";
-import { HStack } from "@components/HStack";
-import { Text } from "@components/Text";
+import { type Dispatch, type SetStateAction, useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { redirect } from "next/navigation";
+import { DevTool } from "@hookform/devtools";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  CaretLeft,
+  CircleNotch,
+  ClockCounterClockwise,
+  Heart,
+  Plus,
+} from "@phosphor-icons/react/dist/ssr";
+import { toast } from "sonner";
+import { z } from "zod";
+
 import { Button } from "@components/ui/button";
 import { type ComboboxOption } from "@components/ui/combobox";
 import { CommandGroup, CommandList } from "@components/ui/command";
@@ -23,32 +35,21 @@ import {
 } from "@components/ui/select";
 import { Switch } from "@components/ui/switch";
 import { Textarea } from "@components/ui/textarea";
+import { HStack } from "@components/HStack";
+import { Text } from "@components/Text";
 import { VStack } from "@components/VStack";
-import { DevTool } from "@hookform/devtools";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { songKeys } from "@lib/constants";
-import { formatSongKey } from "@lib/string/formatSongKey";
-import { type SetSectionWithSongs } from "@lib/types";
-import { insertSetSectionSongSchema } from "@lib/types/zod";
-import { cn } from "@lib/utils";
 import { SetSectionTypeCombobox } from "@modules/sets/components/SetSectionTypeCombobox";
 import { SongListItem } from "@modules/songs/components/SongListItem";
 import { type SongSearchResult } from "@modules/songs/components/SongSearch";
 import { type SongSearchDialogSteps } from "@modules/songs/components/SongSearchDialog";
 import { useUserQuery } from "@modules/users/api/queries";
-import {
-  CaretLeft,
-  CircleNotch,
-  ClockCounterClockwise,
-  Heart,
-  Plus,
-} from "@phosphor-icons/react/dist/ssr";
-import { redirect } from "next/navigation";
-import { type Dispatch, type SetStateAction, useEffect, useState } from "react";
-import { type SubmitHandler, useForm } from "react-hook-form";
-import { toast } from "sonner";
-import { z } from "zod";
+import { songKeys } from "@lib/constants";
+import { formatSongKey } from "@lib/string/formatSongKey";
+import { type SetSectionWithSongs } from "@lib/types";
+import { insertSetSectionSongSchema } from "@lib/types/zod";
+import { cn } from "@lib/utils";
 import { useResponsive } from "@/hooks/useResponsive";
+import { api } from "@/trpc/react";
 
 const createSetSectionSongsSchema = insertSetSectionSongSchema
   .pick({
@@ -61,12 +62,9 @@ const createSetSectionSongsSchema = insertSetSectionSongSchema
     addAnotherSong: z.boolean(),
   });
 
-export type AddSongToSetFormFields = Omit<
-  z.infer<typeof createSetSectionSongsSchema>,
-  "notes"
-> & {
-  notes: NonNullable<z.infer<typeof createSetSectionSongsSchema>["notes"]>;
-};
+export type AddSongToSetFormFields = z.infer<
+  typeof createSetSectionSongsSchema
+>;
 
 export type ConfigureSongForSetProps = {
   existingSetSections: SetSectionWithSongs[];
@@ -90,7 +88,7 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
   const [newSetSectionType, setNewSetSectionType] =
     useState<ComboboxOption | null>(null);
 
-  const addSongToSetForm = useForm<AddSongToSetFormFields>({
+  const addSongToSetForm = useForm({
     // mode: "onBlur",
     resolver: zodResolver(createSetSectionSongsSchema),
     defaultValues: {
@@ -231,9 +229,9 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
     }
   };
 
-  const handleAddSongToSetSubmit: SubmitHandler<
-    AddSongToSetFormFields
-  > = async (formValues: AddSongToSetFormFields) => {
+  const handleAddSongToSetSubmit = async (
+    formValues: AddSongToSetFormFields,
+  ) => {
     const { songId, key, setSectionId, addAnotherSong, notes } = formValues;
 
     const setSectionToAddTo = sectionsForSetData.find(
@@ -248,7 +246,7 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
         setSectionId,
         key: key!,
         position: setSectionSongPosition,
-        notes: notes || null,
+        notes: notes ?? null,
       },
       {
         async onSuccess(data) {
@@ -543,7 +541,7 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
                         Song notes
                       </FormLabel>
                       <FormControl>
-                        <Textarea {...field} />
+                        <Textarea {...field} value={field.value ?? ""} />
                       </FormControl>
                     </FormItem>
                   )}
