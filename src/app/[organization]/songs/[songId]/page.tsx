@@ -20,7 +20,7 @@ export default async function SongPage({
   }
 
   const userData = await trpc.user.getUser({ userId });
-  const userMembership = userData?.memberships[0];
+  const userMembership = userData?.memberships.find((membership) => membership.organization.id === params.organization);
 
   if (!userMembership) {
     redirect("/");

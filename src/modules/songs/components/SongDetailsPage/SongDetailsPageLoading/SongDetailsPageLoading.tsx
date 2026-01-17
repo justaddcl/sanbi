@@ -63,9 +63,15 @@ export const SongDetailsPageLoading: React.FC = () => (
       }
     >
       <ul className="grid gap-3 md:grid-cols-2">
-        <Skeleton className="h-16" />
-        <Skeleton className="h-16" />
-        <Skeleton className="h-16" />
+        <li>
+          <Skeleton className="h-16" />
+        </li>
+        <li>
+          <Skeleton className="h-16" />
+        </li>
+        <li>
+          <Skeleton className="h-16" />
+        </li>
       </ul>
     </Card>
     <Card title="Play history" collapsible>

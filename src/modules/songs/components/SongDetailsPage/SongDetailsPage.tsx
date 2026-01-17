@@ -1,10 +1,8 @@
 "use client";
 
 import type React from "react";
-import { notFound } from "next/navigation";
 import { formatDistanceToNow } from "date-fns";
 
-import { Skeleton } from "@components/ui/skeleton";
 import { Card } from "@components/Card/Card";
 import { HStack } from "@components/HStack";
 import { Text } from "@components/Text";
@@ -34,7 +32,7 @@ export const SongDetailsPage: React.FC<SongDetailsPageProps> = ({
   organizationId,
   userMembership,
 }) => {
-  const { data: song, isLoading: isSongLoading } = trpc.song.get.useQuery({
+  const { data: song, isLoading: isSongLoading, error: songQueryError } = trpc.song.get.useQuery({
     songId,
     organizationId,
   });
@@ -51,8 +49,9 @@ export const SongDetailsPage: React.FC<SongDetailsPageProps> = ({
     return <SongDetailsPageLoading />;
   }
 
-  if (!song) {
-    return notFound();
+  if (songQueryError ?? !song) {
+    // TODO: add error handling for song not found
+    return;
   }
 
   const dateFormatter = new Intl.DateTimeFormat("en-US");
