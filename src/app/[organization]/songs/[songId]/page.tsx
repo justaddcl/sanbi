@@ -1,13 +1,12 @@
 import { redirect } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
 
-import { Text } from "@components/Text";
 import { SongDetailsPage } from "@modules/songs/components/SongDetailsPage/SongDetailsPage";
 import { getServerQueryClient } from "@lib/orpc/get-server-query-client";
 import { orpcServerTQ } from "@lib/orpc/tanstack-server";
 import { HydrateClient, trpc } from "@lib/trpc/server";
 
-export default async function SetListPage({
+export default async function SongPage({
   params,
 }: {
   params: { organization: string; songId: string };
@@ -22,10 +21,6 @@ export default async function SetListPage({
 
   const userData = await trpc.user.getUser({ userId });
   const userMembership = userData?.memberships[0];
-
-  if (!userData) {
-    return <Text>Loading user data...</Text>;
-  }
 
   if (!userMembership) {
     redirect("/");
@@ -54,7 +49,7 @@ export default async function SetListPage({
     <HydrateClient>
       <SongDetailsPage
         songId={params.songId}
-        organizationId={params.organization}
+        organizationId={userMembership.organizationId}
         userMembership={userMembership}
       />
     </HydrateClient>

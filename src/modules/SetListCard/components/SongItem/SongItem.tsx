@@ -83,7 +83,7 @@ export const SongItem: React.FC<SongItemProps> = ({
 }) => {
   const [isEditingDetails, setIsEditingDetails] = useState<boolean>(false);
 
-  const apiUtils = trpc.useUtils();
+  const trpcUtils = trpc.useUtils();
   const updateSetSectionSongMutation =
     trpc.setSectionSong.updateDetails.useMutation();
 
@@ -134,7 +134,7 @@ export const SongItem: React.FC<SongItemProps> = ({
         async onSuccess() {
           toast.dismiss();
           toast.success("Updated song");
-          await apiUtils.set.get.invalidate({
+          await trpcUtils.set.get.invalidate({
             setId,
             organizationId: userMembership.organizationId,
           });

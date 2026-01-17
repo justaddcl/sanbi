@@ -27,6 +27,7 @@ export const SongResources: React.FC<SongResourcesProps> = ({ songId }) => {
   const {
     data: songResources,
     isLoading: isSongResourcesLoading,
+    // TODO: SWY-118 to implement empty and error state
     error: songResourcesError,
   } = useSongResources(songId);
 

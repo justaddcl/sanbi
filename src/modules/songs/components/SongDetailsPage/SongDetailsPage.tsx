@@ -77,7 +77,6 @@ export const SongDetailsPage: React.FC<SongDetailsPageProps> = ({
           </SongDetailsItem>
           <SongDetailsItem icon="ClockCounterClockwise" label="Last Played">
             <dd>
-              {!playHistory && <Skeleton className="h-4 w-[250px]" />}
               {playHistory && lastPlayInstance ? (
                 <HStack className="gap-[3px] leading-4">
                   <Text

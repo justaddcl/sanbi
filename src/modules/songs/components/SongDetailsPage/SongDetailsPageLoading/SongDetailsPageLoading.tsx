@@ -12,13 +12,13 @@ export const SongDetailsPageLoading: React.FC = () => (
     <HStack className="gap-4">
       <Skeleton className="h-10 w-full" />
       <HStack className="items-start gap-2">
-        <Button>
+        <Button disabled>
           <Plus /> Add to a set
         </Button>
         <Button variant="outline" disabled size="sm">
           <Heart />
         </Button>
-        <Button variant={"outline"} size="sm">
+        <Button variant={"outline"} size="sm" disabled>
           <DotsThree className="text-slate-900" size={16} />
         </Button>
       </HStack>

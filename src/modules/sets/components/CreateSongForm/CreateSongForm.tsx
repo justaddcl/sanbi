@@ -63,14 +63,17 @@ export const CreateSongForm: React.FC<CreateSongFormProps> = ({ onSubmit }) => {
 
   const createSongMutation = trpc.song.create.useMutation();
 
+  const { data: userData, isError: isGetUserQueryError } =
+    trpc.user.getUser.useQuery({
+      userId: userId!,
+    }, {
+      enabled: !!userId
+    });
+
   if (!userId) {
     return null;
   }
 
-  const { data: userData, isError: isGetUserQueryError } =
-    trpc.user.getUser.useQuery({
-      userId,
-    });
 
   const handleCreateSongSubmit = async (formValues: CreateSongFormFields) => {
     const toastId = toast.loading("Creating song...");

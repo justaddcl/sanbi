@@ -53,7 +53,7 @@ export const SetActionsMenu: React.FC<SetActionsMenuProps> = ({
   const deleteSetMutation = trpc.set.delete.useMutation();
   const archiveSetMutation = trpc.set.archive.useMutation();
   const unarchiveSetMutation = trpc.set.unarchive.useMutation();
-  const apiUtils = trpc.useUtils();
+  const trpcUtils = trpc.useUtils();
 
   // TODO: move to mutations
   const deleteSet = () => {
@@ -86,7 +86,7 @@ export const SetActionsMenu: React.FC<SetActionsMenuProps> = ({
       {
         async onSuccess() {
           toast.success("Set has been archived", { id: toastId });
-          await apiUtils.set.get.invalidate({ setId, organizationId });
+          await trpcUtils.set.get.invalidate({ setId, organizationId });
         },
         onError(error) {
           toast.error(`Set could not be archived: ${error.message}`, {
@@ -107,7 +107,7 @@ export const SetActionsMenu: React.FC<SetActionsMenuProps> = ({
       {
         async onSuccess() {
           toast.success("Set has been unarchived", { id: toastId });
-          await apiUtils.set.get.invalidate({ setId, organizationId });
+          await trpcUtils.set.get.invalidate({ setId, organizationId });
         },
         onError(error) {
           toast.error(`Set could not be unarchived: ${error.message}`, {
