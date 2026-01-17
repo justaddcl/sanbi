@@ -1,7 +1,8 @@
-import { api } from "@/trpc/server";
-import { TRPCError } from "@trpc/server";
 import { redirect } from "next/navigation";
+import { TRPCError } from "@trpc/server";
 import { validate as uuidValidate } from "uuid";
+
+import { trpc } from "@lib/trpc/server";
 
 export async function getOrganization(organizationId: string) {
   if (!uuidValidate(organizationId)) {
@@ -12,7 +13,7 @@ export async function getOrganization(organizationId: string) {
   }
 
   try {
-    const organization = await api.organization.organization({
+    const organization = await trpc.organization.organization({
       organizationId,
     });
     return organization;

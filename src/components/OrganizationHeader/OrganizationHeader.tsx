@@ -1,12 +1,13 @@
 "use client";
 
-import { api } from "@/trpc/react";
-import { useAuth } from "@clerk/nextjs";
-import { Skeleton } from "@components/ui/skeleton";
-import { skipToken } from "@tanstack/react-query";
-import Link from "next/link";
 import React from "react";
+import Link from "next/link";
+import { useAuth } from "@clerk/nextjs";
+import { skipToken } from "@tanstack/react-query";
+
+import { Skeleton } from "@components/ui/skeleton";
 import { OrganizationHeaderLink } from "@components/OrganizationHeader/OrganizationHeaderLink";
+import { trpc } from "@lib/trpc";
 
 export const OrganizationHeader: React.FC = () => {
   const { userId, isSignedIn } = useAuth();
@@ -15,7 +16,7 @@ export const OrganizationHeader: React.FC = () => {
     isPending,
     isError,
     data: userData,
-  } = api.user.getUser.useQuery(userId ? { userId } : skipToken);
+  } = trpc.user.getUser.useQuery(userId ? { userId } : skipToken);
   const user = userData;
 
   if (isPending) {

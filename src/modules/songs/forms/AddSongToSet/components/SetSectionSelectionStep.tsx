@@ -13,9 +13,9 @@ import { SetSectionTypeCombobox } from "@modules/sets/components/SetSectionTypeC
 import { SelectedSetCard } from "@modules/songs/forms/AddSongToSet/components";
 import { type SelectedSet } from "@modules/songs/forms/AddSongToSet/components/AddSongToSetDialog";
 import { useUserQuery } from "@modules/users/api/queries";
+import { trpc } from "@lib/trpc";
 import { cn } from "@lib/utils";
 import { useResponsive } from "@/hooks/useResponsive";
-import { api } from "@/trpc/react";
 
 type SetSectionSelectionStepProps = {
   selectedSet: SelectedSet | null;
@@ -35,10 +35,10 @@ export const SetSectionSelectionStep: React.FC<
   const { textSize, isDesktop } = useResponsive();
   const { userMembership } = useUserQuery();
 
-  const createSetSectionMutation = api.setSection.create.useMutation();
-  const apiUtils = api.useUtils();
+  const createSetSectionMutation = trpc.setSection.create.useMutation();
+  const apiUtils = trpc.useUtils();
 
-  const { data: setData } = api.set.get.useQuery(
+  const { data: setData } = trpc.set.get.useQuery(
     {
       setId: selectedSet!.id,
       organizationId: userMembership!.organizationId,

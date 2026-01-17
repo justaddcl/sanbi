@@ -1,7 +1,15 @@
-import { useResponsive } from "@/hooks/useResponsive";
-import { api, type RouterOutputs } from "@/trpc/react";
-import { HStack } from "@components/HStack";
-import { KeyboardShortcut } from "@components/KeyboardShortcut";
+import { type KeyboardEventHandler, useEffect, useRef, useState } from "react";
+import {
+  ArrowDown,
+  ArrowUp,
+  Check,
+  KeyReturn,
+  MagnifyingGlass,
+  Plus,
+  X,
+} from "@phosphor-icons/react";
+import { toast } from "sonner";
+
 import { Button } from "@components/ui/button";
 import {
   Dialog,
@@ -17,20 +25,13 @@ import {
 } from "@components/ui/popover";
 import { ScrollArea } from "@components/ui/scroll-area";
 import { Skeleton } from "@components/ui/skeleton";
+import { HStack } from "@components/HStack";
+import { KeyboardShortcut } from "@components/KeyboardShortcut";
 import { VStack } from "@components/VStack";
+import { type RouterOutputs, trpc } from "@lib/trpc";
 import { tagNameSchema } from "@lib/types/zod";
 import { cn } from "@lib/utils";
-import {
-  ArrowDown,
-  ArrowUp,
-  Check,
-  KeyReturn,
-  MagnifyingGlass,
-  Plus,
-  X,
-} from "@phosphor-icons/react";
-import { type KeyboardEventHandler, useEffect, useRef, useState } from "react";
-import { toast } from "sonner";
+import { useResponsive } from "@/hooks/useResponsive";
 
 /**
  * Type for organization tag returned from the API
@@ -60,8 +61,8 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
 
   const { isDesktop } = useResponsive();
 
-  const createSongTagMutation = api.songTag.create.useMutation();
-  const createTagMutation = api.tag.create.useMutation({
+  const createSongTagMutation = trpc.songTag.create.useMutation();
+  const createTagMutation = trpc.tag.create.useMutation({
     onSuccess: (newTag) => {
       createSongTagMutation.mutate({
         songId,
@@ -70,14 +71,14 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
       });
     },
   });
-  const deleteSongTagMutation = api.songTag.delete.useMutation();
-  const apiUtils = api.useUtils();
+  const deleteSongTagMutation = trpc.songTag.delete.useMutation();
+  const apiUtils = trpc.useUtils();
 
   const {
     data: organizationTags,
     isLoading: isOrganizationTagsQueryLoading,
     error: organizationTagsQueryError,
-  } = api.tag.getByOrganization.useQuery({
+  } = trpc.tag.getByOrganization.useQuery({
     organizationId,
   });
 
@@ -85,7 +86,7 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
     data: songTags,
     isLoading: isSongTagsQueryLoading,
     error: songTagsQueryError,
-  } = api.songTag.getBySongId.useQuery({
+  } = trpc.songTag.getBySongId.useQuery({
     songId,
     organizationId,
   });

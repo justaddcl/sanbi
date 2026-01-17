@@ -1,5 +1,6 @@
-import { api } from "@/trpc/server";
 import { TRPCError } from "@trpc/server";
+
+import { trpc } from "@lib/trpc/server";
 import { NEW_USER_SIGN_UP_KEY } from "@app/create-team/consts";
 import { Text } from "@/components/Text";
 import { CreateTeamForm } from "@/modules/onboarding/createTeam";
@@ -16,7 +17,7 @@ export default async function CreateTeamPage({
   if (shouldCreateNewUser) {
     console.log("🖥 - Should create a new user - create-team page");
     try {
-      const newUser = await api.user.createMe();
+      const newUser = await trpc.user.createMe();
       console.log("🖥 - User created - create-team page", newUser);
     } catch (createUserError) {
       console.log(

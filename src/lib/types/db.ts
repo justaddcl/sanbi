@@ -1,3 +1,4 @@
+import { type RouterOutputs } from "@lib/trpc";
 import {
   type eventTypes,
   type organizationMemberships,
@@ -12,7 +13,6 @@ import {
   type tags,
   type users,
 } from "@server/db/schema";
-import { type RouterOutputs } from "@/trpc/react";
 
 export type NewOrganization = typeof organizations.$inferInsert;
 export type Organization = typeof organizations.$inferSelect;

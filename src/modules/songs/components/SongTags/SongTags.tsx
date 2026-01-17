@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { Badge } from "@components/ui/badge";
 import { Skeleton } from "@components/ui/skeleton";
 import { HStack } from "@components/HStack";
-import { api, type RouterOutputs } from "@/trpc/react";
+import { type RouterOutputs, trpc } from "@lib/trpc";
 
 import { SongTagSelector } from "../SongTagSelector/SongTagSelector";
 
@@ -28,14 +28,14 @@ export const SongTags: React.FC<SongTagsProps> = ({
     string | null
   >(null);
 
-  const deleteSongTagMutation = api.songTag.delete.useMutation();
-  const apiUtils = api.useUtils();
+  const deleteSongTagMutation = trpc.songTag.delete.useMutation();
+  const apiUtils = trpc.useUtils();
 
   const {
     data: songTags,
     isLoading: isSongTagsQueryLoading,
     error: songTagsQueryError,
-  } = api.songTag.getBySongId.useQuery({
+  } = trpc.songTag.getBySongId.useQuery({
     songId,
     organizationId,
   });

@@ -1,13 +1,14 @@
 import { useState } from "react";
-import { Combobox, type ComboboxOption } from "@components/ui/combobox";
-import { Input } from "@components/ui/input";
-import { Button } from "@components/ui/button";
-import { CommandGroup } from "@components/ui/command";
 import { Plus } from "@phosphor-icons/react/dist/ssr";
-import { cn } from "@lib/utils";
-import { api } from "@/trpc/react";
 import { toast } from "sonner";
+
+import { Button } from "@components/ui/button";
+import { Combobox, type ComboboxOption } from "@components/ui/combobox";
+import { CommandGroup } from "@components/ui/command";
+import { Input } from "@components/ui/input";
 import { useSectionTypesOptions } from "@modules/sets/hooks/useSetSectionTypes";
+import { trpc } from "@lib/trpc";
+import { cn } from "@lib/utils";
 
 export type SetSectionTypeComboboxProps = {
   /** Available set section type options */
@@ -53,8 +54,8 @@ export const SetSectionTypeCombobox: React.FC<SetSectionTypeComboboxProps> = ({
   const [newSetSectionInputValue, setNewSetSectionInputValue] =
     useState<string>("");
 
-  const createSetSectionTypeMutation = api.setSectionType.create.useMutation();
-  const apiUtils = api.useUtils();
+  const createSetSectionTypeMutation = trpc.setSectionType.create.useMutation();
+  const apiUtils = trpc.useUtils();
 
   const {
     options: setSectionTypesOptions,

@@ -11,8 +11,8 @@ import { type DraggableSongItem } from "@modules/shared/components/DraggableSong
 import { DraggableSongList } from "@modules/shared/components/DraggableSongList/DraggableSongList";
 import { useUserQuery } from "@modules/users/api/queries";
 import { clamp } from "@lib/numbers";
+import { trpc } from "@lib/trpc";
 import { type AppRouter } from "@server/api/root";
-import { api } from "@/trpc/react";
 
 export type DraggableSongListItem = Omit<DraggableSongItem, "songKey"> &
   Partial<Pick<DraggableSongItem, "songKey">> & {
@@ -39,7 +39,7 @@ export const SetSongPositionStep: React.FC<SetSongPositionStepProps> = ({
 
   const { userMembership } = useUserQuery();
 
-  const { data: setSectionData } = api.setSection.get.useQuery(
+  const { data: setSectionData } = trpc.setSection.get.useQuery(
     {
       setSectionId: selectedSetSection!,
       organizationId: userMembership?.organizationId ?? "",

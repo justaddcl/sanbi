@@ -1,6 +1,6 @@
-import { api } from "@/trpc/server";
+import { trpc } from "@lib/trpc/server";
 
 export async function GET(_request: Request) {
-  const users = await api.user.getAll();
+  const users = await trpc.user.getAll();
   return Response.json({ users });
 }

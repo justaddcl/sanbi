@@ -20,10 +20,10 @@ import { type CreateSetFormFields } from "@modules/sets/components/CreateSetForm
 import { SetDatePickerFormField } from "@modules/sets/components/forms/SetDatePickerFormField";
 import { useUserQuery } from "@modules/users/api/queries";
 import { sanitizeInput } from "@lib/string";
+import { trpc } from "@lib/trpc";
 import { type SetSectionWithSongs } from "@lib/types";
 import { insertSetSchema } from "@lib/types/zod";
 import { useResponsive } from "@/hooks/useResponsive";
-import { api } from "@/trpc/react";
 
 import { SetEventTypeSelectFormField } from "./SetEventTypeSelectFormField";
 import { SetSectionList } from "../SetSectionList/SetSectionList";
@@ -51,7 +51,7 @@ export const DuplicateSetForm: React.FC<DuplicateSetFormProps> = ({
 
   const router = useRouter();
 
-  const duplicateSetMutation = api.set.duplicate.useMutation();
+  const duplicateSetMutation = trpc.set.duplicate.useMutation();
 
   const {
     data: userData,

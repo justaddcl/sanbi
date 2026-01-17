@@ -66,6 +66,8 @@ const config = {
       "warn",
       {
         groups: [
+          // 0. server-only
+          ["^\\u0000server-only$"],
           // 1. React, Next.js and external packages (excluding internal aliases)
           [
             "^react",

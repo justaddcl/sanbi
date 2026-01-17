@@ -1,11 +1,9 @@
 "use client";
 
-import { Button } from "@components/ui/button";
-import { DropdownMenuSeparator } from "@components/ui/dropdown-menu";
 import { type Dispatch, type SetStateAction, useState } from "react";
-import { api } from "@/trpc/react";
+import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { useUserQuery } from "@modules/users/api/queries";
+
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -14,15 +12,18 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@components/ui/alert-dialog";
-import { type SetSectionSongWithSongData } from "@lib/types";
+import { Button } from "@components/ui/button";
+import { DropdownMenuSeparator } from "@components/ui/dropdown-menu";
+import { ActionMenu, ActionMenuItem } from "@components/ActionMenu";
 import { type SongItemWithActionsMenuProps } from "@modules/SetListCard/components/SongItem";
+import { ReplaceSongDialog } from "@modules/songs/components/ReplaceSongDialog";
+import { useUserQuery } from "@modules/users/api/queries";
+import { trpc } from "@lib/trpc";
+import { type SetSectionSongWithSongData } from "@lib/types";
 import {
   type MoveSectionDirection,
   type SwapSongDirection,
 } from "@server/mutations";
-import { useParams, useRouter } from "next/navigation";
-import { ReplaceSongDialog } from "@modules/songs/components/ReplaceSongDialog";
-import { ActionMenu, ActionMenuItem } from "@components/ActionMenu";
 
 type SongActionMenuProps = {
   /** set section song object */
@@ -60,7 +61,7 @@ export const SongActionMenu: React.FC<SongActionMenuProps> = ({
   isInLastSection,
   setIsEditingDetails,
 }) => {
-  const apiUtils = api.useUtils();
+  const apiUtils = trpc.useUtils();
   const [isSongActionMenuOpen, setIsSongActionMenuOpen] =
     useState<boolean>(false);
   const [isConfirmationDialogOpen, setIsConfirmationDialogOpen] =
@@ -79,15 +80,15 @@ export const SongActionMenu: React.FC<SongActionMenuProps> = ({
   } = useUserQuery();
   const userMembership = userData?.memberships[0];
 
-  const deleteSetSectionSongMutation = api.setSectionSong.delete.useMutation();
+  const deleteSetSectionSongMutation = trpc.setSectionSong.delete.useMutation();
   const swapSongWithPreviousMutation =
-    api.setSectionSong.swapSongWithPrevious.useMutation();
+    trpc.setSectionSong.swapSongWithPrevious.useMutation();
   const swapSongWithNextMutation =
-    api.setSectionSong.swapSongWithNext.useMutation();
+    trpc.setSectionSong.swapSongWithNext.useMutation();
   const moveSongToPreviousSectionMutation =
-    api.setSectionSong.moveSongToPreviousSection.useMutation();
+    trpc.setSectionSong.moveSongToPreviousSection.useMutation();
   const moveSongToNextSectionMutation =
-    api.setSectionSong.moveSongToNextSection.useMutation();
+    trpc.setSectionSong.moveSongToNextSection.useMutation();
 
   if (
     !!userQueryError ||

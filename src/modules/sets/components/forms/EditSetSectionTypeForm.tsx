@@ -24,10 +24,10 @@ import { SetSectionTypeCombobox } from "@modules/sets/components/SetSectionTypeC
 import { useSectionTypesOptions } from "@modules/sets/hooks/useSetSectionTypes";
 import { useUserQuery } from "@modules/users/api/queries";
 import { pluralize } from "@lib/string";
+import { trpc } from "@lib/trpc";
 import { insertSetSectionSchema } from "@lib/types/zod";
 import { cn } from "@lib/utils";
 import { useResponsive } from "@/hooks/useResponsive";
-import { api } from "@/trpc/react";
 
 import { type SetSectionCardProps } from "../SetSectionCard";
 
@@ -63,8 +63,8 @@ export const EditSetSectionTypeForm: React.FC<EditSetSectionTypeFormProps> = ({
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const changeSetSectionTypeMutation = api.setSection.changeType.useMutation();
-  const apiUtils = api.useUtils();
+  const changeSetSectionTypeMutation = trpc.setSection.changeType.useMutation();
+  const apiUtils = trpc.useUtils();
 
   const updateSetSectionForm = useForm<UpdateSetSectionFormFields>({
     resolver: zodResolver(updateSetSectionSchema),

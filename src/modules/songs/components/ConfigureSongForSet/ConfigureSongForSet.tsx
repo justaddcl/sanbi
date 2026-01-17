@@ -45,11 +45,11 @@ import { type SongSearchDialogSteps } from "@modules/songs/components/SongSearch
 import { useUserQuery } from "@modules/users/api/queries";
 import { songKeys } from "@lib/constants";
 import { formatSongKey } from "@lib/string/formatSongKey";
+import { trpc } from "@lib/trpc";
 import { type SetSectionWithSongs } from "@lib/types";
 import { insertSetSectionSongSchema } from "@lib/types/zod";
 import { cn } from "@lib/utils";
 import { useResponsive } from "@/hooks/useResponsive";
-import { api } from "@/trpc/react";
 
 const createSetSectionSongsSchema = insertSetSectionSongSchema
   .pick({
@@ -118,9 +118,9 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
 
   const shouldAddSongBeDisabled = !isDirty || !isValid || isSubmitting;
 
-  const addSetSectionSongMutation = api.setSectionSong.create.useMutation();
-  const createSetSectionMutation = api.setSection.create.useMutation();
-  const apiUtils = api.useUtils();
+  const addSetSectionSongMutation = trpc.setSectionSong.create.useMutation();
+  const createSetSectionMutation = trpc.setSection.create.useMutation();
+  const apiUtils = trpc.useUtils();
 
   const {
     data: userData,
@@ -135,7 +135,7 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
   }
 
   const { data: lastPlayInstance, isLoading: isLastPlayInstanceQueryLoading } =
-    api.song.getLastPlayInstance.useQuery({
+    trpc.song.getLastPlayInstance.useQuery({
       organizationId: userMembership.organizationId,
       songId: selectedSong.songId,
     });
@@ -144,7 +144,7 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
     data: sectionsForSetData,
     error: sectionsForSetQueryError,
     isLoading: isSectionsForSetQueryLoading,
-  } = api.setSection.getSectionsForSet.useQuery(
+  } = trpc.setSection.getSectionsForSet.useQuery(
     { organizationId: userMembership.organizationId, setId },
     { enabled: !!userMembership, placeholderData: existingSetSections },
   );

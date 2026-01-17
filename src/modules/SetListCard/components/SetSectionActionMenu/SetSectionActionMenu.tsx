@@ -1,10 +1,9 @@
 "use client";
 
-import { DropdownMenuSeparator } from "@components/ui/dropdown-menu";
 import { type Dispatch, type SetStateAction, useState } from "react";
-import { api } from "@/trpc/react";
+import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { useUserQuery } from "@modules/users/api/queries";
+
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -14,14 +13,16 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@components/ui/alert-dialog";
-import { type SongItemWithActionsMenuProps } from "@modules/SetListCard/components/SongItem";
-import { useParams, useRouter } from "next/navigation";
+import { Button } from "@components/ui/button";
+import { DropdownMenuSeparator } from "@components/ui/dropdown-menu";
 import { ActionMenu, ActionMenuItem } from "@components/ActionMenu";
+import { Text } from "@components/Text";
+import { VStack } from "@components/VStack";
+import { type SongItemWithActionsMenuProps } from "@modules/SetListCard/components/SongItem";
 import { type SetSectionCardProps } from "@modules/sets/components/SetSectionCard";
 import { type SwapSetSectionPositionDirection } from "@modules/setSections/api/mutations";
-import { Button } from "@components/ui/button";
-import { VStack } from "@components/VStack";
-import { Text } from "@components/Text";
+import { useUserQuery } from "@modules/users/api/queries";
+import { trpc } from "@lib/trpc";
 
 type SetSectionActionMenuProps = {
   /** set section the action menu is attached to */
@@ -56,7 +57,7 @@ export const SetSectionActionMenu: React.FC<SetSectionActionMenuProps> = ({
   isInLastSection,
   setIsEditingSectionType,
 }) => {
-  const apiUtils = api.useUtils();
+  const apiUtils = trpc.useUtils();
   const [isActionMenuOpen, setIsActionMenuOpen] = useState<boolean>(false);
   const [isConfirmationDialogOpen, setIsConfirmationDialogOpen] =
     useState<boolean>(false);
@@ -75,13 +76,13 @@ export const SetSectionActionMenu: React.FC<SetSectionActionMenuProps> = ({
   const userMembership = userData?.memberships[0];
 
   const swapSetSectionWithPreviousMutation =
-    api.setSection.swapWithPrevious.useMutation();
+    trpc.setSection.swapWithPrevious.useMutation();
   const swapSetSectionWithNextMutation =
-    api.setSection.swapWithNext.useMutation();
+    trpc.setSection.swapWithNext.useMutation();
   const moveSetSectionToFirstMutation =
-    api.setSection.moveToFirst.useMutation();
-  const moveSetSectionToLastMutation = api.setSection.moveToLast.useMutation();
-  const deleteSetSectionMutation = api.setSection.delete.useMutation();
+    trpc.setSection.moveToFirst.useMutation();
+  const moveSetSectionToLastMutation = trpc.setSection.moveToLast.useMutation();
+  const deleteSetSectionMutation = trpc.setSection.delete.useMutation();
 
   if (
     !!userQueryError ||

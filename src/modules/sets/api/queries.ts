@@ -1,5 +1,6 @@
-import { api } from "@/trpc/react";
 import { validate as uuidValidate } from "uuid";
+
+import { trpc } from "@lib/trpc";
 
 export const useSetQuery = (params: {
   setId: string;
@@ -7,7 +8,7 @@ export const useSetQuery = (params: {
   userId: string;
 }) => {
   const { setId, organizationId, userId } = params;
-  return api.set.get.useQuery(
+  return trpc.set.get.useQuery(
     {
       organizationId,
       setId: params.setId,

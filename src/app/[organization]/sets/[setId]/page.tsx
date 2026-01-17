@@ -1,6 +1,16 @@
 "use client";
-import { api } from "@/trpc/react";
+import { useCallback, useEffect, useState } from "react";
+import { redirect, useSearchParams } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
+import { CaretDown, CaretUp } from "@phosphor-icons/react";
+import { Archive, Plus } from "@phosphor-icons/react/dist/ssr";
+import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
+import { toast } from "sonner";
+import { validate as uuidValidate } from "uuid";
+
+import { Alert, AlertDescription, AlertTitle } from "@components/ui/alert";
+import { Button } from "@components/ui/button";
+import { type ComboboxOption } from "@components/ui/combobox";
 import { HStack } from "@components/HStack";
 import { PageContentContainer } from "@components/PageContentContainer";
 import {
@@ -11,12 +21,7 @@ import {
   ResponsiveDialogTitle,
 } from "@components/ResponsiveDialog";
 import { Text } from "@components/Text";
-import { Alert, AlertDescription, AlertTitle } from "@components/ui/alert";
-import { Button } from "@components/ui/button";
-import { type ComboboxOption } from "@components/ui/combobox";
 import { VStack } from "@components/VStack";
-import { type SetSectionWithSongs } from "@lib/types";
-import { cn } from "@lib/utils";
 import { useSetQuery } from "@modules/sets/api";
 import { SetActionsMenu } from "@modules/sets/components/SetActionsMenu";
 import { SetDetails } from "@modules/sets/components/SetDetails";
@@ -29,13 +34,9 @@ import { SetSectionTypeCombobox } from "@modules/sets/components/SetSectionTypeC
 import { ArchivedBanner } from "@modules/shared/components";
 import { type ConfigureSongForSetProps } from "@modules/songs/components/ConfigureSongForSet/ConfigureSongForSet";
 import { SongSearchDialog } from "@modules/songs/components/SongSearchDialog";
-import { CaretDown, CaretUp } from "@phosphor-icons/react";
-import { Archive, Plus } from "@phosphor-icons/react/dist/ssr";
-import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
-import { redirect, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
-import { toast } from "sonner";
-import { validate as uuidValidate } from "uuid";
+import { trpc } from "@lib/trpc";
+import { type SetSectionWithSongs } from "@lib/types";
+import { cn } from "@lib/utils";
 import { useResponsive } from "@/hooks/useResponsive";
 
 type SetListPageProps = {
@@ -59,8 +60,8 @@ export default function SetListPage({ params }: SetListPageProps) {
   const [isAddSectionDialogOpen, setIsAddSectionDialogOpen] =
     useState<boolean>(false);
 
-  const createSetSectionMutation = api.setSection.create.useMutation();
-  const apiUtils = api.useUtils();
+  const createSetSectionMutation = trpc.setSection.create.useMutation();
+  const apiUtils = trpc.useUtils();
 
   useEffect(() => {
     const addSongDialogOpen = searchParams.get("addSongDialogOpen");
@@ -114,7 +115,7 @@ export default function SetListPage({ params }: SetListPageProps) {
     data: userData,
     isLoading: isUserQueryLoading,
     error: userQueryError,
-  } = api.user.getUser.useQuery({ userId: userId! }, { enabled: !!userId }); // we use a non-null assertion here since the query will be disabled if userId is falsy
+  } = trpc.user.getUser.useQuery({ userId: userId! }, { enabled: !!userId }); // we use a non-null assertion here since the query will be disabled if userId is falsy
   const userMembership = userData?.memberships[0];
 
   validateParams();

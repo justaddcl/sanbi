@@ -20,7 +20,7 @@ import {
   FRIENDLY_FORMAT_CALENDAR_WEEK_DIFFERENCE_THRESHOLD,
 } from "@lib/date";
 import { pluralize } from "@lib/string";
-import { api } from "@/trpc/react";
+import { trpc } from "@lib/trpc";
 
 import {
   type SetSelectionEventTypeFilters,
@@ -63,7 +63,7 @@ export const SetSelectionAllUpcomingSets: React.FC<
     isFetchingNextPage,
     isLoading,
     error: getInfiniteSetsQueryError,
-  } = api.set.getInfinite.useInfiniteQuery(
+  } = trpc.set.getInfinite.useInfiniteQuery(
     {
       organizationId: userMembership.organizationId,
       dateRange: dateFilter?.from

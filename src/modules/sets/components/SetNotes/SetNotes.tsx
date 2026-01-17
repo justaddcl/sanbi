@@ -1,13 +1,14 @@
-import { api } from "@/trpc/react";
-import { HStack } from "@components/HStack";
-import { Text } from "@components/Text";
-import { Button } from "@components/ui/button";
-import { Textarea } from "@components/ui/textarea";
-import { VStack } from "@components/VStack";
-import { sanitizeInput } from "@lib/string/sanitizeInput";
 import { useState } from "react";
 import { toast } from "sonner";
 import unescapeHTML from "validator/es/lib/unescape";
+
+import { Button } from "@components/ui/button";
+import { Textarea } from "@components/ui/textarea";
+import { HStack } from "@components/HStack";
+import { Text } from "@components/Text";
+import { VStack } from "@components/VStack";
+import { sanitizeInput } from "@lib/string/sanitizeInput";
+import { trpc } from "@lib/trpc";
 
 type SetNotesProps = {
   setId: string;
@@ -23,8 +24,8 @@ export const SetNotes: React.FC<SetNotesProps> = ({
   const [isEditingNotes, setIsEditingNotes] = useState<boolean>(false);
   const [notes, setNotes] = useState<string>(value ?? "");
 
-  const updateNotesMutation = api.set.updateNotes.useMutation();
-  const apiUtils = api.useUtils();
+  const updateNotesMutation = trpc.set.updateNotes.useMutation();
+  const apiUtils = trpc.useUtils();
 
   const handleUpdateNotes = () => {
     const toastId = toast.loading("Updating set notes...");

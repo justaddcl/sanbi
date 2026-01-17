@@ -1,10 +1,11 @@
-import { db } from "@/server/db";
-import { organizations } from "@/server/db/schema";
-import { api } from "@/trpc/server";
-import { auth } from "@clerk/nextjs/server";
-import { eq } from "drizzle-orm";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { auth } from "@clerk/nextjs/server";
+import { eq } from "drizzle-orm";
+
+import { trpc } from "@lib/trpc/server";
+import { db } from "@/server/db";
+import { organizations } from "@/server/db/schema";
 
 export default async function Home() {
   const { userId } = auth();
@@ -26,7 +27,7 @@ export default async function Home() {
     );
   }
 
-  const userMembership = await api.organizationMemberships.forUser({
+  const userMembership = await trpc.organizationMemberships.forUser({
     userId,
   });
 
