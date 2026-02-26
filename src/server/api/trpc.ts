@@ -120,7 +120,7 @@ export const authedProcedure = t.procedure.use(async (opts) => {
 
   return opts.next({
     ctx: {
-      auth: await auth(),
+      auth: ctx.auth,
       // user,
     },
   });
@@ -136,7 +136,7 @@ export const organizationProcedure = authedProcedure
     const { ctx, input } = opts;
 
     const user = await db.query.users.findFirst({
-      where: eq(users.id, ctx.auth.userId!), // asserting that the user is not null since this is an authed procedure, which would have thrown an "unauthorized" error already
+      where: eq(users.id, ctx.auth.userId), // asserting that the user is not null since this is an authed procedure, which would have thrown an "unauthorized" error already
     });
 
     if (!user) {

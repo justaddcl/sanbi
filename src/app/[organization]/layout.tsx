@@ -11,15 +11,7 @@ export default async function DashboardLayout({
     organization: string;
   };
 }) {
-  const { userId, redirectToSignIn } = await auth();
   await auth.protect();
-
-  if (!userId) {
-    console.log(
-      "🤖 - userID was not found. Redirecting to sign-in page - organization/layout",
-    );
-    redirectToSignIn();
-  }
 
   const isOrgIdValidUuid = uuidValidate(params.organization);
   if (!isOrgIdValidUuid) {
