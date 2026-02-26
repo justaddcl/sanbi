@@ -13,14 +13,16 @@ export default async function SongPage({
 }) {
   const queryClient = getServerQueryClient();
 
-  const { userId } = auth();
+  const { userId } = await auth();
 
   if (!userId) {
     redirect("/");
   }
 
   const userData = await trpc.user.getUser({ userId });
-  const userMembership = userData?.memberships.find((membership) => membership.organization.id === params.organization);
+  const userMembership = userData?.memberships.find(
+    (membership) => membership.organization.id === params.organization,
+  );
 
   if (!userMembership) {
     redirect("/");

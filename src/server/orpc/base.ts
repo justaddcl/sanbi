@@ -17,7 +17,7 @@ import { organizationMemberships, organizations, users } from "../db/schema";
 export const createORPCContext = async (opts: { headers: HeadersInit }) => {
   return {
     db,
-    auth: auth(),
+    auth: await auth(),
     headers: new Headers(opts.headers),
   };
 };
@@ -29,7 +29,7 @@ const o = os.$context<BaseContext>();
 
 export const publicProcedure = o;
 
-type ClerkAuth = ReturnType<typeof auth>;
+type ClerkAuth = Awaited<ReturnType<typeof auth>>;
 
 type AuthenticatedAuth = ClerkAuth & {
   userId: string;

@@ -1,5 +1,5 @@
-import { auth } from "@clerk/nextjs/server";
 import { notFound } from "next/navigation";
+import { auth } from "@clerk/nextjs/server";
 import { validate as uuidValidate } from "uuid";
 
 export default async function DashboardLayout({
@@ -11,8 +11,8 @@ export default async function DashboardLayout({
     organization: string;
   };
 }) {
-  const { userId, protect, redirectToSignIn } = auth();
-  protect();
+  const { userId, redirectToSignIn } = await auth();
+  await auth.protect();
 
   if (!userId) {
     console.log(

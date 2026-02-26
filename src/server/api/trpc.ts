@@ -32,7 +32,7 @@ import { organizationMemberships, organizations, users } from "../db/schema";
 export const createTRPCContext = async (opts: { headers: Headers }) => {
   return {
     db,
-    auth: auth(),
+    auth: await auth(),
     ...opts,
   };
 };
@@ -120,7 +120,7 @@ export const authedProcedure = t.procedure.use(async (opts) => {
 
   return opts.next({
     ctx: {
-      auth: auth(),
+      auth: await auth(),
       // user,
     },
   });
