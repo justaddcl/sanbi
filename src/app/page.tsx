@@ -8,7 +8,7 @@ import { db } from "@/server/db";
 import { organizations } from "@/server/db/schema";
 
 export default async function Home() {
-  const { userId } = auth();
+  const { userId } = await auth();
 
   if (!userId) {
     // FIXME: move query to db/queries

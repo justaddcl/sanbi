@@ -25,12 +25,12 @@ export const metadata = {
   icons: [{ rel: "icon", url: "/favicon.ico" }],
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { userId } = auth();
+  const { userId } = await auth();
 
   const gridColumns = userId ? "min-[1025px]:grid-cols-[300px_1fr]" : "";
 

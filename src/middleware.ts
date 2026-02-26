@@ -8,9 +8,9 @@ const isPublicRoute = createRouteMatcher([
   "/api/(.*)", // "allowing" api routes since we want the API to return errors rather than redirecting to sign-in
 ]);
 
-export default clerkMiddleware((auth, req) => {
+export default clerkMiddleware(async (auth, req) => {
   if (!isPublicRoute(req)) {
-    auth().protect();
+    await auth.protect();
   }
 });
 
