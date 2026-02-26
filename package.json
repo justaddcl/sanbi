@@ -18,7 +18,7 @@
     "db:clear:prod": "NODE_ENV=production dotenvx run -- npx tsx ./src/server/db/clear.ts",
     "db:update": "dotenvx run -- npx tsx ./src/server/db/clear.ts && drizzle-kit push && dotenvx run -- npx tsx ./src/server/db/seed.ts",
     "db:update:prod": "NODE_ENV=production dotenvx run -- npx tsx ./src/server/db/clear.ts && NODE_ENV=production drizzle-kit push && NODE_ENV=production dotenvx run -- npx tsx ./src/server/db/seed.ts",
-    "dev": "NODE_ENV=development next dev | node ./src/scripts/pino-pretty.mjs",
+    "dev": "NODE_ENV=development next dev | tsx ./src/scripts/pino-pretty.ts",
     "dev:turbo": "turbo dev",
     "docker:daemon": "tsx ./src/scripts/start-docker.ts",
     "docker:wait": "tsx ./src/scripts/wait-for-docker.ts",
