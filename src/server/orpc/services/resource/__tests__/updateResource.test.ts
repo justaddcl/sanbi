@@ -1,82 +1,36 @@
-import { ORPCError } from "@orpc/server";
-
 import {
+  POSTGRES_UNIQUE_CONSTRAINT_VIOLATION_CODE,
   updateResourceForOrganization,
-  type UpdateResourceRepository,
 } from "@server/orpc/services/resource/updateResource";
 import { createUuid } from "@/testUtils/generators/createUuid";
 import { createResourceFixture } from "@/testUtils/models/resource/fixtures";
-import { createResourceName } from "@/testUtils/models/resource/generators";
+import {
+  createResourceName,
+  createResourceUrl,
+} from "@/testUtils/models/resource/generators";
+import { createUpdateResourceDataFixture } from "@/testUtils/models/resource/updateResourceData";
+import { expectOrpcErrorCode } from "@/testUtils/orpc/expectOrpcErrorCode";
+import { type MockOrpcErrorModule } from "@/testUtils/orpc/mockOrpcError";
 
 jest.mock("@orpc/server", () => {
-  interface ORPCErrorOptions {
-    message?: string;
-    cause?: unknown;
-  }
+  const { mockOrpcErrorModule } = jest.requireActual<{
+    mockOrpcErrorModule: MockOrpcErrorModule;
+  }>("@/testUtils/orpc/mockOrpcError");
 
-  class ORPCError extends Error {
-    public readonly code: string;
-
-    constructor(code: string, ...rest: [ORPCErrorOptions] | []) {
-      const opts = rest[0] ?? {};
-      super(opts.message ?? `Mock ORPCError with code ${code}`);
-      this.name = "ORPCError";
-      this.code = code;
-      this.cause = opts.cause;
-    }
-  }
-
-  return { __esModule: true, ORPCError };
+  return mockOrpcErrorModule;
 });
-
 jest.mock("@orpc/client", () => {
-  interface ORPCErrorOptions {
-    message?: string;
-    cause?: unknown;
-  }
+  const { mockOrpcErrorModule } = jest.requireActual<{
+    mockOrpcErrorModule: MockOrpcErrorModule;
+  }>("@/testUtils/orpc/mockOrpcError");
 
-  class ORPCError extends Error {
-    public readonly code: string;
-
-    constructor(code: string, ...rest: [ORPCErrorOptions] | []) {
-      const opts = rest[0] ?? {};
-      super(opts.message ?? `Mock ORPCError with code ${code}`);
-      this.name = "ORPCError";
-      this.code = code;
-      this.cause = opts.cause;
-    }
-  }
-
-  return { __esModule: true, ORPCError };
+  return mockOrpcErrorModule;
 });
-
-type MockUpdateResourceRepository = {
-  findResourceById: jest.MockedFunction<
-    UpdateResourceRepository["findResourceById"]
-  >;
-  updateResource: jest.MockedFunction<UpdateResourceRepository["updateResource"]>;
-};
-
-const createRepositoryFixture = (
-  overrides: Partial<MockUpdateResourceRepository> = {},
-): MockUpdateResourceRepository => ({
-  findResourceById: jest.fn(),
-  updateResource: jest.fn(),
-  ...overrides,
-});
-
-const expectOrpcErrorCode = async (
-  action: Promise<unknown>,
-  code: string,
-) => {
-  await expect(action).rejects.toBeInstanceOf(ORPCError);
-  await expect(action).rejects.toMatchObject({ code });
-};
 
 describe("updateResourceForOrganization", () => {
   it("rejects updates outside of the user's organization before fetching the resource", async () => {
     const resource = createResourceFixture();
-    const repository = createRepositoryFixture();
+    const resourceData = createUpdateResourceDataFixture();
 
     await expectOrpcErrorCode(
       updateResourceForOrganization({
@@ -86,18 +40,18 @@ describe("updateResourceForOrganization", () => {
           title: createResourceName(),
         },
         userOrganizationId: resource.organizationId,
-        repository,
+        resourceData,
       }),
       "FORBIDDEN",
     );
 
-    expect(repository.findResourceById).not.toHaveBeenCalled();
-    expect(repository.updateResource).not.toHaveBeenCalled();
+    expect(resourceData.findResourceById).not.toHaveBeenCalled();
+    expect(resourceData.updateResource).not.toHaveBeenCalled();
   });
 
   it("returns NOT_FOUND when the target resource does not exist", async () => {
     const organizationId = createUuid();
-    const repository = createRepositoryFixture({
+    const resourceData = createUpdateResourceDataFixture({
       findResourceById: jest.fn().mockResolvedValue(null),
     });
 
@@ -109,12 +63,12 @@ describe("updateResourceForOrganization", () => {
           title: createResourceName(),
         },
         userOrganizationId: organizationId,
-        repository,
+        resourceData,
       }),
       "NOT_FOUND",
     );
 
-    expect(repository.updateResource).not.toHaveBeenCalled();
+    expect(resourceData.updateResource).not.toHaveBeenCalled();
   });
 
   it("rejects resources that belong to another organization", async () => {
@@ -122,7 +76,7 @@ describe("updateResourceForOrganization", () => {
     const resource = createResourceFixture({
       organizationId: createUuid(),
     });
-    const repository = createRepositoryFixture({
+    const resourceData = createUpdateResourceDataFixture({
       findResourceById: jest.fn().mockResolvedValue(resource),
     });
 
@@ -134,19 +88,20 @@ describe("updateResourceForOrganization", () => {
           title: createResourceName(),
         },
         userOrganizationId: organizationId,
-        repository,
+        resourceData,
       }),
       "FORBIDDEN",
     );
 
-    expect(repository.updateResource).not.toHaveBeenCalled();
+    expect(resourceData.updateResource).not.toHaveBeenCalled();
   });
 
   it("returns the existing resource without writing when submitted values are unchanged", async () => {
+    const resourceUrl = createResourceUrl();
     const resource = createResourceFixture({
-      url: "https://example.com/chart",
+      url: resourceUrl,
     });
-    const repository = createRepositoryFixture({
+    const resourceData = createUpdateResourceDataFixture({
       findResourceById: jest.fn().mockResolvedValue(resource),
     });
 
@@ -159,23 +114,25 @@ describe("updateResourceForOrganization", () => {
           url: resource.url,
         },
         userOrganizationId: resource.organizationId,
-        repository,
+        resourceData,
       }),
     ).resolves.toEqual(resource);
 
-    expect(repository.updateResource).not.toHaveBeenCalled();
+    expect(resourceData.updateResource).not.toHaveBeenCalled();
   });
 
   it("updates changed fields and normalizes URLs before writing", async () => {
+    const originalResourceUrl = createResourceUrl();
+    const updatedResourceUrl = createResourceUrl();
     const resource = createResourceFixture({
-      url: "https://example.com/original",
+      url: originalResourceUrl,
     });
     const updatedResource = {
       ...resource,
       title: createResourceName(),
-      url: "https://example.com/chart",
+      url: updatedResourceUrl,
     };
-    const repository = createRepositoryFixture({
+    const resourceData = createUpdateResourceDataFixture({
       findResourceById: jest.fn().mockResolvedValue(resource),
       updateResource: jest.fn().mockResolvedValue(updatedResource),
     });
@@ -186,22 +143,22 @@ describe("updateResourceForOrganization", () => {
           resourceId: resource.id,
           organizationId: resource.organizationId,
           title: updatedResource.title,
-          url: "  https://EXAMPLE.com//chart  ",
+          url: `  ${updatedResource.url}  `,
         },
         userOrganizationId: resource.organizationId,
-        repository,
+        resourceData,
       }),
     ).resolves.toEqual(updatedResource);
 
-    expect(repository.updateResource).toHaveBeenCalledWith(resource.id, {
+    expect(resourceData.updateResource).toHaveBeenCalledWith(resource.id, {
       title: updatedResource.title,
       url: updatedResource.url,
     });
   });
 
-  it("returns CONFLICT when the repository cannot update the resource", async () => {
+  it("returns CONFLICT when the resource data access cannot update the resource", async () => {
     const resource = createResourceFixture();
-    const repository = createRepositoryFixture({
+    const resourceData = createUpdateResourceDataFixture({
       findResourceById: jest.fn().mockResolvedValue(resource),
       updateResource: jest.fn().mockResolvedValue(null),
     });
@@ -214,7 +171,7 @@ describe("updateResourceForOrganization", () => {
           title: createResourceName(),
         },
         userOrganizationId: resource.organizationId,
-        repository,
+        resourceData,
       }),
       "CONFLICT",
     );
@@ -224,9 +181,9 @@ describe("updateResourceForOrganization", () => {
     const resource = createResourceFixture();
     const uniqueConstraintError = Object.assign(
       new Error("duplicate resource URL"),
-      { code: "23505" },
+      { code: POSTGRES_UNIQUE_CONSTRAINT_VIOLATION_CODE },
     );
-    const repository = createRepositoryFixture({
+    const resourceData = createUpdateResourceDataFixture({
       findResourceById: jest.fn().mockResolvedValue(resource),
       updateResource: jest.fn().mockRejectedValue(uniqueConstraintError),
     });
@@ -236,10 +193,10 @@ describe("updateResourceForOrganization", () => {
         input: {
           resourceId: resource.id,
           organizationId: resource.organizationId,
-          url: "https://example.com/duplicate",
+          url: createResourceUrl(),
         },
         userOrganizationId: resource.organizationId,
-        repository,
+        resourceData,
       }),
       "CONFLICT",
     );

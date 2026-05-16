@@ -1,6 +1,7 @@
 import { ORPCError } from "@orpc/server";
 import { type z } from "zod";
 
+import { type getRouteLogger } from "@lib/loggers/logger";
 import { type Resource } from "@lib/types";
 import { type updateResourceSchema } from "@lib/types/zod";
 import { validateUrl } from "@server/utils/urls/validateUrl";
@@ -8,8 +9,9 @@ import { validateUrl } from "@server/utils/urls/validateUrl";
 type UpdateResourceInput = z.infer<typeof updateResourceSchema>;
 
 type ResourceUpdateValues = Pick<Resource, "title" | "url">;
+type UpdateResourceLogger = NonNullable<ReturnType<typeof getRouteLogger>>;
 
-export type UpdateResourceRepository = {
+export type UpdateResourceData = {
   findResourceById: (resourceId: string) => Promise<Resource | null>;
   updateResource: (
     resourceId: string,
@@ -17,26 +19,24 @@ export type UpdateResourceRepository = {
   ) => Promise<Resource | null>;
 };
 
-type UpdateResourceLogger = {
-  info: (message: string) => void;
-  warn: (message: string) => void;
-  error: (message: string) => void;
-};
+export const POSTGRES_UNIQUE_CONSTRAINT_VIOLATION_CODE = "23505";
 
 type UpdateResourceForOrganizationOptions = {
   input: UpdateResourceInput;
   userOrganizationId: string;
-  repository: UpdateResourceRepository;
-  logger?: Partial<UpdateResourceLogger>;
+  resourceData: UpdateResourceData;
+  logger?: UpdateResourceLogger;
 };
 
 const isUniqueConstraintViolation = (error: unknown) =>
-  error instanceof Error && "code" in error && error.code === "23505";
+  error instanceof Error &&
+  "code" in error &&
+  error.code === POSTGRES_UNIQUE_CONSTRAINT_VIOLATION_CODE;
 
 export const updateResourceForOrganization = async ({
   input,
   userOrganizationId,
-  repository,
+  resourceData,
   logger,
 }: UpdateResourceForOrganizationOptions) => {
   const { resourceId, organizationId, url, title } = input;
@@ -52,7 +52,7 @@ export const updateResourceForOrganization = async ({
     });
   }
 
-  const resourceToUpdate = await repository.findResourceById(resourceId);
+  const resourceToUpdate = await resourceData.findResourceById(resourceId);
 
   if (!resourceToUpdate) {
     logger?.warn?.("Could not find song resource");
@@ -90,7 +90,7 @@ export const updateResourceForOrganization = async ({
   }
 
   try {
-    const updatedResource = await repository.updateResource(
+    const updatedResource = await resourceData.updateResource(
       resourceId,
       updateValues,
     );
