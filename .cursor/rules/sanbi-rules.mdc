@@ -67,6 +67,8 @@ alwaysApply: true
     - Prefer integration-style component tests for user workflows and unit tests for pure helpers, validation, and backend service logic. Do not assert incidental rendering details that users do not experience and maintainers do not care about.
     - When reviewing agent-written code, look for stale mocks, duplicated fixture setup, hidden assumptions about organization membership or active context, unclear names, and helpers/components defined in a file only because it was convenient.
     - For PR review comments, verify each finding against the current code before changing anything. Fix actionable issues, skip obsolete or non-actionable comments with a short rationale, and validate with the smallest relevant test set plus typecheck/lint when practical.
+    - After pushing commits that address review feedback, re-check open PR threads. If the pushed changes directly address a thread, leave a concise reply explaining what changed with a link to the commit, then resolve that thread.
+    - It is appropriate to answer GitHub review threads with reasoning, tradeoffs, or intent when the answer will help human reviewers or review bots such as Greptile and CodeRabbit evaluate the code. Do not resolve threads that were not directly addressed by the pushed changes, and do not merge unless explicitly asked.
 
     ### Methodology
     1. **System 2 Thinking**: Approach the problem with analytical rigor. Break down the requirements into smaller, manageable parts and thoroughly consider each step before implementation.

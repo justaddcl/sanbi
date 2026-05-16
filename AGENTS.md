@@ -41,4 +41,7 @@ This file captures project conventions for coding agents and reviewers. It appli
 - Fix actionable issues. Skip obsolete, duplicate, or non-actionable comments with a short rationale.
 - Keep each fix traceable to the review thread it addresses.
 - Validate with the smallest relevant test set plus typecheck/lint when practical.
-- Do not resolve review threads, reply on GitHub, or merge unless explicitly asked.
+- After pushing commits that address review feedback, re-check open PR threads.
+- If the pushed changes directly address a thread, leave a concise reply explaining what changed and include a link to the commit that addressed it. Then resolve that thread.
+- It is appropriate to answer GitHub review threads with reasoning, tradeoffs, or intent when the answer will help human reviewers or review bots such as Greptile and CodeRabbit evaluate the code.
+- Do not resolve threads that were not directly addressed by the pushed changes. Do not merge unless explicitly asked.
