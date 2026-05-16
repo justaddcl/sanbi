@@ -172,6 +172,8 @@ describe("SongResources resource editing", () => {
   it("opens a focused edit drawer with prefilled fields", async () => {
     renderSongResources();
 
+    expect(useSongResources).toHaveBeenCalledWith(songId, organizationId);
+
     await openEditDrawer();
 
     expect(
@@ -205,6 +207,18 @@ describe("SongResources resource editing", () => {
       screen.getByText(getDisplayUrl(updatedResourceUrl)),
     ).toBeInTheDocument();
     expect(screen.getAllByText(resource.title).length).toBeGreaterThan(0);
+  });
+
+  it("renders the empty resource state as a list item", () => {
+    (useSongResources as jest.Mock).mockReturnValue(
+      createSongResourcesQueryFixture({ data: [] }),
+    );
+
+    renderSongResources();
+
+    expect(screen.getByText("No song resources yet. Create one?").tagName).toBe(
+      "LI",
+    );
   });
 
   it("closes without submitting when cancelled", async () => {

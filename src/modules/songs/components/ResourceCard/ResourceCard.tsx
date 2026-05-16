@@ -16,6 +16,32 @@ export type ResourceCardProps = {
   onEdit: (resource: Resource) => void;
 };
 
+const sanitizeUrlForTelemetry = (rawUrl: string) => {
+  try {
+    const parsedUrl = new URL(rawUrl);
+
+    return `${parsedUrl.protocol}//${parsedUrl.hostname}`;
+  } catch {
+    return "[invalid-url]";
+  }
+};
+
+const getErrorNameForTelemetry = (error: unknown) => {
+  if (error instanceof Error) {
+    return error.name;
+  }
+
+  if (typeof error === "object" && error !== null && "name" in error) {
+    const { name } = error;
+
+    if (typeof name === "string") {
+      return name;
+    }
+  }
+
+  return "Unknown";
+};
+
 export const ResourceCard: React.FC<ResourceCardProps> = ({
   resource,
   onEdit,
@@ -46,7 +72,10 @@ export const ResourceCard: React.FC<ResourceCardProps> = ({
               onParseError: (error) => {
                 Sentry.captureMessage("Failed to parse resource URL", {
                   level: "warning",
-                  extra: { url, error },
+                  extra: {
+                    url: sanitizeUrlForTelemetry(url),
+                    error: getErrorNameForTelemetry(error),
+                  },
                 });
               },
             })}

@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/nextjs";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { createResourceFixture } from "@testUtils/models/resource/fixtures";
 
@@ -5,7 +6,15 @@ import { getDisplayUrl } from "@modules/songs/utils/getDisplayUrl";
 
 import { ResourceCard } from "../ResourceCard";
 
+jest.mock("@sentry/nextjs", () => ({
+  captureMessage: jest.fn(),
+}));
+
 describe("ResourceCard", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it("keeps the external link and edit action as separate targets", async () => {
     const resource = createResourceFixture();
     const onEdit = jest.fn();
@@ -32,5 +41,24 @@ describe("ResourceCard", () => {
     await waitFor(() => {
       expect(onEdit).toHaveBeenCalledWith(resource);
     });
+  });
+
+  it("redacts invalid resource URLs before reporting parse failures", () => {
+    const resource = createResourceFixture({
+      url: "not a url with token=secret",
+    });
+
+    render(<ResourceCard resource={resource} onEdit={jest.fn()} />);
+
+    expect(Sentry.captureMessage).toHaveBeenCalledWith(
+      "Failed to parse resource URL",
+      {
+        level: "warning",
+        extra: {
+          url: "[invalid-url]",
+          error: "TypeError",
+        },
+      },
+    );
   });
 });

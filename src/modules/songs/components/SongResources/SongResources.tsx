@@ -104,7 +104,7 @@ export const SongResources: React.FC<SongResourcesProps> = ({
               ))}
             {songResources && songResources.length === 0 && (
               // Empty state will be implemented in SWY-118
-              <div>No song resources yet. Create one?</div>
+              <li>No song resources yet. Create one?</li>
             )}
           </ul>
         </Card>
