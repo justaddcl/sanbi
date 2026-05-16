@@ -73,8 +73,18 @@ export const updateResourceForOrganization = async ({
 
   const updateValues: Partial<ResourceUpdateValues> = {};
 
-  if (title !== undefined && title !== resourceToUpdate.title) {
-    updateValues.title = title;
+  if (title !== undefined) {
+    if (title.length === 0) {
+      logger?.warn?.("Resource title cannot be empty");
+
+      throw new ORPCError("BAD_REQUEST", {
+        message: "Resource title cannot be empty",
+      });
+    }
+
+    if (title !== resourceToUpdate.title) {
+      updateValues.title = title;
+    }
   }
 
   if (url !== undefined) {

@@ -321,6 +321,7 @@ export const updateResourceSchema = z.object({
   url: z.url().optional(),
   title: z
     .string()
+    .min(1, "Please give your resource a name or title")
     .transform((title) => sanitizeInput(title))
     .optional(),
 });

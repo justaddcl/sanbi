@@ -157,6 +157,28 @@ describe("updateResourceForOrganization", () => {
     });
   });
 
+  it("rejects empty resource titles before writing", async () => {
+    const resource = createResourceFixture();
+    const resourceDataAccess = createUpdateResourceDataAccessFixture({
+      findResourceById: jest.fn().mockResolvedValue(resource),
+    });
+
+    await expectOrpcErrorCode(
+      updateResourceForOrganization({
+        input: {
+          resourceId: resource.id,
+          organizationId: resource.organizationId,
+          title: "",
+        },
+        userOrganizationId: resource.organizationId,
+        resourceDataAccess,
+      }),
+      "BAD_REQUEST",
+    );
+
+    expect(resourceDataAccess.updateResource).not.toHaveBeenCalled();
+  });
+
   it("returns CONFLICT when the resource data access cannot update the resource", async () => {
     const resource = createResourceFixture();
     const resourceDataAccess = createUpdateResourceDataAccessFixture({
