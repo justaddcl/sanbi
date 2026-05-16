@@ -116,7 +116,7 @@ export const SongDetailsPage: React.FC<SongDetailsPageProps> = ({
           <SongNotes songId={song.id} organizationId={organizationId} />
         </VStack>
       </Card>
-      <SongResources songId={songId} />
+      <SongResources songId={songId} organizationId={organizationId} />
       <Card title="Play history" collapsible>
         <div className="grid grid-cols-[16px_1fr] gap-y-4">
           {playHistory &&
