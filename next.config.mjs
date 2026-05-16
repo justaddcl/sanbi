@@ -9,6 +9,7 @@ await import("./src/env.js");
 
 /** @type {import("next").NextConfig} */
 const coreConfig = {
+  transpilePackages: ["@faker-js/faker"],
   images: {
     remotePatterns: [
       {
