@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { Plus } from "@phosphor-icons/react";
+import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 
 import { Button } from "@components/ui/button";
 import { Skeleton } from "@components/ui/skeleton";
@@ -8,32 +9,54 @@ import { Card } from "@components/Card/Card";
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
+  ResponsiveDialogDescription,
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
   ResponsiveDialogTrigger,
 } from "@components/ResponsiveDialog";
-import { CreateResourceForm } from "@modules/songs/forms/CreateResourceForm";
+import { ResourceForm } from "@modules/songs/forms/CreateResourceForm";
 import { useSongResources } from "@modules/songs/queries/useSongResources";
+import { type Resource } from "@lib/types";
 
+import { EditResourceDialog } from "../EditResourceDialog";
 import { ResourceCard } from "../ResourceCard";
 
 type SongResourcesProps = {
   songId: string;
+  organizationId: string;
 };
 
-export const SongResources: React.FC<SongResourcesProps> = ({ songId }) => {
+export const SongResources: React.FC<SongResourcesProps> = ({
+  songId,
+  organizationId,
+}) => {
   const [isAddResourceDialogOpen, setIsAddResourceDialogOpen] = useState(false);
+  const [resourceBeingEdited, setResourceBeingEdited] =
+    useState<Resource | null>(null);
 
   const {
     data: songResources,
     isLoading: isSongResourcesLoading,
     // TODO: SWY-118 to implement empty and error state
     error: songResourcesError,
-  } = useSongResources(songId);
+  } = useSongResources(songId, organizationId);
 
   const onSuccess = () => {
     setIsAddResourceDialogOpen(false);
   };
+
+  const closeEditDialog = () => {
+    setResourceBeingEdited(null);
+  };
+
+  const addResourceButton = (
+    <ResponsiveDialogTrigger asChild>
+      <Button size="sm" variant="ghost">
+        <Plus className="text-slate-900" size={16} />
+        <span className="hidden sm:inline">Add resource</span>
+      </Button>
+    </ResponsiveDialogTrigger>
+  );
 
   if (isSongResourcesLoading) {
     return (
@@ -63,40 +86,51 @@ export const SongResources: React.FC<SongResourcesProps> = ({ songId }) => {
   }
 
   return (
-    <ResponsiveDialog
-      open={isAddResourceDialogOpen}
-      onOpenChange={setIsAddResourceDialogOpen}
-    >
-      <Card
-        title="Resources"
-        collapsible
-        button={
-          <ResponsiveDialogTrigger asChild>
-            <Button size="sm" variant="ghost">
-              <Plus className="text-slate-900" size={16} />
-              <span className="hidden sm:inline">Add resource</span>
-            </Button>
-          </ResponsiveDialogTrigger>
-        }
+    <>
+      <ResponsiveDialog
+        open={isAddResourceDialogOpen}
+        onOpenChange={setIsAddResourceDialogOpen}
       >
-        <ul className="grid gap-3 md:grid-cols-2">
-          {songResources &&
-            songResources.length > 0 &&
-            songResources.map((songResource) => (
-              <ResourceCard key={songResource.id} resource={songResource} />
-            ))}
-          {songResources && songResources.length === 0 && (
-            // Empty state will be implemented in SWY-118
-            <div>No song resources yet. Create one?</div>
-          )}
-        </ul>
-      </Card>
-      <ResponsiveDialogContent>
-        <ResponsiveDialogHeader>
-          <ResponsiveDialogTitle>Create a song resource</ResponsiveDialogTitle>
-        </ResponsiveDialogHeader>
-        <CreateResourceForm songId={songId} onSuccess={onSuccess} />
-      </ResponsiveDialogContent>
-    </ResponsiveDialog>
+        <Card title="Resources" collapsible button={addResourceButton}>
+          <ul className="grid gap-3 md:grid-cols-2">
+            {songResources &&
+              songResources.length > 0 &&
+              songResources.map((songResource) => (
+                <ResourceCard
+                  key={songResource.id}
+                  resource={songResource}
+                  onEdit={setResourceBeingEdited}
+                />
+              ))}
+            {songResources && songResources.length === 0 && (
+              // Empty state will be implemented in SWY-118
+              <div>No song resources yet. Create one?</div>
+            )}
+          </ul>
+        </Card>
+        <ResponsiveDialogContent>
+          <ResponsiveDialogHeader>
+            <ResponsiveDialogTitle>
+              Create a song resource
+            </ResponsiveDialogTitle>
+            <VisuallyHidden.Root>
+              <ResponsiveDialogDescription>
+                Create a song resource
+              </ResponsiveDialogDescription>
+            </VisuallyHidden.Root>
+          </ResponsiveDialogHeader>
+          <ResourceForm
+            mode="create"
+            songId={songId}
+            organizationId={organizationId}
+            onSuccess={onSuccess}
+          />
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
+      <EditResourceDialog
+        resource={resourceBeingEdited}
+        onClose={closeEditDialog}
+      />
+    </>
   );
 };

@@ -48,6 +48,9 @@ type ActionMenuProps = PropsWithChildren & {
 
   /** Which button variant should be used for the action menu trigger? */
   buttonVariant?: VariantProps<typeof buttonVariants>["variant"];
+
+  /** Accessible label for the action menu trigger. */
+  triggerLabel?: string;
 };
 
 export const ActionMenu: React.FC<ActionMenuProps> = ({
@@ -56,12 +59,18 @@ export const ActionMenu: React.FC<ActionMenuProps> = ({
   align = "end",
   side = "bottom",
   buttonVariant,
+  triggerLabel = "Open actions menu",
   children,
 }) => {
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
-      <DropdownMenuTrigger>
-        <Button variant={buttonVariant ?? "outline"} size="sm">
+      <DropdownMenuTrigger asChild>
+        <Button
+          aria-label={triggerLabel}
+          type="button"
+          variant={buttonVariant ?? "outline"}
+          size="sm"
+        >
           <DotsThree className="text-slate-900" size={16} />
         </Button>
       </DropdownMenuTrigger>

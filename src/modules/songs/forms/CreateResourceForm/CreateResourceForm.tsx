@@ -1,9 +1,9 @@
-import React from "react";
-import { FormProvider, useForm } from "react-hook-form";
+import React, { useEffect, useMemo } from "react";
+import { FormProvider, useForm, useWatch } from "react-hook-form";
 import { useAuth } from "@clerk/nextjs";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as Sentry from "@sentry/nextjs";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import type * as z from "zod";
 
@@ -19,38 +19,96 @@ import { Input } from "@components/ui/input";
 import { VStack } from "@components/VStack";
 import { orpc } from "@lib/orpc/client";
 import { trpc } from "@lib/trpc";
+import { type Resource } from "@lib/types";
 import { insertResourceSchema } from "@lib/types/zod";
+import { cn } from "@lib/utils";
 
-const createResourceFormSchema = insertResourceSchema.pick({
+const resourceFormSchema = insertResourceSchema.pick({
   title: true,
   url: true,
 });
 
-type CreateResourceFormFields = z.infer<typeof createResourceFormSchema>;
+type ResourceFormFields = z.infer<typeof resourceFormSchema>;
 
-type CreateResourceFormProps = {
-  songId: string;
+type SharedResourceFormProps = {
+  className?: string;
+  layout?: "default" | "compact";
+  onCancel?: () => void;
+  renderPreview?: (values: ResourceFormFields) => React.ReactNode;
   onSuccess: () => void;
 };
 
-export const CreateResourceForm: React.FC<CreateResourceFormProps> = ({
-  songId,
+type CreateResourceFormProps = {
+  mode: "create";
+  songId: string;
+  organizationId: string;
+  resource?: never;
+};
+
+type UpdateResourceFormProps = {
+  mode: "edit";
+  resource: Resource;
+  songId?: never;
+  organizationId?: never;
+};
+
+type ResourceFormProps = (
+  | CreateResourceFormProps
+  | UpdateResourceFormProps
+) &
+  SharedResourceFormProps;
+
+export const ResourceForm: React.FC<ResourceFormProps> = ({
+  className,
+  layout = "default",
+  mode,
+  onCancel,
+  renderPreview,
   onSuccess,
+  ...props
 }) => {
   const { userId } = useAuth();
+  const queryClient = useQueryClient();
+
+  const resource = props.resource;
+  const songId = resource?.songId ?? props.songId;
+  const requestedOrganizationId =
+    resource?.organizationId ?? props.organizationId;
 
   const createResourceMutation = useMutation(
     orpc.resource.create.mutationOptions(),
   );
+  const updateResourceMutation = useMutation(
+    orpc.resource.update.mutationOptions(),
+  );
 
-  const createResourceForm = useForm<CreateResourceFormFields>({
-    resolver: zodResolver(createResourceFormSchema),
-    defaultValues: {
-      title: "",
-      url: "",
-    },
+  const defaultValues = useMemo<ResourceFormFields>(
+    () => ({
+      title: resource?.title ?? "",
+      url: resource?.url ?? "",
+    }),
+    [resource?.title, resource?.url],
+  );
+
+  const resourceForm = useForm<ResourceFormFields>({
+    resolver: zodResolver(resourceFormSchema),
+    defaultValues,
     mode: "onBlur",
     reValidateMode: "onBlur",
+  });
+  const { reset } = resourceForm;
+
+  useEffect(() => {
+    reset(defaultValues);
+  }, [defaultValues, reset]);
+
+  const watchedTitle = useWatch({
+    control: resourceForm.control,
+    name: "title",
+  });
+  const watchedUrl = useWatch({
+    control: resourceForm.control,
+    name: "url",
   });
 
   // TODO: handle if there is no user data (assume this will be handled before it reaches here though?)
@@ -69,65 +127,104 @@ export const CreateResourceForm: React.FC<CreateResourceFormProps> = ({
 
   const {
     formState: { isSubmitting, isValid, isDirty },
-  } = createResourceForm;
+  } = resourceForm;
 
-  const handleCreateResourceSubmit = async (
-    formValues: CreateResourceFormFields,
-  ) => {
-    const toastId = toast.loading("Creating resource...");
+  const handleResourceSubmit = async (formValues: ResourceFormFields) => {
+    const actionCopy = resource
+      ? "Updating resource..."
+      : "Creating resource...";
+    const toastId = toast.loading(actionCopy);
 
     if (!userData) {
       Sentry.captureException(new Error("No user data available"));
-      toast.error("Could not create resource: invalid user", { id: toastId });
+      toast.error(`Could not ${mode} resource: invalid user`, { id: toastId });
 
       return;
     }
 
-    const organizationMembership = userData.memberships[0];
-
-    if (!organizationMembership) {
-      Sentry.captureException(new Error("No organization membership found"));
-      toast.error("Could not create resource: invalid team membership", {
+    if (!songId || !requestedOrganizationId) {
+      Sentry.captureException(new Error("No resource organization found"));
+      toast.error(`Could not ${mode} resource: invalid team context`, {
         id: toastId,
       });
 
       return;
     }
 
-    await createResourceMutation.mutateAsync(
-      {
-        songId,
-        organizationId: organizationMembership.organizationId,
-        title: formValues.title,
-        url: formValues.url,
-      },
-      {
-        onSuccess() {
-          toast.success("Resource was created", { id: toastId });
-          onSuccess();
-          createResourceForm.reset();
-        },
-        onError(error) {
-          Sentry.captureException(error);
-
-          toast.error(`Could not create resource: ${error.message}`, {
-            id: toastId,
-          });
-        },
-      },
+    const organizationMembership = userData.memberships.find(
+      (membership) => membership.organizationId === requestedOrganizationId,
     );
+    const organizationId = organizationMembership?.organizationId;
+
+    if (!organizationId) {
+      Sentry.captureException(new Error("No organization membership found"));
+      toast.error(`Could not ${mode} resource: invalid team membership`, {
+        id: toastId,
+      });
+
+      return;
+    }
+
+    try {
+      if (resource) {
+        await updateResourceMutation.mutateAsync({
+          resourceId: resource.id,
+          organizationId,
+          title: formValues.title,
+          url: formValues.url,
+        });
+      } else {
+        await createResourceMutation.mutateAsync({
+          songId,
+          organizationId,
+          title: formValues.title,
+          url: formValues.url,
+        });
+      }
+
+      await queryClient.invalidateQueries({
+        queryKey: orpc.resource.getBySongId.queryOptions({
+          input: {
+            songId,
+            organizationId,
+          },
+        }).queryKey,
+      });
+
+      toast.success(
+        resource ? "Resource was updated" : "Resource was created",
+        {
+          id: toastId,
+        },
+      );
+      onSuccess();
+      reset(resource ? formValues : defaultValues);
+    } catch (error) {
+      Sentry.captureException(error);
+
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+
+      toast.error(`Could not ${mode} resource: ${errorMessage}`, {
+        id: toastId,
+      });
+    }
   };
 
   const shouldSubmitButtonBeDisabled = !isDirty || !isValid || isSubmitting;
+  const submitText = resource ? "Save changes" : "Create resource";
+  const isCompact = layout === "compact";
 
   return (
-    <FormProvider {...createResourceForm}>
-      <form
-        onSubmit={createResourceForm.handleSubmit(handleCreateResourceSubmit)}
-      >
-        <VStack className="gap-6">
+    <FormProvider {...resourceForm}>
+      <form onSubmit={resourceForm.handleSubmit(handleResourceSubmit)}>
+        <VStack className={cn("gap-6", isCompact && "gap-3", className)}>
+          {renderPreview?.({
+            title: watchedTitle ?? "",
+            url: watchedUrl ?? "",
+          })}
           <FormField
-            control={createResourceForm.control}
+            control={resourceForm.control}
             name="title"
             render={({ field }) => (
               <FormItem>
@@ -140,7 +237,7 @@ export const CreateResourceForm: React.FC<CreateResourceFormProps> = ({
             )}
           />
           <FormField
-            control={createResourceForm.control}
+            control={resourceForm.control}
             name="url"
             render={({ field }) => (
               <FormItem>
@@ -152,14 +249,25 @@ export const CreateResourceForm: React.FC<CreateResourceFormProps> = ({
               </FormItem>
             )}
           />
-          <Button
-            type="submit"
-            isLoading={isSubmitting}
-            disabled={shouldSubmitButtonBeDisabled}
-            className="mt-4 md:self-end"
+          <div
+            className={cn(
+              "mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end",
+              isCompact && "mt-1",
+            )}
           >
-            Create resource
-          </Button>
+            {!!onCancel && (
+              <Button type="button" variant="ghost" onClick={onCancel}>
+                Cancel
+              </Button>
+            )}
+            <Button
+              type="submit"
+              isLoading={isSubmitting}
+              disabled={shouldSubmitButtonBeDisabled}
+            >
+              {submitText}
+            </Button>
+          </div>
         </VStack>
       </form>
     </FormProvider>
