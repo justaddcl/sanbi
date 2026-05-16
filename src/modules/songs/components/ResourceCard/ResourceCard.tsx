@@ -7,6 +7,10 @@ import * as Sentry from "@sentry/nextjs";
 import { ActionMenu, ActionMenuItem } from "@components/ActionMenu";
 import { Text } from "@components/Text";
 import { getDisplayUrl } from "@modules/songs/utils/getDisplayUrl";
+import {
+  getErrorNameForTelemetry,
+  sanitizeResourceUrlForTelemetry,
+} from "@modules/songs/utils/resourceTelemetry";
 import { type Resource } from "@lib/types";
 
 import { ResourceCardImage } from "../ResourceCardImage";
@@ -14,32 +18,6 @@ import { ResourceCardImage } from "../ResourceCardImage";
 export type ResourceCardProps = {
   resource: Resource;
   onEdit: (resource: Resource) => void;
-};
-
-const sanitizeUrlForTelemetry = (rawUrl: string) => {
-  try {
-    const parsedUrl = new URL(rawUrl);
-
-    return `${parsedUrl.protocol}//${parsedUrl.hostname}`;
-  } catch {
-    return "[invalid-url]";
-  }
-};
-
-const getErrorNameForTelemetry = (error: unknown) => {
-  if (error instanceof Error) {
-    return error.name;
-  }
-
-  if (typeof error === "object" && error !== null && "name" in error) {
-    const { name } = error;
-
-    if (typeof name === "string") {
-      return name;
-    }
-  }
-
-  return "Unknown";
 };
 
 export const ResourceCard: React.FC<ResourceCardProps> = ({
@@ -73,7 +51,7 @@ export const ResourceCard: React.FC<ResourceCardProps> = ({
                 Sentry.captureMessage("Failed to parse resource URL", {
                   level: "warning",
                   extra: {
-                    url: sanitizeUrlForTelemetry(url),
+                    url: sanitizeResourceUrlForTelemetry(url),
                     error: getErrorNameForTelemetry(error),
                   },
                 });
