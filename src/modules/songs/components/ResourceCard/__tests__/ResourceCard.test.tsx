@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { createResourceFixture } from "@testUtils/models/resource/fixtures";
 
 import { getDisplayUrl } from "@modules/songs/utils/getDisplayUrl";
-import { createResourceFixture } from "@/testUtils/models/resource/fixtures";
 
 import { ResourceCard } from "../ResourceCard";
 

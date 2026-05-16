@@ -169,7 +169,7 @@ export const updateResource = organizationProcedure
     return updateResourceForOrganization({
       input,
       userOrganizationId: context.user.membership.organizationId,
-      resourceData: {
+      resourceDataAccess: {
         findResourceById: async (resourceId) => {
           const resourceToUpdate = await context.db.query.resources.findFirst({
             where: eq(resources.id, resourceId),

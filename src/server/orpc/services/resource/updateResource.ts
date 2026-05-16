@@ -11,7 +11,7 @@ type UpdateResourceInput = z.infer<typeof updateResourceSchema>;
 type ResourceUpdateValues = Pick<Resource, "title" | "url">;
 type UpdateResourceLogger = NonNullable<ReturnType<typeof getRouteLogger>>;
 
-export type UpdateResourceData = {
+export type UpdateResourceDataAccess = {
   findResourceById: (resourceId: string) => Promise<Resource | null>;
   updateResource: (
     resourceId: string,
@@ -24,7 +24,7 @@ export const POSTGRES_UNIQUE_CONSTRAINT_VIOLATION_CODE = "23505";
 type UpdateResourceForOrganizationOptions = {
   input: UpdateResourceInput;
   userOrganizationId: string;
-  resourceData: UpdateResourceData;
+  resourceDataAccess: UpdateResourceDataAccess;
   logger?: UpdateResourceLogger;
 };
 
@@ -36,7 +36,7 @@ const isUniqueConstraintViolation = (error: unknown) =>
 export const updateResourceForOrganization = async ({
   input,
   userOrganizationId,
-  resourceData,
+  resourceDataAccess,
   logger,
 }: UpdateResourceForOrganizationOptions) => {
   const { resourceId, organizationId, url, title } = input;
@@ -52,7 +52,8 @@ export const updateResourceForOrganization = async ({
     });
   }
 
-  const resourceToUpdate = await resourceData.findResourceById(resourceId);
+  const resourceToUpdate =
+    await resourceDataAccess.findResourceById(resourceId);
 
   if (!resourceToUpdate) {
     logger?.warn?.("Could not find song resource");
@@ -90,7 +91,7 @@ export const updateResourceForOrganization = async ({
   }
 
   try {
-    const updatedResource = await resourceData.updateResource(
+    const updatedResource = await resourceDataAccess.updateResource(
       resourceId,
       updateValues,
     );

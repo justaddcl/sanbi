@@ -1,20 +1,20 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { createUuid } from "@testUtils/generators/createUuid";
+import { createResourceFixture } from "@testUtils/models/resource/fixtures";
+import {
+  createResourceName,
+  createResourceUrl,
+} from "@testUtils/models/resource/generators";
+import {
+  createOrganizationMembershipFixture,
+  createUserWithMembershipsFixture,
+} from "@testUtils/models/user/fixtures";
 import { useMediaQuery } from "usehooks-ts";
 
 import { useSongResources } from "@modules/songs/queries/useSongResources";
 import { getDisplayUrl } from "@modules/songs/utils/getDisplayUrl";
 import { type Resource, type UserWithMemberships } from "@lib/types";
-import { createUuid } from "@/testUtils/generators/createUuid";
-import { createResourceFixture } from "@/testUtils/models/resource/fixtures";
-import {
-  createResourceName,
-  createResourceUrl,
-} from "@/testUtils/models/resource/generators";
-import {
-  createOrganizationMembershipFixture,
-  createUserWithMembershipsFixture,
-} from "@/testUtils/models/user/fixtures";
 
 import { SongResources } from "../SongResources";
 

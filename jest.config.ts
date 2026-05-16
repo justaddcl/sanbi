@@ -101,6 +101,7 @@ const config: Config = {
     "^@lib/(.*)$": "<rootDir>/src/lib/$1",
     "^@server/(.*)$": "<rootDir>/src/server/$1",
     "^@app/(.*)$": "<rootDir>/src/app/$1",
+    "^@testUtils/(.*)$": "<rootDir>/src/testUtils/$1",
     "^@/(.*)$": "<rootDir>/src/$1",
   },
 
