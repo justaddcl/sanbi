@@ -125,6 +125,8 @@ export const ResourceCard: React.FC<ResourceCardProps> = ({
       toast.error(`Could not delete resource: ${errorMessage}`, {
         id: toastId,
       });
+    } finally {
+      setShouldDisableFutureWarnings(false);
     }
   };
 
@@ -192,7 +194,13 @@ export const ResourceCard: React.FC<ResourceCardProps> = ({
       </li>
       <AlertDialog
         open={isConfirmationDialogOpen}
-        onOpenChange={setIsConfirmationDialogOpen}
+        onOpenChange={(isOpen) => {
+          setIsConfirmationDialogOpen(isOpen);
+
+          if (!isOpen) {
+            setShouldDisableFutureWarnings(false);
+          }
+        }}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -225,6 +233,7 @@ export const ResourceCard: React.FC<ResourceCardProps> = ({
             </AlertDialogCancel>
             <Button
               variant="destructive"
+              disabled={deleteResourceMutation.isPending}
               onClick={() => deleteResource(shouldDisableFutureWarnings)}
             >
               Delete resource
