@@ -8,7 +8,7 @@ import {
   createTRPCRouter,
   publicProcedure,
 } from "@server/api/trpc";
-import { users } from "@server/db/schema";
+import { userPreferences, users } from "@server/db/schema";
 import { type NewUser } from "@/lib/types";
 
 export const userRouter = createTRPCRouter({
@@ -28,6 +28,7 @@ export const userRouter = createTRPCRouter({
               organization: true,
             },
           },
+          preferences: true,
         },
       });
     }),
@@ -110,4 +111,30 @@ export const userRouter = createTRPCRouter({
       .onConflictDoNothing({ target: users.id })
       .returning();
   }),
+  updateResourceDeleteConfirmationPreference: authedProcedure
+    .input(z.object({ confirmResourceDelete: z.boolean() }))
+    .mutation(async ({ ctx, input }) => {
+      const [updatedPreference] = await ctx.db
+        .insert(userPreferences)
+        .values({
+          userId: ctx.auth.userId!,
+          confirmResourceDelete: input.confirmResourceDelete,
+        })
+        .onConflictDoUpdate({
+          target: userPreferences.userId,
+          set: {
+            confirmResourceDelete: input.confirmResourceDelete,
+          },
+        })
+        .returning();
+
+      if (!updatedPreference) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: `Sanbi user preferences, ${ctx.auth.userId}, not found`,
+        });
+      }
+
+      return updatedPreference;
+    }),
 });

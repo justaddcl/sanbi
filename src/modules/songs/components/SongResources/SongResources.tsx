@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useAuth } from "@clerk/nextjs";
 import { LinkSimple } from "@phosphor-icons/react";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 
@@ -16,6 +17,7 @@ import {
 } from "@components/ResponsiveDialog";
 import { ResourceForm } from "@modules/songs/forms/CreateResourceForm";
 import { useSongResources } from "@modules/songs/queries/useSongResources";
+import { trpc } from "@lib/trpc";
 import { type Resource } from "@lib/types";
 
 import { EditResourceDialog } from "../EditResourceDialog";
@@ -32,6 +34,7 @@ export const SongResources: React.FC<SongResourcesProps> = ({
   songName,
   organizationId,
 }) => {
+  const { userId } = useAuth();
   const [isLinkResourceDialogOpen, setIsLinkResourceDialogOpen] =
     useState(false);
   const [resourceBeingEdited, setResourceBeingEdited] =
@@ -43,6 +46,33 @@ export const SongResources: React.FC<SongResourcesProps> = ({
     // TODO: SWY-118 to implement empty and error state
     error: songResourcesError,
   } = useSongResources(songId, organizationId);
+  const apiUtils = trpc.useUtils();
+
+  const { data: userData } = trpc.user.getUser.useQuery(
+    {
+      userId: userId!,
+    },
+    {
+      enabled: !!userId,
+    },
+  );
+  const updateResourceDeleteConfirmationPreferenceMutation =
+    trpc.user.updateResourceDeleteConfirmationPreference.useMutation();
+  const confirmResourceDelete =
+    userData?.preferences?.confirmResourceDelete ?? true;
+
+  const updateResourceDeleteConfirmationPreference = async (
+    shouldConfirmResourceDelete: boolean,
+  ) => {
+    if (!userId) {
+      throw new Error("No user is currently signed in");
+    }
+
+    await updateResourceDeleteConfirmationPreferenceMutation.mutateAsync({
+      confirmResourceDelete: shouldConfirmResourceDelete,
+    });
+    await apiUtils.user.getUser.invalidate({ userId });
+  };
 
   const onSuccess = () => {
     setIsLinkResourceDialogOpen(false);
@@ -103,6 +133,10 @@ export const SongResources: React.FC<SongResourcesProps> = ({
                   key={songResource.id}
                   resource={songResource}
                   songName={songName}
+                  confirmResourceDelete={confirmResourceDelete}
+                  onResourceDeleteConfirmationPreferenceChange={
+                    updateResourceDeleteConfirmationPreference
+                  }
                   onEdit={setResourceBeingEdited}
                 />
               ))}

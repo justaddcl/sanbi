@@ -6,6 +6,9 @@ import { createUuid } from "../../generators/createUuid";
 
 type UserWithMembershipsFixture = NonNullable<UserWithMemberships>;
 type MembershipFixture = UserWithMembershipsFixture["memberships"][number];
+type UserPreferencesFixture = NonNullable<
+  UserWithMembershipsFixture["preferences"]
+>;
 
 export const createOrganizationMembershipFixture = (
   overrides: Partial<MembershipFixture> = {},
@@ -39,6 +42,17 @@ export const createUserWithMembershipsFixture = (
   email: faker.internet.email(),
   createdAt: new Date("2026-01-01T00:00:00Z"),
   updatedAt: new Date("2026-01-01T00:00:00Z"),
+  preferences: createUserPreferencesFixture(),
   memberships: [createOrganizationMembershipFixture()],
+  ...overrides,
+});
+
+export const createUserPreferencesFixture = (
+  overrides: Partial<UserPreferencesFixture> = {},
+): UserPreferencesFixture => ({
+  userId: "user_123",
+  confirmResourceDelete: true,
+  createdAt: new Date("2026-01-01T00:00:00Z"),
+  updatedAt: new Date("2026-01-01T00:00:00Z"),
   ...overrides,
 });

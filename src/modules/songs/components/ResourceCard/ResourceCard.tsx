@@ -16,7 +16,9 @@ import {
   AlertDialogTitle,
 } from "@components/ui/alert-dialog";
 import { Button } from "@components/ui/button";
+import { Checkbox } from "@components/ui/checkbox";
 import { DropdownMenuSeparator } from "@components/ui/dropdown-menu";
+import { Label } from "@components/ui/label";
 import { ActionMenu, ActionMenuItem } from "@components/ActionMenu";
 import { Text } from "@components/Text";
 import { getDisplayUrl } from "@modules/songs/utils/getDisplayUrl";
@@ -32,18 +34,26 @@ import { ResourceCardImage } from "../ResourceCardImage";
 export type ResourceCardProps = {
   resource: Resource;
   songName: string;
+  confirmResourceDelete?: boolean;
+  onResourceDeleteConfirmationPreferenceChange?: (
+    confirmResourceDelete: boolean,
+  ) => Promise<void>;
   onEdit: (resource: Resource) => void;
 };
 
 export const ResourceCard: React.FC<ResourceCardProps> = ({
   resource,
   songName,
+  confirmResourceDelete = true,
+  onResourceDeleteConfirmationPreferenceChange,
   onEdit,
 }) => {
   const { title, url } = resource;
   const queryClient = useQueryClient();
   const [isActionMenuOpen, setIsActionMenuOpen] = useState(false);
   const [isConfirmationDialogOpen, setIsConfirmationDialogOpen] =
+    useState(false);
+  const [shouldDisableFutureWarnings, setShouldDisableFutureWarnings] =
     useState(false);
 
   const deleteResourceMutation = useMutation(
@@ -55,12 +65,20 @@ export const ResourceCard: React.FC<ResourceCardProps> = ({
     onEdit(resource);
   };
 
-  const deleteResource = async () => {
+  const deleteResource = async (persistDismissedWarning = false) => {
     setIsActionMenuOpen(false);
     setIsConfirmationDialogOpen(false);
     const toastId = toast.loading("Unlinking resource...");
 
     try {
+      if (persistDismissedWarning) {
+        try {
+          await onResourceDeleteConfirmationPreferenceChange?.(false);
+        } catch (preferenceError) {
+          Sentry.captureException(preferenceError);
+        }
+      }
+
       await deleteResourceMutation.mutateAsync({
         resourceId: resource.id,
         organizationId: resource.organizationId,
@@ -85,11 +103,19 @@ export const ResourceCard: React.FC<ResourceCardProps> = ({
       toast.error(`Could not unlink resource: ${errorMessage}`, {
         id: toastId,
       });
+    } finally {
+      setShouldDisableFutureWarnings(false);
     }
   };
 
   const handleDeleteResource = () => {
     setIsActionMenuOpen(false);
+
+    if (!confirmResourceDelete) {
+      void deleteResource();
+      return;
+    }
+
     setIsConfirmationDialogOpen(true);
   };
 
@@ -148,21 +174,45 @@ export const ResourceCard: React.FC<ResourceCardProps> = ({
         open={isConfirmationDialogOpen}
         onOpenChange={(isOpen) => {
           setIsConfirmationDialogOpen(isOpen);
+
+          if (!isOpen) {
+            setShouldDisableFutureWarnings(false);
+          }
         }}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Unlink {title}</AlertDialogTitle>
+            <AlertDialogTitle>Unlink {title}?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently unlink {title} from {songName}. This
-              can&apos;t be undone, but you can manually re-link the resource
-              later if you need it again.
+              This will permanently unlink{" "}
+              <span className="font-medium text-slate-700">{title}</span> from{" "}
+              <span className="font-medium text-slate-700">{songName}</span>.
+              This can&apos;t be undone, but you can manually re-link the
+              resource later if you need it again.
             </AlertDialogDescription>
           </AlertDialogHeader>
+          <div className="mt-3 flex justify-center sm:mt-5">
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id={`resource-${resource.id}-skip-unlink-warning`}
+                checked={shouldDisableFutureWarnings}
+                onCheckedChange={(checked) => {
+                  setShouldDisableFutureWarnings(checked === true);
+                }}
+              />
+              <Label
+                htmlFor={`resource-${resource.id}-skip-unlink-warning`}
+                className="text-sm font-normal text-slate-500"
+              >
+                Don&apos;t warn me again
+              </Label>
+            </div>
+          </div>
           <AlertDialogFooter>
             <AlertDialogCancel
               onClick={() => {
                 setIsConfirmationDialogOpen(false);
+                setShouldDisableFutureWarnings(false);
               }}
             >
               Cancel
@@ -170,7 +220,7 @@ export const ResourceCard: React.FC<ResourceCardProps> = ({
             <Button
               variant="destructive"
               disabled={deleteResourceMutation.isPending}
-              onClick={() => deleteResource()}
+              onClick={() => deleteResource(shouldDisableFutureWarnings)}
             >
               Unlink resource
             </Button>

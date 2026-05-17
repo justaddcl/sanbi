@@ -55,6 +55,19 @@ export const users = createTable(
   },
 );
 
+export const userPreferences = createTable("user_preferences", {
+  userId: varchar("user_id", { length: 48 })
+    .primaryKey()
+    .references(() => users.id, { onDelete: "cascade" }),
+  confirmResourceDelete: boolean("confirm_resource_delete")
+    .default(true)
+    .notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+  updatedAt,
+});
+
 export const organizations = createTable(
   "organizations",
   {
@@ -328,9 +341,23 @@ export const organizationMembersRelations = relations(
   }),
 );
 
-export const usersRelations = relations(users, ({ many }) => ({
+export const userPreferencesRelations = relations(
+  userPreferences,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [userPreferences.userId],
+      references: [users.id],
+    }),
+  }),
+);
+
+export const usersRelations = relations(users, ({ many, one }) => ({
   memberships: many(organizationMemberships),
   songs: many(songs),
+  preferences: one(userPreferences, {
+    fields: [users.id],
+    references: [userPreferences.userId],
+  }),
 }));
 
 export const songsRelations = relations(songs, ({ one, many }) => ({
