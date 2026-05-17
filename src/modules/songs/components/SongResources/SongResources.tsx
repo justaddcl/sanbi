@@ -23,11 +23,13 @@ import { ResourceCard } from "../ResourceCard";
 
 type SongResourcesProps = {
   songId: string;
+  songName: string;
   organizationId: string;
 };
 
 export const SongResources: React.FC<SongResourcesProps> = ({
   songId,
+  songName,
   organizationId,
 }) => {
   const [isAddResourceDialogOpen, setIsAddResourceDialogOpen] = useState(false);
@@ -99,6 +101,7 @@ export const SongResources: React.FC<SongResourcesProps> = ({
                 <ResourceCard
                   key={songResource.id}
                   resource={songResource}
+                  songName={songName}
                   onEdit={setResourceBeingEdited}
                 />
               ))}

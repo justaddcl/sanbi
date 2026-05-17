@@ -3,6 +3,7 @@ import * as Sentry from "@sentry/nextjs";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { createResourceFixture } from "@testUtils/models/resource/fixtures";
+import { createResourceName } from "@testUtils/models/resource/generators";
 import { createUserWithMembershipsFixture } from "@testUtils/models/user/fixtures";
 
 import { getDisplayUrl } from "@modules/songs/utils/getDisplayUrl";
@@ -85,6 +86,8 @@ const renderResourceCard = (props: ComponentProps<typeof ResourceCard>) => {
 };
 
 describe("ResourceCard", () => {
+  const songName = createResourceName();
+
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -93,7 +96,7 @@ describe("ResourceCard", () => {
     const resource = createResourceFixture();
     const onEdit = jest.fn();
 
-    renderResourceCard({ resource, onEdit });
+    renderResourceCard({ resource, songName, onEdit });
 
     const resourceLink = screen.getByRole("link", {
       name: new RegExp(resource.title, "i"),
@@ -122,7 +125,7 @@ describe("ResourceCard", () => {
       url: "not a url with token=secret",
     });
 
-    renderResourceCard({ resource, onEdit: jest.fn() });
+    renderResourceCard({ resource, songName, onEdit: jest.fn() });
 
     expect(Sentry.captureMessage).toHaveBeenCalledWith(
       "Failed to parse resource URL",

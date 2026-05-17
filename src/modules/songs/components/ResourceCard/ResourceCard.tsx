@@ -35,11 +35,13 @@ import { ResourceCardImage } from "../ResourceCardImage";
 
 export type ResourceCardProps = {
   resource: Resource;
+  songName: string;
   onEdit: (resource: Resource) => void;
 };
 
 export const ResourceCard: React.FC<ResourceCardProps> = ({
   resource,
+  songName,
   onEdit,
 }) => {
   const { title, url } = resource;
@@ -75,7 +77,7 @@ export const ResourceCard: React.FC<ResourceCardProps> = ({
   const deleteResource = async (persistDismissedWarning: boolean) => {
     setIsActionMenuOpen(false);
     setIsConfirmationDialogOpen(false);
-    const toastId = toast.loading("Deleting resource...");
+    const toastId = toast.loading("Unlinking resource...");
 
     try {
       await deleteResourceMutation.mutateAsync({
@@ -107,14 +109,14 @@ export const ResourceCard: React.FC<ResourceCardProps> = ({
         } catch (preferenceError) {
           Sentry.captureException(preferenceError);
           toast.error(
-            "Resource was deleted, but delete confirmation preference could not be saved",
+            "Resource was unlinked, but the confirmation preference could not be saved",
             { id: toastId },
           );
           return;
         }
       }
 
-      toast.success("Resource was deleted", { id: toastId });
+      toast.success("Resource was unlinked", { id: toastId });
       setShouldDisableFutureWarnings(false);
     } catch (error) {
       Sentry.captureException(error);
@@ -122,7 +124,7 @@ export const ResourceCard: React.FC<ResourceCardProps> = ({
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error";
 
-      toast.error(`Could not delete resource: ${errorMessage}`, {
+      toast.error(`Could not unlink resource: ${errorMessage}`, {
         id: toastId,
       });
     } finally {
@@ -184,8 +186,8 @@ export const ResourceCard: React.FC<ResourceCardProps> = ({
             />
             <DropdownMenuSeparator />
             <ActionMenuItem
-              icon="Trash"
-              label="Delete resource"
+              icon="LinkBreak"
+              label="Unlink resource"
               destructive
               onClick={handleDeleteResource}
             />
@@ -204,13 +206,14 @@ export const ResourceCard: React.FC<ResourceCardProps> = ({
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete &quot;{title}&quot;?</AlertDialogTitle>
+            <AlertDialogTitle>Unlink {title}</AlertDialogTitle>
             <AlertDialogDescription>
-              This resource will be removed from the song. The linked site will
-              not be affected.
+              This will permanently unlink {title} from {songName}. This
+              can&apos;t be undone, but you can manually re-link the resource
+              later if you need it again.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center justify-center gap-2 pt-1 sm:justify-start sm:pt-3">
             <Checkbox
               id={`dont-warn-resource-delete-${resource.id}`}
               checked={shouldDisableFutureWarnings}
@@ -218,7 +221,10 @@ export const ResourceCard: React.FC<ResourceCardProps> = ({
                 setShouldDisableFutureWarnings(checked === true)
               }
             />
-            <Label htmlFor={`dont-warn-resource-delete-${resource.id}`}>
+            <Label
+              className="text-sm font-normal text-slate-500"
+              htmlFor={`dont-warn-resource-delete-${resource.id}`}
+            >
               Don&apos;t warn me again
             </Label>
           </div>
@@ -236,7 +242,7 @@ export const ResourceCard: React.FC<ResourceCardProps> = ({
               disabled={deleteResourceMutation.isPending}
               onClick={() => deleteResource(shouldDisableFutureWarnings)}
             >
-              Delete resource
+              Unlink resource
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -119,6 +119,7 @@ jest.mock("@sentry/nextjs", () => ({
 
 const songId = createUuid();
 const organizationId = createUuid();
+const songName = createResourceName();
 
 const createUserDataFixture = (overrides: Partial<typeof mockUserData> = {}) =>
   createUserWithMembershipsFixture({
@@ -159,7 +160,11 @@ const renderSongResources = () => {
 
   render(
     <QueryClientProvider client={queryClient}>
-      <SongResources songId={songId} organizationId={organizationId} />
+      <SongResources
+        songId={songId}
+        songName={songName}
+        organizationId={organizationId}
+      />
     </QueryClientProvider>,
   );
 
@@ -332,6 +337,24 @@ describe("SongResources resource editing", () => {
     });
   });
 
+  it("warns when a resource URL does not start with https://", async () => {
+    renderSongResources();
+
+    await openCreateDrawer();
+
+    fireEvent.change(screen.getByLabelText("URL *"), {
+      target: { value: "http://spotify.com/lisen" },
+    });
+    fireEvent.blur(screen.getByLabelText("URL *"));
+
+    expect(
+      await screen.findByText("Please use a link starting with https://"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Create resource" }),
+    ).toBeDisabled();
+  });
+
   it("submits updated resource values and invalidates the song resources query", async () => {
     const updatedResourceName = createResourceName();
     const updatedResourceUrl = createResourceUrl();
@@ -437,7 +460,7 @@ describe("SongResources resource editing", () => {
     });
   });
 
-  it("renders a destructive delete resource action below a separator", async () => {
+  it("renders a destructive unlink resource action below a separator", async () => {
     renderSongResources();
 
     fireEvent.keyDown(
@@ -447,7 +470,7 @@ describe("SongResources resource editing", () => {
       { key: "Enter", code: "Enter" },
     );
 
-    const deleteAction = await screen.findByText("Delete resource");
+    const deleteAction = await screen.findByText("Unlink resource");
     const separator = screen.getByRole("separator");
 
     expect(separator.compareDocumentPosition(deleteAction)).toBe(
@@ -465,13 +488,21 @@ describe("SongResources resource editing", () => {
       }),
       { key: "Enter", code: "Enter" },
     );
-    fireEvent.click(await screen.findByText("Delete resource"));
+    fireEvent.click(await screen.findByText("Unlink resource"));
 
     expect(
       await screen.findByRole("heading", {
-        name: `Delete "${resource.title}"?`,
+        name: `Unlink ${resource.title}`,
       }),
     ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        `This will permanently unlink ${resource.title} from ${songName}. This can't be undone, but you can manually re-link the resource later if you need it again.`,
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText("The linked site will not be affected."),
+    ).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
 
@@ -490,9 +521,9 @@ describe("SongResources resource editing", () => {
       }),
       { key: "Enter", code: "Enter" },
     );
-    fireEvent.click(await screen.findByText("Delete resource"));
+    fireEvent.click(await screen.findByText("Unlink resource"));
     fireEvent.click(
-      await screen.findByRole("button", { name: "Delete resource" }),
+      await screen.findByRole("button", { name: "Unlink resource" }),
     );
 
     await waitFor(() => {
@@ -513,7 +544,7 @@ describe("SongResources resource editing", () => {
         },
       ],
     });
-    expect(toast.success).toHaveBeenCalledWith("Resource was deleted", {
+    expect(toast.success).toHaveBeenCalledWith("Resource was unlinked", {
       id: "toast-id",
     });
     await waitFor(() => {
@@ -531,14 +562,14 @@ describe("SongResources resource editing", () => {
       }),
       { key: "Enter", code: "Enter" },
     );
-    fireEvent.click(await screen.findByText("Delete resource"));
+    fireEvent.click(await screen.findByText("Unlink resource"));
     fireEvent.click(
-      await screen.findByRole("button", { name: "Delete resource" }),
+      await screen.findByRole("button", { name: "Unlink resource" }),
     );
 
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith(
-        "Could not delete resource: Delete failed",
+        "Could not unlink resource: Delete failed",
         { id: "toast-id" },
       );
     });
@@ -554,9 +585,9 @@ describe("SongResources resource editing", () => {
       }),
       { key: "Enter", code: "Enter" },
     );
-    fireEvent.click(await screen.findByText("Delete resource"));
+    fireEvent.click(await screen.findByText("Unlink resource"));
     fireEvent.click(await screen.findByLabelText("Don't warn me again"));
-    fireEvent.click(screen.getByRole("button", { name: "Delete resource" }));
+    fireEvent.click(screen.getByRole("button", { name: "Unlink resource" }));
 
     await waitFor(() => {
       expect(mockUpdateResourceDeleteConfirmationPreference).toHaveBeenCalled();
@@ -590,9 +621,9 @@ describe("SongResources resource editing", () => {
       }),
       { key: "Enter", code: "Enter" },
     );
-    fireEvent.click(await screen.findByText("Delete resource"));
+    fireEvent.click(await screen.findByText("Unlink resource"));
     fireEvent.click(await screen.findByLabelText("Don't warn me again"));
-    fireEvent.click(screen.getByRole("button", { name: "Delete resource" }));
+    fireEvent.click(screen.getByRole("button", { name: "Unlink resource" }));
 
     await waitFor(() => {
       expect(invalidateQueriesSpy).toHaveBeenCalledWith({
@@ -608,7 +639,7 @@ describe("SongResources resource editing", () => {
       });
     });
     expect(toast.error).toHaveBeenCalledWith(
-      "Resource was deleted, but delete confirmation preference could not be saved",
+      "Resource was unlinked, but the confirmation preference could not be saved",
       { id: "toast-id" },
     );
   });
@@ -626,14 +657,14 @@ describe("SongResources resource editing", () => {
       }),
       { key: "Enter", code: "Enter" },
     );
-    fireEvent.click(await screen.findByText("Delete resource"));
+    fireEvent.click(await screen.findByText("Unlink resource"));
 
     await waitFor(() => {
       expect(mockDeleteResource).toHaveBeenCalled();
     });
     expect(
       screen.queryByRole("heading", {
-        name: `Delete "${resource.title}"?`,
+        name: `Unlink ${resource.title}`,
       }),
     ).not.toBeInTheDocument();
   });
