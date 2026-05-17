@@ -1,4 +1,9 @@
-import { DotsThree, Heart, Plus } from "@phosphor-icons/react/dist/ssr";
+import {
+  DotsThree,
+  Heart,
+  LinkSimple,
+  Plus,
+} from "@phosphor-icons/react/dist/ssr";
 
 import { Button } from "@components/ui/button";
 import { Skeleton } from "@components/ui/skeleton";
@@ -57,8 +62,8 @@ export const SongDetailsPageLoading: React.FC = () => (
       collapsible
       button={
         <Button size="sm" variant="ghost" disabled>
-          <Plus className="text-slate-900" size={16} />
-          <span className="hidden sm:inline">Add resource</span>
+          <LinkSimple className="text-slate-900" size={16} />
+          <span className="hidden sm:inline">Link resource</span>
         </Button>
       }
     >

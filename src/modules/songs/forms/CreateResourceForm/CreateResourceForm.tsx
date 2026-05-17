@@ -52,16 +52,12 @@ type UpdateResourceFormProps = {
   organizationId?: never;
 };
 
-type ResourceFormProps = (
-  | CreateResourceFormProps
-  | UpdateResourceFormProps
-) &
+type ResourceFormProps = (CreateResourceFormProps | UpdateResourceFormProps) &
   SharedResourceFormProps;
 
 export const ResourceForm: React.FC<ResourceFormProps> = ({
   className,
   layout = "default",
-  mode,
   onCancel,
   renderPreview,
   onSuccess,
@@ -130,23 +126,29 @@ export const ResourceForm: React.FC<ResourceFormProps> = ({
   } = resourceForm;
 
   const handleResourceSubmit = async (formValues: ResourceFormFields) => {
+    const actionErrorCopy = resource ? "update" : "link";
     const actionCopy = resource
       ? "Updating resource..."
-      : "Creating resource...";
+      : "Linking resource...";
     const toastId = toast.loading(actionCopy);
 
     if (!userData) {
       Sentry.captureException(new Error("No user data available"));
-      toast.error(`Could not ${mode} resource: invalid user`, { id: toastId });
+      toast.error(`Could not ${actionErrorCopy} resource: invalid user`, {
+        id: toastId,
+      });
 
       return;
     }
 
     if (!songId || !requestedOrganizationId) {
       Sentry.captureException(new Error("No resource organization found"));
-      toast.error(`Could not ${mode} resource: invalid team context`, {
-        id: toastId,
-      });
+      toast.error(
+        `Could not ${actionErrorCopy} resource: invalid team context`,
+        {
+          id: toastId,
+        },
+      );
 
       return;
     }
@@ -158,9 +160,12 @@ export const ResourceForm: React.FC<ResourceFormProps> = ({
 
     if (!organizationId) {
       Sentry.captureException(new Error("No organization membership found"));
-      toast.error(`Could not ${mode} resource: invalid team membership`, {
-        id: toastId,
-      });
+      toast.error(
+        `Could not ${actionErrorCopy} resource: invalid team membership`,
+        {
+          id: toastId,
+        },
+      );
 
       return;
     }
@@ -191,12 +196,9 @@ export const ResourceForm: React.FC<ResourceFormProps> = ({
         }).queryKey,
       });
 
-      toast.success(
-        resource ? "Resource was updated" : "Resource was created",
-        {
-          id: toastId,
-        },
-      );
+      toast.success(resource ? "Resource was updated" : "Resource was linked", {
+        id: toastId,
+      });
       onSuccess();
       reset(resource ? formValues : defaultValues);
     } catch (error) {
@@ -205,14 +207,14 @@ export const ResourceForm: React.FC<ResourceFormProps> = ({
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error";
 
-      toast.error(`Could not ${mode} resource: ${errorMessage}`, {
+      toast.error(`Could not ${actionErrorCopy} resource: ${errorMessage}`, {
         id: toastId,
       });
     }
   };
 
   const shouldSubmitButtonBeDisabled = !isDirty || !isValid || isSubmitting;
-  const submitText = resource ? "Save changes" : "Create resource";
+  const submitText = resource ? "Save changes" : "Link resource";
   const isCompact = layout === "compact";
 
   return (

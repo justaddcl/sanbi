@@ -6,6 +6,9 @@ import { createUuid } from "../../generators/createUuid";
 
 type UserWithMembershipsFixture = NonNullable<UserWithMemberships>;
 type MembershipFixture = UserWithMembershipsFixture["memberships"][number];
+type UserPreferencesFixture = NonNullable<
+  UserWithMembershipsFixture["preferences"]
+>;
 
 export const createOrganizationMembershipFixture = (
   overrides: Partial<MembershipFixture> = {},
@@ -32,13 +35,28 @@ export const createOrganizationMembershipFixture = (
 
 export const createUserWithMembershipsFixture = (
   overrides: Partial<UserWithMembershipsFixture> = {},
-): UserWithMembershipsFixture => ({
-  id: "user_123",
-  firstName: faker.person.firstName(),
-  lastName: faker.person.lastName(),
-  email: faker.internet.email(),
+): UserWithMembershipsFixture => {
+  const userId = overrides.id ?? "user_123";
+
+  return {
+    id: userId,
+    firstName: faker.person.firstName(),
+    lastName: faker.person.lastName(),
+    email: faker.internet.email(),
+    createdAt: new Date("2026-01-01T00:00:00Z"),
+    updatedAt: new Date("2026-01-01T00:00:00Z"),
+    preferences: createUserPreferencesFixture({ userId }),
+    memberships: [createOrganizationMembershipFixture({ userId })],
+    ...overrides,
+  };
+};
+
+export const createUserPreferencesFixture = (
+  overrides: Partial<UserPreferencesFixture> = {},
+): UserPreferencesFixture => ({
+  userId: "user_123",
+  confirmResourceDelete: true,
   createdAt: new Date("2026-01-01T00:00:00Z"),
   updatedAt: new Date("2026-01-01T00:00:00Z"),
-  memberships: [createOrganizationMembershipFixture()],
   ...overrides,
 });

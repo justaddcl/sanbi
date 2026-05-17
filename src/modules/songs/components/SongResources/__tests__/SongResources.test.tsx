@@ -8,8 +8,10 @@ import {
 } from "@testUtils/models/resource/generators";
 import {
   createOrganizationMembershipFixture,
+  createUserPreferencesFixture,
   createUserWithMembershipsFixture,
 } from "@testUtils/models/user/fixtures";
+import { toast } from "sonner";
 import { useMediaQuery } from "usehooks-ts";
 
 import { useSongResources } from "@modules/songs/queries/useSongResources";
@@ -20,6 +22,12 @@ import { SongResources } from "../SongResources";
 
 const mockCreateResource = jest.fn<Promise<Resource>, [unknown]>();
 const mockUpdateResource = jest.fn<Promise<Resource>, [unknown]>();
+const mockDeleteResource = jest.fn<Promise<Resource>, [unknown]>();
+const mockUpdateResourceDeleteConfirmationPreference = jest.fn<
+  Promise<unknown>,
+  [unknown]
+>();
+const mockInvalidateUser = jest.fn();
 let mockUserData: NonNullable<UserWithMemberships>;
 
 jest.mock("@clerk/nextjs", () => ({
@@ -38,7 +46,19 @@ jest.mock(
         getUser: {
           useQuery: jest.fn(() => ({ data: mockUserData })),
         },
+        updateResourceDeleteConfirmationPreference: {
+          useMutation: jest.fn(() => ({
+            mutateAsync: mockUpdateResourceDeleteConfirmationPreference,
+          })),
+        },
       },
+      useUtils: jest.fn(() => ({
+        user: {
+          getUser: {
+            invalidate: mockInvalidateUser,
+          },
+        },
+      })),
     },
   }),
   { virtual: true },
@@ -57,6 +77,11 @@ jest.mock(
         update: {
           mutationOptions: () => ({
             mutationFn: mockUpdateResource,
+          }),
+        },
+        delete: {
+          mutationOptions: () => ({
+            mutationFn: mockDeleteResource,
           }),
         },
         getBySongId: {
@@ -89,6 +114,7 @@ jest.mock("@sentry/nextjs", () => ({
 
 const songId = createUuid();
 const organizationId = createUuid();
+const songName = createResourceName();
 
 const createUserDataFixture = (overrides: Partial<typeof mockUserData> = {}) =>
   createUserWithMembershipsFixture({
@@ -129,7 +155,11 @@ const renderSongResources = () => {
 
   render(
     <QueryClientProvider client={queryClient}>
-      <SongResources songId={songId} organizationId={organizationId} />
+      <SongResources
+        songId={songId}
+        songName={songName}
+        organizationId={organizationId}
+      />
     </QueryClientProvider>,
   );
 
@@ -150,7 +180,7 @@ const openEditDrawer = async () => {
 };
 
 const openCreateDrawer = async () => {
-  fireEvent.click(screen.getByRole("button", { name: /add resource/i }));
+  fireEvent.click(screen.getByRole("button", { name: /link resource/i }));
 
   return screen.findByRole("dialog");
 };
@@ -164,6 +194,11 @@ describe("SongResources resource editing", () => {
     mockUserData = createUserDataFixture();
     mockCreateResource.mockResolvedValue(resource);
     mockUpdateResource.mockResolvedValue(resource);
+    mockDeleteResource.mockResolvedValue(resource);
+    mockUpdateResourceDeleteConfirmationPreference.mockResolvedValue(
+      createUserPreferencesFixture({ confirmResourceDelete: false }),
+    );
+    mockInvalidateUser.mockResolvedValue(undefined);
     (useSongResources as jest.Mock).mockReturnValue(
       createSongResourcesQueryFixture(),
     );
@@ -216,7 +251,7 @@ describe("SongResources resource editing", () => {
 
     renderSongResources();
 
-    expect(screen.getByText("No song resources yet. Create one?").tagName).toBe(
+    expect(screen.getByText("No song resources yet. Link one?").tagName).toBe(
       "LI",
     );
   });
@@ -270,11 +305,11 @@ describe("SongResources resource editing", () => {
 
     await waitFor(() => {
       expect(
-        screen.getByRole("button", { name: "Create resource" }),
+        screen.getByRole("button", { name: "Link resource" }),
       ).toBeEnabled();
     });
 
-    fireEvent.click(screen.getByRole("button", { name: "Create resource" }));
+    fireEvent.click(screen.getByRole("button", { name: "Link resource" }));
 
     await waitFor(() => {
       expect(mockCreateResource).toHaveBeenCalled();
@@ -296,6 +331,32 @@ describe("SongResources resource editing", () => {
         },
       ],
     });
+  });
+
+  it("warns when a resource URL does not start with https://", async () => {
+    const validResourceName = createResourceName();
+    const insecureResourceUrl = createResourceUrl().replace(/^https:/, "http:");
+
+    renderSongResources();
+
+    await openCreateDrawer();
+
+    fireEvent.change(screen.getByLabelText("Name *"), {
+      target: { value: validResourceName },
+    });
+    fireEvent.blur(screen.getByLabelText("Name *"));
+
+    fireEvent.change(screen.getByLabelText("URL *"), {
+      target: { value: insecureResourceUrl },
+    });
+    fireEvent.blur(screen.getByLabelText("URL *"));
+
+    expect(
+      await screen.findByText("Please use a link starting with https://"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Link resource" }),
+    ).toBeDisabled();
   });
 
   it("submits updated resource values and invalidates the song resources query", async () => {
@@ -400,6 +461,211 @@ describe("SongResources resource editing", () => {
           organizationId,
         },
       ],
+    });
+  });
+
+  it("opens the confirmation dialog from the unlink resource action", async () => {
+    renderSongResources();
+
+    fireEvent.keyDown(
+      screen.getByRole("button", {
+        name: `Open actions for ${resource.title}`,
+      }),
+      { key: "Enter", code: "Enter" },
+    );
+
+    const unlinkAction = await screen.findByText("Unlink resource");
+    fireEvent.click(unlinkAction);
+
+    expect(
+      await screen.findByRole("heading", {
+        name: `Unlink ${resource.title}`,
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it("opens the confirmation dialog and cancel does not delete", async () => {
+    renderSongResources();
+
+    fireEvent.keyDown(
+      screen.getByRole("button", {
+        name: `Open actions for ${resource.title}`,
+      }),
+      { key: "Enter", code: "Enter" },
+    );
+    fireEvent.click(await screen.findByText("Unlink resource"));
+
+    expect(
+      await screen.findByRole("heading", {
+        name: `Unlink ${resource.title}`,
+      }),
+    ).toBeInTheDocument();
+
+    const confirmationDialog = screen.getByRole("alertdialog");
+    expect(confirmationDialog).toHaveTextContent("permanently unlink");
+    expect(confirmationDialog).toHaveTextContent(resource.title);
+    expect(confirmationDialog).toHaveTextContent(songName);
+
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+
+    expect(mockDeleteResource).not.toHaveBeenCalled();
+    await waitFor(() => {
+      expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+    });
+  });
+
+  it("confirms delete, invalidates resources, closes the dialog, and shows success", async () => {
+    const { invalidateQueriesSpy } = renderSongResources();
+
+    fireEvent.keyDown(
+      screen.getByRole("button", {
+        name: `Open actions for ${resource.title}`,
+      }),
+      { key: "Enter", code: "Enter" },
+    );
+    fireEvent.click(await screen.findByText("Unlink resource"));
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Unlink resource" }),
+    );
+
+    await waitFor(() => {
+      expect(mockDeleteResource).toHaveBeenCalled();
+    });
+    expect(mockDeleteResource.mock.calls[0]?.[0]).toEqual({
+      resourceId: resource.id,
+      organizationId,
+    });
+    expect(
+      mockUpdateResourceDeleteConfirmationPreference,
+    ).not.toHaveBeenCalled();
+    expect(invalidateQueriesSpy).toHaveBeenCalledWith({
+      queryKey: [
+        "orpc",
+        "resource",
+        "getBySongId",
+        {
+          songId,
+          organizationId,
+        },
+      ],
+    });
+    expect(toast.success).toHaveBeenCalledWith("Resource was unlinked", {
+      id: "toast-id",
+    });
+    await waitFor(() => {
+      expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+    });
+  });
+
+  it("shows an error toast and does not invalidate when delete fails", async () => {
+    mockDeleteResource.mockRejectedValue(new Error("Delete failed"));
+    const { invalidateQueriesSpy } = renderSongResources();
+
+    fireEvent.keyDown(
+      screen.getByRole("button", {
+        name: `Open actions for ${resource.title}`,
+      }),
+      { key: "Enter", code: "Enter" },
+    );
+    fireEvent.click(await screen.findByText("Unlink resource"));
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Unlink resource" }),
+    );
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith(
+        "Could not unlink resource: Delete failed",
+        { id: "toast-id" },
+      );
+    });
+    expect(invalidateQueriesSpy).not.toHaveBeenCalled();
+  });
+
+  it("persists the warning opt-out before unlinking the resource", async () => {
+    const { invalidateQueriesSpy } = renderSongResources();
+
+    fireEvent.keyDown(
+      screen.getByRole("button", {
+        name: `Open actions for ${resource.title}`,
+      }),
+      { key: "Enter", code: "Enter" },
+    );
+    fireEvent.click(await screen.findByText("Unlink resource"));
+
+    expect(
+      await screen.findByRole("heading", {
+        name: `Unlink ${resource.title}`,
+      }),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByLabelText("Don't warn me again"));
+    fireEvent.click(screen.getByRole("button", { name: "Unlink resource" }));
+
+    await waitFor(() => {
+      expect(mockUpdateResourceDeleteConfirmationPreference).toHaveBeenCalled();
+    });
+    expect(
+      mockUpdateResourceDeleteConfirmationPreference.mock.calls[0]?.[0],
+    ).toEqual({
+      confirmResourceDelete: false,
+    });
+    expect(mockInvalidateUser).toHaveBeenCalledWith({ userId: "user_123" });
+    expect(mockDeleteResource).toHaveBeenCalled();
+    expect(invalidateQueriesSpy).toHaveBeenCalledWith({
+      queryKey: [
+        "orpc",
+        "resource",
+        "getBySongId",
+        {
+          songId,
+          organizationId,
+        },
+      ],
+    });
+  });
+
+  it("still unlinks the resource when warning preference persistence fails", async () => {
+    mockUpdateResourceDeleteConfirmationPreference.mockRejectedValue(
+      new Error("Preference update failed"),
+    );
+    renderSongResources();
+
+    fireEvent.keyDown(
+      screen.getByRole("button", {
+        name: `Open actions for ${resource.title}`,
+      }),
+      { key: "Enter", code: "Enter" },
+    );
+    fireEvent.click(await screen.findByText("Unlink resource"));
+    fireEvent.click(screen.getByLabelText("Don't warn me again"));
+    fireEvent.click(screen.getByRole("button", { name: "Unlink resource" }));
+
+    await waitFor(() => {
+      expect(mockDeleteResource).toHaveBeenCalled();
+    });
+    expect(toast.success).toHaveBeenCalledWith("Resource was unlinked", {
+      id: "toast-id",
+    });
+  });
+
+  it("unlinks resources without a confirmation dialog when warnings are disabled", async () => {
+    mockUserData = createUserDataFixture({
+      preferences: createUserPreferencesFixture({
+        confirmResourceDelete: false,
+      }),
+    });
+    renderSongResources();
+
+    fireEvent.keyDown(
+      screen.getByRole("button", {
+        name: `Open actions for ${resource.title}`,
+      }),
+      { key: "Enter", code: "Enter" },
+    );
+    fireEvent.click(await screen.findByText("Unlink resource"));
+
+    expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+    await waitFor(() => {
+      expect(mockDeleteResource).toHaveBeenCalled();
     });
   });
 });
