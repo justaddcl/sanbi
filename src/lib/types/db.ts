@@ -28,12 +28,13 @@ export type OrganizationMembershipWithOrganization = OrganizationMembership & {
 
 export type NewUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
-export type NewUserPreference = typeof userPreferences.$inferInsert;
-export type UserPreference = typeof userPreferences.$inferSelect;
 export type UserWithMembership = User & {
   membership: OrganizationMembershipWithOrganization;
 };
 export type UserWithMemberships = RouterOutputs["user"]["getUser"];
+
+export type NewUserPreference = typeof userPreferences.$inferInsert;
+export type UserPreference = typeof userPreferences.$inferSelect;
 
 export type NewEventType = typeof eventTypes.$inferInsert;
 export type EventType = typeof eventTypes.$inferSelect;
