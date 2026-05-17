@@ -54,8 +54,8 @@ export const SongResources: React.FC<SongResourcesProps> = ({
 
   const linkResourceButton = (
     <ResponsiveDialogTrigger asChild>
-      <Button size="sm" variant="ghost">
-        <LinkSimple className="text-slate-900" size={16} />
+      <Button aria-label="Link resource" size="sm" variant="ghost">
+        <LinkSimple aria-hidden className="text-slate-900" size={16} />
         <span className="hidden sm:inline">Link resource</span>
       </Button>
     </ResponsiveDialogTrigger>
@@ -67,8 +67,8 @@ export const SongResources: React.FC<SongResourcesProps> = ({
         title="Resources"
         collapsible
         button={
-          <Button size="sm" variant="ghost" disabled>
-            <LinkSimple className="text-slate-900" size={16} />
+          <Button aria-label="Link resource" size="sm" variant="ghost" disabled>
+            <LinkSimple aria-hidden className="text-slate-900" size={16} />
             <span className="hidden sm:inline">Link resource</span>
           </Button>
         }

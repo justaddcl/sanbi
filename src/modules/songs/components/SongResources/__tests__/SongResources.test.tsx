@@ -1,5 +1,10 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import { createUuid } from "@testUtils/generators/createUuid";
 import { createResourceFixture } from "@testUtils/models/resource/fixtures";
 import {
@@ -312,11 +317,17 @@ describe("SongResources resource editing", () => {
   });
 
   it("warns when a resource URL does not start with https://", async () => {
+    const validResourceName = createResourceName();
     const insecureResourceUrl = createResourceUrl().replace(/^https:/, "http:");
 
     renderSongResources();
 
     await openCreateDrawer();
+
+    fireEvent.change(screen.getByLabelText("Name *"), {
+      target: { value: validResourceName },
+    });
+    fireEvent.blur(screen.getByLabelText("Name *"));
 
     fireEvent.change(screen.getByLabelText("URL *"), {
       target: { value: insecureResourceUrl },
@@ -472,11 +483,11 @@ describe("SongResources resource editing", () => {
         name: `Unlink ${resource.title}`,
       }),
     ).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        `This will permanently unlink ${resource.title} from ${songName}. This can't be undone, but you can manually re-link the resource later if you need it again.`,
-      ),
-    ).toBeInTheDocument();
+
+    const confirmationDialog = screen.getByRole("alertdialog");
+    expect(confirmationDialog).toHaveTextContent("permanently unlink");
+    expect(confirmationDialog).toHaveTextContent(resource.title);
+    expect(confirmationDialog).toHaveTextContent(songName);
 
     fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
 
