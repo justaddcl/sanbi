@@ -4,50 +4,15 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { createResourceFixture } from "@testUtils/models/resource/fixtures";
 import { createResourceName } from "@testUtils/models/resource/generators";
-import { createUserWithMembershipsFixture } from "@testUtils/models/user/fixtures";
 
 import { getDisplayUrl } from "@modules/songs/utils/getDisplayUrl";
 
 import { ResourceCard } from "../ResourceCard";
 
-const mockSetUserData = jest.fn();
-
 jest.mock("@sentry/nextjs", () => ({
   captureException: jest.fn(),
   captureMessage: jest.fn(),
 }));
-
-jest.mock("@clerk/nextjs", () => ({
-  useAuth: () => ({ userId: "user_123" }),
-}));
-
-jest.mock(
-  "@lib/trpc",
-  () => ({
-    trpc: {
-      useUtils: () => ({
-        user: {
-          getUser: {
-            setData: mockSetUserData,
-          },
-        },
-      }),
-      user: {
-        getUser: {
-          useQuery: jest.fn(() => ({
-            data: createUserWithMembershipsFixture(),
-          })),
-        },
-        updateResourceDeleteConfirmationPreference: {
-          useMutation: jest.fn(() => ({
-            mutateAsync: jest.fn(),
-          })),
-        },
-      },
-    },
-  }),
-  { virtual: true },
-);
 
 jest.mock(
   "@lib/orpc/client",

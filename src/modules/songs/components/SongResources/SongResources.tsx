@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { Plus } from "@phosphor-icons/react";
+import { LinkSimple } from "@phosphor-icons/react";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 
 import { Button } from "@components/ui/button";
@@ -32,7 +32,8 @@ export const SongResources: React.FC<SongResourcesProps> = ({
   songName,
   organizationId,
 }) => {
-  const [isAddResourceDialogOpen, setIsAddResourceDialogOpen] = useState(false);
+  const [isLinkResourceDialogOpen, setIsLinkResourceDialogOpen] =
+    useState(false);
   const [resourceBeingEdited, setResourceBeingEdited] =
     useState<Resource | null>(null);
 
@@ -44,18 +45,18 @@ export const SongResources: React.FC<SongResourcesProps> = ({
   } = useSongResources(songId, organizationId);
 
   const onSuccess = () => {
-    setIsAddResourceDialogOpen(false);
+    setIsLinkResourceDialogOpen(false);
   };
 
   const closeEditDialog = () => {
     setResourceBeingEdited(null);
   };
 
-  const addResourceButton = (
+  const linkResourceButton = (
     <ResponsiveDialogTrigger asChild>
       <Button size="sm" variant="ghost">
-        <Plus className="text-slate-900" size={16} />
-        <span className="hidden sm:inline">Add resource</span>
+        <LinkSimple className="text-slate-900" size={16} />
+        <span className="hidden sm:inline">Link resource</span>
       </Button>
     </ResponsiveDialogTrigger>
   );
@@ -67,8 +68,8 @@ export const SongResources: React.FC<SongResourcesProps> = ({
         collapsible
         button={
           <Button size="sm" variant="ghost" disabled>
-            <Plus className="text-slate-900" size={16} />
-            <span className="hidden sm:inline">Add resource</span>
+            <LinkSimple className="text-slate-900" size={16} />
+            <span className="hidden sm:inline">Link resource</span>
           </Button>
         }
       >
@@ -90,10 +91,10 @@ export const SongResources: React.FC<SongResourcesProps> = ({
   return (
     <>
       <ResponsiveDialog
-        open={isAddResourceDialogOpen}
-        onOpenChange={setIsAddResourceDialogOpen}
+        open={isLinkResourceDialogOpen}
+        onOpenChange={setIsLinkResourceDialogOpen}
       >
-        <Card title="Resources" collapsible button={addResourceButton}>
+        <Card title="Resources" collapsible button={linkResourceButton}>
           <ul className="grid gap-3 md:grid-cols-2">
             {songResources &&
               songResources.length > 0 &&
@@ -107,18 +108,16 @@ export const SongResources: React.FC<SongResourcesProps> = ({
               ))}
             {songResources && songResources.length === 0 && (
               // Empty state will be implemented in SWY-118
-              <li>No song resources yet. Create one?</li>
+              <li>No song resources yet. Link one?</li>
             )}
           </ul>
         </Card>
         <ResponsiveDialogContent>
           <ResponsiveDialogHeader>
-            <ResponsiveDialogTitle>
-              Create a song resource
-            </ResponsiveDialogTitle>
+            <ResponsiveDialogTitle>Link a song resource</ResponsiveDialogTitle>
             <VisuallyHidden.Root>
               <ResponsiveDialogDescription>
-                Create a song resource
+                Link a song resource
               </ResponsiveDialogDescription>
             </VisuallyHidden.Root>
           </ResponsiveDialogHeader>
