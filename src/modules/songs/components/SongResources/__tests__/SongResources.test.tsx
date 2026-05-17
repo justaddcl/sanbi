@@ -479,7 +479,7 @@ describe("SongResources resource editing", () => {
 
     expect(
       await screen.findByRole("heading", {
-        name: `Unlink ${resource.title}?`,
+        name: `Unlink ${resource.title}`,
       }),
     ).toBeInTheDocument();
   });
@@ -497,7 +497,7 @@ describe("SongResources resource editing", () => {
 
     expect(
       await screen.findByRole("heading", {
-        name: `Unlink ${resource.title}?`,
+        name: `Unlink ${resource.title}`,
       }),
     ).toBeInTheDocument();
 
@@ -594,7 +594,7 @@ describe("SongResources resource editing", () => {
 
     expect(
       await screen.findByRole("heading", {
-        name: `Unlink ${resource.title}?`,
+        name: `Unlink ${resource.title}`,
       }),
     ).toBeInTheDocument();
     fireEvent.click(screen.getByLabelText("Don't warn me again"));

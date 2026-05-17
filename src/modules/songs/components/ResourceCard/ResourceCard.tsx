@@ -182,31 +182,27 @@ export const ResourceCard: React.FC<ResourceCardProps> = ({
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Unlink {title}?</AlertDialogTitle>
+            <AlertDialogTitle>Unlink {title}</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently unlink{" "}
-              <span className="font-medium text-slate-700">{title}</span> from{" "}
-              <span className="font-medium text-slate-700">{songName}</span>.
-              This can&apos;t be undone, but you can manually re-link the
-              resource later if you need it again.
+              This will permanently unlink {title} from {songName}. This
+              can&apos;t be undone, but you can manually re-link the resource
+              later if you need it again.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <div className="mt-3 flex justify-center sm:mt-5">
-            <div className="flex items-center gap-2">
-              <Checkbox
-                id={`resource-${resource.id}-skip-unlink-warning`}
-                checked={shouldDisableFutureWarnings}
-                onCheckedChange={(checked) => {
-                  setShouldDisableFutureWarnings(checked === true);
-                }}
-              />
-              <Label
-                htmlFor={`resource-${resource.id}-skip-unlink-warning`}
-                className="text-sm font-normal text-slate-500"
-              >
-                Don&apos;t warn me again
-              </Label>
-            </div>
+          <div className="flex items-center justify-center gap-2 pt-1 sm:justify-start sm:pt-3">
+            <Checkbox
+              id={`dont-warn-resource-delete-${resource.id}`}
+              checked={shouldDisableFutureWarnings}
+              onCheckedChange={(checked) =>
+                setShouldDisableFutureWarnings(checked === true)
+              }
+            />
+            <Label
+              className="text-sm font-normal text-slate-500"
+              htmlFor={`dont-warn-resource-delete-${resource.id}`}
+            >
+              Don&apos;t warn me again
+            </Label>
           </div>
           <AlertDialogFooter>
             <AlertDialogCancel
