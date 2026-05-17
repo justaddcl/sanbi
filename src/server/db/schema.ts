@@ -354,10 +354,7 @@ export const userPreferencesRelations = relations(
 export const usersRelations = relations(users, ({ many, one }) => ({
   memberships: many(organizationMemberships),
   songs: many(songs),
-  preferences: one(userPreferences, {
-    fields: [users.id],
-    references: [userPreferences.userId],
-  }),
+  preferences: one(userPreferences),
 }));
 
 export const songsRelations = relations(songs, ({ one, many }) => ({

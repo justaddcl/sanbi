@@ -124,6 +124,7 @@ export const userRouter = createTRPCRouter({
           target: userPreferences.userId,
           set: {
             confirmResourceDelete: input.confirmResourceDelete,
+            updatedAt: new Date(),
           },
         })
         .returning();

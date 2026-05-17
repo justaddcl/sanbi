@@ -35,17 +35,21 @@ export const createOrganizationMembershipFixture = (
 
 export const createUserWithMembershipsFixture = (
   overrides: Partial<UserWithMembershipsFixture> = {},
-): UserWithMembershipsFixture => ({
-  id: "user_123",
-  firstName: faker.person.firstName(),
-  lastName: faker.person.lastName(),
-  email: faker.internet.email(),
-  createdAt: new Date("2026-01-01T00:00:00Z"),
-  updatedAt: new Date("2026-01-01T00:00:00Z"),
-  preferences: createUserPreferencesFixture(),
-  memberships: [createOrganizationMembershipFixture()],
-  ...overrides,
-});
+): UserWithMembershipsFixture => {
+  const userId = overrides.id ?? "user_123";
+
+  return {
+    id: userId,
+    firstName: faker.person.firstName(),
+    lastName: faker.person.lastName(),
+    email: faker.internet.email(),
+    createdAt: new Date("2026-01-01T00:00:00Z"),
+    updatedAt: new Date("2026-01-01T00:00:00Z"),
+    preferences: createUserPreferencesFixture({ userId }),
+    memberships: [createOrganizationMembershipFixture({ userId })],
+    ...overrides,
+  };
+};
 
 export const createUserPreferencesFixture = (
   overrides: Partial<UserPreferencesFixture> = {},

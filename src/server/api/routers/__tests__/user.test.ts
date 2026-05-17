@@ -26,13 +26,20 @@ const createUserRouterCaller = (db: unknown) =>
   } as never);
 
 describe("userRouter", () => {
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
   it("upserts the authenticated user's resource delete confirmation preference", async () => {
+    const updatedAt = new Date("2026-05-17T00:00:00Z");
     const updatedPreference = createUserPreferencesFixture({
       userId,
       confirmResourceDelete: false,
     });
     const db = createUpsertUserPreferencesDb(updatedPreference);
     const caller = createUserRouterCaller(db.db);
+
+    jest.useFakeTimers().setSystemTime(updatedAt);
 
     await expect(
       caller.updateResourceDeleteConfirmationPreference({
@@ -49,6 +56,7 @@ describe("userRouter", () => {
       target: userPreferences.userId,
       set: {
         confirmResourceDelete: updatedPreference.confirmResourceDelete,
+        updatedAt,
       },
     });
   });
