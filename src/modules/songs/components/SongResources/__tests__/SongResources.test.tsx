@@ -158,6 +158,7 @@ const openCreateDrawer = async () => {
 describe("SongResources resource editing", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    window.history.replaceState(null, "", "/songs/test-song");
     (useMediaQuery as jest.Mock).mockImplementation((query: string) =>
       query.includes("min-width"),
     );
@@ -209,16 +210,42 @@ describe("SongResources resource editing", () => {
     expect(screen.getAllByText(resource.title).length).toBeGreaterThan(0);
   });
 
-  it("renders the empty resource state as a list item", () => {
+  it("renders the empty resource state as a full-width list item", () => {
     (useSongResources as jest.Mock).mockReturnValue(
       createSongResourcesQueryFixture({ data: [] }),
     );
 
     renderSongResources();
 
-    expect(screen.getByText("No song resources yet. Create one?").tagName).toBe(
-      "LI",
+    expect(
+      screen.getByRole("heading", { name: "No resources yet" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "Link chord charts, audio recordings, YouTube videos, Spotify tracks, and more.",
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "No resources yet" }).closest("li"),
+    ).toHaveClass("md:col-span-2");
+    expect(
+      screen.getByRole("heading", { name: "No resources yet" }).closest("li"),
+    ).not.toHaveClass("border");
+  });
+
+  it("opens the create resource dialog from the empty-state CTA", async () => {
+    (useSongResources as jest.Mock).mockReturnValue(
+      createSongResourcesQueryFixture({ data: [] }),
     );
+
+    renderSongResources();
+
+    fireEvent.click(screen.getByRole("button", { name: "Link a resource" }));
+
+    expect(await screen.findByRole("dialog")).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Create a song resource" }),
+    ).toBeInTheDocument();
   });
 
   it("closes without submitting when cancelled", async () => {

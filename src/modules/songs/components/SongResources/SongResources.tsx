@@ -20,6 +20,7 @@ import { type Resource } from "@lib/types";
 
 import { EditResourceDialog } from "../EditResourceDialog";
 import { ResourceCard } from "../ResourceCard";
+import { SongResourcesEmptyState } from "./SongResourcesEmptyState";
 
 type SongResourcesProps = {
   songId: string;
@@ -47,6 +48,10 @@ export const SongResources: React.FC<SongResourcesProps> = ({
 
   const closeEditDialog = () => {
     setResourceBeingEdited(null);
+  };
+
+  const handleAddResourceClick = () => {
+    setIsAddResourceDialogOpen(true);
   };
 
   const addResourceButton = (
@@ -103,8 +108,9 @@ export const SongResources: React.FC<SongResourcesProps> = ({
                 />
               ))}
             {songResources && songResources.length === 0 && (
-              // Empty state will be implemented in SWY-118
-              <li>No song resources yet. Create one?</li>
+              <SongResourcesEmptyState
+                onAddResourceClick={handleAddResourceClick}
+              />
             )}
           </ul>
         </Card>
