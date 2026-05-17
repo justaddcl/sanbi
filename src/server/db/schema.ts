@@ -306,7 +306,7 @@ export const resources = createTable(
     updatedAt,
   },
   (resourcesTable) => [
-    check("resources_url_scheme_check", sql`"url" ~* '^https?://'`),
+    check("resources_url_scheme_check", sql`"url" ~* '^https://'`),
     index("resources_url_idx").on(resourcesTable.url),
     index("resources_organization_id_idx").on(resourcesTable.organizationId),
     uniqueIndex("resources_song_id_url_unique_idx").on(
@@ -354,6 +354,8 @@ export const userPreferencesRelations = relations(
 export const usersRelations = relations(users, ({ many, one }) => ({
   memberships: many(organizationMemberships),
   songs: many(songs),
+  // The FK lives on userPreferences.userId, so this inverse relation must omit
+  // fields/references to stay nullable and infer from userPreferencesRelations.
   preferences: one(userPreferences),
 }));
 

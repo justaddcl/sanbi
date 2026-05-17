@@ -61,7 +61,7 @@ describe("userRouter", () => {
     });
   });
 
-  it("returns NOT_FOUND when the authenticated user's preferences cannot be updated", async () => {
+  it("returns INTERNAL_SERVER_ERROR when the authenticated user's preferences cannot be upserted", async () => {
     const db = createUpsertUserPreferencesDb(null);
     const caller = createUserRouterCaller(db.db);
 
@@ -70,7 +70,7 @@ describe("userRouter", () => {
         confirmResourceDelete: false,
       }),
     ).rejects.toMatchObject({
-      code: "NOT_FOUND",
+      code: "INTERNAL_SERVER_ERROR",
     });
   });
 });

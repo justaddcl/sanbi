@@ -131,8 +131,8 @@ export const userRouter = createTRPCRouter({
 
       if (!updatedPreference) {
         throw new TRPCError({
-          code: "NOT_FOUND",
-          message: `Sanbi user preferences, ${ctx.auth.userId}, not found`,
+          code: "INTERNAL_SERVER_ERROR",
+          message: `Could not upsert preferences for user ${ctx.auth.userId}`,
         });
       }
 
