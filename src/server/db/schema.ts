@@ -43,6 +43,9 @@ export const users = createTable(
     firstName: varchar("firstName", { length: 256 }).notNull(),
     lastName: varchar("lastName", { length: 256 }),
     email: varchar("email", { length: 256 }).notNull().unique(),
+    confirmResourceDelete: boolean("confirm_resource_delete")
+      .default(true)
+      .notNull(),
     createdAt: timestamp("created_at", { withTimezone: true })
       .default(sql`CURRENT_TIMESTAMP`)
       .notNull(),

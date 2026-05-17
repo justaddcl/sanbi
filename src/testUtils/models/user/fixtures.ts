@@ -37,6 +37,7 @@ export const createUserWithMembershipsFixture = (
   firstName: faker.person.firstName(),
   lastName: faker.person.lastName(),
   email: faker.internet.email(),
+  confirmResourceDelete: true,
   createdAt: new Date("2026-01-01T00:00:00Z"),
   updatedAt: new Date("2026-01-01T00:00:00Z"),
   memberships: [createOrganizationMembershipFixture()],

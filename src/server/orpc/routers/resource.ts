@@ -12,6 +12,7 @@ import {
 } from "@lib/types/zod";
 import { resources, songs } from "@server/db/schema";
 import { authedProcedure, organizationProcedure } from "@server/orpc/base";
+import { deleteResourceForOrganization } from "@server/orpc/services/resource/deleteResource";
 import { updateResourceForOrganization } from "@server/orpc/services/resource/updateResource";
 import { validateUrl } from "@server/utils/urls/validateUrl";
 
@@ -200,7 +201,7 @@ export const deleteResource = organizationProcedure
   .input(deleteResourceSchema)
   .output(getResourceSchema)
   .handler(async ({ context, input }) => {
-    const { db, user } = context;
+    const { user } = context;
 
     const logger = getRouteLogger(context, `${ROUTER_PREFIX}/delete`, {
       input,
@@ -209,47 +210,33 @@ export const deleteResource = organizationProcedure
 
     logger?.info("Attempting to delete resource");
 
-    const requestedResource = await db.query.resources.findFirst({
-      where: eq(resources.id, input.resourceId),
+    return deleteResourceForOrganization({
+      input,
+      userOrganizationId: user.membership.organizationId,
+      resourceDataAccess: {
+        findResourceById: async (resourceId) => {
+          const resourceToDelete = await context.db.query.resources.findFirst({
+            where: eq(resources.id, resourceId),
+          });
+
+          return resourceToDelete ?? null;
+        },
+        deleteResource: async (resourceId, organizationId) => {
+          const [deletedResource] = await context.db
+            .delete(resources)
+            .where(
+              and(
+                eq(resources.id, resourceId),
+                eq(resources.organizationId, organizationId),
+              ),
+            )
+            .returning();
+
+          return deletedResource ?? null;
+        },
+      },
+      logger,
     });
-
-    if (!requestedResource) {
-      logger?.warn("Resource not found");
-
-      throw new ORPCError("NOT_FOUND", {
-        message: "Resource not found",
-      });
-    }
-
-    if (user.membership.organizationId !== requestedResource.organizationId) {
-      logger?.warn("User is not authorized to delete this resource");
-
-      throw new ORPCError("FORBIDDEN", {
-        message: "User is not authorized to delete this resource",
-      });
-    }
-
-    const [deletedResource] = await db
-      .delete(resources)
-      .where(
-        and(
-          eq(resources.id, input.resourceId),
-          eq(resources.organizationId, user.membership.organizationId),
-        ),
-      )
-      .returning();
-
-    if (deletedResource) {
-      logger?.info("Resource deleted");
-
-      return deletedResource;
-    } else {
-      logger?.error("Resource could not be deleted");
-
-      throw new ORPCError("INTERNAL_SERVER_ERROR", {
-        message: "Resource could not be deleted",
-      });
-    }
   });
 
 export const resourceRouter = authedProcedure.prefix(ROUTER_PREFIX).router({

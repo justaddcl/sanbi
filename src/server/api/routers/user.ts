@@ -1,14 +1,15 @@
+import { currentUser } from "@clerk/nextjs/server";
+import { TRPCError } from "@trpc/server";
+import { eq } from "drizzle-orm";
+import { z } from "zod";
+
 import {
   authedProcedure,
   createTRPCRouter,
   publicProcedure,
 } from "@server/api/trpc";
 import { users } from "@server/db/schema";
-import { currentUser } from "@clerk/nextjs/server";
 import { type NewUser } from "@/lib/types";
-import { eq } from "drizzle-orm";
-import { TRPCError } from "@trpc/server";
-import { z } from "zod";
 
 export const userRouter = createTRPCRouter({
   hello: authedProcedure.query(({ ctx }) => {
@@ -109,4 +110,22 @@ export const userRouter = createTRPCRouter({
       .onConflictDoNothing({ target: users.id })
       .returning();
   }),
+  updateResourceDeleteConfirmationPreference: authedProcedure
+    .input(z.object({ confirmResourceDelete: z.boolean() }))
+    .mutation(async ({ ctx, input }) => {
+      const [updatedUser] = await ctx.db
+        .update(users)
+        .set({ confirmResourceDelete: input.confirmResourceDelete })
+        .where(eq(users.id, ctx.auth.userId!))
+        .returning();
+
+      if (!updatedUser) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: `Sanbi user, ${ctx.auth.userId}, not found`,
+        });
+      }
+
+      return updatedUser;
+    }),
 });

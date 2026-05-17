@@ -10,6 +10,7 @@ import {
   createOrganizationMembershipFixture,
   createUserWithMembershipsFixture,
 } from "@testUtils/models/user/fixtures";
+import { toast } from "sonner";
 import { useMediaQuery } from "usehooks-ts";
 
 import { useSongResources } from "@modules/songs/queries/useSongResources";
@@ -20,6 +21,18 @@ import { SongResources } from "../SongResources";
 
 const mockCreateResource = jest.fn<Promise<Resource>, [unknown]>();
 const mockUpdateResource = jest.fn<Promise<Resource>, [unknown]>();
+const mockDeleteResource = jest.fn<Promise<Resource>, [unknown]>();
+const mockUpdateResourceDeleteConfirmationPreference = jest.fn<
+  Promise<NonNullable<UserWithMemberships>>,
+  [unknown]
+>();
+const mockSetUserData = jest.fn<
+  void,
+  [
+    { userId: string },
+    (currentUserData: UserWithMemberships) => UserWithMemberships,
+  ]
+>();
 let mockUserData: NonNullable<UserWithMemberships>;
 
 jest.mock("@clerk/nextjs", () => ({
@@ -34,9 +47,21 @@ jest.mock(
   "@lib/trpc",
   () => ({
     trpc: {
+      useUtils: () => ({
+        user: {
+          getUser: {
+            setData: mockSetUserData,
+          },
+        },
+      }),
       user: {
         getUser: {
           useQuery: jest.fn(() => ({ data: mockUserData })),
+        },
+        updateResourceDeleteConfirmationPreference: {
+          useMutation: jest.fn(() => ({
+            mutateAsync: mockUpdateResourceDeleteConfirmationPreference,
+          })),
         },
       },
     },
@@ -57,6 +82,11 @@ jest.mock(
         update: {
           mutationOptions: () => ({
             mutationFn: mockUpdateResource,
+          }),
+        },
+        delete: {
+          mutationOptions: () => ({
+            mutationFn: mockDeleteResource,
           }),
         },
         getBySongId: {
@@ -164,6 +194,10 @@ describe("SongResources resource editing", () => {
     mockUserData = createUserDataFixture();
     mockCreateResource.mockResolvedValue(resource);
     mockUpdateResource.mockResolvedValue(resource);
+    mockDeleteResource.mockResolvedValue(resource);
+    mockUpdateResourceDeleteConfirmationPreference.mockResolvedValue(
+      createUserDataFixture({ confirmResourceDelete: false }),
+    );
     (useSongResources as jest.Mock).mockReturnValue(
       createSongResourcesQueryFixture(),
     );
@@ -401,5 +435,206 @@ describe("SongResources resource editing", () => {
         },
       ],
     });
+  });
+
+  it("renders a destructive delete resource action below a separator", async () => {
+    renderSongResources();
+
+    fireEvent.keyDown(
+      screen.getByRole("button", {
+        name: `Open actions for ${resource.title}`,
+      }),
+      { key: "Enter", code: "Enter" },
+    );
+
+    const deleteAction = await screen.findByText("Delete resource");
+    const separator = screen.getByRole("separator");
+
+    expect(separator.compareDocumentPosition(deleteAction)).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING,
+    );
+    expect(deleteAction).toHaveClass("text-red-500");
+  });
+
+  it("opens the confirmation dialog and cancel does not delete", async () => {
+    renderSongResources();
+
+    fireEvent.keyDown(
+      screen.getByRole("button", {
+        name: `Open actions for ${resource.title}`,
+      }),
+      { key: "Enter", code: "Enter" },
+    );
+    fireEvent.click(await screen.findByText("Delete resource"));
+
+    expect(
+      await screen.findByRole("heading", {
+        name: `Delete "${resource.title}"?`,
+      }),
+    ).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+
+    expect(mockDeleteResource).not.toHaveBeenCalled();
+    await waitFor(() => {
+      expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+    });
+  });
+
+  it("confirms delete, invalidates resources, closes the dialog, and shows success", async () => {
+    const { invalidateQueriesSpy } = renderSongResources();
+
+    fireEvent.keyDown(
+      screen.getByRole("button", {
+        name: `Open actions for ${resource.title}`,
+      }),
+      { key: "Enter", code: "Enter" },
+    );
+    fireEvent.click(await screen.findByText("Delete resource"));
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Delete resource" }),
+    );
+
+    await waitFor(() => {
+      expect(mockDeleteResource).toHaveBeenCalled();
+    });
+    expect(mockDeleteResource.mock.calls[0]?.[0]).toEqual({
+      resourceId: resource.id,
+      organizationId,
+    });
+    expect(invalidateQueriesSpy).toHaveBeenCalledWith({
+      queryKey: [
+        "orpc",
+        "resource",
+        "getBySongId",
+        {
+          songId,
+          organizationId,
+        },
+      ],
+    });
+    expect(toast.success).toHaveBeenCalledWith("Resource was deleted", {
+      id: "toast-id",
+    });
+    await waitFor(() => {
+      expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+    });
+  });
+
+  it("shows an error toast and does not invalidate when delete fails", async () => {
+    mockDeleteResource.mockRejectedValue(new Error("Delete failed"));
+    const { invalidateQueriesSpy } = renderSongResources();
+
+    fireEvent.keyDown(
+      screen.getByRole("button", {
+        name: `Open actions for ${resource.title}`,
+      }),
+      { key: "Enter", code: "Enter" },
+    );
+    fireEvent.click(await screen.findByText("Delete resource"));
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Delete resource" }),
+    );
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith(
+        "Could not delete resource: Delete failed",
+        { id: "toast-id" },
+      );
+    });
+    expect(invalidateQueriesSpy).not.toHaveBeenCalled();
+  });
+
+  it("persists the account preference when don't warn me again is checked", async () => {
+    renderSongResources();
+
+    fireEvent.keyDown(
+      screen.getByRole("button", {
+        name: `Open actions for ${resource.title}`,
+      }),
+      { key: "Enter", code: "Enter" },
+    );
+    fireEvent.click(await screen.findByText("Delete resource"));
+    fireEvent.click(await screen.findByLabelText("Don't warn me again"));
+    fireEvent.click(screen.getByRole("button", { name: "Delete resource" }));
+
+    await waitFor(() => {
+      expect(mockUpdateResourceDeleteConfirmationPreference).toHaveBeenCalled();
+    });
+    expect(
+      mockUpdateResourceDeleteConfirmationPreference.mock.calls[0]?.[0],
+    ).toEqual({
+      confirmResourceDelete: false,
+    });
+    expect(mockSetUserData).toHaveBeenCalledWith(
+      { userId: "user_123" },
+      expect.any(Function),
+    );
+
+    const updateCachedUserData = mockSetUserData.mock.calls[0]?.[1];
+
+    expect(updateCachedUserData?.(mockUserData)?.confirmResourceDelete).toBe(
+      false,
+    );
+  });
+
+  it("still invalidates resources when saving the delete confirmation preference fails", async () => {
+    mockUpdateResourceDeleteConfirmationPreference.mockRejectedValue(
+      new Error("Preference failed"),
+    );
+    const { invalidateQueriesSpy } = renderSongResources();
+
+    fireEvent.keyDown(
+      screen.getByRole("button", {
+        name: `Open actions for ${resource.title}`,
+      }),
+      { key: "Enter", code: "Enter" },
+    );
+    fireEvent.click(await screen.findByText("Delete resource"));
+    fireEvent.click(await screen.findByLabelText("Don't warn me again"));
+    fireEvent.click(screen.getByRole("button", { name: "Delete resource" }));
+
+    await waitFor(() => {
+      expect(invalidateQueriesSpy).toHaveBeenCalledWith({
+        queryKey: [
+          "orpc",
+          "resource",
+          "getBySongId",
+          {
+            songId,
+            organizationId,
+          },
+        ],
+      });
+    });
+    expect(toast.error).toHaveBeenCalledWith(
+      "Resource was deleted, but delete confirmation preference could not be saved",
+      { id: "toast-id" },
+    );
+  });
+
+  it("skips the dialog when resource delete confirmations are disabled", async () => {
+    mockUserData = createUserDataFixture({
+      confirmResourceDelete: false,
+    });
+
+    renderSongResources();
+
+    fireEvent.keyDown(
+      screen.getByRole("button", {
+        name: `Open actions for ${resource.title}`,
+      }),
+      { key: "Enter", code: "Enter" },
+    );
+    fireEvent.click(await screen.findByText("Delete resource"));
+
+    await waitFor(() => {
+      expect(mockDeleteResource).toHaveBeenCalled();
+    });
+    expect(
+      screen.queryByRole("heading", {
+        name: `Delete "${resource.title}"?`,
+      }),
+    ).not.toBeInTheDocument();
   });
 });

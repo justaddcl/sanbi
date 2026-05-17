@@ -1,14 +1,88 @@
+import { type ComponentProps } from "react";
 import * as Sentry from "@sentry/nextjs";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { createResourceFixture } from "@testUtils/models/resource/fixtures";
+import { createUserWithMembershipsFixture } from "@testUtils/models/user/fixtures";
 
 import { getDisplayUrl } from "@modules/songs/utils/getDisplayUrl";
 
 import { ResourceCard } from "../ResourceCard";
 
+const mockSetUserData = jest.fn();
+
 jest.mock("@sentry/nextjs", () => ({
+  captureException: jest.fn(),
   captureMessage: jest.fn(),
 }));
+
+jest.mock("@clerk/nextjs", () => ({
+  useAuth: () => ({ userId: "user_123" }),
+}));
+
+jest.mock(
+  "@lib/trpc",
+  () => ({
+    trpc: {
+      useUtils: () => ({
+        user: {
+          getUser: {
+            setData: mockSetUserData,
+          },
+        },
+      }),
+      user: {
+        getUser: {
+          useQuery: jest.fn(() => ({
+            data: createUserWithMembershipsFixture(),
+          })),
+        },
+        updateResourceDeleteConfirmationPreference: {
+          useMutation: jest.fn(() => ({
+            mutateAsync: jest.fn(),
+          })),
+        },
+      },
+    },
+  }),
+  { virtual: true },
+);
+
+jest.mock(
+  "@lib/orpc/client",
+  () => ({
+    orpc: {
+      resource: {
+        delete: {
+          mutationOptions: () => ({
+            mutationFn: jest.fn(),
+          }),
+        },
+        getBySongId: {
+          queryOptions: ({ input }: { input: unknown }) => ({
+            queryKey: ["orpc", "resource", "getBySongId", input],
+          }),
+        },
+      },
+    },
+  }),
+  { virtual: true },
+);
+
+const renderResourceCard = (props: ComponentProps<typeof ResourceCard>) => {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  });
+
+  render(
+    <QueryClientProvider client={queryClient}>
+      <ResourceCard {...props} />
+    </QueryClientProvider>,
+  );
+};
 
 describe("ResourceCard", () => {
   beforeEach(() => {
@@ -19,7 +93,7 @@ describe("ResourceCard", () => {
     const resource = createResourceFixture();
     const onEdit = jest.fn();
 
-    render(<ResourceCard resource={resource} onEdit={onEdit} />);
+    renderResourceCard({ resource, onEdit });
 
     const resourceLink = screen.getByRole("link", {
       name: new RegExp(resource.title, "i"),
@@ -48,7 +122,7 @@ describe("ResourceCard", () => {
       url: "not a url with token=secret",
     });
 
-    render(<ResourceCard resource={resource} onEdit={jest.fn()} />);
+    renderResourceCard({ resource, onEdit: jest.fn() });
 
     expect(Sentry.captureMessage).toHaveBeenCalledWith(
       "Failed to parse resource URL",
