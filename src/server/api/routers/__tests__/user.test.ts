@@ -1,8 +1,11 @@
+import { currentUser } from "@clerk/nextjs/server";
+import { createCreateUserDb } from "@testUtils/models/user/createUserDb";
 import { createUserPreferencesFixture } from "@testUtils/models/user/fixtures";
 import { createUpsertUserPreferencesDb } from "@testUtils/models/user/upsertUserPreferencesDb";
+import { eq } from "drizzle-orm";
 
 import { userRouter } from "@server/api/routers/user";
-import { userPreferences } from "@server/db/schema";
+import { userPreferences, users } from "@server/db/schema";
 
 jest.mock("@clerk/nextjs/server", () => ({
   auth: jest.fn(() => ({ userId: "user_123" })),
@@ -27,7 +30,48 @@ const createUserRouterCaller = (db: unknown) =>
 
 describe("userRouter", () => {
   afterEach(() => {
+    jest.clearAllMocks();
     jest.useRealTimers();
+  });
+
+  it("creates a default opt-out resource delete confirmation preference for new users", async () => {
+    const clerkUser = {
+      id: userId,
+      firstName: "Ada",
+      lastName: "Lovelace",
+      primaryEmailAddress: {
+        emailAddress: "ada@example.com",
+      },
+    };
+    const createdUser = {
+      id: userId,
+      firstName: clerkUser.firstName,
+      lastName: clerkUser.lastName,
+      email: clerkUser.primaryEmailAddress.emailAddress,
+    };
+    const db = createCreateUserDb(createdUser);
+    const caller = createUserRouterCaller(db.db);
+
+    (currentUser as jest.Mock).mockResolvedValue(clerkUser);
+
+    await expect(caller.createMe()).resolves.toEqual([createdUser]);
+
+    expect(db.findFirst).toHaveBeenCalledWith({
+      where: eq(users.id, userId),
+    });
+    expect(db.insert).toHaveBeenNthCalledWith(1, users);
+    expect(db.userValues).toHaveBeenCalledWith(createdUser);
+    expect(db.userOnConflictDoNothing).toHaveBeenCalledWith({
+      target: users.id,
+    });
+    expect(db.insert).toHaveBeenNthCalledWith(2, userPreferences);
+    expect(db.preferenceValues).toHaveBeenCalledWith({
+      userId,
+      confirmResourceDelete: true,
+    });
+    expect(db.preferenceOnConflictDoNothing).toHaveBeenCalledWith({
+      target: userPreferences.userId,
+    });
   });
 
   it("upserts the authenticated user's resource delete confirmation preference", async () => {

@@ -105,11 +105,21 @@ export const userRouter = createTRPCRouter({
     };
     console.log(`🤖 - New sanbi user - createMe`, newUser);
 
-    return await ctx.db
+    const createdUsers = await ctx.db
       .insert(users)
       .values(newUser)
       .onConflictDoNothing({ target: users.id })
       .returning();
+
+    await ctx.db
+      .insert(userPreferences)
+      .values({
+        userId,
+        confirmResourceDelete: true,
+      })
+      .onConflictDoNothing({ target: userPreferences.userId });
+
+    return createdUsers;
   }),
   updateResourceDeleteConfirmationPreference: authedProcedure
     .input(z.object({ confirmResourceDelete: z.boolean() }))
