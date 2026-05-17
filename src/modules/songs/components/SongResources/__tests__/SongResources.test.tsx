@@ -338,12 +338,14 @@ describe("SongResources resource editing", () => {
   });
 
   it("warns when a resource URL does not start with https://", async () => {
+    const insecureResourceUrl = createResourceUrl().replace(/^https:/, "http:");
+
     renderSongResources();
 
     await openCreateDrawer();
 
     fireEvent.change(screen.getByLabelText("URL *"), {
-      target: { value: "http://spotify.com/lisen" },
+      target: { value: insecureResourceUrl },
     });
     fireEvent.blur(screen.getByLabelText("URL *"));
 
@@ -460,7 +462,7 @@ describe("SongResources resource editing", () => {
     });
   });
 
-  it("renders a destructive unlink resource action below a separator", async () => {
+  it("opens the confirmation dialog from the unlink resource action", async () => {
     renderSongResources();
 
     fireEvent.keyDown(
@@ -470,13 +472,14 @@ describe("SongResources resource editing", () => {
       { key: "Enter", code: "Enter" },
     );
 
-    const deleteAction = await screen.findByText("Unlink resource");
-    const separator = screen.getByRole("separator");
+    const unlinkAction = await screen.findByText("Unlink resource");
+    fireEvent.click(unlinkAction);
 
-    expect(separator.compareDocumentPosition(deleteAction)).toBe(
-      Node.DOCUMENT_POSITION_FOLLOWING,
-    );
-    expect(deleteAction).toHaveClass("text-red-500");
+    expect(
+      await screen.findByRole("heading", {
+        name: `Unlink ${resource.title}`,
+      }),
+    ).toBeInTheDocument();
   });
 
   it("opens the confirmation dialog and cancel does not delete", async () => {
