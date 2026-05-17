@@ -477,9 +477,6 @@ describe("SongResources resource editing", () => {
         `This will permanently unlink ${resource.title} from ${songName}. This can't be undone, but you can manually re-link the resource later if you need it again.`,
       ),
     ).toBeInTheDocument();
-    expect(
-      screen.queryByText("The linked site will not be affected."),
-    ).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
 

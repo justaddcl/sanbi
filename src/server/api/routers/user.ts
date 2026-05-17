@@ -110,22 +110,4 @@ export const userRouter = createTRPCRouter({
       .onConflictDoNothing({ target: users.id })
       .returning();
   }),
-  updateResourceDeleteConfirmationPreference: authedProcedure
-    .input(z.object({ confirmResourceDelete: z.boolean() }))
-    .mutation(async ({ ctx, input }) => {
-      const [updatedUser] = await ctx.db
-        .update(users)
-        .set({ confirmResourceDelete: input.confirmResourceDelete })
-        .where(eq(users.id, ctx.auth.userId!))
-        .returning();
-
-      if (!updatedUser) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: `Sanbi user, ${ctx.auth.userId}, not found`,
-        });
-      }
-
-      return updatedUser;
-    }),
 });
