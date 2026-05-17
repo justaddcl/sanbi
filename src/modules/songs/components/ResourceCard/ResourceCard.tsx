@@ -55,6 +55,8 @@ export const ResourceCard: React.FC<ResourceCardProps> = ({
     useState(false);
   const [shouldDisableFutureWarnings, setShouldDisableFutureWarnings] =
     useState(false);
+  const canPersistDeleteWarningPreference =
+    onResourceDeleteConfirmationPreferenceChange !== undefined;
 
   const deleteResourceMutation = useMutation(
     orpc.resource.delete.mutationOptions(),
@@ -71,9 +73,9 @@ export const ResourceCard: React.FC<ResourceCardProps> = ({
     const toastId = toast.loading("Unlinking resource...");
 
     try {
-      if (persistDismissedWarning) {
+      if (persistDismissedWarning && canPersistDeleteWarningPreference) {
         try {
-          await onResourceDeleteConfirmationPreferenceChange?.(false);
+          await onResourceDeleteConfirmationPreferenceChange(false);
         } catch (preferenceError) {
           Sentry.captureException(preferenceError);
         }
@@ -191,21 +193,23 @@ export const ResourceCard: React.FC<ResourceCardProps> = ({
               resource later if you need it again.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <div className="flex items-center justify-center gap-2 pt-1 sm:justify-start sm:pt-3">
-            <Checkbox
-              id={`dont-warn-resource-delete-${resource.id}`}
-              checked={shouldDisableFutureWarnings}
-              onCheckedChange={(checked) =>
-                setShouldDisableFutureWarnings(checked === true)
-              }
-            />
-            <Label
-              className="text-sm font-normal text-slate-500"
-              htmlFor={`dont-warn-resource-delete-${resource.id}`}
-            >
-              Don&apos;t warn me again
-            </Label>
-          </div>
+          {canPersistDeleteWarningPreference ? (
+            <div className="flex items-center justify-center gap-2 pt-1 sm:justify-start sm:pt-3">
+              <Checkbox
+                id={`dont-warn-resource-delete-${resource.id}`}
+                checked={shouldDisableFutureWarnings}
+                onCheckedChange={(checked) =>
+                  setShouldDisableFutureWarnings(checked === true)
+                }
+              />
+              <Label
+                className="text-sm font-normal text-slate-500"
+                htmlFor={`dont-warn-resource-delete-${resource.id}`}
+              >
+                Don&apos;t warn me again
+              </Label>
+            </div>
+          ) : null}
           <AlertDialogFooter>
             <AlertDialogCancel
               onClick={() => {

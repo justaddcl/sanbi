@@ -103,4 +103,27 @@ describe("ResourceCard", () => {
       },
     );
   });
+
+  it("does not show a warning opt-out when the preference cannot be persisted", async () => {
+    const resource = createResourceFixture();
+
+    renderResourceCard({ resource, songName, onEdit: jest.fn() });
+
+    fireEvent.keyDown(
+      screen.getByRole("button", {
+        name: `Open actions for ${resource.title}`,
+      }),
+      { key: "Enter", code: "Enter" },
+    );
+    fireEvent.click(await screen.findByText("Unlink resource"));
+
+    expect(
+      await screen.findByRole("heading", {
+        name: `Unlink ${resource.title}`,
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByLabelText("Don't warn me again"),
+    ).not.toBeInTheDocument();
+  });
 });
