@@ -184,9 +184,11 @@ export const ResourceCard: React.FC<ResourceCardProps> = ({
           <AlertDialogHeader>
             <AlertDialogTitle>Unlink {title}</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently unlink {title} from {songName}. This
-              can&apos;t be undone, but you can manually re-link the resource
-              later if you need it again.
+              This will permanently unlink{" "}
+              <span className="font-medium text-slate-700">{title}</span> from{" "}
+              <span className="font-medium text-slate-700">{songName}</span>.
+              This can&apos;t be undone, but you can manually re-link the
+              resource later if you need it again.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="flex items-center justify-center gap-2 pt-1 sm:justify-start sm:pt-3">
