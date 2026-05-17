@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
-import { Button } from "@components/ui/button";
 import {
   Select,
   SelectContent,
@@ -73,10 +72,8 @@ export const SongKeySelect: React.FC<SongKeySelectProps> = ({
 
   return (
     <Select onValueChange={handleKeySelect} defaultValue={songKey as string}>
-      <SelectTrigger className="w-auto gap-2 border-none p-0">
-        <Button variant="ghost" className="p-0">
-          <SongKey songKey={songKey} size="large" />
-        </Button>
+      <SelectTrigger className="h-auto w-auto gap-2 border-none bg-transparent p-0 hover:bg-accent hover:text-accent-foreground">
+        <SongKey songKey={songKey} size="large" />
       </SelectTrigger>
       <SelectContent>
         {songKeys.map((key) => {
