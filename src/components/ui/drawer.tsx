@@ -2,13 +2,13 @@
 
 import * as React from "react";
 import {
+  type DialogCloseProps as RadixDialogCloseProps,
+  type DialogTriggerProps as RadixDialogTriggerProps,
+} from "@radix-ui/react-dialog";
+import {
   type DialogProps as VaulDrawerProps,
   Drawer as DrawerPrimitive,
 } from "vaul";
-import {
-  type DialogTriggerProps as RadixDialogTriggerProps,
-  type DialogCloseProps as RadixDialogCloseProps,
-} from "@radix-ui/react-dialog";
 
 import { cn } from "@lib/utils";
 
@@ -53,12 +53,12 @@ const DrawerContent = React.forwardRef<
     <DrawerPrimitive.Content
       ref={ref}
       className={cn(
-        "fixed inset-x-0 bottom-0 z-50 mt-24 flex max-h-[100%] flex-col rounded-t-[10px] border bg-background",
+        "fixed inset-x-0 bottom-0 z-50 flex max-h-[calc(100dvh-1rem)] flex-col overflow-hidden rounded-t-[10px] border bg-background",
         className,
       )}
       {...props}
     >
-      <div className="flex-1 overflow-y-auto p-6">
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
         <div className="mx-auto mt-4 h-2 w-[100px] rounded-full bg-muted" />
         {children}
       </div>
@@ -120,13 +120,13 @@ DrawerDescription.displayName = DrawerPrimitive.Description.displayName;
 
 export {
   Drawer,
-  DrawerPortal,
-  DrawerOverlay,
-  DrawerTrigger,
   DrawerClose,
   DrawerContent,
-  DrawerHeader,
-  DrawerFooter,
-  DrawerTitle,
   DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerOverlay,
+  DrawerPortal,
+  DrawerTitle,
+  DrawerTrigger,
 };
