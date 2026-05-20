@@ -185,6 +185,14 @@ const openCreateDrawer = async () => {
   return screen.findByRole("dialog");
 };
 
+const expectResourceFieldsToBeUrlThenName = () => {
+  const resourceFields = screen.getAllByRole("textbox");
+
+  expect(resourceFields).toHaveLength(2);
+  expect(resourceFields[0]).toHaveAccessibleName("URL *");
+  expect(resourceFields[1]).toHaveAccessibleName("Name *");
+};
+
 describe("SongResources resource editing", () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -215,6 +223,7 @@ describe("SongResources resource editing", () => {
     expect(
       screen.getByRole("heading", { name: "Edit resource" }),
     ).toBeInTheDocument();
+    expectResourceFieldsToBeUrlThenName();
     expect(screen.getByLabelText("Name *")).toHaveValue(resource.title);
     expect(screen.getByLabelText("URL *")).toHaveValue(resource.url);
     expect(screen.getAllByText(resource.title).length).toBeGreaterThan(1);
@@ -281,6 +290,7 @@ describe("SongResources resource editing", () => {
     expect(
       screen.getByRole("heading", { name: "Link a song resource" }),
     ).toBeInTheDocument();
+    expectResourceFieldsToBeUrlThenName();
   });
 
   it("closes without submitting when cancelled", async () => {
@@ -360,6 +370,60 @@ describe("SongResources resource editing", () => {
     });
   });
 
+  it("does not show required field errors when empty fields lose focus", async () => {
+    renderSongResources();
+
+    await openCreateDrawer();
+
+    fireEvent.blur(screen.getByLabelText("URL *"));
+    fireEvent.blur(screen.getByLabelText("Name *"));
+
+    expect(
+      screen.queryByText("Please enter a resource URL"),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("Please give your resource a name or title"),
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows required field errors when submitting an empty resource form", async () => {
+    const newResourceName = createResourceName();
+    const newResourceUrl = createResourceUrl();
+
+    renderSongResources();
+
+    await openCreateDrawer();
+
+    fireEvent.click(screen.getByRole("button", { name: "Link resource" }));
+
+    expect(
+      await screen.findByText("Please enter a resource URL"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Please give your resource a name or title"),
+    ).toBeInTheDocument();
+    expect(mockCreateResource).not.toHaveBeenCalled();
+
+    fireEvent.change(screen.getByLabelText("URL *"), {
+      target: { value: newResourceUrl },
+    });
+    fireEvent.change(screen.getByLabelText("Name *"), {
+      target: { value: newResourceName },
+    });
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("button", { name: "Link resource" }),
+      ).toBeEnabled();
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Link resource" }));
+
+    await waitFor(() => {
+      expect(mockCreateResource).toHaveBeenCalled();
+    });
+  });
+
   it("warns when a resource URL does not start with https://", async () => {
     const validResourceName = createResourceName();
     const insecureResourceUrl = createResourceUrl().replace(/^https:/, "http:");
@@ -384,6 +448,20 @@ describe("SongResources resource editing", () => {
     expect(
       screen.getByRole("button", { name: "Link resource" }),
     ).toBeDisabled();
+
+    fireEvent.change(screen.getByLabelText("URL *"), {
+      target: { value: "" },
+    });
+    fireEvent.blur(screen.getByLabelText("URL *"));
+
+    await waitFor(() => {
+      expect(
+        screen.queryByText("Please use a link starting with https://"),
+      ).not.toBeInTheDocument();
+    });
+    expect(
+      screen.queryByText("Please enter a resource URL"),
+    ).not.toBeInTheDocument();
   });
 
   it("submits updated resource values and invalidates the song resources query", async () => {

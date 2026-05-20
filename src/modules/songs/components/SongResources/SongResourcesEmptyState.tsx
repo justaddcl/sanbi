@@ -1,7 +1,7 @@
 import { FileAudio, LinkSimple, MusicNotes } from "@phosphor-icons/react";
 
-import { Text } from "@components/Text";
 import { Button } from "@components/ui/button";
+import { Text } from "@components/Text";
 import { cn } from "@lib/utils";
 
 type SongResourcesEmptyStateProps = {
@@ -26,8 +26,9 @@ export const SongResourcesEmptyStateBackupArt = () => (
 );
 
 const LinkedGlowArt = () => (
+  // eslint-disable-next-line @next/next/no-img-element
   <img
-    src="/song-resource-empty-states/linked-glow.png"
+    src="/song-resource-empty-states/song-resource-empty-state.png"
     alt=""
     aria-hidden
     className="h-40 w-full max-w-md shrink-0 object-contain object-center"

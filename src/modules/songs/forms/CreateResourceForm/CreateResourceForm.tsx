@@ -89,10 +89,10 @@ export const ResourceForm: React.FC<ResourceFormProps> = ({
   const resourceForm = useForm<ResourceFormFields>({
     resolver: zodResolver(resourceFormSchema),
     defaultValues,
-    mode: "onBlur",
-    reValidateMode: "onBlur",
+    mode: "onSubmit",
+    reValidateMode: "onChange",
   });
-  const { reset } = resourceForm;
+  const { clearErrors, reset, trigger } = resourceForm;
 
   useEffect(() => {
     reset(defaultValues);
@@ -122,7 +122,7 @@ export const ResourceForm: React.FC<ResourceFormProps> = ({
   }
 
   const {
-    formState: { isSubmitting, isValid, isDirty },
+    formState: { errors, isSubmitting, submitCount },
   } = resourceForm;
 
   const handleResourceSubmit = async (formValues: ResourceFormFields) => {
@@ -213,7 +213,8 @@ export const ResourceForm: React.FC<ResourceFormProps> = ({
     }
   };
 
-  const shouldSubmitButtonBeDisabled = !isDirty || !isValid || isSubmitting;
+  const shouldSubmitButtonBeDisabled =
+    isSubmitting || Object.keys(errors).length > 0;
   const submitText = resource ? "Save changes" : "Link resource";
   const isCompact = layout === "compact";
 
@@ -227,12 +228,39 @@ export const ResourceForm: React.FC<ResourceFormProps> = ({
           })}
           <FormField
             control={resourceForm.control}
-            name="title"
+            name="url"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Name *</FormLabel>
+                <FormLabel>URL *</FormLabel>
                 <FormControl>
-                  <Input {...field} size="medium" />
+                  <Input
+                    {...field}
+                    size="medium"
+                    onChange={(event) => {
+                      field.onChange(event);
+
+                      if (!errors.url && submitCount === 0) {
+                        return;
+                      }
+
+                      if (event.target.value.trim() || submitCount > 0) {
+                        void trigger("url");
+                        return;
+                      }
+
+                      clearErrors("url");
+                    }}
+                    onBlur={(event) => {
+                      field.onBlur();
+
+                      if (event.target.value.trim() || submitCount > 0) {
+                        void trigger("url");
+                        return;
+                      }
+
+                      clearErrors("url");
+                    }}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -240,10 +268,10 @@ export const ResourceForm: React.FC<ResourceFormProps> = ({
           />
           <FormField
             control={resourceForm.control}
-            name="url"
+            name="title"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>URL *</FormLabel>
+                <FormLabel>Name *</FormLabel>
                 <FormControl>
                   <Input {...field} size="medium" />
                 </FormControl>
