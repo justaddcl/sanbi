@@ -13,12 +13,7 @@ import {
 import { cn } from "@lib/utils";
 
 export type DrawerProps = VaulDrawerProps;
-const Drawer = ({ shouldScaleBackground = true, ...props }: DrawerProps) => (
-  <DrawerPrimitive.Root
-    shouldScaleBackground={shouldScaleBackground}
-    {...props}
-  />
-);
+const Drawer = (props: DrawerProps) => <DrawerPrimitive.Root {...props} />;
 Drawer.displayName = "Drawer";
 
 export type DrawerTriggerProps = RadixDialogTriggerProps;
