@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { FileAudio, LinkSimple, MusicNotes } from "@phosphor-icons/react";
 
 import { Button } from "@components/ui/button";
@@ -26,11 +27,13 @@ export const SongResourcesEmptyStateBackupArt = () => (
 );
 
 const LinkedGlowArt = () => (
-  // eslint-disable-next-line @next/next/no-img-element
-  <img
-    src="/song-resource-empty-states/song-resource-empty-state.png"
+  <Image
+    src="/song-resource-empty-states/song-resource-empty-state.webp"
     alt=""
     aria-hidden
+    loading="lazy"
+    width={832}
+    height={598}
     className="h-40 w-full max-w-md shrink-0 object-contain object-center"
   />
 );

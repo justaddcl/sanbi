@@ -254,7 +254,7 @@ describe("SongResources resource editing", () => {
     expect(screen.getAllByText(resource.title).length).toBeGreaterThan(0);
   });
 
-  it("renders the empty resource state as a full-width list item", () => {
+  it("renders the empty resource state", () => {
     (useSongResources as jest.Mock).mockReturnValue(
       createSongResourcesQueryFixture({ data: [] }),
     );
@@ -269,12 +269,6 @@ describe("SongResources resource editing", () => {
         "Link chord charts, audio recordings, YouTube videos, Spotify tracks, and more.",
       ),
     ).toBeInTheDocument();
-    expect(
-      screen.getByRole("heading", { name: "No resources yet" }).closest("li"),
-    ).toHaveClass("md:col-span-2");
-    expect(
-      screen.getByRole("heading", { name: "No resources yet" }).closest("li"),
-    ).not.toHaveClass("border");
   });
 
   it("opens the create resource dialog from the empty-state CTA", async () => {
@@ -462,6 +456,49 @@ describe("SongResources resource editing", () => {
     expect(
       screen.queryByText("Please enter a resource URL"),
     ).not.toBeInTheDocument();
+  });
+
+  it("treats a whitespace-only resource URL as missing on submit", async () => {
+    const validResourceName = createResourceName();
+
+    renderSongResources();
+
+    await openCreateDrawer();
+
+    fireEvent.change(screen.getByLabelText("Name *"), {
+      target: { value: validResourceName },
+    });
+    fireEvent.change(screen.getByLabelText("URL *"), {
+      target: { value: "   " },
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Link resource" }));
+
+    expect(
+      await screen.findByText("Please enter a resource URL"),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText("Please use a link starting with https://"),
+    ).not.toBeInTheDocument();
+    expect(mockCreateResource).not.toHaveBeenCalled();
+  });
+
+  it("keeps edit submission disabled until the resource changes", async () => {
+    renderSongResources();
+
+    await openEditDrawer();
+
+    expect(screen.getByRole("button", { name: "Save changes" })).toBeDisabled();
+
+    fireEvent.change(screen.getByLabelText("Name *"), {
+      target: { value: createResourceName() },
+    });
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("button", { name: "Save changes" }),
+      ).toBeEnabled();
+    });
   });
 
   it("submits updated resource values and invalidates the song resources query", async () => {

@@ -299,6 +299,7 @@ export const getResourcesBySongIdSchema = z.object({
 
 const resourceUrlSchema = z
   .string()
+  .trim()
   .min(1, "Please enter a resource URL")
   .pipe(
     z.url({

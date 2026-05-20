@@ -122,7 +122,7 @@ export const ResourceForm: React.FC<ResourceFormProps> = ({
   }
 
   const {
-    formState: { errors, isSubmitting, submitCount },
+    formState: { errors, isDirty, isSubmitting, submitCount },
   } = resourceForm;
 
   const handleResourceSubmit = async (formValues: ResourceFormFields) => {
@@ -214,7 +214,9 @@ export const ResourceForm: React.FC<ResourceFormProps> = ({
   };
 
   const shouldSubmitButtonBeDisabled =
-    isSubmitting || Object.keys(errors).length > 0;
+    isSubmitting ||
+    Object.keys(errors).length > 0 ||
+    Boolean(resource && !isDirty);
   const submitText = resource ? "Save changes" : "Link resource";
   const isCompact = layout === "compact";
 
@@ -243,7 +245,7 @@ export const ResourceForm: React.FC<ResourceFormProps> = ({
                         return;
                       }
 
-                      if (event.target.value.trim() || submitCount > 0) {
+                      if (event.target.value.trim()) {
                         void trigger("url");
                         return;
                       }
@@ -253,7 +255,7 @@ export const ResourceForm: React.FC<ResourceFormProps> = ({
                     onBlur={(event) => {
                       field.onBlur();
 
-                      if (event.target.value.trim() || submitCount > 0) {
+                      if (event.target.value.trim()) {
                         void trigger("url");
                         return;
                       }
