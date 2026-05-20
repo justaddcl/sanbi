@@ -1,4 +1,5 @@
 "use client";
+
 import { useState } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { LinkSimple } from "@phosphor-icons/react";
@@ -20,6 +21,7 @@ import { useSongResources } from "@modules/songs/queries/useSongResources";
 import { trpc } from "@lib/trpc";
 import { type Resource } from "@lib/types";
 
+import { SongResourcesEmptyState } from "./SongResourcesEmptyState";
 import { EditResourceDialog } from "../EditResourceDialog";
 import { ResourceCard } from "../ResourceCard";
 
@@ -40,12 +42,9 @@ export const SongResources: React.FC<SongResourcesProps> = ({
   const [resourceBeingEdited, setResourceBeingEdited] =
     useState<Resource | null>(null);
 
-  const {
-    data: songResources,
-    isLoading: isSongResourcesLoading,
-    // TODO: SWY-118 to implement empty and error state
-    error: songResourcesError,
-  } = useSongResources(songId, organizationId);
+  const { data: songResources, isLoading: isSongResourcesLoading } =
+    useSongResources(songId, organizationId);
+  // TODO: implement resource error state
   const apiUtils = trpc.useUtils();
 
   const { data: userData } = trpc.user.getUser.useQuery(
@@ -80,6 +79,10 @@ export const SongResources: React.FC<SongResourcesProps> = ({
 
   const closeEditDialog = () => {
     setResourceBeingEdited(null);
+  };
+
+  const handleAddResourceClick = () => {
+    setIsLinkResourceDialogOpen(true);
   };
 
   const linkResourceButton = (
@@ -141,8 +144,9 @@ export const SongResources: React.FC<SongResourcesProps> = ({
                 />
               ))}
             {songResources && songResources.length === 0 && (
-              // Empty state will be implemented in SWY-118
-              <li>No song resources yet. Link one?</li>
+              <SongResourcesEmptyState
+                onAddResourceClick={handleAddResourceClick}
+              />
             )}
           </ul>
         </Card>
