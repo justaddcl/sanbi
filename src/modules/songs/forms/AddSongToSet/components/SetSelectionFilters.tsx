@@ -86,7 +86,7 @@ export const SetSelectionFilters: React.FC<SetSelectionFiltersProps> = ({
   if (isMobile) {
     return (
       <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
-        <DrawerTrigger>
+        <DrawerTrigger asChild>
           <Button
             variant="secondary"
             className="mt-4 w-full justify-center gap-2 px-4 font-medium"
@@ -100,7 +100,7 @@ export const SetSelectionFilters: React.FC<SetSelectionFiltersProps> = ({
               <DrawerTitle className="text-left font-normal">
                 Filter sets
               </DrawerTitle>
-              <DrawerClose>
+              <DrawerClose asChild>
                 <Button
                   size="icon"
                   variant="secondary"

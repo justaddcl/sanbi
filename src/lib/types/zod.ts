@@ -297,16 +297,18 @@ export const getResourcesBySongIdSchema = z.object({
   organizationId: z.uuid(),
 });
 
+const resourceUrlSchema = z.url({
+  protocol: /^https$/,
+  hostname: z.regexes.domain,
+  error: "Please use a link starting with https://",
+});
+
 export const insertResourceSchema = z.object({
   ...createInsertSchema(resources).pick({
     organizationId: true,
     songId: true,
   }).shape,
-  url: z.url({
-    protocol: /^https?$/,
-    hostname: z.regexes.domain,
-    error: "Please enter a valid URL",
-  }),
+  url: resourceUrlSchema,
   title: z
     .string()
     .min(1, "Please give your resource a name or title")
@@ -318,7 +320,7 @@ export const updateResourceSchema = z.object({
     organizationId: true,
   }).shape,
   resourceId: z.uuid(),
-  url: z.url().optional(),
+  url: resourceUrlSchema.optional(),
   title: z
     .string()
     .min(1, "Please give your resource a name or title")

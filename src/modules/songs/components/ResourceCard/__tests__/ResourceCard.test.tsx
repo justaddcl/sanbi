@@ -1,16 +1,58 @@
+import { type ComponentProps } from "react";
 import * as Sentry from "@sentry/nextjs";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { createResourceFixture } from "@testUtils/models/resource/fixtures";
+import { createResourceName } from "@testUtils/models/resource/generators";
 
 import { getDisplayUrl } from "@modules/songs/utils/getDisplayUrl";
 
 import { ResourceCard } from "../ResourceCard";
 
 jest.mock("@sentry/nextjs", () => ({
+  captureException: jest.fn(),
   captureMessage: jest.fn(),
 }));
 
+jest.mock(
+  "@lib/orpc/client",
+  () => ({
+    orpc: {
+      resource: {
+        delete: {
+          mutationOptions: () => ({
+            mutationFn: jest.fn(),
+          }),
+        },
+        getBySongId: {
+          queryOptions: ({ input }: { input: unknown }) => ({
+            queryKey: ["orpc", "resource", "getBySongId", input],
+          }),
+        },
+      },
+    },
+  }),
+  { virtual: true },
+);
+
+const renderResourceCard = (props: ComponentProps<typeof ResourceCard>) => {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  });
+
+  render(
+    <QueryClientProvider client={queryClient}>
+      <ResourceCard {...props} />
+    </QueryClientProvider>,
+  );
+};
+
 describe("ResourceCard", () => {
+  const songName = createResourceName();
+
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -19,7 +61,7 @@ describe("ResourceCard", () => {
     const resource = createResourceFixture();
     const onEdit = jest.fn();
 
-    render(<ResourceCard resource={resource} onEdit={onEdit} />);
+    renderResourceCard({ resource, songName, onEdit });
 
     const resourceLink = screen.getByRole("link", {
       name: new RegExp(resource.title, "i"),
@@ -48,7 +90,7 @@ describe("ResourceCard", () => {
       url: "not a url with token=secret",
     });
 
-    render(<ResourceCard resource={resource} onEdit={jest.fn()} />);
+    renderResourceCard({ resource, songName, onEdit: jest.fn() });
 
     expect(Sentry.captureMessage).toHaveBeenCalledWith(
       "Failed to parse resource URL",
@@ -60,5 +102,28 @@ describe("ResourceCard", () => {
         },
       },
     );
+  });
+
+  it("does not show a warning opt-out when the preference cannot be persisted", async () => {
+    const resource = createResourceFixture();
+
+    renderResourceCard({ resource, songName, onEdit: jest.fn() });
+
+    fireEvent.keyDown(
+      screen.getByRole("button", {
+        name: `Open actions for ${resource.title}`,
+      }),
+      { key: "Enter", code: "Enter" },
+    );
+    fireEvent.click(await screen.findByText("Unlink resource"));
+
+    expect(
+      await screen.findByRole("heading", {
+        name: `Unlink ${resource.title}`,
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByLabelText("Don't warn me again"),
+    ).not.toBeInTheDocument();
   });
 });

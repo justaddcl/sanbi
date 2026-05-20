@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
-import { Plus } from "@phosphor-icons/react";
+import { useAuth } from "@clerk/nextjs";
+import { LinkSimple } from "@phosphor-icons/react";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 
 import { Button } from "@components/ui/button";
@@ -16,6 +17,7 @@ import {
 } from "@components/ResponsiveDialog";
 import { ResourceForm } from "@modules/songs/forms/CreateResourceForm";
 import { useSongResources } from "@modules/songs/queries/useSongResources";
+import { trpc } from "@lib/trpc";
 import { type Resource } from "@lib/types";
 
 import { EditResourceDialog } from "../EditResourceDialog";
@@ -24,14 +26,18 @@ import { SongResourcesEmptyState } from "./SongResourcesEmptyState";
 
 type SongResourcesProps = {
   songId: string;
+  songName: string;
   organizationId: string;
 };
 
 export const SongResources: React.FC<SongResourcesProps> = ({
   songId,
+  songName,
   organizationId,
 }) => {
-  const [isAddResourceDialogOpen, setIsAddResourceDialogOpen] = useState(false);
+  const { userId } = useAuth();
+  const [isLinkResourceDialogOpen, setIsLinkResourceDialogOpen] =
+    useState(false);
   const [resourceBeingEdited, setResourceBeingEdited] =
     useState<Resource | null>(null);
 
@@ -41,9 +47,36 @@ export const SongResources: React.FC<SongResourcesProps> = ({
     // TODO: SWY-118 to implement empty and error state
     error: songResourcesError,
   } = useSongResources(songId, organizationId);
+  const apiUtils = trpc.useUtils();
+
+  const { data: userData } = trpc.user.getUser.useQuery(
+    {
+      userId: userId!,
+    },
+    {
+      enabled: !!userId,
+    },
+  );
+  const updateResourceDeleteConfirmationPreferenceMutation =
+    trpc.user.updateResourceDeleteConfirmationPreference.useMutation();
+  const confirmResourceDelete =
+    userData?.preferences?.confirmResourceDelete ?? true;
+
+  const updateResourceDeleteConfirmationPreference = async (
+    shouldConfirmResourceDelete: boolean,
+  ) => {
+    if (!userId) {
+      throw new Error("No user is currently signed in");
+    }
+
+    await updateResourceDeleteConfirmationPreferenceMutation.mutateAsync({
+      confirmResourceDelete: shouldConfirmResourceDelete,
+    });
+    await apiUtils.user.getUser.invalidate({ userId });
+  };
 
   const onSuccess = () => {
-    setIsAddResourceDialogOpen(false);
+    setIsLinkResourceDialogOpen(false);
   };
 
   const closeEditDialog = () => {
@@ -51,14 +84,14 @@ export const SongResources: React.FC<SongResourcesProps> = ({
   };
 
   const handleAddResourceClick = () => {
-    setIsAddResourceDialogOpen(true);
+    setIsLinkResourceDialogOpen(true);
   };
 
-  const addResourceButton = (
+  const linkResourceButton = (
     <ResponsiveDialogTrigger asChild>
-      <Button size="sm" variant="ghost">
-        <Plus className="text-slate-900" size={16} />
-        <span className="hidden sm:inline">Add resource</span>
+      <Button aria-label="Link resource" size="sm" variant="ghost">
+        <LinkSimple aria-hidden className="text-slate-900" size={16} />
+        <span className="hidden sm:inline">Link resource</span>
       </Button>
     </ResponsiveDialogTrigger>
   );
@@ -69,9 +102,9 @@ export const SongResources: React.FC<SongResourcesProps> = ({
         title="Resources"
         collapsible
         button={
-          <Button size="sm" variant="ghost" disabled>
-            <Plus className="text-slate-900" size={16} />
-            <span className="hidden sm:inline">Add resource</span>
+          <Button aria-label="Link resource" size="sm" variant="ghost" disabled>
+            <LinkSimple aria-hidden className="text-slate-900" size={16} />
+            <span className="hidden sm:inline">Link resource</span>
           </Button>
         }
       >
@@ -93,10 +126,10 @@ export const SongResources: React.FC<SongResourcesProps> = ({
   return (
     <>
       <ResponsiveDialog
-        open={isAddResourceDialogOpen}
-        onOpenChange={setIsAddResourceDialogOpen}
+        open={isLinkResourceDialogOpen}
+        onOpenChange={setIsLinkResourceDialogOpen}
       >
-        <Card title="Resources" collapsible button={addResourceButton}>
+        <Card title="Resources" collapsible button={linkResourceButton}>
           <ul className="grid gap-3 md:grid-cols-2">
             {songResources &&
               songResources.length > 0 &&
@@ -104,6 +137,11 @@ export const SongResources: React.FC<SongResourcesProps> = ({
                 <ResourceCard
                   key={songResource.id}
                   resource={songResource}
+                  songName={songName}
+                  confirmResourceDelete={confirmResourceDelete}
+                  onResourceDeleteConfirmationPreferenceChange={
+                    updateResourceDeleteConfirmationPreference
+                  }
                   onEdit={setResourceBeingEdited}
                 />
               ))}
@@ -116,12 +154,10 @@ export const SongResources: React.FC<SongResourcesProps> = ({
         </Card>
         <ResponsiveDialogContent>
           <ResponsiveDialogHeader>
-            <ResponsiveDialogTitle>
-              Create a song resource
-            </ResponsiveDialogTitle>
+            <ResponsiveDialogTitle>Link a song resource</ResponsiveDialogTitle>
             <VisuallyHidden.Root>
               <ResponsiveDialogDescription>
-                Create a song resource
+                Link a song resource
               </ResponsiveDialogDescription>
             </VisuallyHidden.Root>
           </ResponsiveDialogHeader>
