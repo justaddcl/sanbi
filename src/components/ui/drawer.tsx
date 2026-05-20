@@ -13,7 +13,9 @@ import {
 import { cn } from "@lib/utils";
 
 export type DrawerProps = VaulDrawerProps;
-const Drawer = (props: DrawerProps) => <DrawerPrimitive.Root {...props} />;
+const Drawer = ({ repositionInputs = false, ...props }: DrawerProps) => (
+  <DrawerPrimitive.Root repositionInputs={repositionInputs} {...props} />
+);
 Drawer.displayName = "Drawer";
 
 export type DrawerTriggerProps = RadixDialogTriggerProps;
