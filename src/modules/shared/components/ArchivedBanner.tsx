@@ -127,7 +127,7 @@ export const ArchivedBanner: React.FC<ArchivedBannerProps> = ({
               <VStack className="justify-start gap-3">
                 <VStack className="gap-1">
                   <Text className="text-amber-700">
-                    This means this {itemType} won&apos;t show up in your
+                    This means this {itemType}{" "}won&apos;t show up in your
                     library or in your searches by default. However, all{" "}
                     {itemType} history and data are preserved, and you can find
                     it in the archived section.

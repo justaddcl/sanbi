@@ -1,5 +1,6 @@
-import DOMPurify from "isomorphic-dompurify";
 import validator from "validator";
 
+import { stripHtmlMarkup } from "./stripHtmlMarkup";
+
 export const sanitizeInput = (input: string): string =>
-  validator.escape(DOMPurify.sanitize(input, { ALLOWED_TAGS: [] }));
+  validator.escape(stripHtmlMarkup(input));

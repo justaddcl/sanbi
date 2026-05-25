@@ -224,7 +224,7 @@ const CardsSurface = () => (
 const DialogSurface = () => (
   <>
     <ControlsSurface />
-    <Dialog open>
+    <Dialog open onOpenChange={() => undefined}>
       <DialogContent animated={false}>
         <DialogHeader>
           <DialogTitle>Archive set</DialogTitle>
@@ -245,7 +245,7 @@ const DialogSurface = () => (
 const SheetSurface = () => (
   <>
     <CardsSurface />
-    <Sheet open>
+    <Sheet open onOpenChange={() => undefined}>
       <SheetContent side="right">
         <SheetHeader>
           <SheetTitle>Set options</SheetTitle>
@@ -266,7 +266,7 @@ const PopoverSurface = () => (
   <>
     <ControlsSurface />
     <div className="flex justify-center py-8">
-      <Popover open>
+      <Popover open onOpenChange={() => undefined}>
         <PopoverTrigger asChild>
           <Button variant="outline">Open popover</Button>
         </PopoverTrigger>

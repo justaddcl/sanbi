@@ -48,11 +48,7 @@ export const users = createTable(
       .notNull(),
     updatedAt,
   },
-  (usersTable) => {
-    return {
-      emailIndex: uniqueIndex("users_email_idx").on(usersTable.email),
-    };
-  },
+  (usersTable) => [uniqueIndex("users_email_idx").on(usersTable.email)],
 );
 
 export const userPreferences = createTable("user_preferences", {
@@ -79,15 +75,11 @@ export const organizations = createTable(
       .notNull(),
     updatedAt,
   },
-  (organizationsTable) => {
-    return {
-      // FIXME: update the index to be case insensitive
-      nameIndex: uniqueIndex("organizations_name_idx").on(
-        organizationsTable.name,
-      ),
-      slug: uniqueIndex("organizations_slug_idx").on(organizationsTable.slug),
-    };
-  },
+  (organizationsTable) => [
+    // FIXME: update the index to be case insensitive
+    uniqueIndex("organizations_name_idx").on(organizationsTable.name),
+    uniqueIndex("organizations_slug_idx").on(organizationsTable.slug),
+  ],
 );
 
 export const organizationMemberships = createTable(
@@ -107,11 +99,9 @@ export const organizationMemberships = createTable(
       .notNull(),
     updatedAt,
   },
-  (table) => {
-    return {
-      pk: primaryKey({ columns: [table.organizationId, table.userId] }),
-    };
-  },
+  (table) => [
+    primaryKey({ columns: [table.organizationId, table.userId] }),
+  ],
 );
 
 export const tags = createTable(
@@ -127,11 +117,12 @@ export const tags = createTable(
       .notNull(),
     updatedAt,
   },
-  (tagsTable) => ({
-    tagOrganizationUniqueIndex: uniqueIndex(
-      "tags_organization_tag_unique_idx",
-    ).on(tagsTable.organizationId, tagsTable.tag),
-  }),
+  (tagsTable) => [
+    uniqueIndex("tags_organization_tag_unique_idx").on(
+      tagsTable.organizationId,
+      tagsTable.tag,
+    ),
+  ],
 );
 
 export const songTags = createTable(
@@ -148,11 +139,9 @@ export const songTags = createTable(
       .notNull(),
     updatedAt,
   },
-  (songTagsTable) => {
-    return {
-      pk: primaryKey({ columns: [songTagsTable.songId, songTagsTable.tagId] }),
-    };
-  },
+  (songTagsTable) => [
+    primaryKey({ columns: [songTagsTable.songId, songTagsTable.tagId] }),
+  ],
 );
 
 export const songs = createTable(
@@ -176,13 +165,9 @@ export const songs = createTable(
     favoritedAt: timestamp("favorited_at"),
     updatedAt,
   },
-  (songsTable) => {
-    return {
-      organizationIndex: index("songs_organisation_id_idx").on(
-        songsTable.organizationId,
-      ),
-    };
-  },
+  (songsTable) => [
+    index("songs_organisation_id_idx").on(songsTable.organizationId),
+  ],
 );
 
 export const eventTypes = createTable("event_types", {
@@ -216,12 +201,9 @@ export const sets = createTable(
       .notNull(),
     updatedAt,
   },
-  (setsTable) => ({
-    eventTypeDateIndex: index("sets_event_type_date_idx").on(
-      setsTable.eventTypeId,
-      setsTable.date,
-    ),
-  }),
+  (setsTable) => [
+    index("sets_event_type_date_idx").on(setsTable.eventTypeId, setsTable.date),
+  ],
 );
 
 export const setSectionTypes = createTable("set_section_types", {
@@ -255,32 +237,39 @@ export const setSections = createTable(
       .references(() => organizations.id)
       .notNull(),
   },
-  (setSectionsTable) => {
-    return {
-      setIdIndex: index("set_sections_set_id_idx").on(setSectionsTable.setId),
-    };
-  },
+  (setSectionsTable) => [
+    index("set_sections_set_id_idx").on(setSectionsTable.setId),
+  ],
 );
 
-export const setSectionSongs = createTable("set_section_songs", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  setSectionId: uuid("set_section_id")
-    .references(() => setSections.id, { onDelete: "cascade" })
-    .notNull(),
-  songId: uuid("song_id")
-    .references(() => songs.id)
-    .notNull(),
-  position: integer("position").notNull(),
-  key: songKeyEnum("song_key"),
-  notes: text("notes"),
-  organizationId: uuid("organization_id")
-    .references(() => organizations.id)
-    .notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .default(sql`CURRENT_TIMESTAMP`)
-    .notNull(),
-  updatedAt,
-});
+export const setSectionSongs = createTable(
+  "set_section_songs",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    setSectionId: uuid("set_section_id")
+      .references(() => setSections.id, { onDelete: "cascade" })
+      .notNull(),
+    songId: uuid("song_id")
+      .references(() => songs.id)
+      .notNull(),
+    position: integer("position").notNull(),
+    key: songKeyEnum("song_key"),
+    notes: text("notes"),
+    organizationId: uuid("organization_id")
+      .references(() => organizations.id)
+      .notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+    updatedAt,
+  },
+  (setSectionSongsTable) => [
+    index("set_section_songs_organization_song_idx").on(
+      setSectionSongsTable.organizationId,
+      setSectionSongsTable.songId,
+    ),
+  ],
+);
 
 export const resources = createTable(
   "resources",
@@ -293,7 +282,7 @@ export const resources = createTable(
       .references(() => organizations.id)
       .notNull(),
     url: text("url").notNull(),
-    title: varchar("title", { length: 255 }).notNull(),
+    title: varchar("title", { length: 255 }),
     status: resourceStatusEnum("status").default("queued").notNull(),
     metaTitle: varchar("meta_title", { length: 300 }),
     metaDescription: varchar("meta_description", { length: 500 }),

@@ -58,8 +58,7 @@ export const songTagRouter = createTRPCRouter({
         .orderBy(asc(tags.tag));
 
       console.info(
-        `🤖 - [songTags/getBySongId] - song tags for song ${input.songId}:`,
-        songTagsResult,
+        `🤖 - [songTags/getBySongId] - found ${songTagsResult.length} tags for song ${input.songId}`,
       );
 
       return songTagsResult;

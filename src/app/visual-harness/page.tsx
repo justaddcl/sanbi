@@ -4,10 +4,10 @@ import { VisualHarness } from "./VisualHarness";
 import { type VisualHarnessSurface, visualHarnessSurfaces } from "./types";
 
 type VisualHarnessPageProps = {
-  searchParams?: {
+  searchParams?: Promise<{
     surface?: string;
     theme?: string;
-  };
+  }>;
 };
 
 const isVisualHarnessSurface = (
@@ -15,7 +15,7 @@ const isVisualHarnessSurface = (
 ): surface is VisualHarnessSurface =>
   visualHarnessSurfaces.includes(surface as VisualHarnessSurface);
 
-export default function VisualHarnessPage({
+export default async function VisualHarnessPage({
   searchParams,
 }: VisualHarnessPageProps) {
   if (
@@ -25,10 +25,11 @@ export default function VisualHarnessPage({
     notFound();
   }
 
-  const surface = isVisualHarnessSurface(searchParams?.surface)
-    ? searchParams.surface
+  const resolvedSearchParams = await searchParams;
+  const surface = isVisualHarnessSurface(resolvedSearchParams?.surface)
+    ? resolvedSearchParams.surface
     : "controls";
-  const theme = searchParams?.theme === "dark" ? "dark" : "light";
+  const theme = resolvedSearchParams?.theme === "dark" ? "dark" : "light";
 
   return <VisualHarness surface={surface} theme={theme} />;
 }

@@ -12,7 +12,7 @@ export default defineConfig({
     },
   },
   use: {
-    baseURL: "http://127.0.0.1:3000",
+    baseURL: "http://localhost:3000",
   },
   projects: [
     {
@@ -31,7 +31,7 @@ export default defineConfig({
   ],
   webServer: {
     command: "SKIP_ENV_VALIDATION=1 SANBI_VISUAL_HARNESS=1 pnpm dev",
-    url: "http://127.0.0.1:3000/visual-harness",
+    url: "http://localhost:3000/visual-harness",
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
   },

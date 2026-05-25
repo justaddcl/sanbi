@@ -22,6 +22,7 @@ import { Label } from "@components/ui/label";
 import { ActionMenu, ActionMenuItem } from "@components/ActionMenu";
 import { Text } from "@components/Text";
 import { getDisplayUrl } from "@modules/songs/utils/getDisplayUrl";
+import { getResourceDisplayTitle } from "@modules/songs/utils/getResourceDisplayTitle";
 import {
   getErrorNameForTelemetry,
   sanitizeResourceUrlForTelemetry,
@@ -48,7 +49,8 @@ export const ResourceCard: React.FC<ResourceCardProps> = ({
   onResourceDeleteConfirmationPreferenceChange,
   onEdit,
 }) => {
-  const { title, url } = resource;
+  const { url } = resource;
+  const displayTitle = getResourceDisplayTitle(resource);
   const queryClient = useQueryClient();
   const [isActionMenuOpen, setIsActionMenuOpen] = useState(false);
   const [isConfirmationDialogOpen, setIsConfirmationDialogOpen] =
@@ -60,6 +62,9 @@ export const ResourceCard: React.FC<ResourceCardProps> = ({
 
   const deleteResourceMutation = useMutation(
     orpc.resource.delete.mutationOptions(),
+  );
+  const refreshMetadataMutation = useMutation(
+    orpc.resource.refreshMetadata.mutationOptions(),
   );
 
   const handleEditResource = () => {
@@ -121,6 +126,38 @@ export const ResourceCard: React.FC<ResourceCardProps> = ({
     setIsConfirmationDialogOpen(true);
   };
 
+  const refreshResourceMetadata = async () => {
+    setIsActionMenuOpen(false);
+    const toastId = toast.loading("Refreshing preview...");
+
+    try {
+      await refreshMetadataMutation.mutateAsync({
+        resourceId: resource.id,
+        organizationId: resource.organizationId,
+      });
+
+      await queryClient.invalidateQueries({
+        queryKey: orpc.resource.getBySongId.queryOptions({
+          input: {
+            songId: resource.songId,
+            organizationId: resource.organizationId,
+          },
+        }).queryKey,
+      });
+
+      toast.success("Resource preview was refreshed", { id: toastId });
+    } catch (error) {
+      Sentry.captureException(error);
+
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+
+      toast.error(`Could not refresh resource preview: ${errorMessage}`, {
+        id: toastId,
+      });
+    }
+  };
+
   return (
     <>
       <li className="relative">
@@ -133,7 +170,7 @@ export const ResourceCard: React.FC<ResourceCardProps> = ({
           <ResourceCardImage resource={resource} />
           <div className="flex min-w-0 flex-col gap-1 px-2 py-1">
             <Text className="truncate text-base leading-4 font-semibold text-slate-900">
-              {title}
+              {displayTitle}
             </Text>
             <Text className="truncate text-xs text-slate-400">
               {getDisplayUrl(url, {
@@ -155,12 +192,18 @@ export const ResourceCard: React.FC<ResourceCardProps> = ({
             isOpen={isActionMenuOpen}
             setIsOpen={setIsActionMenuOpen}
             buttonVariant="ghost"
-            triggerLabel={`Open actions for ${title}`}
+            triggerLabel={`Open actions for ${displayTitle}`}
           >
             <ActionMenuItem
               icon="Pencil"
               label="Edit resource"
               onClick={handleEditResource}
+            />
+            <ActionMenuItem
+              icon="ArrowClockwise"
+              label="Refresh preview"
+              disabled={refreshMetadataMutation.isPending}
+              onClick={refreshResourceMetadata}
             />
             <DropdownMenuSeparator />
             <ActionMenuItem
@@ -184,10 +227,11 @@ export const ResourceCard: React.FC<ResourceCardProps> = ({
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Unlink {title}</AlertDialogTitle>
+            <AlertDialogTitle>Unlink {displayTitle}</AlertDialogTitle>
             <AlertDialogDescription>
               This will permanently unlink{" "}
-              <span className="font-medium text-slate-700">{title}</span> from{" "}
+              <span className="font-medium text-slate-700">{displayTitle}</span>{" "}
+              from{" "}
               <span className="font-medium text-slate-700">{songName}</span>.
               This can&apos;t be undone, but you can manually re-link the
               resource later if you need it again.

@@ -9,6 +9,7 @@ import {
   X,
 } from "@phosphor-icons/react";
 import { toast } from "sonner";
+import { z } from "zod";
 
 import { Button } from "@components/ui/button";
 import {
@@ -37,10 +38,12 @@ import { useResponsive } from "@/hooks/useResponsive";
  * Type for organization tag returned from the API
  */
 type OrganizationTag = RouterOutputs["tag"]["getByOrganization"][number];
+type SongTag = RouterOutputs["songTag"]["getBySongId"][number];
 
 type SongTagSelectorProps = {
   songId: string;
   organizationId: string;
+  songTags: SongTag[];
 };
 
 /**
@@ -53,6 +56,7 @@ type SongTagSelectorProps = {
 export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
   songId,
   organizationId,
+  songTags,
 }) => {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -78,21 +82,17 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
     data: organizationTags,
     isLoading: isOrganizationTagsQueryLoading,
     error: organizationTagsQueryError,
-  } = trpc.tag.getByOrganization.useQuery({
-    organizationId,
-  });
+  } = trpc.tag.getByOrganization.useQuery(
+    {
+      organizationId,
+    },
+    {
+      enabled: open,
+    },
+  );
 
-  const {
-    data: songTags,
-    isLoading: isSongTagsQueryLoading,
-    error: songTagsQueryError,
-  } = trpc.songTag.getBySongId.useQuery({
-    songId,
-    organizationId,
-  });
-
-  const isLoading = isOrganizationTagsQueryLoading || isSongTagsQueryLoading;
-  const hasError = !!organizationTagsQueryError || !!songTagsQueryError;
+  const isLoading = open && isOrganizationTagsQueryLoading;
+  const hasError = !!organizationTagsQueryError;
 
   const isTagSelected = (tagId: OrganizationTag["id"]) => {
     return songTags?.some((songTag) => songTag.tag.id === tagId);
@@ -182,7 +182,7 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
     const validationResult = tagNameSchema.safeParse(trimmedTag);
 
     if (!validationResult.success) {
-      const [formattedError] = validationResult.error.format()._errors;
+      const [formattedError] = z.flattenError(validationResult.error).formErrors;
       toast.error(formattedError);
       return;
     }
@@ -305,12 +305,11 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
 
   useEffect(() => {
     if (hasError) {
-      const error = organizationTagsQueryError ?? songTagsQueryError;
       toast.error(
-        `Could not get the tags for your team: ${error?.message ?? "unknown error"}`,
+        `Could not get the tags for your team: ${organizationTagsQueryError?.message ?? "unknown error"}`,
       );
     }
-  }, [hasError, organizationTagsQueryError, songTagsQueryError]);
+  }, [hasError, organizationTagsQueryError]);
 
   // TODO: refine error state
   if (hasError) {

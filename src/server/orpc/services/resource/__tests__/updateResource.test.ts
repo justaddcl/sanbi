@@ -8,10 +8,10 @@ import { createUpdateResourceDataAccessFixture } from "@testUtils/models/resourc
 import { expectOrpcErrorCode } from "@testUtils/orpc/expectOrpcErrorCode";
 import { type MockOrpcErrorModule } from "@testUtils/orpc/mockOrpcError";
 
-import {
-  POSTGRES_UNIQUE_CONSTRAINT_VIOLATION_CODE,
-  updateResourceForOrganization,
-} from "@server/orpc/services/resource/updateResource";
+import { updateResourceForOrganization } from "@server/orpc/services/resource/updateResource";
+import { POSTGRES_UNIQUE_CONSTRAINT_VIOLATION_CODE } from "@server/utils/db/postgres";
+
+import { resolveResourceMetadataForUrl } from "../resourceMetadata";
 
 jest.mock("@orpc/server", () => {
   const { mockOrpcErrorModule } = jest.requireActual<{
@@ -27,8 +27,32 @@ jest.mock("@orpc/client", () => {
 
   return mockOrpcErrorModule;
 });
+jest.mock("../resourceMetadata", () => ({
+  resolveResourceMetadataForUrl: jest.fn(),
+}));
+
+const mockResolveResourceMetadataForUrl = jest.mocked(
+  resolveResourceMetadataForUrl,
+);
+
+const mockResolvedResourceMetadata = (url: string) =>
+  mockResolveResourceMetadataForUrl.mockResolvedValueOnce({
+    normalizedUrl: url,
+    metadataValues: {
+      status: "ready",
+      metaTitle: "Fetched resource title",
+      metaDescription: null,
+      faviconUrl: null,
+      imageUrl: null,
+      lastFetchedAt: new Date("2026-01-01T00:00:00Z"),
+    },
+  });
 
 describe("updateResourceForOrganization", () => {
+  beforeEach(() => {
+    mockResolveResourceMetadataForUrl.mockReset();
+  });
+
   it("rejects updates outside of the user's organization before fetching the resource", async () => {
     const resource = createResourceFixture();
     const resourceDataAccess = createUpdateResourceDataAccessFixture();
@@ -48,6 +72,7 @@ describe("updateResourceForOrganization", () => {
 
     expect(resourceDataAccess.findResourceById).not.toHaveBeenCalled();
     expect(resourceDataAccess.updateResource).not.toHaveBeenCalled();
+    expect(mockResolveResourceMetadataForUrl).not.toHaveBeenCalled();
   });
 
   it("returns NOT_FOUND when the target resource does not exist", async () => {
@@ -70,6 +95,7 @@ describe("updateResourceForOrganization", () => {
     );
 
     expect(resourceDataAccess.updateResource).not.toHaveBeenCalled();
+    expect(mockResolveResourceMetadataForUrl).not.toHaveBeenCalled();
   });
 
   it("rejects resources that belong to another organization", async () => {
@@ -95,6 +121,7 @@ describe("updateResourceForOrganization", () => {
     );
 
     expect(resourceDataAccess.updateResource).not.toHaveBeenCalled();
+    expect(mockResolveResourceMetadataForUrl).not.toHaveBeenCalled();
   });
 
   it("returns the existing resource without writing when submitted values are unchanged", async () => {
@@ -120,6 +147,7 @@ describe("updateResourceForOrganization", () => {
     ).resolves.toEqual(resource);
 
     expect(resourceDataAccess.updateResource).not.toHaveBeenCalled();
+    expect(mockResolveResourceMetadataForUrl).not.toHaveBeenCalled();
   });
 
   it("updates changed fields and normalizes URLs before writing", async () => {
@@ -137,6 +165,7 @@ describe("updateResourceForOrganization", () => {
       findResourceById: jest.fn().mockResolvedValue(resource),
       updateResource: jest.fn().mockResolvedValue(updatedResource),
     });
+    mockResolvedResourceMetadata(updatedResource.url);
 
     await expect(
       updateResourceForOrganization({
@@ -151,19 +180,59 @@ describe("updateResourceForOrganization", () => {
       }),
     ).resolves.toEqual(updatedResource);
 
-    expect(resourceDataAccess.updateResource).toHaveBeenCalledWith(resource.id, {
-      title: updatedResource.title,
-      url: updatedResource.url,
-    });
+    expect(resourceDataAccess.updateResource).toHaveBeenCalledWith(
+      resource.id,
+      expect.objectContaining({
+        title: updatedResource.title,
+        url: updatedResource.url,
+        status: "ready",
+        metaTitle: "Fetched resource title",
+      }),
+    );
+    expect(mockResolveResourceMetadataForUrl).toHaveBeenCalledWith(
+      updatedResource.url,
+    );
   });
 
-  it("rejects empty resource titles before writing", async () => {
+  it("trims changed resource titles before writing", async () => {
     const resource = createResourceFixture();
+    const trimmedTitle = createResourceName();
+    const updatedResource = { ...resource, title: trimmedTitle };
     const resourceDataAccess = createUpdateResourceDataAccessFixture({
       findResourceById: jest.fn().mockResolvedValue(resource),
+      updateResource: jest.fn().mockResolvedValue(updatedResource),
     });
 
-    await expectOrpcErrorCode(
+    await expect(
+      updateResourceForOrganization({
+        input: {
+          resourceId: resource.id,
+          organizationId: resource.organizationId,
+          title: `  ${trimmedTitle}  `,
+        },
+        userOrganizationId: resource.organizationId,
+        resourceDataAccess,
+      }),
+    ).resolves.toEqual(updatedResource);
+
+    expect(resourceDataAccess.updateResource).toHaveBeenCalledWith(
+      resource.id,
+      {
+        title: trimmedTitle,
+      },
+    );
+    expect(mockResolveResourceMetadataForUrl).not.toHaveBeenCalled();
+  });
+
+  it("treats empty resource titles as cleared nullable titles", async () => {
+    const resource = createResourceFixture();
+    const updatedResource = { ...resource, title: null };
+    const resourceDataAccess = createUpdateResourceDataAccessFixture({
+      findResourceById: jest.fn().mockResolvedValue(resource),
+      updateResource: jest.fn().mockResolvedValue(updatedResource),
+    });
+
+    await expect(
       updateResourceForOrganization({
         input: {
           resourceId: resource.id,
@@ -173,10 +242,15 @@ describe("updateResourceForOrganization", () => {
         userOrganizationId: resource.organizationId,
         resourceDataAccess,
       }),
-      "BAD_REQUEST",
-    );
+    ).resolves.toEqual(updatedResource);
 
-    expect(resourceDataAccess.updateResource).not.toHaveBeenCalled();
+    expect(resourceDataAccess.updateResource).toHaveBeenCalledWith(
+      resource.id,
+      {
+        title: null,
+      },
+    );
+    expect(mockResolveResourceMetadataForUrl).not.toHaveBeenCalled();
   });
 
   it("returns CONFLICT when the resource data access cannot update the resource", async () => {
@@ -210,13 +284,15 @@ describe("updateResourceForOrganization", () => {
       findResourceById: jest.fn().mockResolvedValue(resource),
       updateResource: jest.fn().mockRejectedValue(uniqueConstraintError),
     });
+    const nextUrl = createResourceUrl();
+    mockResolvedResourceMetadata(nextUrl);
 
     await expectOrpcErrorCode(
       updateResourceForOrganization({
         input: {
           resourceId: resource.id,
           organizationId: resource.organizationId,
-          url: createResourceUrl(),
+          url: nextUrl,
         },
         userOrganizationId: resource.organizationId,
         resourceDataAccess,

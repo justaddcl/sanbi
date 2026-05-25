@@ -14,13 +14,13 @@ import {
 } from "@server/utils/urls/validateUrl";
 
 jest.mock("@orpc/client", () => {
-  interface ORPCErrorOptions {
+  type ORPCErrorOptions = {
     message?: string;
     cause?: unknown;
     status?: number;
     data?: unknown;
     defined?: unknown;
-  }
+  };
 
   class ORPCError extends Error {
     public readonly code: string;

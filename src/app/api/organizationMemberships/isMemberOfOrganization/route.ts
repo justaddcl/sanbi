@@ -20,7 +20,7 @@ export async function POST(request: Request) {
   // Return early if the form data is invalid
   if (!validatedInput.success) {
     return NextResponse.json({
-      errors: validatedInput.error.flatten().fieldErrors,
+      errors: z.flattenError(validatedInput.error).fieldErrors,
     });
   }
 

@@ -32,20 +32,25 @@ export const SongDetailsPage: React.FC<SongDetailsPageProps> = ({
   organizationId,
   userMembership,
 }) => {
-  const { data: song, isLoading: isSongLoading, error: songQueryError } = trpc.song.get.useQuery({
+  const {
+    data: song,
+    isPending: isSongPending,
+    error: songQueryError,
+  } = trpc.song.get.useQuery({
     songId,
     organizationId,
   });
 
-  const { data: playHistory, isLoading: isPlayHistoryLoading } =
-    trpc.song.getPlayHistory.useQuery({
+  const {
+    data: playHistory,
+    isPending: isPlayHistoryPending,
+    isError: isPlayHistoryError,
+  } = trpc.song.getPlayHistory.useQuery({
       songId,
       organizationId,
     });
 
-  const isLoading = isSongLoading || isPlayHistoryLoading;
-
-  if (isLoading) {
+  if (isSongPending) {
     return <SongDetailsPageLoading />;
   }
 
@@ -76,7 +81,15 @@ export const SongDetailsPage: React.FC<SongDetailsPageProps> = ({
           </SongDetailsItem>
           <SongDetailsItem icon="ClockCounterClockwise" label="Last Played">
             <dd>
-              {playHistory && lastPlayInstance ? (
+              {isPlayHistoryPending ? (
+                <Text style="body-small" className="text-slate-700">
+                  Loading play history...
+                </Text>
+              ) : isPlayHistoryError ? (
+                <Text style="body-small" className="text-slate-700">
+                  Unable to load play history
+                </Text>
+              ) : playHistory && lastPlayInstance ? (
                 <HStack className="gap-[3px] leading-4">
                   <Text
                     asElement="span"
@@ -123,7 +136,19 @@ export const SongDetailsPage: React.FC<SongDetailsPageProps> = ({
       />
       <Card title="Play history" collapsible>
         <div className="grid grid-cols-[16px_1fr] gap-y-4">
-          {playHistory &&
+          {isPlayHistoryPending && (
+            <Text style="body-small" className="col-span-2 text-slate-700">
+              Loading play history...
+            </Text>
+          )}
+          {isPlayHistoryError && (
+            <Text style="body-small" className="col-span-2 text-slate-700">
+              Unable to load play history
+            </Text>
+          )}
+          {!isPlayHistoryPending &&
+            !isPlayHistoryError &&
+            playHistory &&
             playHistory.length > 0 &&
             playHistory.map((playInstance) => (
               <PlayHistoryItem

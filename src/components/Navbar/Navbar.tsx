@@ -1,5 +1,5 @@
 "use client";
-import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
+import { Show, SignInButton, UserButton } from "@clerk/nextjs";
 import { Button } from "@components/ui/button";
 import { MagnifyingGlass, Sidebar } from "@phosphor-icons/react/dist/ssr";
 import { Input } from "@components/ui/input";
@@ -23,7 +23,7 @@ export const Navbar: React.FC = () => {
 
   return (
     <>
-      <SignedIn>
+      <Show when="signed-in">
         <header className="sticky top-0 z-50 grid h-14 grid-cols-[40px_1fr_40px] content-center items-center gap-x-4 rounded-t border border-l-0 border-solid border-slate-100 bg-slate-50 px-4 min-[1025px]:h-16 min-[1025px]:grid-cols-[1fr_28px] min-[1025px]:bg-white min-[1025px]:px-9">
           <div className="min-[1025px]:hidden">
             <Sheet open={isMobileNavOpen} onOpenChange={setIsMobileNavOpen}>
@@ -57,17 +57,17 @@ export const Navbar: React.FC = () => {
             <UserButton />
           </div>
         </header>
-      </SignedIn>
-      <SignedOut>
+      </Show>
+      <Show when="signed-out">
         <header className="sticky top-0 flex h-14 justify-between gap-x-4 rounded-t border border-solid border-slate-100 bg-slate-50 px-4 py-2 min-[1025px]:h-16">
           <Link href="/" className="self-center">
             Sanbi
           </Link>
-          <Button>
-            <SignInButton />
-          </Button>
+          <SignInButton>
+            <Button>Sign in</Button>
+          </SignInButton>
         </header>
-      </SignedOut>
+      </Show>
     </>
   );
 };

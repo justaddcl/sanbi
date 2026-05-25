@@ -28,7 +28,9 @@ for (const surface of surfaces) {
       }
 
       if (portalSurfaces.has(surface)) {
-        await expect(page).toHaveScreenshot(`${surface}-${theme}.png`);
+        await expect(page).toHaveScreenshot(`${surface}-${theme}.png`, {
+          fullPage: true,
+        });
       } else {
         await expect(page.locator("[data-visual-harness]")).toHaveScreenshot(
           `${surface}-${theme}.png`,

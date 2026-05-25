@@ -20,7 +20,7 @@ export type SanbiStoreProviderProps = {
 };
 
 export const SanbiStoreProvider = ({ children }: SanbiStoreProviderProps) => {
-  const storeRef = useRef<SanbiStoreApi>();
+  const storeRef = useRef<SanbiStoreApi | null>(null);
   if (!storeRef.current) {
     storeRef.current = createSanbiStore(initSanbiStore());
   }

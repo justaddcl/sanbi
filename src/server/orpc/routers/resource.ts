@@ -8,13 +8,20 @@ import {
   getResourcesBySongIdSchema,
   getResourceSchema,
   insertResourceSchema,
+  previewResourceMetadataSchema,
+  refreshResourceMetadataSchema,
+  resourcePreviewMetadataSchema,
   updateResourceSchema,
 } from "@lib/types/zod";
 import { resources, songs } from "@server/db/schema";
 import { authedProcedure, organizationProcedure } from "@server/orpc/base";
 import { deleteResourceForOrganization } from "@server/orpc/services/resource/deleteResource";
+import { refreshResourceMetadataForOrganization } from "@server/orpc/services/resource/refreshResourceMetadata";
+import {
+  fetchResourcePreviewMetadata,
+  resolveResourceMetadataForUrl,
+} from "@server/orpc/services/resource/resourceMetadata";
 import { updateResourceForOrganization } from "@server/orpc/services/resource/updateResource";
-import { validateUrl } from "@server/utils/urls/validateUrl";
 
 const ROUTER_PREFIX = "/resource";
 
@@ -121,13 +128,15 @@ export const createResource = organizationProcedure
       });
     }
 
-    const validatedUrl = validateUrl(url);
+    const { normalizedUrl, metadataValues } =
+      await resolveResourceMetadataForUrl(url);
 
     const newResource: NewResource = {
       songId,
       organizationId,
-      url: validatedUrl,
-      title,
+      url: normalizedUrl,
+      title: title ?? null,
+      ...metadataValues,
     };
 
     const [createdResource] = await db
@@ -147,6 +156,36 @@ export const createResource = organizationProcedure
     logger?.info({ resourceCreated: createdResource }, "New resource created");
 
     return createdResource;
+  });
+
+export const previewResourceMetadata = organizationProcedure
+  .route({
+    method: "POST",
+    path: "/preview-metadata",
+    summary: "Fetches URL metadata for a resource preview",
+  })
+  .input(previewResourceMetadataSchema)
+  .output(resourcePreviewMetadataSchema)
+  .handler(async ({ context, input }) => {
+    const { user } = context;
+
+    const logger = getRouteLogger(context, `${ROUTER_PREFIX}/preview`, {
+      input,
+      user,
+    });
+
+    if (input.organizationId !== user.membership.organizationId) {
+      logger?.warn(
+        "User is not authorized to preview resources for this organization",
+      );
+
+      throw new ORPCError("FORBIDDEN", {
+        message:
+          "User is not authorized to preview resources for this organization",
+      });
+    }
+
+    return fetchResourcePreviewMetadata(input.url);
   });
 
 export const updateResource = organizationProcedure
@@ -239,12 +278,56 @@ export const deleteResource = organizationProcedure
     });
   });
 
+export const refreshResourceMetadata = organizationProcedure
+  .route({
+    method: "POST",
+    path: "/refresh-metadata",
+    summary: "Refreshes metadata for a song resource",
+  })
+  .input(refreshResourceMetadataSchema)
+  .output(getResourceSchema)
+  .handler(async ({ context, input }) => {
+    const { db, user } = context;
+
+    const logger = getRouteLogger(context, `${ROUTER_PREFIX}/refresh`, {
+      input,
+      user,
+    });
+
+    return refreshResourceMetadataForOrganization({
+      input,
+      userOrganizationId: user.membership.organizationId,
+      resourceDataAccess: {
+        findResourceById: async (resourceId) => {
+          const resourceToRefresh = await db.query.resources.findFirst({
+            where: eq(resources.id, resourceId),
+          });
+
+          return resourceToRefresh ?? null;
+        },
+        updateResourceMetadata: async (resourceId, values) => {
+          const [updatedResource] = await db
+            .update(resources)
+            .set(values)
+            .where(eq(resources.id, resourceId))
+            .returning();
+
+          return updatedResource ?? null;
+        },
+      },
+      logger,
+    });
+  });
+
 export const resourceRouter = authedProcedure.prefix(ROUTER_PREFIX).router({
   // QUERIES
   getBySongId: getResourcesBySongId,
+  // Read-only endpoint that uses POST so clients can send the URL in the body.
+  previewMetadata: previewResourceMetadata,
 
   // MUTATIONS
   create: createResource,
   update: updateResource,
   delete: deleteResource,
+  refreshMetadata: refreshResourceMetadata,
 });
