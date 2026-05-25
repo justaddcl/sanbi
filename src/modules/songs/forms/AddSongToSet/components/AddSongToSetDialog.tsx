@@ -214,7 +214,7 @@ export const AddSongToSetDialog: React.FC<AddSongToSetDialogProps> = ({
         }
       }}
     >
-      <DialogTrigger>
+      <DialogTrigger asChild>
         <Button>
           <Plus /> Add to a set
         </Button>

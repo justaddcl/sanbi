@@ -11,6 +11,7 @@ import {
   type songs,
   type songTags,
   type tags,
+  type userPreferences,
   type users,
 } from "@server/db/schema";
 
@@ -31,6 +32,9 @@ export type UserWithMembership = User & {
   membership: OrganizationMembershipWithOrganization;
 };
 export type UserWithMemberships = RouterOutputs["user"]["getUser"];
+
+export type NewUserPreference = typeof userPreferences.$inferInsert;
+export type UserPreference = typeof userPreferences.$inferSelect;
 
 export type NewEventType = typeof eventTypes.$inferInsert;
 export type EventType = typeof eventTypes.$inferSelect;

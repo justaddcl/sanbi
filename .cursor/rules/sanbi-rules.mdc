@@ -56,6 +56,20 @@ alwaysApply: true
     - Provide clear and concise comments for complex logic.
     - Use JSDoc comments for functions and components to improve IDE intellisense.
 
+    ### Project Testing and Agent Review Conventions
+    - Prefer real application code in tests. Mock only hard boundaries such as network clients, auth/session providers, browser APIs, time, randomness, or data access seams. If a component or helper can be rendered or called directly, use the real implementation.
+    - When mocking is necessary, keep the mock narrow and explicit. Avoid mocking components only to make assertions easier; instead assert behavior through accessible UI, submitted inputs, query invalidation, or injected dependency calls.
+    - Put reusable test helpers in `src/testUtils` and import them through `@testUtils/*`. Organize helpers by model/domain or concern, for example `models/resource`, `models/user`, `generators`, and `orpc`.
+    - Fixture helpers should be functions that return complete valid objects and accept partial overrides. Generate IDs, names, URLs, and other incidental data through shared generators instead of hard-coded literals.
+    - Assertions should reference values from fixture objects or test-local variables. Avoid duplicating exact strings or manually retyping input values unless the literal text is the behavior under test.
+    - Reuse existing production helpers before creating similar logic. If logic cannot be reused directly, extract a focused helper and add tests for it.
+    - Backend procedure tests should isolate business logic from the database with explicit dependency injection. Name these seams by what they do in this codebase, such as `resourceDataAccess`, unless a broader repository pattern already exists.
+    - Prefer integration-style component tests for user workflows and unit tests for pure helpers, validation, and backend service logic. Do not assert incidental rendering details that users do not experience and maintainers do not care about.
+    - When reviewing agent-written code, look for stale mocks, duplicated fixture setup, hidden assumptions about organization membership or active context, unclear names, and helpers/components defined in a file only because it was convenient.
+    - For PR review comments, verify each finding against the current code before changing anything. Fix actionable issues, skip obsolete or non-actionable comments with a short rationale, and validate with the smallest relevant test set plus typecheck/lint when practical.
+    - After pushing commits that address review feedback, re-check open PR threads. If the pushed changes directly address a thread, leave a concise reply explaining what changed with a link to the commit, then resolve that thread.
+    - It is appropriate to answer GitHub review threads with reasoning, tradeoffs, or intent when the answer will help human reviewers or review bots such as Greptile and CodeRabbit evaluate the code. Do not resolve threads that were not directly addressed by the pushed changes, and do not merge unless explicitly asked.
+
     ### Methodology
     1. **System 2 Thinking**: Approach the problem with analytical rigor. Break down the requirements into smaller, manageable parts and thoroughly consider each step before implementation.
     2. **Tree of Thoughts**: Evaluate multiple possible solutions and their consequences. Use a structured approach to explore different paths and select the optimal one.

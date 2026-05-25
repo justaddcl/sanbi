@@ -1,16 +1,10 @@
 "use client";
 
-import { HStack } from "@components/HStack";
-import { Text } from "@components/Text";
-import { Button, type buttonVariants } from "@components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  type DropdownMenuContentProps,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@components/ui/dropdown-menu";
-import { cn } from "@lib/utils";
+import React, {
+  type Dispatch,
+  type PropsWithChildren,
+  type SetStateAction,
+} from "react";
 import {
   Archive,
   ArrowDown,
@@ -21,17 +15,25 @@ import {
   BoxArrowUp,
   Copy,
   DotsThree,
+  LinkBreak,
   Pencil,
   Plus,
   Swap,
   Trash,
 } from "@phosphor-icons/react";
 import { type VariantProps } from "class-variance-authority";
-import React, {
-  type Dispatch,
-  type PropsWithChildren,
-  type SetStateAction,
-} from "react";
+
+import { Button, type buttonVariants } from "@components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  type DropdownMenuContentProps,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@components/ui/dropdown-menu";
+import { HStack } from "@components/HStack";
+import { Text } from "@components/Text";
+import { cn } from "@lib/utils";
 
 type ActionMenuProps = PropsWithChildren & {
   /** open/closed state of the menu */
@@ -48,6 +50,9 @@ type ActionMenuProps = PropsWithChildren & {
 
   /** Which button variant should be used for the action menu trigger? */
   buttonVariant?: VariantProps<typeof buttonVariants>["variant"];
+
+  /** Accessible label for the action menu trigger. */
+  triggerLabel?: string;
 };
 
 export const ActionMenu: React.FC<ActionMenuProps> = ({
@@ -56,12 +61,18 @@ export const ActionMenu: React.FC<ActionMenuProps> = ({
   align = "end",
   side = "bottom",
   buttonVariant,
+  triggerLabel = "Open actions menu",
   children,
 }) => {
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
-      <DropdownMenuTrigger>
-        <Button variant={buttonVariant ?? "outline"} size="sm">
+      <DropdownMenuTrigger asChild>
+        <Button
+          aria-label={triggerLabel}
+          type="button"
+          variant={buttonVariant ?? "outline"}
+          size="sm"
+        >
           <DotsThree className="text-slate-900" size={16} />
         </Button>
       </DropdownMenuTrigger>
@@ -81,6 +92,7 @@ const iconMap = {
   Article,
   BoxArrowUp,
   Copy,
+  LinkBreak,
   Pencil,
   Plus,
   Swap,

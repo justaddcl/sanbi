@@ -1,6 +1,9 @@
 "use client";
+
 import { useState } from "react";
-import { Plus } from "@phosphor-icons/react";
+import { useAuth } from "@clerk/nextjs";
+import { LinkSimple } from "@phosphor-icons/react";
+import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 
 import { Button } from "@components/ui/button";
 import { Skeleton } from "@components/ui/skeleton";
@@ -8,32 +11,88 @@ import { Card } from "@components/Card/Card";
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
+  ResponsiveDialogDescription,
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
   ResponsiveDialogTrigger,
 } from "@components/ResponsiveDialog";
-import { CreateResourceForm } from "@modules/songs/forms/CreateResourceForm";
+import { ResourceForm } from "@modules/songs/forms/CreateResourceForm";
 import { useSongResources } from "@modules/songs/queries/useSongResources";
+import { trpc } from "@lib/trpc";
+import { type Resource } from "@lib/types";
 
+import { SongResourcesEmptyState } from "./SongResourcesEmptyState";
+import { EditResourceDialog } from "../EditResourceDialog";
 import { ResourceCard } from "../ResourceCard";
 
 type SongResourcesProps = {
   songId: string;
+  songName: string;
+  organizationId: string;
 };
 
-export const SongResources: React.FC<SongResourcesProps> = ({ songId }) => {
-  const [isAddResourceDialogOpen, setIsAddResourceDialogOpen] = useState(false);
+export const SongResources: React.FC<SongResourcesProps> = ({
+  songId,
+  songName,
+  organizationId,
+}) => {
+  const { userId } = useAuth();
+  const [isLinkResourceDialogOpen, setIsLinkResourceDialogOpen] =
+    useState(false);
+  const [resourceBeingEdited, setResourceBeingEdited] =
+    useState<Resource | null>(null);
 
-  const {
-    data: songResources,
-    isLoading: isSongResourcesLoading,
-    // TODO: SWY-118 to implement empty and error state
-    error: songResourcesError,
-  } = useSongResources(songId);
+  const { data: songResources, isLoading: isSongResourcesLoading } =
+    useSongResources(songId, organizationId);
+  // TODO: implement resource error state
+  const apiUtils = trpc.useUtils();
+
+  const { data: userData } = trpc.user.getUser.useQuery(
+    {
+      userId: userId!,
+    },
+    {
+      enabled: !!userId,
+    },
+  );
+  const updateResourceDeleteConfirmationPreferenceMutation =
+    trpc.user.updateResourceDeleteConfirmationPreference.useMutation();
+  const confirmResourceDelete =
+    userData?.preferences?.confirmResourceDelete ?? true;
+
+  const updateResourceDeleteConfirmationPreference = async (
+    shouldConfirmResourceDelete: boolean,
+  ) => {
+    if (!userId) {
+      throw new Error("No user is currently signed in");
+    }
+
+    await updateResourceDeleteConfirmationPreferenceMutation.mutateAsync({
+      confirmResourceDelete: shouldConfirmResourceDelete,
+    });
+    await apiUtils.user.getUser.invalidate({ userId });
+  };
 
   const onSuccess = () => {
-    setIsAddResourceDialogOpen(false);
+    setIsLinkResourceDialogOpen(false);
   };
+
+  const closeEditDialog = () => {
+    setResourceBeingEdited(null);
+  };
+
+  const handleAddResourceClick = () => {
+    setIsLinkResourceDialogOpen(true);
+  };
+
+  const linkResourceButton = (
+    <ResponsiveDialogTrigger asChild>
+      <Button aria-label="Link resource" size="sm" variant="ghost">
+        <LinkSimple aria-hidden className="text-slate-900" size={16} />
+        <span className="hidden sm:inline">Link resource</span>
+      </Button>
+    </ResponsiveDialogTrigger>
+  );
 
   if (isSongResourcesLoading) {
     return (
@@ -41,9 +100,9 @@ export const SongResources: React.FC<SongResourcesProps> = ({ songId }) => {
         title="Resources"
         collapsible
         button={
-          <Button size="sm" variant="ghost" disabled>
-            <Plus className="text-slate-900" size={16} />
-            <span className="hidden sm:inline">Add resource</span>
+          <Button aria-label="Link resource" size="sm" variant="ghost" disabled>
+            <LinkSimple aria-hidden className="text-slate-900" size={16} />
+            <span className="hidden sm:inline">Link resource</span>
           </Button>
         }
       >
@@ -63,40 +122,55 @@ export const SongResources: React.FC<SongResourcesProps> = ({ songId }) => {
   }
 
   return (
-    <ResponsiveDialog
-      open={isAddResourceDialogOpen}
-      onOpenChange={setIsAddResourceDialogOpen}
-    >
-      <Card
-        title="Resources"
-        collapsible
-        button={
-          <ResponsiveDialogTrigger asChild>
-            <Button size="sm" variant="ghost">
-              <Plus className="text-slate-900" size={16} />
-              <span className="hidden sm:inline">Add resource</span>
-            </Button>
-          </ResponsiveDialogTrigger>
-        }
+    <>
+      <ResponsiveDialog
+        open={isLinkResourceDialogOpen}
+        onOpenChange={setIsLinkResourceDialogOpen}
       >
-        <ul className="grid gap-3 md:grid-cols-2">
-          {songResources &&
-            songResources.length > 0 &&
-            songResources.map((songResource) => (
-              <ResourceCard key={songResource.id} resource={songResource} />
-            ))}
-          {songResources && songResources.length === 0 && (
-            // Empty state will be implemented in SWY-118
-            <div>No song resources yet. Create one?</div>
-          )}
-        </ul>
-      </Card>
-      <ResponsiveDialogContent>
-        <ResponsiveDialogHeader>
-          <ResponsiveDialogTitle>Create a song resource</ResponsiveDialogTitle>
-        </ResponsiveDialogHeader>
-        <CreateResourceForm songId={songId} onSuccess={onSuccess} />
-      </ResponsiveDialogContent>
-    </ResponsiveDialog>
+        <Card title="Resources" collapsible button={linkResourceButton}>
+          <ul className="grid gap-3 md:grid-cols-2">
+            {songResources &&
+              songResources.length > 0 &&
+              songResources.map((songResource) => (
+                <ResourceCard
+                  key={songResource.id}
+                  resource={songResource}
+                  songName={songName}
+                  confirmResourceDelete={confirmResourceDelete}
+                  onResourceDeleteConfirmationPreferenceChange={
+                    updateResourceDeleteConfirmationPreference
+                  }
+                  onEdit={setResourceBeingEdited}
+                />
+              ))}
+            {songResources && songResources.length === 0 && (
+              <SongResourcesEmptyState
+                onAddResourceClick={handleAddResourceClick}
+              />
+            )}
+          </ul>
+        </Card>
+        <ResponsiveDialogContent>
+          <ResponsiveDialogHeader>
+            <ResponsiveDialogTitle>Link a song resource</ResponsiveDialogTitle>
+            <VisuallyHidden.Root>
+              <ResponsiveDialogDescription>
+                Link a song resource
+              </ResponsiveDialogDescription>
+            </VisuallyHidden.Root>
+          </ResponsiveDialogHeader>
+          <ResourceForm
+            mode="create"
+            songId={songId}
+            organizationId={organizationId}
+            onSuccess={onSuccess}
+          />
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
+      <EditResourceDialog
+        resource={resourceBeingEdited}
+        onClose={closeEditDialog}
+      />
+    </>
   );
 };

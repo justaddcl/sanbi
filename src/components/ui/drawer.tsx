@@ -2,23 +2,129 @@
 
 import * as React from "react";
 import {
+  type DialogCloseProps as RadixDialogCloseProps,
+  type DialogTriggerProps as RadixDialogTriggerProps,
+} from "@radix-ui/react-dialog";
+import {
   type DialogProps as VaulDrawerProps,
   Drawer as DrawerPrimitive,
 } from "vaul";
-import {
-  type DialogTriggerProps as RadixDialogTriggerProps,
-  type DialogCloseProps as RadixDialogCloseProps,
-} from "@radix-ui/react-dialog";
 
 import { cn } from "@lib/utils";
 
 export type DrawerProps = VaulDrawerProps;
-const Drawer = ({ shouldScaleBackground = true, ...props }: DrawerProps) => (
-  <DrawerPrimitive.Root
-    shouldScaleBackground={shouldScaleBackground}
-    {...props}
-  />
-);
+
+let drawerScrollLockCount = 0;
+let restorePageScroll: (() => void) | null = null;
+
+const lockPageScroll = () => {
+  drawerScrollLockCount += 1;
+
+  if (drawerScrollLockCount > 1) {
+    return;
+  }
+
+  const scrollX = window.scrollX;
+  const scrollY = window.scrollY;
+  const scrollbarWidth =
+    window.innerWidth - document.documentElement.clientWidth;
+
+  // Vaul input repositioning is disabled for iOS keyboard stability, so lock
+  // the page ourselves while leaving the fixed drawer content scrollable.
+  const originalHtmlStyles = {
+    overflow: document.documentElement.style.overflow,
+    overscrollBehavior: document.documentElement.style.overscrollBehavior,
+  };
+  const originalBodyStyles = {
+    left: document.body.style.left,
+    overflow: document.body.style.overflow,
+    paddingRight: document.body.style.paddingRight,
+    position: document.body.style.position,
+    right: document.body.style.right,
+    top: document.body.style.top,
+    width: document.body.style.width,
+  };
+
+  document.documentElement.style.overflow = "hidden";
+  document.documentElement.style.overscrollBehavior = "none";
+  document.body.style.position = "fixed";
+  document.body.style.top = `-${scrollY}px`;
+  document.body.style.left = `-${scrollX}px`;
+  document.body.style.right = "0";
+  document.body.style.width = "100%";
+  document.body.style.overflow = "hidden";
+
+  if (scrollbarWidth > 0) {
+    document.body.style.paddingRight = `${scrollbarWidth}px`;
+  }
+
+  restorePageScroll = () => {
+    document.documentElement.style.overflow = originalHtmlStyles.overflow;
+    document.documentElement.style.overscrollBehavior =
+      originalHtmlStyles.overscrollBehavior;
+    document.body.style.left = originalBodyStyles.left;
+    document.body.style.overflow = originalBodyStyles.overflow;
+    document.body.style.paddingRight = originalBodyStyles.paddingRight;
+    document.body.style.position = originalBodyStyles.position;
+    document.body.style.right = originalBodyStyles.right;
+    document.body.style.top = originalBodyStyles.top;
+    document.body.style.width = originalBodyStyles.width;
+    window.scrollTo(scrollX, scrollY);
+    restorePageScroll = null;
+  };
+};
+
+const unlockPageScroll = () => {
+  drawerScrollLockCount = Math.max(0, drawerScrollLockCount - 1);
+
+  if (drawerScrollLockCount === 0) {
+    restorePageScroll?.();
+  }
+};
+
+const usePageScrollLock = (isLocked: boolean) => {
+  React.useLayoutEffect(() => {
+    if (!isLocked) {
+      return;
+    }
+
+    lockPageScroll();
+
+    return unlockPageScroll;
+  }, [isLocked]);
+};
+
+const Drawer = ({
+  defaultOpen,
+  noBodyStyles = true,
+  onOpenChange,
+  open,
+  repositionInputs = false,
+  ...props
+}: DrawerProps) => {
+  const [uncontrolledOpen, setUncontrolledOpen] = React.useState(
+    defaultOpen ?? false,
+  );
+  const isOpen = open ?? uncontrolledOpen;
+
+  usePageScrollLock(isOpen && noBodyStyles);
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    setUncontrolledOpen(nextOpen);
+    onOpenChange?.(nextOpen);
+  };
+
+  return (
+    <DrawerPrimitive.Root
+      defaultOpen={defaultOpen}
+      noBodyStyles={noBodyStyles}
+      onOpenChange={handleOpenChange}
+      open={open}
+      repositionInputs={repositionInputs}
+      {...props}
+    />
+  );
+};
 Drawer.displayName = "Drawer";
 
 export type DrawerTriggerProps = RadixDialogTriggerProps;
@@ -53,13 +159,13 @@ const DrawerContent = React.forwardRef<
     <DrawerPrimitive.Content
       ref={ref}
       className={cn(
-        "fixed inset-x-0 bottom-0 z-50 mt-24 flex max-h-[100%] flex-col rounded-t-[10px] border bg-background",
+        "fixed inset-x-0 bottom-0 z-50 flex max-h-[82vh] flex-col overflow-hidden rounded-t-[10px] border bg-background",
         className,
       )}
       {...props}
     >
-      <div className="flex-1 overflow-y-auto p-6">
-        <div className="mx-auto mt-4 h-2 w-[100px] rounded-full bg-muted" />
+      <div className="mx-auto flex min-h-0 w-full max-w-md flex-1 flex-col overflow-y-auto rounded-t-[10px] p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+        <DrawerPrimitive.Handle />
         {children}
       </div>
     </DrawerPrimitive.Content>
@@ -120,13 +226,13 @@ DrawerDescription.displayName = DrawerPrimitive.Description.displayName;
 
 export {
   Drawer,
-  DrawerPortal,
-  DrawerOverlay,
-  DrawerTrigger,
   DrawerClose,
   DrawerContent,
-  DrawerHeader,
-  DrawerFooter,
-  DrawerTitle,
   DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerOverlay,
+  DrawerPortal,
+  DrawerTitle,
+  DrawerTrigger,
 };
