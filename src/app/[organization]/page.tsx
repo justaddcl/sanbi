@@ -64,10 +64,12 @@ export default async function Dashboard({
       {/* FIXME: update set list styling */}
       <VStack className="gap-8">
         {organizationSets.map((orgSet) => (
-          <Link
-            key={orgSet.id}
-            href={`/${organization}/sets/${orgSet.id}`}
-          >
+          <div key={orgSet.id} className="relative">
+            <Link
+              href={`/${organization}/sets/${orgSet.id}`}
+              className="absolute inset-0 rounded-lg"
+              aria-label={`Open ${orgSet.eventType.name} set`}
+            />
             <VStack className="h-full min-w-full max-w-xs flex-1 gap-6 rounded-lg border p-4 shadow lg:p-6">
               <SetListCardHeader
                 date={orgSet.date}
@@ -98,6 +100,7 @@ export default async function Dashboard({
                         <Link
                           key={setSectionSong.songId}
                           href={`/${organization}/songs/${setSectionSong.songId}`}
+                          className="relative z-10"
                         >
                           <SongItem
                             index={indexStart + setSectionSong.position}
@@ -112,7 +115,7 @@ export default async function Dashboard({
                 ))}
               </VStack>
             </VStack>
-          </Link>
+          </div>
         ))}
       </VStack>
     </PageContentContainer>

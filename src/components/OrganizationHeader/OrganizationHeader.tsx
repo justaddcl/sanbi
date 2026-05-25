@@ -1,16 +1,17 @@
 "use client";
 
-import React from "react";
 import Link from "next/link";
 import { useAuth } from "@clerk/nextjs";
 import { skipToken } from "@tanstack/react-query";
 
+import { Text } from "@components/Text";
 import { Skeleton } from "@components/ui/skeleton";
-import { OrganizationHeaderLink } from "@components/OrganizationHeader/OrganizationHeaderLink";
 import { trpc } from "@lib/trpc";
+import { useSanbiStore } from "@/providers/sanbi-store-provider";
 
-export const OrganizationHeader: React.FC = () => {
+export const OrganizationHeader = () => {
   const { userId, isSignedIn } = useAuth();
+  const { closeMobileNav } = useSanbiStore((state) => state);
 
   const {
     isPending,
@@ -39,17 +40,31 @@ export const OrganizationHeader: React.FC = () => {
   }
 
   const organizationName = organizationMembership?.organization.name;
+  const organizationInitials = organizationName
+    ?.split(" ")
+    .map((word: string) => word[0])
+    .join("");
 
-  const ForwardedOrganizationHeaderLink = React.forwardRef(
-    OrganizationHeaderLink,
-  );
   return (
     <Link
       href={`/${organizationMembership.organizationId}`}
-      passHref
-      legacyBehavior
+      className="mb-8 flex items-center gap-3 lg:fixed lg:top-6"
+      onClick={closeMobileNav}
     >
-      <ForwardedOrganizationHeaderLink organizationName={organizationName} />
+      <div className="flex size-8 place-content-center rounded bg-slate-200 py-1">
+        {/* TODO: determine how to style if more than two letter initials */}
+        <Text
+          style="header-medium-semibold"
+          color="slate-700"
+          className="inline-block"
+          lineHeight="normal"
+        >
+          {organizationInitials}
+        </Text>
+      </div>
+      <Text style="header-medium-semibold" color="slate-700">
+        {organizationName}
+      </Text>
     </Link>
   );
 };
