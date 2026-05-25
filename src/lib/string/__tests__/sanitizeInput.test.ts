@@ -11,6 +11,16 @@ describe("sanitizeInput", () => {
     expect(sanitizeInput(input)).toBe("Hello  World");
   });
 
+  it("should remove unclosed dangerous element contents", () => {
+    const input = "Hello <script>alert('xss')";
+    expect(sanitizeInput(input)).toBe("Hello ");
+  });
+
+  it("should remove malformed dangerous void elements", () => {
+    const input = 'Hello <img src="x" onerror="alert(1)"';
+    expect(sanitizeInput(input)).toBe("Hello ");
+  });
+
   it("should handle special characters", () => {
     const input = "Hello & World < > \" '";
     expect(sanitizeInput(input)).toBe(
