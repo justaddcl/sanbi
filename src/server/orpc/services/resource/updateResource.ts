@@ -4,11 +4,18 @@ import { type z } from "zod";
 import { type getRouteLogger } from "@lib/loggers/logger";
 import { type Resource } from "@lib/types";
 import { type updateResourceSchema } from "@lib/types/zod";
+import { isUniqueConstraintViolation } from "@server/utils/db/postgres";
 import { validateUrl } from "@server/utils/urls/validateUrl";
+
+import {
+  resolveResourceMetadataForUrl,
+  type ResourceMetadataWriteValues,
+} from "./resourceMetadata";
 
 type UpdateResourceInput = z.infer<typeof updateResourceSchema>;
 
-type ResourceUpdateValues = Pick<Resource, "title" | "url">;
+type ResourceUpdateValues = Pick<Resource, "title" | "url"> &
+  ResourceMetadataWriteValues;
 type UpdateResourceLogger = NonNullable<ReturnType<typeof getRouteLogger>>;
 
 export type UpdateResourceDataAccess = {
@@ -19,19 +26,12 @@ export type UpdateResourceDataAccess = {
   ) => Promise<Resource | null>;
 };
 
-export const POSTGRES_UNIQUE_CONSTRAINT_VIOLATION_CODE = "23505";
-
 type UpdateResourceForOrganizationOptions = {
   input: UpdateResourceInput;
   userOrganizationId: string;
   resourceDataAccess: UpdateResourceDataAccess;
   logger?: UpdateResourceLogger;
 };
-
-const isUniqueConstraintViolation = (error: unknown) =>
-  error instanceof Error &&
-  "code" in error &&
-  error.code === POSTGRES_UNIQUE_CONSTRAINT_VIOLATION_CODE;
 
 export const updateResourceForOrganization = async ({
   input,
@@ -74,16 +74,11 @@ export const updateResourceForOrganization = async ({
   const updateValues: Partial<ResourceUpdateValues> = {};
 
   if (title !== undefined) {
-    if (title.length === 0) {
-      logger?.warn?.("Resource title cannot be empty");
+    const trimmedTitle = title?.trim() ?? null;
+    const nextTitle = trimmedTitle === "" ? null : trimmedTitle;
 
-      throw new ORPCError("BAD_REQUEST", {
-        message: "Resource title cannot be empty",
-      });
-    }
-
-    if (title !== resourceToUpdate.title) {
-      updateValues.title = title;
+    if (nextTitle !== resourceToUpdate.title) {
+      updateValues.title = nextTitle;
     }
   }
 
@@ -91,7 +86,11 @@ export const updateResourceForOrganization = async ({
     const validatedUrl = validateUrl(url);
 
     if (validatedUrl !== resourceToUpdate.url) {
-      updateValues.url = validatedUrl;
+      const { normalizedUrl, metadataValues } =
+        await resolveResourceMetadataForUrl(validatedUrl);
+
+      updateValues.url = normalizedUrl;
+      Object.assign(updateValues, metadataValues);
     }
   }
 

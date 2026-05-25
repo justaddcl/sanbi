@@ -7,6 +7,7 @@ import React, {
 } from "react";
 import {
   Archive,
+  ArrowClockwise,
   ArrowDown,
   ArrowLineDown,
   ArrowLineUp,
@@ -85,6 +86,7 @@ export const ActionMenu: React.FC<ActionMenuProps> = ({
 
 const iconMap = {
   Archive,
+  ArrowClockwise,
   ArrowDown,
   ArrowLineDown,
   ArrowLineUp,

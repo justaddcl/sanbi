@@ -309,16 +309,40 @@ const resourceUrlSchema = z
     }),
   );
 
+const MAX_RESOURCE_TITLE_LENGTH = 255;
+
+const resourceTitleSchema = z
+  .string()
+  .transform((title) => sanitizeInput(title).trim())
+  .refine((title) => title.length <= MAX_RESOURCE_TITLE_LENGTH, {
+    message: `Resource name must be ${MAX_RESOURCE_TITLE_LENGTH} characters or fewer`,
+  })
+  .transform((title) => (title.length > 0 ? title : null))
+  .optional()
+  .nullable();
+
+export const resourcePreviewMetadataSchema = z.object({
+  normalizedUrl: resourceUrlSchema,
+  status: z.enum(["ready", "failed"]),
+  title: z.string().nullable(),
+  description: z.string().nullable(),
+  faviconUrl: resourceUrlSchema.nullable(),
+  imageUrl: resourceUrlSchema.nullable(),
+  lastFetchedAt: z.date(),
+});
+
+export const previewResourceMetadataSchema = z.object({
+  organizationId: z.uuid(),
+  url: resourceUrlSchema,
+});
+
 export const insertResourceSchema = z.object({
   ...createInsertSchema(resources).pick({
     organizationId: true,
     songId: true,
   }).shape,
   url: resourceUrlSchema,
-  title: z
-    .string()
-    .min(1, "Please give your resource a name or title")
-    .transform((title) => sanitizeInput(title)),
+  title: resourceTitleSchema,
 });
 
 export const updateResourceSchema = z.object({
@@ -327,14 +351,15 @@ export const updateResourceSchema = z.object({
   }).shape,
   resourceId: z.uuid(),
   url: resourceUrlSchema.optional(),
-  title: z
-    .string()
-    .min(1, "Please give your resource a name or title")
-    .transform((title) => sanitizeInput(title))
-    .optional(),
+  title: resourceTitleSchema,
 });
 
 export const deleteResourceSchema = z.object({
+  resourceId: z.uuid(),
+  organizationId: z.uuid(),
+});
+
+export const refreshResourceMetadataSchema = z.object({
   resourceId: z.uuid(),
   organizationId: z.uuid(),
 });

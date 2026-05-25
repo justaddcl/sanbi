@@ -6,6 +6,7 @@ import { createResourceFixture } from "@testUtils/models/resource/fixtures";
 import { createResourceName } from "@testUtils/models/resource/generators";
 
 import { getDisplayUrl } from "@modules/songs/utils/getDisplayUrl";
+import { getResourceDisplayTitle } from "@modules/songs/utils/getResourceDisplayTitle";
 
 import { ResourceCard } from "../ResourceCard";
 
@@ -20,6 +21,11 @@ jest.mock(
     orpc: {
       resource: {
         delete: {
+          mutationOptions: () => ({
+            mutationFn: jest.fn(),
+          }),
+        },
+        refreshMetadata: {
           mutationOptions: () => ({
             mutationFn: jest.fn(),
           }),
@@ -59,12 +65,13 @@ describe("ResourceCard", () => {
 
   it("keeps the external link and edit action as separate targets", async () => {
     const resource = createResourceFixture();
+    const displayTitle = getResourceDisplayTitle(resource);
     const onEdit = jest.fn();
 
     renderResourceCard({ resource, songName, onEdit });
 
     const resourceLink = screen.getByRole("link", {
-      name: new RegExp(resource.title, "i"),
+      name: (accessibleName) => accessibleName.includes(displayTitle),
     });
 
     expect(resourceLink).toHaveAttribute("href", resource.url);
@@ -72,7 +79,7 @@ describe("ResourceCard", () => {
 
     fireEvent.keyDown(
       screen.getByRole("button", {
-        name: `Open actions for ${resource.title}`,
+        name: `Open actions for ${displayTitle}`,
       }),
       { key: "Enter", code: "Enter" },
     );
@@ -106,12 +113,13 @@ describe("ResourceCard", () => {
 
   it("does not show a warning opt-out when the preference cannot be persisted", async () => {
     const resource = createResourceFixture();
+    const displayTitle = getResourceDisplayTitle(resource);
 
     renderResourceCard({ resource, songName, onEdit: jest.fn() });
 
     fireEvent.keyDown(
       screen.getByRole("button", {
-        name: `Open actions for ${resource.title}`,
+        name: `Open actions for ${displayTitle}`,
       }),
       { key: "Enter", code: "Enter" },
     );
@@ -119,7 +127,7 @@ describe("ResourceCard", () => {
 
     expect(
       await screen.findByRole("heading", {
-        name: `Unlink ${resource.title}`,
+        name: `Unlink ${displayTitle}`,
       }),
     ).toBeInTheDocument();
     expect(
