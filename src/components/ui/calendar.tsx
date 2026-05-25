@@ -71,7 +71,7 @@ export function CalendarSingle(props: CalendarSingleProps) {
       showOutsideDays={true}
       className={cn("p-3", props.className)}
       classNames={{ ...baseClassNames, ...props.classNames }}
-      components={baseComponents}
+      components={{ ...baseComponents, ...props.components }}
     />
   );
 }
@@ -84,7 +84,7 @@ export function CalendarMultiple(props: CalendarMultipleProps) {
       showOutsideDays={true}
       className={cn("p-3", props.className)}
       classNames={{ ...baseClassNames, ...props.classNames }}
-      components={baseComponents}
+      components={{ ...baseComponents, ...props.components }}
     />
   );
 }
@@ -97,7 +97,7 @@ export function CalendarRange(props: CalendarRangeProps) {
       showOutsideDays={true}
       className={cn("p-3", props.className)}
       classNames={{ ...baseClassNames, ...props.classNames }}
-      components={baseComponents}
+      components={{ ...baseComponents, ...props.components }}
     />
   );
 }

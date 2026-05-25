@@ -41,7 +41,7 @@ import { useResponsive } from "@/hooks/useResponsive";
 
 type SetListPageProps = {
   params: Promise<{ organization: string; setId: string }>;
-  searchParams: Record<string, string | string[] | undefined>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
 export default function SetListPage({ params: paramsPromise }: SetListPageProps) {

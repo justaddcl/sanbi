@@ -11,14 +11,14 @@ import { cn } from "@lib/utils";
 
 import { AddSongToSetDialogStep } from ".";
 
-interface AddSongToSetDialogHeaderProps {
+type AddSongToSetDialogHeaderProps = {
   title: string;
   step: AddSongToSetDialogStep;
   totalSteps: number;
   onBack: () => void;
   onClose: () => void;
   isCreatingNewSet: boolean;
-}
+};
 
 export const AddSongToSetDialogHeader: React.FC<
   AddSongToSetDialogHeaderProps

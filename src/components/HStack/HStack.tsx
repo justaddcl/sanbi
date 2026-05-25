@@ -1,3 +1,5 @@
+import type React from "react";
+
 import { type PolymorphicComponentProps } from "@lib/types";
 import { cn } from "@/lib/utils";
 

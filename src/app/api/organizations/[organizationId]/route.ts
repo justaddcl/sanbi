@@ -20,9 +20,12 @@ export async function GET(
 
   // Return early if the form data is invalid
   if (!validatedParams.success) {
-    return NextResponse.json({
-      errors: z.flattenError(validatedParams.error).fieldErrors,
-    });
+    return NextResponse.json(
+      {
+        errors: z.flattenError(validatedParams.error).fieldErrors,
+      },
+      { status: 400 },
+    );
   }
 
   try {

@@ -5,11 +5,13 @@ import { NEW_USER_SIGN_UP_KEY } from "@app/create-team/consts";
 import { Text } from "@/components/Text";
 import { CreateTeamForm } from "@/modules/onboarding/createTeam";
 
+type CreateTeamPageProps = {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
+
 export default async function CreateTeamPage({
   searchParams,
-}: {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
-}) {
+}: CreateTeamPageProps) {
   const resolvedSearchParams = await searchParams;
   const shouldCreateNewUser = Object.keys(resolvedSearchParams).includes(
     NEW_USER_SIGN_UP_KEY,
