@@ -1,7 +1,7 @@
 import { type NewTag } from "@lib/types";
 import { createTagSchema, getTagsByOrganizationSchema } from "@lib/types/zod";
 import { createTRPCRouter, organizationProcedure } from "@server/api/trpc";
-import { songTags, tags } from "@server/db/schema";
+import { tags } from "@server/db/schema";
 import { TRPCError } from "@trpc/server";
 import { asc, eq } from "drizzle-orm";
 
@@ -14,32 +14,23 @@ export const tagRouter = createTRPCRouter({
         `🤖 - [tag/getByOrganization] - attempting to get song tags for organization ${input.organizationId}`,
       );
 
-      return await ctx.db.transaction(async (queryTransaction) => {
-        const organizationTags = await queryTransaction
-          .select({
-            id: tags.id,
-            tag: tags.tag,
-            organizationId: tags.organizationId,
-            createdAt: tags.createdAt,
-            updatedAt: tags.updatedAt,
-            // TODO: re-add the usage count if it makes tags better to use
-            // count: sql<number>`COUNT(${songTags.tagId})`.as("count"),
-          })
-          .from(tags)
-          .leftJoin(songTags, eq(songTags.tagId, tags.id))
-          .where(eq(tags.organizationId, input.organizationId))
-          .groupBy(tags.id)
-          .orderBy(asc(tags.tag));
+      const organizationTags = await ctx.db
+        .select({
+          id: tags.id,
+          tag: tags.tag,
+          organizationId: tags.organizationId,
+          createdAt: tags.createdAt,
+          updatedAt: tags.updatedAt,
+        })
+        .from(tags)
+        .where(eq(tags.organizationId, input.organizationId))
+        .orderBy(asc(tags.tag));
 
-        console.info(
-          `🤖 - [tag/getByOrganization] - tags for organization ${input.organizationId}`,
-          {
-            organizationTags,
-          },
-        );
+      console.info(
+        `🤖 - [tag/getByOrganization] - found ${organizationTags.length} tags for organization ${input.organizationId}`,
+      );
 
-        return organizationTags;
-      });
+      return organizationTags;
     }),
 
   // Mutations

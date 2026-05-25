@@ -15,7 +15,7 @@ globalThis.$orpc ??= createRouterClient(appRouter, {
   context: async () => {
     try {
       const { headers: getHeaders } = await import("next/headers");
-      const headers = getHeaders();
+      const headers = await getHeaders();
       return createORPCContext({ headers });
     } catch (error) {
       Sentry.captureException(error);

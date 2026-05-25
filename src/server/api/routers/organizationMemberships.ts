@@ -98,7 +98,7 @@ export const organizationMembershipsRouter = createTRPCRouter({
       const membership = await ctx.db.query.organizationMemberships.findFirst({
         where: and(
           eq(organizationMemberships.organizationId, input.organizationId),
-          eq(organizationMemberships.userId, ctx.auth.userId!), // asserting that the user is not null since this is an authed procedure, which would have thrown an "unauthorized" error already
+          eq(organizationMemberships.userId, ctx.auth.userId),
         ),
         with: {
           organization: true,

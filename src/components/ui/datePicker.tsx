@@ -3,9 +3,10 @@
 import * as React from "react";
 import {
   type DateRange,
-  type DayPickerMultipleProps,
-  type DayPickerRangeProps,
-  type DayPickerSingleProps,
+  type PropsBase,
+  type PropsMulti,
+  type PropsRange,
+  type PropsSingle,
 } from "react-day-picker";
 import { type ControllerRenderProps } from "react-hook-form";
 import { CalendarBlank, CaretDown, X } from "@phosphor-icons/react";
@@ -98,10 +99,10 @@ type DatePickerProps<Mode extends CalendarMode = "single"> = Partial<
 > &
   Omit<
     Mode extends "single"
-      ? DayPickerSingleProps
+      ? PropsBase & PropsSingle
       : Mode extends "multiple"
-        ? DayPickerMultipleProps
-        : DayPickerRangeProps,
+        ? PropsBase & PropsMulti
+        : PropsBase & PropsRange,
     "mode"
   > & {
     presets?: DatePickerPreset[];

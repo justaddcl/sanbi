@@ -8,14 +8,13 @@ const isPublicRoute = createRouteMatcher([
   "/api/(.*)", // "allowing" api routes since we want the API to return errors rather than redirecting to sign-in
 ]);
 
-export default clerkMiddleware((auth, req) => {
+export default clerkMiddleware(async (auth, req) => {
   if (!isPublicRoute(req)) {
-    auth().protect();
+    await auth.protect();
   }
 });
 
 export const config = {
-  // The following matcher runs middleware on all routes
-  // except static assets.
+  // The following matcher runs proxy on all routes except static assets.
   matcher: ["/((?!.*\\..*|_next).*)", "/", "/(api|trpc)(.*)"],
 };

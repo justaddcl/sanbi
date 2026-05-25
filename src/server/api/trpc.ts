@@ -32,7 +32,7 @@ import { organizationMemberships, organizations, users } from "../db/schema";
 export const createTRPCContext = async (opts: { headers: Headers }) => {
   return {
     db,
-    auth: auth(),
+    auth: await auth(),
     ...opts,
   };
 };
@@ -120,7 +120,7 @@ export const authedProcedure = t.procedure.use(async (opts) => {
 
   return opts.next({
     ctx: {
-      auth: auth(),
+      auth: ctx.auth,
       // user,
     },
   });
@@ -135,8 +135,9 @@ export const organizationProcedure = authedProcedure
   .use(async (opts) => {
     const { ctx, input } = opts;
 
+    // authedProcedure guarantees ctx.auth.userId before this lookup.
     const user = await db.query.users.findFirst({
-      where: eq(users.id, ctx.auth.userId!), // asserting that the user is not null since this is an authed procedure, which would have thrown an "unauthorized" error already
+      where: eq(users.id, ctx.auth.userId),
     });
 
     if (!user) {

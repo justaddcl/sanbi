@@ -1,11 +1,7 @@
 import { Poppins } from "next/font/google";
-import { ClerkProvider, SignedIn } from "@clerk/nextjs";
-import { auth } from "@clerk/nextjs/server";
+import { ClerkProvider } from "@clerk/nextjs";
 
-import { GlobalNav } from "@components/GlobalNav";
-import { Navbar } from "@components/Navbar";
-import { OrganizationHeader } from "@/components/OrganizationHeader";
-
+import { AppShell } from "./AppShell";
 import { Providers } from "./providers";
 
 import "@/styles/globals.css";
@@ -30,33 +26,18 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { userId } = auth();
-
-  const gridColumns = userId ? "min-[1025px]:grid-cols-[300px_1fr]" : "";
-
   return (
-    <ClerkProvider>
-      <html lang="en" className={`${poppins.variable}`}>
-        <head>
-          <meta name="viewport" content="width=device-width, initial-scale=1" />
-        </head>
-        <body>
+    <html lang="en" className={`${poppins.variable}`}>
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+      </head>
+      <body>
+        <ClerkProvider>
           <Providers>
-            <div className={`min-[1025px]:grid ${gridColumns} min-h-screen`}>
-              <SignedIn>
-                <div className="hidden rounded-b border border-t-0 border-slate-100 bg-slate-50 min-[1025px]:sticky min-[1025px]:top-0 min-[1025px]:block min-[1025px]:px-8 min-[1025px]:py-6">
-                  <OrganizationHeader />
-                  <GlobalNav />
-                </div>
-              </SignedIn>
-              <div className="flex min-h-screen flex-col">
-                <Navbar />
-                {children}
-              </div>
-            </div>
+            <AppShell>{children}</AppShell>
           </Providers>
-        </body>
-      </html>
-    </ClerkProvider>
+        </ClerkProvider>
+      </body>
+    </html>
   );
 }

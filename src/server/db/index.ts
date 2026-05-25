@@ -1,15 +1,10 @@
 import {
-  drizzle as LocalDrizzle,
   type PostgresJsDatabase,
+  drizzle,
 } from "drizzle-orm/postgres-js";
-import {
-  drizzle as VercelDrizzle,
-  type VercelPgDatabase,
-} from "drizzle-orm/vercel-postgres";
 import postgres from "postgres";
 
 import { env } from "@/env";
-import { sql } from "@vercel/postgres";
 import * as schema from "@server/db/schema";
 
 /**
@@ -20,17 +15,17 @@ const globalForDb = globalThis as unknown as {
   conn: postgres.Sql | undefined;
 };
 
-let db: PostgresJsDatabase<typeof schema> | VercelPgDatabase<typeof schema>;
-
-const conn = globalForDb.conn ?? postgres(env.DATABASE_URL);
-if (env.NODE_ENV !== "production") {
-  globalForDb.conn = conn;
-  const queryClient = postgres(env.DATABASE_URL, {
+const conn =
+  globalForDb.conn ??
+  postgres(env.NODE_ENV === "production" ? env.POSTGRES_URL : env.DATABASE_URL, {
     max: 5,
+    prepare: false,
   });
-  db = LocalDrizzle(queryClient, { schema });
-} else {
-  db = VercelDrizzle(sql, { schema });
+
+if (env.NODE_ENV === "development") {
+  globalForDb.conn = conn;
 }
+
+const db: PostgresJsDatabase<typeof schema> = drizzle(conn, { schema });
 
 export { db };

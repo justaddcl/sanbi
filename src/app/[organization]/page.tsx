@@ -17,21 +17,20 @@ import { validate as uuidValidate } from "uuid";
 export default async function Dashboard({
   params,
 }: {
-  params: { organization: string };
+  params: Promise<{ organization: string }>;
 }) {
   // TODO: solve how to handle slugs vs. org IDs
 
-  const isOrgIdValidUuid = uuidValidate(params.organization);
+  const { organization } = await params;
+  const isOrgIdValidUuid = uuidValidate(organization);
   if (!isOrgIdValidUuid) {
-    console.error(
-      `🤖 - ${params.organization} is not a valid UUID - queries/getOrganization`,
-    );
+    console.error(`🤖 - ${organization} is not a valid UUID - queries/getOrganization`);
     notFound();
   }
 
   // FIXME: move query to api set router
   const organizationSets = await db.query.sets.findMany({
-    where: eq(sets.organizationId, params.organization),
+    where: eq(sets.organizationId, organization),
     with: {
       sections: {
         orderBy: (sections, { asc }) => [asc(sections.position)],
@@ -65,10 +64,12 @@ export default async function Dashboard({
       {/* FIXME: update set list styling */}
       <VStack className="gap-8">
         {organizationSets.map((orgSet) => (
-          <Link
-            key={orgSet.id}
-            href={`/${params.organization}/sets/${orgSet.id}`}
-          >
+          <div key={orgSet.id} className="relative">
+            <Link
+              href={`/${organization}/sets/${orgSet.id}`}
+              className="absolute inset-0 rounded-lg"
+              aria-label={`Open ${orgSet.eventType.name} set`}
+            />
             <VStack className="h-full min-w-full max-w-xs flex-1 gap-6 rounded-lg border p-4 shadow lg:p-6">
               <SetListCardHeader
                 date={orgSet.date}
@@ -98,7 +99,8 @@ export default async function Dashboard({
                       return (
                         <Link
                           key={setSectionSong.songId}
-                          href={`/${params.organization}/songs/${setSectionSong.songId}`}
+                          href={`/${organization}/songs/${setSectionSong.songId}`}
+                          className="relative z-10"
                         >
                           <SongItem
                             index={indexStart + setSectionSong.position}
@@ -113,7 +115,7 @@ export default async function Dashboard({
                 ))}
               </VStack>
             </VStack>
-          </Link>
+          </div>
         ))}
       </VStack>
     </PageContentContainer>

@@ -111,7 +111,11 @@ export const SongTags: React.FC<SongTagsProps> = ({
             {tag.tag.tag}
           </Badge>
         ))}
-      <SongTagSelector songId={songId} organizationId={organizationId} />
+      <SongTagSelector
+        songId={songId}
+        organizationId={organizationId}
+        songTags={songTags ?? []}
+      />
     </HStack>
   );
 };

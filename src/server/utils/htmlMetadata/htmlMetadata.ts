@@ -1,6 +1,6 @@
 import { decode } from "he";
-import DOMPurify from "isomorphic-dompurify";
 
+import { stripHtmlMarkup } from "@lib/string";
 import { validateUrl } from "@server/utils/urls/validateUrl";
 
 export type HtmlPageMetadata = {
@@ -23,7 +23,7 @@ export const sanitizeNullableMetadataText = (
     return null;
   }
 
-  const normalizedWhitespace = decodeHtmlEntities(value)
+  const normalizedWhitespace = stripHtmlMarkup(decodeHtmlEntities(value))
     .replace(/\s+/g, " ")
     .trim();
 
@@ -31,12 +31,7 @@ export const sanitizeNullableMetadataText = (
     return null;
   }
 
-  const sanitized = decodeHtmlEntities(
-    DOMPurify.sanitize(normalizedWhitespace, {
-      ALLOWED_ATTR: [],
-      ALLOWED_TAGS: [],
-    }),
-  ).trim();
+  const sanitized = decodeHtmlEntities(normalizedWhitespace).trim();
 
   return sanitized ? truncate(sanitized, maxLength) : null;
 };

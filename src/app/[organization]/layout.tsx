@@ -1,5 +1,5 @@
-import { auth } from "@clerk/nextjs/server";
 import { notFound } from "next/navigation";
+import { auth } from "@clerk/nextjs/server";
 import { validate as uuidValidate } from "uuid";
 
 export default async function DashboardLayout({
@@ -7,23 +7,16 @@ export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
-  params: {
+  params: Promise<{
     organization: string;
-  };
+  }>;
 }) {
-  const { userId, protect, redirectToSignIn } = auth();
-  protect();
+  await auth.protect();
 
-  if (!userId) {
-    console.log(
-      "🤖 - userID was not found. Redirecting to sign-in page - organization/layout",
-    );
-    redirectToSignIn();
-  }
-
-  const isOrgIdValidUuid = uuidValidate(params.organization);
+  const { organization } = await params;
+  const isOrgIdValidUuid = uuidValidate(organization);
   if (!isOrgIdValidUuid) {
-    console.error(`Invalid Organization ID: ${params.organization}`);
+    console.error(`Invalid Organization ID: ${organization}`);
     notFound();
   }
 

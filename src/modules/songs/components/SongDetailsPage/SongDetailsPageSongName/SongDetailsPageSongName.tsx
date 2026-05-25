@@ -10,6 +10,7 @@ import React, {
 import { useRouter } from "next/navigation";
 import { Archive } from "@phosphor-icons/react";
 import { toast } from "sonner";
+import { z } from "zod";
 
 import { Badge as ShadCNBadge } from "@components/ui/badge";
 import { Button } from "@components/ui/button";
@@ -61,7 +62,7 @@ export const SongDetailsPageName: React.FC<SongDetailsPageNameProps> = ({
     const validationResult = songNameSchema.safeParse(songName);
 
     if (!validationResult.success) {
-      const [formattedError] = validationResult.error.format()._errors;
+      const [formattedError] = z.flattenError(validationResult.error).formErrors;
       setInputError(formattedError);
       return;
     }
