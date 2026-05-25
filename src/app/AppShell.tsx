@@ -4,7 +4,7 @@ import { Show, useAuth } from "@clerk/nextjs";
 
 import { GlobalNav } from "@components/GlobalNav";
 import { Navbar } from "@components/Navbar";
-import { OrganizationHeader } from "@/components/OrganizationHeader";
+import { OrganizationHeader } from "@components/OrganizationHeader";
 
 type AppShellProps = {
   children: React.ReactNode;

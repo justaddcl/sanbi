@@ -3,3 +3,4 @@ export * from "./isValidSlug";
 export * from "./pluralize";
 export * from "./sanitizeInput";
 export * from "./startCase";
+export * from "./stripHtmlMarkup";

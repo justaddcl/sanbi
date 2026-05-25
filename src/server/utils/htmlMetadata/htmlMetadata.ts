@@ -1,5 +1,6 @@
 import { decode } from "he";
 
+import { stripHtmlMarkup } from "@lib/string";
 import { validateUrl } from "@server/utils/urls/validateUrl";
 
 export type HtmlPageMetadata = {
@@ -12,24 +13,6 @@ export type HtmlPageMetadata = {
 const truncate = (value: string, maxLength: number) =>
   value.length > maxLength ? value.slice(0, maxLength) : value;
 
-const dangerousElementPattern =
-  /<(script|style|iframe|object|embed|svg|math)\b[^>]*>[\s\S]*?<\/\1>/gi;
-const unclosedDangerousElementPattern =
-  /<(script|style|iframe|object|embed|svg|math)\b[\s\S]*$/gi;
-const dangerousVoidElementPattern =
-  /<(img|link|meta|base|input|frame|area|param|source|track|wbr)\b[^>]*\/?>/gi;
-const unclosedDangerousVoidElementPattern =
-  /<(img|link|meta|base|input|frame|area|param|source|track|wbr)\b[\s\S]*$/gi;
-const htmlTagPattern = /<\/?[a-zA-Z][a-zA-Z0-9:-]*(?:\s[^<>]*)?>/g;
-
-const stripMetadataMarkup = (value: string) =>
-  value
-    .replace(dangerousElementPattern, "")
-    .replace(unclosedDangerousElementPattern, "")
-    .replace(dangerousVoidElementPattern, "")
-    .replace(unclosedDangerousVoidElementPattern, "")
-    .replace(htmlTagPattern, "");
-
 export const decodeHtmlEntities = (value: string) => decode(value);
 
 export const sanitizeNullableMetadataText = (
@@ -40,7 +23,7 @@ export const sanitizeNullableMetadataText = (
     return null;
   }
 
-  const normalizedWhitespace = stripMetadataMarkup(decodeHtmlEntities(value))
+  const normalizedWhitespace = stripHtmlMarkup(decodeHtmlEntities(value))
     .replace(/\s+/g, " ")
     .trim();
 

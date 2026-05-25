@@ -5,7 +5,7 @@ import {
   type ChevronProps,
   DayPicker,
   type DayPickerProps,
-type PropsBase,
+  type PropsBase,
   type PropsMulti,
   type PropsRange,
   type PropsSingle,
