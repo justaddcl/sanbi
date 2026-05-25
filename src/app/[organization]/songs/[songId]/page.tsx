@@ -9,9 +9,10 @@ import { HydrateClient, trpc } from "@lib/trpc/server";
 export default async function SongPage({
   params,
 }: {
-  params: { organization: string; songId: string };
+  params: Promise<{ organization: string; songId: string }>;
 }) {
   const queryClient = getServerQueryClient();
+  const { organization, songId } = await params;
 
   const { userId } = await auth();
 
@@ -21,7 +22,7 @@ export default async function SongPage({
 
   const userData = await trpc.user.getUser({ userId });
   const userMembership = userData?.memberships.find(
-    (membership) => membership.organization.id === params.organization,
+    (membership) => membership.organization.id === organization,
   );
 
   if (!userMembership) {
@@ -29,19 +30,19 @@ export default async function SongPage({
   }
 
   await trpc.song.get.prefetch({
-    songId: params.songId,
+    songId,
     organizationId: userMembership.organizationId,
   });
 
   await trpc.song.getPlayHistory.prefetch({
-    songId: params.songId,
+    songId,
     organizationId: userMembership.organizationId,
   });
 
   await queryClient.prefetchQuery(
     orpcServerTQ.resource.getBySongId.queryOptions({
       input: {
-        songId: params.songId,
+        songId,
         organizationId: userMembership.organizationId,
       },
     }),
@@ -50,7 +51,7 @@ export default async function SongPage({
   return (
     <HydrateClient>
       <SongDetailsPage
-        songId={params.songId}
+        songId={songId}
         organizationId={userMembership.organizationId}
         userMembership={userMembership}
       />

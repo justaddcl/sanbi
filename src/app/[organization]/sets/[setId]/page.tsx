@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useState } from "react";
+import { use, useCallback, useEffect, useState } from "react";
 import { redirect, useSearchParams } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
 import { CaretDown, CaretUp } from "@phosphor-icons/react";
@@ -40,11 +40,12 @@ import { cn } from "@lib/utils";
 import { useResponsive } from "@/hooks/useResponsive";
 
 type SetListPageProps = {
-  params: { organization: string; setId: string };
+  params: Promise<{ organization: string; setId: string }>;
   searchParams: Record<string, string | string[] | undefined>;
 };
 
-export default function SetListPage({ params }: SetListPageProps) {
+export default function SetListPage({ params: paramsPromise }: SetListPageProps) {
+  const params = use(paramsPromise);
   const searchParams = useSearchParams();
 
   const { textSize } = useResponsive();

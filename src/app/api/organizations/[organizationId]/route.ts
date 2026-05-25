@@ -11,16 +11,17 @@ type GetOrganizationParams = {
 
 export async function GET(
   _request: Request,
-  context: { params: GetOrganizationParams },
+  context: { params: Promise<GetOrganizationParams> },
 ) {
+  const params = await context.params;
   const validatedParams = z
     .object({ organizationId: z.uuid() })
-    .safeParse(context.params);
+    .safeParse(params);
 
   // Return early if the form data is invalid
   if (!validatedParams.success) {
     return NextResponse.json({
-      errors: validatedParams.error.flatten().fieldErrors,
+      errors: z.flattenError(validatedParams.error).fieldErrors,
     });
   }
 

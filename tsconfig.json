@@ -8,41 +8,62 @@
     "resolveJsonModule": true,
     "moduleDetection": "force",
     "isolatedModules": true,
-
     /* Strictness */
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "checkJs": true,
-
     /* Bundled projects */
-    "lib": ["dom", "dom.iterable", "ES2023"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "ES2023"
+    ],
     "noEmit": true,
     "module": "ESNext",
     "moduleResolution": "Bundler",
-    "jsx": "preserve",
-    "plugins": [{ "name": "next" }],
+    "jsx": "react-jsx",
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
     "incremental": true,
-
     /* Path Aliases */
     "baseUrl": "src",
     "paths": {
-      "@components/*": ["components/*"],
-      "@modules/*": ["modules/*"],
-      "@lib/*": ["lib/*"],
-      "@server/*": ["server/*"],
-      "@app/*": ["app/*"],
-      "@/*": ["./*"]
+      "@components/*": [
+        "components/*"
+      ],
+      "@modules/*": [
+        "modules/*"
+      ],
+      "@lib/*": [
+        "lib/*"
+      ],
+      "@server/*": [
+        "server/*"
+      ],
+      "@app/*": [
+        "app/*"
+      ],
+      "@/*": [
+        "./*"
+      ]
     }
   },
   "include": [
-    ".eslintrc.cjs",
+    "eslint.config.mjs",
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
     "**/*.cjs",
     "**/*.js",
     ".next/types/**/*.ts",
-    "next.config.mjs"
+    "next.config.mjs",
+    ".next/dev/types/**/*.ts"
   ],
-  "exclude": ["node_modules", "./coverage/"]
+  "exclude": [
+    "node_modules",
+    "./coverage/"
+  ]
 }

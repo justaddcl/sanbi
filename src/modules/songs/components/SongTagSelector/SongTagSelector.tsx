@@ -9,6 +9,7 @@ import {
   X,
 } from "@phosphor-icons/react";
 import { toast } from "sonner";
+import { z } from "zod";
 
 import { Button } from "@components/ui/button";
 import {
@@ -182,7 +183,7 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
     const validationResult = tagNameSchema.safeParse(trimmedTag);
 
     if (!validationResult.success) {
-      const [formattedError] = validationResult.error.format()._errors;
+      const [formattedError] = z.flattenError(validationResult.error).formErrors;
       toast.error(formattedError);
       return;
     }

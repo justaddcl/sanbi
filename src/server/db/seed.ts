@@ -1,16 +1,6 @@
 import { faker } from "@faker-js/faker";
-import { sql as vercelSql } from "@vercel/postgres";
 import { addWeeks, subMonths } from "date-fns";
 import { sql } from "drizzle-orm";
-import {
-  drizzle as LocalDrizzle,
-  type PostgresJsDatabase,
-} from "drizzle-orm/postgres-js";
-import {
-  drizzle as VercelDrizzle,
-  type VercelPgDatabase,
-} from "drizzle-orm/vercel-postgres";
-import postgres from "postgres";
 
 import {
   type NewEventType,
@@ -27,10 +17,9 @@ import {
   type NewUser,
   type SetSection,
 } from "@lib/types/db";
-import { env } from "@/env";
 import { getRandomValues } from "@/lib/array";
+import { db } from "@/server/db";
 
-import * as schema from "./schema";
 import {
   eventTypes,
   organizationMemberships,
@@ -40,31 +29,12 @@ import {
   setSections,
   setSectionSongs,
   setSectionTypes,
+  songKeyEnum,
   songs,
   songTags,
   tags,
   users,
 } from "./schema";
-
-/**
- * Cache the database connection in development. This avoids creating a new connection on every HMR
- * update.
- */
-const globalForDb = globalThis as unknown as {
-  conn: postgres.Sql | undefined;
-};
-
-let db: PostgresJsDatabase<typeof schema> | VercelPgDatabase<typeof schema>;
-
-const conn = globalForDb.conn ?? postgres(env.DATABASE_URL);
-
-if (env.NODE_ENV === "development") {
-  globalForDb.conn = conn;
-  const queryClient = postgres(env.DATABASE_URL);
-  db = LocalDrizzle(queryClient);
-} else {
-  db = VercelDrizzle(vercelSql, { schema });
-}
 
 const TAGS_PER_SONG_SEED_COUNT = 3;
 const NUMBER_OF_SETS = 50;
@@ -399,9 +369,9 @@ const seed = async () => {
 
     const setSectionSongValues = randomSongs.map<NewSetSectionSong>(
       (song, index) => {
-        const songKeysCount = schema.songKeyEnum.enumValues.length;
+        const songKeysCount = songKeyEnum.enumValues.length;
         const randomIndex = Math.floor(Math.random() * songKeysCount);
-        const randomKey = schema.songKeyEnum.enumValues[randomIndex];
+        const randomKey = songKeyEnum.enumValues[randomIndex];
         return {
           setSectionId: setSection.id,
           songId: song.id,

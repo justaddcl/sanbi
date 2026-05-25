@@ -7,15 +7,16 @@ export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
-  params: {
+  params: Promise<{
     organization: string;
-  };
+  }>;
 }) {
   await auth.protect();
 
-  const isOrgIdValidUuid = uuidValidate(params.organization);
+  const { organization } = await params;
+  const isOrgIdValidUuid = uuidValidate(organization);
   if (!isOrgIdValidUuid) {
-    console.error(`Invalid Organization ID: ${params.organization}`);
+    console.error(`Invalid Organization ID: ${organization}`);
     notFound();
   }
 

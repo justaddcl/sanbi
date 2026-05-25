@@ -234,7 +234,7 @@ export const tagNameSchema = z
     // Check if there's at least one non-whitespace character
     if (!/\S/.test(val)) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         message: `Tag must contain at least one non-whitespace character.`,
         fatal: true,
       });
