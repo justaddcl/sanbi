@@ -1,4 +1,3 @@
-"use server";
 import { redirect } from "next/navigation";
 import { SignIn } from "@clerk/nextjs";
 import { auth } from "@clerk/nextjs/server";
