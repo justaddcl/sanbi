@@ -314,84 +314,54 @@ export const songRouter = createTRPCRouter({
         `🤖 - [song/getPlayHistory] - getting play history for ${input.songId}`,
       );
 
-      return await ctx.db.transaction(async (queryTransaction) => {
-        const song = await queryTransaction.query.songs.findFirst({
-          where: eq(songs.id, input.songId),
-        });
+      const playHistory = await ctx.db
+        .select({
+          set: {
+            id: sets.id,
+            date: sets.date,
+            eventTypeId: eventTypes.id,
+            eventType: eventTypes.name,
+          },
+          section: {
+            id: setSections.id,
+            typeName: setSectionTypes.name,
+            typeId: setSectionTypes.id,
+            position: setSections.position,
+          },
+          song: {
+            id: setSectionSongs.songId,
+            name: songs.name,
+            key: setSectionSongs.key,
+            position: setSectionSongs.position,
+            notes: setSectionSongs.notes,
+          },
+        })
+        .from(setSectionSongs)
+        .innerJoin(
+          setSections,
+          eq(setSectionSongs.setSectionId, setSections.id),
+        )
+        .innerJoin(sets, eq(setSections.setId, sets.id))
+        .innerJoin(
+          setSectionTypes,
+          eq(setSections.sectionTypeId, setSectionTypes.id),
+        )
+        .innerJoin(eventTypes, eq(sets.eventTypeId, eventTypes.id))
+        .innerJoin(songs, eq(setSectionSongs.songId, songs.id))
+        .where(
+          and(
+            eq(setSectionSongs.songId, input.songId),
+            eq(setSectionSongs.organizationId, input.organizationId),
+            eq(songs.organizationId, input.organizationId),
+          ),
+        )
+        .orderBy(desc(sets.date), desc(setSections.position));
 
-        if (!song) {
-          console.error(
-            `🤖 - [song/getPlayHistory] - could not find song ${input.songId}`,
-            { queryInput: { ...input } },
-          );
+      console.info(
+        `🤖 - [song/getPlayHistory] - found ${playHistory.length} play history items for ${input.songId}`,
+      );
 
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Song not found",
-          });
-        }
-
-        if (song.organizationId !== ctx.user.membership.organizationId) {
-          console.error(
-            `🤖 - [song/getPlayHistory] - user ${ctx.user.id} is not authorized to get ${song.id}`,
-            { song, queryInput: { ...input } },
-          );
-
-          throw new TRPCError({
-            code: "FORBIDDEN",
-            message: "User not authorized to get song",
-          });
-        }
-
-        const playHistory = await ctx.db
-          .select({
-            set: {
-              id: sets.id,
-              date: sets.date,
-              eventTypeId: eventTypes.id,
-              eventType: eventTypes.name,
-            },
-            section: {
-              id: setSections.id,
-              typeName: setSectionTypes.name,
-              typeId: setSectionTypes.id,
-              position: setSections.position,
-            },
-            song: {
-              id: setSectionSongs.songId,
-              name: songs.name,
-              key: setSectionSongs.key,
-              position: setSectionSongs.position,
-              notes: setSectionSongs.notes,
-            },
-          })
-          .from(setSectionSongs)
-          .innerJoin(
-            setSections,
-            eq(setSectionSongs.setSectionId, setSections.id),
-          )
-          .innerJoin(sets, eq(setSections.setId, sets.id))
-          .innerJoin(
-            setSectionTypes,
-            eq(setSections.sectionTypeId, setSectionTypes.id),
-          )
-          .innerJoin(eventTypes, eq(sets.eventTypeId, eventTypes.id))
-          .innerJoin(songs, eq(setSectionSongs.songId, songs.id))
-          .where(
-            and(
-              eq(setSectionSongs.songId, input.songId),
-              eq(setSectionSongs.organizationId, input.organizationId),
-            ),
-          )
-          .orderBy(desc(sets.date), desc(setSections.position));
-
-        console.log(
-          `🤖 - [song/getPlayHistory] - play history ${input.songId}`,
-          playHistory,
-        );
-
-        return playHistory;
-      });
+      return playHistory;
     }),
 
   updateName: organizationProcedure
