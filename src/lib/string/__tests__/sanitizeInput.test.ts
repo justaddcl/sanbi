@@ -8,7 +8,6 @@ describe("sanitizeInput", () => {
 
   it("should handle script tags by removing them", () => {
     const input = "Hello <script>alert('xss')</script> World";
-    // DOMPurify removes script tags by default, then validator escapes remaining content
     expect(sanitizeInput(input)).toBe("Hello  World");
   });
 
@@ -25,14 +24,12 @@ describe("sanitizeInput", () => {
 
   it("should handle malicious CSS injection", () => {
     const input = '<div style="background:url(javascript:alert(1))">test</div>';
-    // Note: DOMPurify with current configuration might not remove javascript: URLs
     expect(sanitizeInput(input)).toBe("test");
   });
 
   it("should handle nested malicious content", () => {
     const input =
       '<div><img src="x" onerror="alert(1)"><script>evil()</script></div>';
-    // DOMPurify removes onerror attributes and script tags
     expect(sanitizeInput(input)).toBe("");
   });
 
@@ -61,7 +58,6 @@ describe("sanitizeInput", () => {
     const input = "Hello <script>alert('x');</script> world";
     const output = sanitizeInput(input);
 
-    // Script tags should be completely removed by DOMPurify
     expect(output).not.toContain("script");
     expect(output).not.toContain("alert");
     expect(output).toBe("Hello  world");
@@ -71,7 +67,6 @@ describe("sanitizeInput", () => {
     const input = '<a href="javascript:void(0)" onclick="evil()">Click me</a>';
     const output = sanitizeInput(input);
 
-    // DOMPurify should strip javascript: URLs and onclick attributes
     expect(output).not.toContain("onclick");
     expect(output).toBe("Click me");
   });
@@ -80,7 +75,6 @@ describe("sanitizeInput", () => {
     const input = '<iframe src="https://evil.com"></iframe>Hello';
     const output = sanitizeInput(input);
 
-    // DOMPurify should remove iframes by default
     expect(output).not.toContain("iframe");
     expect(output).toBe("Hello");
   });
@@ -89,7 +83,6 @@ describe("sanitizeInput", () => {
     const input = "Already &lt;escaped&gt; content";
     const output = sanitizeInput(input);
 
-    // DOMPurify preserves entities, validator escape will double-escape them
     expect(output).toBe("Already &amp;lt;escaped&amp;gt; content");
   });
 
