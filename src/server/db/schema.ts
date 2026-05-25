@@ -293,7 +293,7 @@ export const resources = createTable(
       .references(() => organizations.id)
       .notNull(),
     url: text("url").notNull(),
-    title: varchar("title", { length: 255 }),
+    title: varchar("title", { length: 255 }).notNull(),
     status: resourceStatusEnum("status").default("queued").notNull(),
     metaTitle: varchar("meta_title", { length: 300 }),
     metaDescription: varchar("meta_description", { length: 500 }),

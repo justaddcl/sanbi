@@ -1,3 +1,5 @@
+import { type MockOrpcErrorModule } from "@testUtils/orpc/mockOrpcError";
+
 import {
   createPinnedAddressLookup,
   fetchResourcePreviewMetadata,
@@ -6,18 +8,11 @@ import {
 } from "@server/orpc/services/resource/resourceMetadata";
 
 jest.mock("@orpc/client", () => {
-  class ORPCError extends Error {
-    public readonly code: string;
+  const { mockOrpcErrorModule } = jest.requireActual<{
+    mockOrpcErrorModule: MockOrpcErrorModule;
+  }>("@testUtils/orpc/mockOrpcError");
 
-    constructor(code: string, options: { message?: string; cause?: unknown }) {
-      super(options.message);
-      this.name = "ORPCError";
-      this.code = code;
-      this.cause = options.cause;
-    }
-  }
-
-  return { __esModule: true, ORPCError };
+  return mockOrpcErrorModule;
 });
 
 const createLookup = (address = "93.184.216.34") =>

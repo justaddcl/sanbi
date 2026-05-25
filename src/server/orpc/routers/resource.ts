@@ -135,7 +135,7 @@ export const createResource = organizationProcedure
       songId,
       organizationId,
       url: normalizedUrl,
-      title: title ?? null,
+      title: title ?? "",
       ...metadataValues,
     };
 

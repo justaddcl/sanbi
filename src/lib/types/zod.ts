@@ -309,13 +309,15 @@ const resourceUrlSchema = z
     }),
   );
 
+const MAX_RESOURCE_TITLE_LENGTH = 255;
+
 const resourceTitleSchema = z
   .string()
-  .transform((title) => {
-    const sanitizedTitle = sanitizeInput(title).trim();
-
-    return sanitizedTitle.length > 0 ? sanitizedTitle : null;
+  .transform((title) => sanitizeInput(title).trim())
+  .refine((title) => title.length <= MAX_RESOURCE_TITLE_LENGTH, {
+    message: `Resource name must be ${MAX_RESOURCE_TITLE_LENGTH} characters or fewer`,
   })
+  .transform((title) => title)
   .optional()
   .nullable();
 

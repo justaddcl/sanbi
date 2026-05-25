@@ -446,6 +446,45 @@ describe("SongResources resource editing", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("clears a generated resource name when the next URL has no page title", async () => {
+    const firstResourceUrl = createResourceUrl();
+    const secondResourceUrl = createResourceUrl();
+    const suggestedResourceName = createResourceName();
+
+    mockPreviewMetadata.mockImplementation(async (input) => {
+      const { url } = input as { url: string };
+
+      return {
+        normalizedUrl: url,
+        status: "ready",
+        title: url === firstResourceUrl ? suggestedResourceName : null,
+        description: null,
+        faviconUrl: null,
+        imageUrl: null,
+        lastFetchedAt: new Date(),
+      };
+    });
+    renderSongResources();
+
+    await openCreateDrawer();
+
+    fireEvent.change(screen.getByLabelText("URL *"), {
+      target: { value: firstResourceUrl },
+    });
+
+    await waitFor(() => {
+      expect(screen.getByLabelText("Name")).toHaveValue(suggestedResourceName);
+    });
+
+    fireEvent.change(screen.getByLabelText("URL *"), {
+      target: { value: secondResourceUrl },
+    });
+
+    await waitFor(() => {
+      expect(screen.getByLabelText("Name")).toHaveValue("");
+    });
+  });
+
   it("does not show required field errors when empty fields lose focus", async () => {
     renderSongResources();
 
