@@ -1,6 +1,6 @@
 "use client";
 import { use, useCallback, useEffect, useState } from "react";
-import { redirect, useSearchParams } from "next/navigation";
+import { redirect } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
 import { CaretDown, CaretUp } from "@phosphor-icons/react";
 import { Archive, Plus } from "@phosphor-icons/react/dist/ssr";
@@ -39,14 +39,39 @@ import { type SetSectionWithSongs } from "@lib/types";
 import { cn } from "@lib/utils";
 import { useResponsive } from "@/hooks/useResponsive";
 
+type SearchParamsRecord = Record<string, string | string[] | undefined>;
+
 type SetListPageProps = {
   params: Promise<{ organization: string; setId: string }>;
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
+  searchParams: Promise<SearchParamsRecord>;
 };
 
-export default function SetListPage({ params: paramsPromise }: SetListPageProps) {
+const getSearchParamValue = (value: string | string[] | undefined) =>
+  Array.isArray(value) ? value[0] : value;
+
+const createURLSearchParams = (searchParams: SearchParamsRecord) => {
+  const urlSearchParams = new URLSearchParams();
+
+  Object.entries(searchParams).forEach(([key, value]) => {
+    if (Array.isArray(value)) {
+      value.forEach((item) => urlSearchParams.append(key, item));
+      return;
+    }
+
+    if (value) {
+      urlSearchParams.set(key, value);
+    }
+  });
+
+  return urlSearchParams;
+};
+
+export default function SetListPage({
+  params: paramsPromise,
+  searchParams: searchParamsPromise,
+}: SetListPageProps) {
   const params = use(paramsPromise);
-  const searchParams = useSearchParams();
+  const searchParams = use(searchParamsPromise);
 
   const { textSize } = useResponsive();
 
@@ -65,8 +90,10 @@ export default function SetListPage({ params: paramsPromise }: SetListPageProps)
   const apiUtils = trpc.useUtils();
 
   useEffect(() => {
-    const addSongDialogOpen = searchParams.get("addSongDialogOpen");
-    const setSectionIdFromUrl = searchParams.get("setSectionId");
+    const addSongDialogOpen = getSearchParamValue(
+      searchParams.addSongDialogOpen,
+    );
+    const setSectionIdFromUrl = getSearchParamValue(searchParams.setSectionId);
 
     const isSongSearchDialogOpenFromUrl = [null, undefined, "false", "0"].every(
       (falsyValue) => addSongDialogOpen !== falsyValue,
@@ -137,7 +164,7 @@ export default function SetListPage({ params: paramsPromise }: SetListPageProps)
   }
 
   const openAddSongDialog = () => {
-    const params = new URLSearchParams(searchParams.toString());
+    const params = createURLSearchParams(searchParams);
     params.set("addSongDialogOpen", "1");
     const queryString = params.toString();
     window.history.pushState(null, "", `?${queryString}`);

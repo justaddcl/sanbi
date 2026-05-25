@@ -135,6 +135,7 @@ export const organizationProcedure = authedProcedure
   .use(async (opts) => {
     const { ctx, input } = opts;
 
+    // authedProcedure guarantees ctx.auth.userId before this lookup.
     const user = await db.query.users.findFirst({
       where: eq(users.id, ctx.auth.userId),
     });
