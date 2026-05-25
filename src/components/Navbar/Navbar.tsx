@@ -63,9 +63,9 @@ export const Navbar: React.FC = () => {
           <Link href="/" className="self-center">
             Sanbi
           </Link>
-          <Button>
-            <SignInButton />
-          </Button>
+          <SignInButton>
+            <Button>Sign in</Button>
+          </SignInButton>
         </header>
       </Show>
     </>

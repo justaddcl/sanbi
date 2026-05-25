@@ -311,7 +311,7 @@ export const songRouter = createTRPCRouter({
     .input(songGetPlayHistorySchema)
     .query(async ({ ctx, input }) => {
       console.log(
-        `🤖 - [song/getPlayHistory] - getting last play instance for ${input.songId}`,
+        `🤖 - [song/getPlayHistory] - getting play history for ${input.songId}`,
       );
 
       return await ctx.db.transaction(async (queryTransaction) => {
@@ -377,7 +377,12 @@ export const songRouter = createTRPCRouter({
           )
           .innerJoin(eventTypes, eq(sets.eventTypeId, eventTypes.id))
           .innerJoin(songs, eq(setSectionSongs.songId, songs.id))
-          .where(eq(setSectionSongs.songId, input.songId))
+          .where(
+            and(
+              eq(setSectionSongs.songId, input.songId),
+              eq(setSectionSongs.organizationId, input.organizationId),
+            ),
+          )
           .orderBy(desc(sets.date), desc(setSections.position));
 
         console.log(

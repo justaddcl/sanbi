@@ -242,25 +242,34 @@ export const setSections = createTable(
   ],
 );
 
-export const setSectionSongs = createTable("set_section_songs", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  setSectionId: uuid("set_section_id")
-    .references(() => setSections.id, { onDelete: "cascade" })
-    .notNull(),
-  songId: uuid("song_id")
-    .references(() => songs.id)
-    .notNull(),
-  position: integer("position").notNull(),
-  key: songKeyEnum("song_key"),
-  notes: text("notes"),
-  organizationId: uuid("organization_id")
-    .references(() => organizations.id)
-    .notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .default(sql`CURRENT_TIMESTAMP`)
-    .notNull(),
-  updatedAt,
-});
+export const setSectionSongs = createTable(
+  "set_section_songs",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    setSectionId: uuid("set_section_id")
+      .references(() => setSections.id, { onDelete: "cascade" })
+      .notNull(),
+    songId: uuid("song_id")
+      .references(() => songs.id)
+      .notNull(),
+    position: integer("position").notNull(),
+    key: songKeyEnum("song_key"),
+    notes: text("notes"),
+    organizationId: uuid("organization_id")
+      .references(() => organizations.id)
+      .notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+    updatedAt,
+  },
+  (setSectionSongsTable) => [
+    index("set_section_songs_organization_song_idx").on(
+      setSectionSongsTable.organizationId,
+      setSectionSongsTable.songId,
+    ),
+  ],
+);
 
 export const resources = createTable(
   "resources",

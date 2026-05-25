@@ -34,11 +34,6 @@ export default async function SongPage({
     organizationId: userMembership.organizationId,
   });
 
-  await trpc.song.getPlayHistory.prefetch({
-    songId,
-    organizationId: userMembership.organizationId,
-  });
-
   await queryClient.prefetchQuery(
     orpcServerTQ.resource.getBySongId.queryOptions({
       input: {
