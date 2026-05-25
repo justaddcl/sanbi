@@ -1,8 +1,6 @@
 import { notFound } from "next/navigation";
 
-import {
-  VisualHarness,
-} from "./VisualHarness";
+import { VisualHarness } from "./VisualHarness";
 import { type VisualHarnessSurface, visualHarnessSurfaces } from "./types";
 
 type VisualHarnessPageProps = {
@@ -20,7 +18,10 @@ const isVisualHarnessSurface = (
 export default function VisualHarnessPage({
   searchParams,
 }: VisualHarnessPageProps) {
-  if (process.env.SANBI_VISUAL_HARNESS !== "1") {
+  if (
+    process.env.SANBI_VISUAL_HARNESS !== "1" ||
+    process.env.NODE_ENV === "production"
+  ) {
     notFound();
   }
 

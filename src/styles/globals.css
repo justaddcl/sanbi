@@ -4,7 +4,9 @@
 
 @custom-variant dark (&:is(.dark *));
 
-@source inline("text-4xl text-2xl");
+@source inline(
+  "font-normal font-medium font-semibold font-bold text-[8px] text-xs text-sm text-base text-base/5 text-lg text-2xl text-4xl leading-4 leading-normal leading-tight tracking-normal tracking-tight tracking-tighter"
+);
 
 @theme inline {
   --font-sans:
