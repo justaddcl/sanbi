@@ -68,7 +68,7 @@ export const resourceRouter = createTRPCRouter({
         songId,
         organizationId,
         url: validatedUrl,
-        title: title ?? "",
+        title: title ?? null,
       };
 
       const [createdResource] = await ctx.db

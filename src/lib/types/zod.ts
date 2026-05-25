@@ -317,7 +317,7 @@ const resourceTitleSchema = z
   .refine((title) => title.length <= MAX_RESOURCE_TITLE_LENGTH, {
     message: `Resource name must be ${MAX_RESOURCE_TITLE_LENGTH} characters or fewer`,
   })
-  .transform((title) => title)
+  .transform((title) => (title.length > 0 ? title : null))
   .optional()
   .nullable();
 

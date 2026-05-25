@@ -74,7 +74,8 @@ export const updateResourceForOrganization = async ({
   const updateValues: Partial<ResourceUpdateValues> = {};
 
   if (title !== undefined) {
-    const nextTitle = title?.trim() ?? "";
+    const trimmedTitle = title?.trim() ?? null;
+    const nextTitle = trimmedTitle === "" ? null : trimmedTitle;
 
     if (nextTitle !== resourceToUpdate.title) {
       updateValues.title = nextTitle;

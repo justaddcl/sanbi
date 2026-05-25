@@ -224,9 +224,9 @@ describe("updateResourceForOrganization", () => {
     expect(mockResolveResourceMetadataForUrl).not.toHaveBeenCalled();
   });
 
-  it("treats empty resource titles as cleared titles", async () => {
+  it("treats empty resource titles as cleared nullable titles", async () => {
     const resource = createResourceFixture();
-    const updatedResource = { ...resource, title: "" };
+    const updatedResource = { ...resource, title: null };
     const resourceDataAccess = createUpdateResourceDataAccessFixture({
       findResourceById: jest.fn().mockResolvedValue(resource),
       updateResource: jest.fn().mockResolvedValue(updatedResource),
@@ -247,7 +247,7 @@ describe("updateResourceForOrganization", () => {
     expect(resourceDataAccess.updateResource).toHaveBeenCalledWith(
       resource.id,
       {
-        title: "",
+        title: null,
       },
     );
     expect(mockResolveResourceMetadataForUrl).not.toHaveBeenCalled();
