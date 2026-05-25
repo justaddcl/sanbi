@@ -16,6 +16,7 @@ import { useMediaQuery } from "usehooks-ts";
 
 import { useSongResources } from "@modules/songs/queries/useSongResources";
 import { getDisplayUrl } from "@modules/songs/utils/getDisplayUrl";
+import { getResourceDisplayTitle } from "@modules/songs/utils/getResourceDisplayTitle";
 import { type Resource, type UserWithMemberships } from "@lib/types";
 
 import { SongResources } from "../SongResources";
@@ -23,6 +24,8 @@ import { SongResources } from "../SongResources";
 const mockCreateResource = jest.fn<Promise<Resource>, [unknown]>();
 const mockUpdateResource = jest.fn<Promise<Resource>, [unknown]>();
 const mockDeleteResource = jest.fn<Promise<Resource>, [unknown]>();
+const mockRefreshResourceMetadata = jest.fn<Promise<Resource>, [unknown]>();
+const mockPreviewMetadata = jest.fn<Promise<unknown>, [unknown]>();
 const mockUpdateResourceDeleteConfirmationPreference = jest.fn<
   Promise<unknown>,
   [unknown]
@@ -36,6 +39,7 @@ jest.mock("@clerk/nextjs", () => ({
 
 jest.mock("usehooks-ts", () => ({
   useMediaQuery: jest.fn(),
+  useDebounceValue: (value: string) => [value],
 }));
 
 jest.mock(
@@ -82,6 +86,17 @@ jest.mock(
         delete: {
           mutationOptions: () => ({
             mutationFn: mockDeleteResource,
+          }),
+        },
+        refreshMetadata: {
+          mutationOptions: () => ({
+            mutationFn: mockRefreshResourceMetadata,
+          }),
+        },
+        previewMetadata: {
+          queryOptions: ({ input }: { input: unknown }) => ({
+            queryKey: ["orpc", "resource", "previewMetadata", input],
+            queryFn: () => mockPreviewMetadata(input),
           }),
         },
         getBySongId: {
@@ -143,6 +158,7 @@ const resource = createResourceFixture({
   songId,
   organizationId,
 });
+const resourceDisplayTitle = getResourceDisplayTitle(resource);
 
 const renderSongResources = () => {
   const queryClient = new QueryClient({
@@ -169,7 +185,7 @@ const renderSongResources = () => {
 const openEditDrawer = async () => {
   fireEvent.keyDown(
     screen.getByRole("button", {
-      name: `Open actions for ${resource.title}`,
+      name: `Open actions for ${resourceDisplayTitle}`,
     }),
     { key: "Enter", code: "Enter" },
   );
@@ -190,7 +206,7 @@ const expectResourceFieldsToBeUrlThenName = () => {
 
   expect(resourceFields).toHaveLength(2);
   expect(resourceFields[0]).toHaveAccessibleName("URL *");
-  expect(resourceFields[1]).toHaveAccessibleName("Name *");
+  expect(resourceFields[1]).toHaveAccessibleName("Name");
 };
 
 describe("SongResources resource editing", () => {
@@ -204,6 +220,8 @@ describe("SongResources resource editing", () => {
     mockCreateResource.mockResolvedValue(resource);
     mockUpdateResource.mockResolvedValue(resource);
     mockDeleteResource.mockResolvedValue(resource);
+    mockRefreshResourceMetadata.mockResolvedValue(resource);
+    mockPreviewMetadata.mockResolvedValue(null);
     mockUpdateResourceDeleteConfirmationPreference.mockResolvedValue(
       createUserPreferencesFixture({ confirmResourceDelete: false }),
     );
@@ -224,9 +242,9 @@ describe("SongResources resource editing", () => {
       screen.getByRole("heading", { name: "Edit resource" }),
     ).toBeInTheDocument();
     expectResourceFieldsToBeUrlThenName();
-    expect(screen.getByLabelText("Name *")).toHaveValue(resource.title);
+    expect(screen.getByLabelText("Name")).toHaveValue(resourceDisplayTitle);
     expect(screen.getByLabelText("URL *")).toHaveValue(resource.url);
-    expect(screen.getAllByText(resource.title).length).toBeGreaterThan(1);
+    expect(screen.getAllByText(resourceDisplayTitle).length).toBeGreaterThan(1);
     expect(
       screen.getAllByText(getDisplayUrl(resource.url)).length,
     ).toBeGreaterThan(1);
@@ -240,18 +258,18 @@ describe("SongResources resource editing", () => {
 
     await openEditDrawer();
 
-    fireEvent.change(screen.getByLabelText("Name *"), {
+    fireEvent.change(screen.getByLabelText("Name"), {
       target: { value: updatedResourceName },
     });
     fireEvent.change(screen.getByLabelText("URL *"), {
       target: { value: updatedResourceUrl },
     });
 
-    expect(screen.getByText(updatedResourceName)).toBeInTheDocument();
+    expect(await screen.findByText(updatedResourceName)).toBeInTheDocument();
     expect(
-      screen.getByText(getDisplayUrl(updatedResourceUrl)),
+      await screen.findByText(getDisplayUrl(updatedResourceUrl)),
     ).toBeInTheDocument();
-    expect(screen.getAllByText(resource.title).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(resourceDisplayTitle).length).toBeGreaterThan(0);
   });
 
   it("renders the empty resource state", () => {
@@ -292,7 +310,7 @@ describe("SongResources resource editing", () => {
 
     await openEditDrawer();
 
-    fireEvent.change(screen.getByLabelText("Name *"), {
+    fireEvent.change(screen.getByLabelText("Name"), {
       target: { value: "Cancelled Resource" },
     });
     fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
@@ -302,7 +320,9 @@ describe("SongResources resource editing", () => {
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     });
     expect(
-      screen.getByRole("link", { name: new RegExp(resource.title, "i") }),
+      screen.getByRole("link", {
+        name: (accessibleName) => accessibleName.includes(resourceDisplayTitle),
+      }),
     ).toBeInTheDocument();
   });
 
@@ -325,10 +345,10 @@ describe("SongResources resource editing", () => {
 
     await openCreateDrawer();
 
-    fireEvent.change(screen.getByLabelText("Name *"), {
+    fireEvent.change(screen.getByLabelText("Name"), {
       target: { value: newResourceName },
     });
-    fireEvent.blur(screen.getByLabelText("Name *"));
+    fireEvent.blur(screen.getByLabelText("Name"));
     fireEvent.change(screen.getByLabelText("URL *"), {
       target: { value: newResourceUrl },
     });
@@ -364,19 +384,117 @@ describe("SongResources resource editing", () => {
     });
   });
 
+  it("suggests the resource name from fetched page metadata", async () => {
+    const newResourceUrl = createResourceUrl();
+    const suggestedResourceName = createResourceName();
+
+    mockPreviewMetadata.mockResolvedValue({
+      normalizedUrl: newResourceUrl,
+      status: "ready",
+      title: suggestedResourceName,
+      description: null,
+      faviconUrl: null,
+      imageUrl: null,
+      lastFetchedAt: new Date(),
+    });
+    renderSongResources();
+
+    await openCreateDrawer();
+
+    fireEvent.change(screen.getByLabelText("URL *"), {
+      target: { value: newResourceUrl },
+    });
+
+    await waitFor(() => {
+      expect(screen.getByLabelText("Name")).toHaveValue(suggestedResourceName);
+    });
+    expect(
+      screen.getByText(
+        "Suggested from the page title, but feel free to rename it.",
+      ),
+    ).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText("Name"), {
+      target: { value: "Custom resource name" },
+    });
+
+    expect(
+      screen.queryByText(
+        "Suggested from the page title, but feel free to rename it.",
+      ),
+    ).not.toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText("Name"), {
+      target: { value: "" },
+    });
+
+    await waitFor(() => {
+      expect(screen.getByLabelText("Name")).toHaveValue(suggestedResourceName);
+    });
+
+    fireEvent.change(screen.getByLabelText("URL *"), {
+      target: { value: "" },
+    });
+
+    await waitFor(() => {
+      expect(screen.getByLabelText("Name")).toHaveValue("");
+    });
+    expect(
+      screen.queryByText(
+        "Suggested from the page title, but feel free to rename it.",
+      ),
+    ).not.toBeInTheDocument();
+  });
+
+  it("clears a generated resource name when the next URL has no page title", async () => {
+    const firstResourceUrl = createResourceUrl();
+    const secondResourceUrl = createResourceUrl();
+    const suggestedResourceName = createResourceName();
+
+    mockPreviewMetadata.mockImplementation(async (input) => {
+      const { url } = input as { url: string };
+
+      return {
+        normalizedUrl: url,
+        status: "ready",
+        title: url === firstResourceUrl ? suggestedResourceName : null,
+        description: null,
+        faviconUrl: null,
+        imageUrl: null,
+        lastFetchedAt: new Date(),
+      };
+    });
+    renderSongResources();
+
+    await openCreateDrawer();
+
+    fireEvent.change(screen.getByLabelText("URL *"), {
+      target: { value: firstResourceUrl },
+    });
+
+    await waitFor(() => {
+      expect(screen.getByLabelText("Name")).toHaveValue(suggestedResourceName);
+    });
+
+    fireEvent.change(screen.getByLabelText("URL *"), {
+      target: { value: secondResourceUrl },
+    });
+
+    await waitFor(() => {
+      expect(screen.getByLabelText("Name")).toHaveValue("");
+    });
+  });
+
   it("does not show required field errors when empty fields lose focus", async () => {
     renderSongResources();
 
     await openCreateDrawer();
 
     fireEvent.blur(screen.getByLabelText("URL *"));
-    fireEvent.blur(screen.getByLabelText("Name *"));
+    fireEvent.blur(screen.getByLabelText("Name"));
 
     expect(
       screen.queryByText("Please enter a resource URL"),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByText("Please give your resource a name or title"),
     ).not.toBeInTheDocument();
   });
 
@@ -393,15 +511,12 @@ describe("SongResources resource editing", () => {
     expect(
       await screen.findByText("Please enter a resource URL"),
     ).toBeInTheDocument();
-    expect(
-      screen.getByText("Please give your resource a name or title"),
-    ).toBeInTheDocument();
     expect(mockCreateResource).not.toHaveBeenCalled();
 
     fireEvent.change(screen.getByLabelText("URL *"), {
       target: { value: newResourceUrl },
     });
-    fireEvent.change(screen.getByLabelText("Name *"), {
+    fireEvent.change(screen.getByLabelText("Name"), {
       target: { value: newResourceName },
     });
 
@@ -426,10 +541,10 @@ describe("SongResources resource editing", () => {
 
     await openCreateDrawer();
 
-    fireEvent.change(screen.getByLabelText("Name *"), {
+    fireEvent.change(screen.getByLabelText("Name"), {
       target: { value: validResourceName },
     });
-    fireEvent.blur(screen.getByLabelText("Name *"));
+    fireEvent.blur(screen.getByLabelText("Name"));
 
     fireEvent.change(screen.getByLabelText("URL *"), {
       target: { value: insecureResourceUrl },
@@ -465,7 +580,7 @@ describe("SongResources resource editing", () => {
 
     await openCreateDrawer();
 
-    fireEvent.change(screen.getByLabelText("Name *"), {
+    fireEvent.change(screen.getByLabelText("Name"), {
       target: { value: validResourceName },
     });
     fireEvent.change(screen.getByLabelText("URL *"), {
@@ -490,7 +605,7 @@ describe("SongResources resource editing", () => {
 
     expect(screen.getByRole("button", { name: "Save changes" })).toBeDisabled();
 
-    fireEvent.change(screen.getByLabelText("Name *"), {
+    fireEvent.change(screen.getByLabelText("Name"), {
       target: { value: createResourceName() },
     });
 
@@ -509,10 +624,10 @@ describe("SongResources resource editing", () => {
 
     await openEditDrawer();
 
-    fireEvent.change(screen.getByLabelText("Name *"), {
+    fireEvent.change(screen.getByLabelText("Name"), {
       target: { value: updatedResourceName },
     });
-    fireEvent.blur(screen.getByLabelText("Name *"));
+    fireEvent.blur(screen.getByLabelText("Name"));
     fireEvent.change(screen.getByLabelText("URL *"), {
       target: { value: updatedResourceUrl },
     });
@@ -572,10 +687,10 @@ describe("SongResources resource editing", () => {
 
     await openEditDrawer();
 
-    fireEvent.change(screen.getByLabelText("Name *"), {
+    fireEvent.change(screen.getByLabelText("Name"), {
       target: { value: updatedResourceName },
     });
-    fireEvent.blur(screen.getByLabelText("Name *"));
+    fireEvent.blur(screen.getByLabelText("Name"));
 
     await waitFor(() => {
       expect(
@@ -606,12 +721,47 @@ describe("SongResources resource editing", () => {
     });
   });
 
+  it("refreshes preview metadata from the resource action menu", async () => {
+    const { invalidateQueriesSpy } = renderSongResources();
+
+    fireEvent.keyDown(
+      screen.getByRole("button", {
+        name: `Open actions for ${resourceDisplayTitle}`,
+      }),
+      { key: "Enter", code: "Enter" },
+    );
+    fireEvent.click(await screen.findByText("Refresh preview"));
+
+    await waitFor(() => {
+      expect(mockRefreshResourceMetadata).toHaveBeenCalled();
+    });
+    expect(mockRefreshResourceMetadata.mock.calls[0]?.[0]).toEqual({
+      resourceId: resource.id,
+      organizationId,
+    });
+    expect(invalidateQueriesSpy).toHaveBeenCalledWith({
+      queryKey: [
+        "orpc",
+        "resource",
+        "getBySongId",
+        {
+          songId,
+          organizationId,
+        },
+      ],
+    });
+    expect(toast.success).toHaveBeenCalledWith(
+      "Resource preview was refreshed",
+      { id: "toast-id" },
+    );
+  });
+
   it("opens the confirmation dialog from the unlink resource action", async () => {
     renderSongResources();
 
     fireEvent.keyDown(
       screen.getByRole("button", {
-        name: `Open actions for ${resource.title}`,
+        name: `Open actions for ${resourceDisplayTitle}`,
       }),
       { key: "Enter", code: "Enter" },
     );
@@ -621,7 +771,7 @@ describe("SongResources resource editing", () => {
 
     expect(
       await screen.findByRole("heading", {
-        name: `Unlink ${resource.title}`,
+        name: `Unlink ${resourceDisplayTitle}`,
       }),
     ).toBeInTheDocument();
   });
@@ -631,7 +781,7 @@ describe("SongResources resource editing", () => {
 
     fireEvent.keyDown(
       screen.getByRole("button", {
-        name: `Open actions for ${resource.title}`,
+        name: `Open actions for ${resourceDisplayTitle}`,
       }),
       { key: "Enter", code: "Enter" },
     );
@@ -639,13 +789,13 @@ describe("SongResources resource editing", () => {
 
     expect(
       await screen.findByRole("heading", {
-        name: `Unlink ${resource.title}`,
+        name: `Unlink ${resourceDisplayTitle}`,
       }),
     ).toBeInTheDocument();
 
     const confirmationDialog = screen.getByRole("alertdialog");
     expect(confirmationDialog).toHaveTextContent("permanently unlink");
-    expect(confirmationDialog).toHaveTextContent(resource.title);
+    expect(confirmationDialog).toHaveTextContent(resourceDisplayTitle);
     expect(confirmationDialog).toHaveTextContent(songName);
 
     fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
@@ -661,7 +811,7 @@ describe("SongResources resource editing", () => {
 
     fireEvent.keyDown(
       screen.getByRole("button", {
-        name: `Open actions for ${resource.title}`,
+        name: `Open actions for ${resourceDisplayTitle}`,
       }),
       { key: "Enter", code: "Enter" },
     );
@@ -705,7 +855,7 @@ describe("SongResources resource editing", () => {
 
     fireEvent.keyDown(
       screen.getByRole("button", {
-        name: `Open actions for ${resource.title}`,
+        name: `Open actions for ${resourceDisplayTitle}`,
       }),
       { key: "Enter", code: "Enter" },
     );
@@ -728,7 +878,7 @@ describe("SongResources resource editing", () => {
 
     fireEvent.keyDown(
       screen.getByRole("button", {
-        name: `Open actions for ${resource.title}`,
+        name: `Open actions for ${resourceDisplayTitle}`,
       }),
       { key: "Enter", code: "Enter" },
     );
@@ -736,7 +886,7 @@ describe("SongResources resource editing", () => {
 
     expect(
       await screen.findByRole("heading", {
-        name: `Unlink ${resource.title}`,
+        name: `Unlink ${resourceDisplayTitle}`,
       }),
     ).toBeInTheDocument();
     fireEvent.click(screen.getByLabelText("Don't warn me again"));
@@ -773,7 +923,7 @@ describe("SongResources resource editing", () => {
 
     fireEvent.keyDown(
       screen.getByRole("button", {
-        name: `Open actions for ${resource.title}`,
+        name: `Open actions for ${resourceDisplayTitle}`,
       }),
       { key: "Enter", code: "Enter" },
     );
@@ -799,7 +949,7 @@ describe("SongResources resource editing", () => {
 
     fireEvent.keyDown(
       screen.getByRole("button", {
-        name: `Open actions for ${resource.title}`,
+        name: `Open actions for ${resourceDisplayTitle}`,
       }),
       { key: "Enter", code: "Enter" },
     );
