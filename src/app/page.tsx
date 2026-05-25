@@ -21,7 +21,7 @@ export default async function Home() {
       throw new Error("No organizations.");
     }
     return (
-      <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c] text-white">
+      <main className="flex min-h-screen flex-col items-center justify-center bg-linear-to-b from-[#2e026d] to-[#15162c] text-white">
         <Link href={`${stonewayOrg.id}/`}>賛美 // Sanbi</Link>
       </main>
     );

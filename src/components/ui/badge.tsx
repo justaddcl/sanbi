@@ -5,7 +5,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const badgeVariants = cva(
-  "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+  "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2",
   {
     variants: {
       variant: {
@@ -52,9 +52,9 @@ function Badge({
             onDismiss();
           }}
           disabled={onDismissPending}
-          className="ml-2 rounded-full outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2"
+          className="ring-offset-background focus:ring-ring ml-2 rounded-full outline-hidden focus:ring-2 focus:ring-offset-2"
         >
-          <X className="h-3.5 w-3.5 text-muted-foreground transition-colors hover:text-foreground" />
+          <X className="text-muted-foreground hover:text-foreground h-3.5 w-3.5 transition-colors" />
         </button>
       )}
     </div>

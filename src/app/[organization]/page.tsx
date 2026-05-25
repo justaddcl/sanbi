@@ -69,7 +69,7 @@ export default async function Dashboard({
             key={orgSet.id}
             href={`/${params.organization}/sets/${orgSet.id}`}
           >
-            <VStack className="h-full min-w-full max-w-xs flex-1 gap-6 rounded-lg border p-4 shadow lg:p-6">
+            <VStack className="h-full max-w-xs min-w-full flex-1 gap-6 rounded-lg border p-4 shadow-sm lg:p-6">
               <SetListCardHeader
                 date={orgSet.date}
                 type={orgSet.eventType.name}

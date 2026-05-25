@@ -4,6 +4,7 @@ const isPublicRoute = createRouteMatcher([
   "/",
   "/sign-in(.*)",
   "/sign-up(.*)",
+  "/visual-harness(.*)",
   "/monitoring(.*)",
   "/api/(.*)", // "allowing" api routes since we want the API to return errors rather than redirecting to sign-in
 ]);

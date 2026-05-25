@@ -58,7 +58,7 @@ export const GlobalNav = () => {
 
   const { organizationId } = organizationMembership;
   return (
-    <div className="flex h-[calc(100%_-_64px)] flex-col justify-between lg:fixed lg:top-24 lg:w-[234px] lg:justify-normal lg:gap-6">
+    <div className="flex h-[calc(100%-64px)] flex-col justify-between lg:fixed lg:top-24 lg:w-[234px] lg:justify-normal lg:gap-6">
       <nav className="grid gap-2">
         <NavLink
           href={`/${organizationId}`}

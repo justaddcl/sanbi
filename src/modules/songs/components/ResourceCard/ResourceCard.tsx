@@ -128,11 +128,11 @@ export const ResourceCard: React.FC<ResourceCardProps> = ({
           href={url}
           target="_blank"
           rel="noopener noreferrer"
-          className="grid h-full grid-cols-[48px_1fr] items-center gap-2 rounded bg-slate-50 px-3 py-2 pr-14 transition-colors hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          className="focus-visible:ring-ring grid h-full grid-cols-[48px_1fr] items-center gap-2 rounded bg-slate-50 px-3 py-2 pr-14 transition-colors hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
         >
           <ResourceCardImage resource={resource} />
           <div className="flex min-w-0 flex-col gap-1 px-2 py-1">
-            <Text className="truncate text-base font-semibold leading-4 text-slate-900">
+            <Text className="truncate text-base leading-4 font-semibold text-slate-900">
               {title}
             </Text>
             <Text className="truncate text-xs text-slate-400">
@@ -150,7 +150,7 @@ export const ResourceCard: React.FC<ResourceCardProps> = ({
             </Text>
           </div>
         </Link>
-        <div className="absolute right-2 top-1/2 z-10 -translate-y-1/2">
+        <div className="absolute top-1/2 right-2 z-10 -translate-y-1/2">
           <ActionMenu
             isOpen={isActionMenuOpen}
             setIsOpen={setIsActionMenuOpen}

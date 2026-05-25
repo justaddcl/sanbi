@@ -177,6 +177,7 @@ const config: Config = {
   // testPathIgnorePatterns: [
   //   "/node_modules/"
   // ],
+  testPathIgnorePatterns: ["<rootDir>/tests/visual/"],
 
   // The regexp pattern or array of patterns that Jest uses to detect test files
   // testRegex: [],
