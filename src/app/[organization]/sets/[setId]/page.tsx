@@ -314,14 +314,11 @@ export default function SetListPage({
               </VisuallyHidden.Root>
             </ResponsiveDialogDescription>
           </ResponsiveDialogHeader>
-          <ResponsiveDialogTitle asChild>
-            <Text
-              asElement="h3"
-              style="header-medium-semibold"
-              className="flex-wrap text-xl"
-            >
-              Add section to set
-            </Text>
+          <ResponsiveDialogTitle
+            dialogProps={{ className: "flex-wrap text-xl" }}
+            drawerProps={{ className: "flex-wrap text-xl" }}
+          >
+            Add section to set
           </ResponsiveDialogTitle>
           <VStack className="mt-4 gap-4 lg:mt-0 lg:gap-8">
             <SetSectionTypeCombobox

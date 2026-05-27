@@ -38,7 +38,7 @@ export const SetSelectionFilters: React.FC<SetSelectionFiltersProps> = ({
   setDateFilter,
   onCreateSetClick,
 }) => {
-  const { isDesktop } = useResponsive();
+  const { isMobile } = useResponsive();
 
   const [isDrawerOpen, setIsDrawerOpen] = useState<boolean>(false);
 
@@ -83,7 +83,7 @@ export const SetSelectionFilters: React.FC<SetSelectionFiltersProps> = ({
     }
   };
 
-  if (!isDesktop) {
+  if (isMobile) {
     return (
       <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
         <DrawerTrigger asChild>
@@ -91,14 +91,14 @@ export const SetSelectionFilters: React.FC<SetSelectionFiltersProps> = ({
             variant="secondary"
             className="mt-4 w-full justify-center gap-2 px-4 font-medium"
           >
-            <SlidersHorizontal /> Filter by event or date
+            <SlidersHorizontal /> Filter sets
           </Button>
         </DrawerTrigger>
         <DrawerContent>
           <DrawerHeader className="px-0">
             <HStack className="items-center justify-between">
               <DrawerTitle className="text-left font-normal">
-                Filter by event or date
+                Filter sets
               </DrawerTitle>
               <DrawerClose asChild>
                 <Button
