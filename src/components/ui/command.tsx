@@ -51,9 +51,40 @@ const CommandDialog: React.FC<CommandDialogProps> = ({
   className,
   ...props
 }) => {
+  const contentRef = React.useRef<HTMLDivElement>(null);
+
+  const focusCommandInput = React.useCallback(() => {
+    const input = contentRef.current?.querySelector("[cmdk-input]");
+    if (input instanceof HTMLInputElement) {
+      input.focus();
+    }
+  }, []);
+
+  React.useEffect(() => {
+    if (!autoFocusInput) {
+      return;
+    }
+
+    focusCommandInput();
+
+    const firstAnimationFrame = requestAnimationFrame(() => {
+      focusCommandInput();
+      requestAnimationFrame(focusCommandInput);
+    });
+    const shortTimeout = window.setTimeout(focusCommandInput, 50);
+    const longTimeout = window.setTimeout(focusCommandInput, 150);
+
+    return () => {
+      cancelAnimationFrame(firstAnimationFrame);
+      window.clearTimeout(shortTimeout);
+      window.clearTimeout(longTimeout);
+    };
+  }, [autoFocusInput, focusCommandInput]);
+
   return (
     <Dialog {...props}>
       <DialogContent
+        ref={contentRef}
         animated={animated}
         className={cn(
           "overflow-hidden rounded-lg p-0 shadow-lg",
@@ -80,17 +111,7 @@ const CommandDialog: React.FC<CommandDialogProps> = ({
           }
 
           event.preventDefault();
-
-          const content = event.currentTarget as HTMLElement | null;
-          const focusInput = () => {
-            const input = content?.querySelector("[cmdk-input]");
-            if (input instanceof HTMLInputElement) {
-              input.focus();
-            }
-          };
-
-          focusInput();
-          requestAnimationFrame(focusInput);
+          focusCommandInput();
         }}
       >
         <VisuallyHidden.Root>
