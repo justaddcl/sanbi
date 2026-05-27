@@ -225,7 +225,7 @@ const DialogSurface = () => (
   <>
     <ControlsSurface />
     <Dialog open onOpenChange={() => undefined}>
-      <DialogContent animated={false} data-visual-harness-dialog>
+      <DialogContent data-visual-harness-dialog>
         <DialogHeader>
           <DialogTitle>Archive set</DialogTitle>
           <DialogDescription>

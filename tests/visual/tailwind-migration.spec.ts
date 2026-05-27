@@ -9,7 +9,7 @@ const portalSurfaces = new Set<(typeof surfaces)[number]>([
 ]);
 
 const animationSurfaces = [
-  { surface: "dialog", selector: "[data-state='open']" },
+  { surface: "dialog", selector: "[data-visual-harness-dialog]" },
   { surface: "sheet", selector: "[data-visual-harness-sheet]" },
   { surface: "popover", selector: "[data-visual-harness-popover]" },
 ] as const;
