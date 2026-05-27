@@ -21,6 +21,7 @@ export type SongSearchDialogSteps = "search" | "configure";
 
 type SongSearchDialogProps = {
   open: boolean;
+  onOpenChange?: (open: boolean) => void;
   onSongSelect?: (selectedSong?: SongSearchResult) => void;
   // TODO: remove prop if unnecessary
   existingSetSections: SetSectionWithSongs[];
@@ -30,6 +31,7 @@ type SongSearchDialogProps = {
 
 export const SongSearchDialog: React.FC<SongSearchDialogProps> = ({
   open,
+  onOpenChange,
   existingSetSections,
   setId,
   prePopulatedSetSectionId,
@@ -66,7 +68,13 @@ export const SongSearchDialog: React.FC<SongSearchDialogProps> = ({
       }
     }
 
-    window.history.pushState(null, "", `?${params.toString()}`);
+    const queryString = params.toString();
+    window.history.pushState(
+      null,
+      "",
+      queryString ? `?${queryString}` : window.location.pathname,
+    );
+    onOpenChange?.(isOpen);
   };
 
   const handleSongSelect = (song?: SongSearchResult) => {

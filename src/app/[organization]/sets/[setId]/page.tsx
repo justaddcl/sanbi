@@ -168,6 +168,7 @@ export default function SetListPage({
     params.set("addSongDialogOpen", "1");
     const queryString = params.toString();
     window.history.pushState(null, "", `?${queryString}`);
+    setIsSongSearchDialogOpen(true);
   };
 
   const handleAddSetSection = () => {
@@ -362,6 +363,7 @@ export default function SetListPage({
 
       <SongSearchDialog
         open={isSongSearchDialogOpen}
+        onOpenChange={setIsSongSearchDialogOpen}
         existingSetSections={setData.sections}
         setId={setData.id}
         prePopulatedSetSectionId={prePopulatedSetSectionId}

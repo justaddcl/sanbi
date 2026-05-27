@@ -50,6 +50,7 @@ for (const surface of surfaces) {
 for (const { surface, selector } of animationSurfaces) {
   test(`${surface} animation utilities are generated`, async ({ page }) => {
     await page.goto(`/visual-harness?surface=${surface}`);
+    await expect(page.locator(selector).first()).toBeVisible();
 
     const animationNames = await page.locator(selector).evaluateAll((nodes) =>
       nodes.map((node) => getComputedStyle(node).animationName),
