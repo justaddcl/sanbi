@@ -283,7 +283,8 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
           </Button>
           <DialogTitle className="text-center">Add song to set</DialogTitle>
         </div>
-        <DialogDescription className="mt-6 flex flex-col gap-6">
+        <DialogDescription asChild>
+          <div className="mt-6 flex flex-col gap-6">
           <div
             className="hover:bg-accent cursor-pointer rounded-lg border px-3 py-2 text-slate-900 transition-colors"
             onClick={goBackToSearch}
@@ -579,6 +580,7 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
               <DevTool control={addSongToSetForm.control} />
             </form>
           </Form>
+          </div>
         </DialogDescription>
       </CommandGroup>
     </CommandList>

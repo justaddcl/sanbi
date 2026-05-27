@@ -2,11 +2,13 @@
 
 import * as React from "react";
 import { MagnifyingGlass } from "@phosphor-icons/react";
+import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { Command as CommandPrimitive } from "cmdk";
 
 import {
   Dialog,
   DialogContent,
+  DialogTitle,
   type DialogContentProps,
   type DialogProps,
 } from "@components/ui/dialog";
@@ -72,6 +74,9 @@ const CommandDialog: React.FC<CommandDialogProps> = ({
         )}
         minimalPadding={minimalPadding}
       >
+        <VisuallyHidden.Root>
+          <DialogTitle>Search songs</DialogTitle>
+        </VisuallyHidden.Root>
         <Command
           loop={loop}
           shouldFilter={shouldFilter}
