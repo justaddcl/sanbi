@@ -36,6 +36,7 @@ type CommandDialogProps = DialogProps & {
   hasDialogContentComponentStyling?: boolean;
   animated?: DialogContentProps["animated"];
   minimalPadding?: boolean;
+  autoFocusInput?: boolean;
   className?: string;
 };
 const CommandDialog: React.FC<CommandDialogProps> = ({
@@ -46,6 +47,7 @@ const CommandDialog: React.FC<CommandDialogProps> = ({
   hasDialogContentComponentStyling,
   animated,
   minimalPadding,
+  autoFocusInput = false,
   className,
   ...props
 }) => {
@@ -72,6 +74,24 @@ const CommandDialog: React.FC<CommandDialogProps> = ({
           className,
         )}
         minimalPadding={minimalPadding}
+        onOpenAutoFocus={(event) => {
+          if (!autoFocusInput) {
+            return;
+          }
+
+          event.preventDefault();
+
+          const content = event.currentTarget as HTMLElement | null;
+          const focusInput = () => {
+            const input = content?.querySelector("[cmdk-input]");
+            if (input instanceof HTMLInputElement) {
+              input.focus();
+            }
+          };
+
+          focusInput();
+          requestAnimationFrame(focusInput);
+        }}
       >
         <VisuallyHidden.Root>
           <DialogTitle>Search songs</DialogTitle>
