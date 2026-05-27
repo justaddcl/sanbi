@@ -85,7 +85,10 @@ export const Combobox: React.FC<React.PropsWithChildren<ComboboxProps>> = ({
           {!loading && !open && <CaretDown className="opacity-50" />}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="min-w-[300px] overflow-y-scroll p-0">
+      <PopoverContent
+        className="min-w-[300px] overflow-y-scroll p-0"
+        onOpenAutoFocus={(event) => event.preventDefault()}
+      >
         <Command>
           {hasSearch && <CommandInput placeholder={searchPlaceholder} />}
           <CommandList className="max-h-dvh">

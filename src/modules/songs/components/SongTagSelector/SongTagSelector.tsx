@@ -339,7 +339,11 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
             Add Tag
           </Button>
         </DialogTrigger>
-        <DialogContent fixed className="py-6">
+        <DialogContent
+          fixed
+          className="py-6"
+          onOpenAutoFocus={(event) => event.preventDefault()}
+        >
           <DialogHeader align="left">
             <DialogTitle size="md" className="ml-4">
               Song tags
@@ -355,7 +359,7 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
                   onChange={(e) => setSearch(e.target.value)}
                   onKeyDown={handleKeyDown}
                   placeholder="Search tags..."
-                  className="placeholder:text-muted-foreground flex-1 border-0 bg-transparent text-sm outline-hidden focus:ring-0 focus:outline-hidden"
+                  className="placeholder:text-muted-foreground flex-1 border-0 bg-transparent text-base outline-hidden focus:ring-0 focus:outline-hidden md:text-sm"
                 />
                 {search && (
                   <button
@@ -487,7 +491,7 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
               onChange={(e) => setSearch(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Search tags..."
-              className="placeholder:text-muted-foreground flex-1 border-0 bg-transparent text-sm outline-hidden focus:ring-0 focus:outline-hidden"
+              className="placeholder:text-muted-foreground flex-1 border-0 bg-transparent text-base outline-hidden focus:ring-0 focus:outline-hidden md:text-sm"
             />
             {search && (
               <button

@@ -109,6 +109,7 @@ export const SongSearch: React.FC<SongSearchProps> = ({
         placeholder={searchPlaceholder}
         value={searchInput}
         onValueChange={(newValue) => handleSearchInputChange(newValue)}
+        autoFocus
       />
       <CommandList>
         {songSearchLoading && (

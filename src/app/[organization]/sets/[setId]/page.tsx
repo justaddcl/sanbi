@@ -304,19 +304,17 @@ export default function SetListPage({
             setNewSetSectionType(null);
           }
         }}
+        drawerProps={{ repositionInputs: true }}
       >
         <ResponsiveDialogContent className="p-6 lg:p-8">
           <ResponsiveDialogHeader>
-            <ResponsiveDialogTitle asChild>
-              <VisuallyHidden.Root>Add section to set</VisuallyHidden.Root>
-            </ResponsiveDialogTitle>
             <ResponsiveDialogDescription asChild>
               <VisuallyHidden.Root>
                 Dialog to add section to set
               </VisuallyHidden.Root>
             </ResponsiveDialogDescription>
           </ResponsiveDialogHeader>
-          <ResponsiveDialogTitle>
+          <ResponsiveDialogTitle asChild>
             <Text
               asElement="h3"
               style="header-medium-semibold"

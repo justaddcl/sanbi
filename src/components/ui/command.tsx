@@ -63,8 +63,7 @@ const CommandDialog: React.FC<CommandDialogProps> = ({
           [hasDialogContentComponentStyling && !minimalPadding && "p-6"],
           {
             "translate-y-0": fixed,
-            "w-[calc(100%_-_24px)]": fixed && !minimalPadding,
-            "w-full": fixed && minimalPadding,
+            "w-[calc(100%_-_24px)]": fixed,
             "mt-3": fixed,
             "top-0": fixed,
             "md:mt-0": fixed,
@@ -105,7 +104,7 @@ const CommandInput = React.forwardRef<
     <CommandPrimitive.Input
       ref={ref}
       className={cn(
-        "placeholder:text-muted-foreground flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-hidden disabled:cursor-not-allowed disabled:opacity-50",
+        "placeholder:text-muted-foreground flex h-11 w-full rounded-md bg-transparent py-3 text-base outline-hidden disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
         className,
       )}
       {...props}
