@@ -101,6 +101,7 @@ export const EditSetDetailsForm: React.FC<EditSetDetailsFormProps> = ({
           <SetEventTypeSelectFormField />
           <HStack className="justify-end gap-2">
             <Button
+              type="button"
               variant="outline"
               size="sm"
               onClick={() => {

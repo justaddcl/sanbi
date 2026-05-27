@@ -163,11 +163,18 @@ export default function SetListPage({
     redirect(`/`);
   }
 
-  const openAddSongDialog = () => {
+  const openAddSongDialog = (
+    setSectionId?: ConfigureSongForSetProps["prePopulatedSetSectionId"],
+  ) => {
     const params = createURLSearchParams(searchParams);
     params.set("addSongDialogOpen", "1");
+    if (setSectionId) {
+      params.set("setSectionId", setSectionId);
+    }
     const queryString = params.toString();
     window.history.pushState(null, "", `?${queryString}`);
+    setPrePopulatedSetSectionId(setSectionId);
+    setIsSongSearchDialogOpen(true);
   };
 
   const handleAddSetSection = () => {
@@ -227,7 +234,10 @@ export default function SetListPage({
           />
           <HStack className="gap-2">
             {setData?.sections && setData.sections.length > 0 && (
-              <Button onClick={openAddSongDialog} className="hidden md:flex">
+              <Button
+                onClick={() => openAddSongDialog()}
+                className="hidden md:flex"
+              >
                 <Plus /> Add a song
               </Button>
             )}
@@ -250,7 +260,7 @@ export default function SetListPage({
           organizationId={userMembership.organizationId}
         />
         {setData?.sections && setData.sections.length > 0 && (
-          <Button onClick={openAddSongDialog} className="md:hidden">
+          <Button onClick={() => openAddSongDialog()} className="md:hidden">
             <Plus /> Add a song
           </Button>
         )}
@@ -282,6 +292,7 @@ export default function SetListPage({
                   setSectionsLength={setData.sections.length}
                   sectionStartIndex={sectionStartIndex}
                   withActionsMenu
+                  onAddSongClick={() => openAddSongDialog(section.id)}
                 />
               );
             })}
@@ -303,26 +314,21 @@ export default function SetListPage({
             setNewSetSectionType(null);
           }
         }}
+        drawerProps={{ repositionInputs: true }}
       >
         <ResponsiveDialogContent className="p-6 lg:p-8">
           <ResponsiveDialogHeader>
-            <ResponsiveDialogTitle asChild>
-              <VisuallyHidden.Root>Add section to set</VisuallyHidden.Root>
-            </ResponsiveDialogTitle>
             <ResponsiveDialogDescription asChild>
               <VisuallyHidden.Root>
                 Dialog to add section to set
               </VisuallyHidden.Root>
             </ResponsiveDialogDescription>
           </ResponsiveDialogHeader>
-          <ResponsiveDialogTitle>
-            <Text
-              asElement="h3"
-              style="header-medium-semibold"
-              className="flex-wrap text-xl"
-            >
-              Add section to set
-            </Text>
+          <ResponsiveDialogTitle
+            dialogProps={{ className: "flex-wrap text-xl" }}
+            drawerProps={{ className: "flex-wrap text-xl" }}
+          >
+            Add section to set
           </ResponsiveDialogTitle>
           <VStack className="mt-4 gap-4 lg:mt-0 lg:gap-8">
             <SetSectionTypeCombobox
@@ -362,6 +368,7 @@ export default function SetListPage({
 
       <SongSearchDialog
         open={isSongSearchDialogOpen}
+        onOpenChange={setIsSongSearchDialogOpen}
         existingSetSections={setData.sections}
         setId={setData.id}
         prePopulatedSetSectionId={prePopulatedSetSectionId}

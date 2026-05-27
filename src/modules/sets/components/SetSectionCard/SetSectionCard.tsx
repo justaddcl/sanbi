@@ -25,6 +25,9 @@ export type SetSectionCardProps = {
 
   /** should the SetSection card have the action menu? */
   withActionsMenu?: boolean;
+
+  /** Opens the add-song dialog scoped to this section. */
+  onAddSongClick?: () => void;
 };
 
 export const SetSectionCard: FC<SetSectionCardProps> = ({
@@ -32,6 +35,7 @@ export const SetSectionCard: FC<SetSectionCardProps> = ({
   setSectionsLength,
   sectionStartIndex,
   withActionsMenu,
+  onAddSongClick,
 }) => {
   const { type, songs, setId, position } = section;
 
@@ -52,6 +56,7 @@ export const SetSectionCard: FC<SetSectionCardProps> = ({
           withActionsMenu={withActionsMenu}
           isFirstSection={isFirstSection}
           isLastSection={isLastSection}
+          onAddSongClick={onAddSongClick}
         />
       }
     >

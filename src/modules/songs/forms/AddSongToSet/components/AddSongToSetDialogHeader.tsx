@@ -3,7 +3,7 @@
 import { CaretLeft, X } from "@phosphor-icons/react";
 
 import { Button } from "@components/ui/button";
-import { DialogClose } from "@components/ui/dialog";
+import { DialogClose, DialogTitle } from "@components/ui/dialog";
 import { Progress } from "@components/ui/progress";
 import { HStack } from "@components/HStack";
 import { VStack } from "@components/VStack";
@@ -41,15 +41,18 @@ export const AddSongToSetDialogHeader: React.FC<
               <CaretLeft weight="bold" className="h-5 w-5" />
             </Button>
           )}
-          <h2
-            id="modal-title"
-            className={cn("text-lg font-semibold", {
-              "ml-3":
-                step === AddSongToSetDialogStep.SELECT_SET && !isCreatingNewSet,
-            })}
-          >
-            {title}
-          </h2>
+          <DialogTitle asChild>
+            <h2
+              id="modal-title"
+              className={cn("text-lg font-semibold", {
+                "ml-3":
+                  step === AddSongToSetDialogStep.SELECT_SET &&
+                  !isCreatingNewSet,
+              })}
+            >
+              {title}
+            </h2>
+          </DialogTitle>
         </HStack>
         <DialogClose asChild>
           <Button

@@ -216,17 +216,26 @@ export const DatePicker = <Mode extends CalendarMode = "single">({
             getDatePickerLabel(placeholder, date, mode)
           )}
           {!alwaysShowPlaceholder && date && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="ml-auto"
+            <span
+              role="button"
+              tabIndex={0}
+              aria-label="Clear date"
+              className="ml-auto inline-flex size-10 items-center justify-center rounded-md hover:bg-accent hover:text-accent-foreground"
               onClick={(clickEvent) => {
+                clickEvent.preventDefault();
                 clickEvent.stopPropagation();
                 onDateChange(undefined);
               }}
+              onKeyDown={(keyDownEvent) => {
+                if (keyDownEvent.key === "Enter" || keyDownEvent.key === " ") {
+                  keyDownEvent.preventDefault();
+                  keyDownEvent.stopPropagation();
+                  onDateChange(undefined);
+                }
+              }}
             >
               <X />
-            </Button>
+            </span>
           )}
         </Button>
       </PopoverTrigger>

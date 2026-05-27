@@ -142,6 +142,7 @@ export const ReplaceSongDialog: React.FC<ReplaceSongDialogProps> = ({
       hasDialogContentComponentStyling={dialogStep === "confirm"}
       animated={dialogStep !== "confirm"}
       minimalPadding
+      autoFocusInput={open && dialogStep === "search"}
       className={cn([dialogStep === "confirm" && "max-w-lg"])}
     >
       {dialogStep === "search" && (

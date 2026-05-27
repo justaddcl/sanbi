@@ -51,7 +51,7 @@ export const EditSongContentFormFields: React.FC<
       >
         {index}.
       </Text>
-      <VStack className="flex flex-grow flex-col gap-2">
+      <VStack className="flex grow flex-col gap-2">
         <VStack className="flex items-baseline gap-4">
           <Text fontWeight="semibold" className="text-sm">
             {setSectionSong.song.name}

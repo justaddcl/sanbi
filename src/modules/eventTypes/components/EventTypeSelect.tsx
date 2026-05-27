@@ -121,12 +121,7 @@ export const EventTypeSelect: React.FC<EventTypeSelectProps> = ({
       {...props}
     >
       <SelectTrigger>
-        <SelectValue
-          placeholder={placeholder ?? "Select event type"}
-          aria-label={value}
-        >
-          {displayValue(value)}
-        </SelectValue>
+        <SelectValue placeholder={displayValue(value)} aria-label={value} />
       </SelectTrigger>
       <SelectContent>
         {isLoading && (

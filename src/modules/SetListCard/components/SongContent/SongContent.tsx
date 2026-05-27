@@ -53,7 +53,7 @@ export const SongContent: React.FC<SongContentProps> = ({
         <Text
           align="right"
           className={cn(
-            "min-w-4 font-semibold leading-tight text-slate-400 ",
+            "min-w-4 leading-tight font-semibold text-slate-400",
             [textStyles.default],
             { [textStyles.muted]: muted },
           )}
@@ -61,7 +61,7 @@ export const SongContent: React.FC<SongContentProps> = ({
           {index}.
         </Text>
       )}
-      <VStack className="flex flex-grow flex-col gap-4">
+      <VStack className="flex grow flex-col gap-4">
         <HStack className="flex items-baseline gap-2 md:items-center">
           {songKey && (
             <SongKey
