@@ -74,7 +74,7 @@ const DialogContent = React.forwardRef<
           {
             "max-w-3xl": fixed,
             "translate-y-0": fixed,
-            "w-[calc(100%-24px)]": fixed,
+            "w-[calc(100%_-_24px)]": fixed,
             "mt-3": fixed,
             "top-0": fixed,
             "md:mt-0": fixed,

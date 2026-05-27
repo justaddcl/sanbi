@@ -61,7 +61,7 @@ const CommandDialog: React.FC<CommandDialogProps> = ({
           [hasDialogContentComponentStyling && !minimalPadding && "p-6"],
           {
             "translate-y-0": fixed,
-            "w-[calc(100%-24px)]": fixed && !minimalPadding,
+            "w-[calc(100%_-_24px)]": fixed && !minimalPadding,
             "w-full": fixed && minimalPadding,
             "mt-3": fixed,
             "top-0": fixed,
@@ -76,10 +76,10 @@ const CommandDialog: React.FC<CommandDialogProps> = ({
           loop={loop}
           shouldFilter={shouldFilter}
           className={cn(
-            "**:[[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5 [&_[cmdk-item]_svg]:h-4 [&_[cmdk-item]_svg]:w-4 **:[[cmdk-group-heading]]:font-medium **:[[cmdk-input]]:h-12",
+            "[&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5 [&_[cmdk-item]_svg]:h-4 [&_[cmdk-item]_svg]:w-4 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-input]]:h-12",
             [
               !minimalPadding &&
-                "[&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 **:[[cmdk-group-heading]]:px-2 **:[[cmdk-group]]:px-2",
+                "[&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group]]:px-2",
             ],
             { "p-0": minimalPadding },
           )}
@@ -143,7 +143,7 @@ const CommandGroup = React.forwardRef<
   <CommandPrimitive.Group
     ref={ref}
     className={cn(
-      "text-foreground **:[[cmdk-group-heading]]:text-muted-foreground overflow-hidden p-1 **:[[cmdk-group-heading]]:px-2 **:[[cmdk-group-heading]]:py-1.5 **:[[cmdk-group-heading]]:text-xs **:[[cmdk-group-heading]]:font-medium",
+      "text-foreground [&_[cmdk-group-heading]]:text-muted-foreground overflow-hidden p-1 [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-medium",
       className,
     )}
     {...props}

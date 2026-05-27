@@ -8,6 +8,12 @@ const portalSurfaces = new Set<(typeof surfaces)[number]>([
   "popover",
 ]);
 
+const animationSurfaces = [
+  { surface: "dialog", selector: "[data-state='open']" },
+  { surface: "sheet", selector: "[data-visual-harness-sheet]" },
+  { surface: "popover", selector: "[data-visual-harness-popover]" },
+] as const;
+
 for (const surface of surfaces) {
   for (const theme of themes) {
     test(`${surface} ${theme}`, async ({ page }) => {
@@ -28,6 +34,7 @@ for (const surface of surfaces) {
       }
 
       if (portalSurfaces.has(surface)) {
+        await page.evaluate(() => window.scrollTo(0, 0));
         await expect(page).toHaveScreenshot(`${surface}-${theme}.png`, {
           fullPage: true,
         });
@@ -38,4 +45,16 @@ for (const surface of surfaces) {
       }
     });
   }
+}
+
+for (const { surface, selector } of animationSurfaces) {
+  test(`${surface} animation utilities are generated`, async ({ page }) => {
+    await page.goto(`/visual-harness?surface=${surface}`);
+
+    const animationNames = await page.locator(selector).evaluateAll((nodes) =>
+      nodes.map((node) => getComputedStyle(node).animationName),
+    );
+
+    expect(animationNames).toContain("enter");
+  });
 }

@@ -275,7 +275,7 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
   const goBackToSearch = () => setDialogStep("search");
 
   return (
-    <CommandList className="max-h-[calc(100dvh-24px)] md:max-h-[calc(100dvh-12dvh-5dvh)]">
+    <CommandList className="max-h-[calc(100dvh_-_24px)] md:max-h-[calc(100dvh_-_12dvh_-_5dvh)]">
       <CommandGroup>
         <div className="grid grid-cols-[40px_1fr_40px] items-center">
           <Button size="icon" variant="ghost" onClick={goBackToSearch}>

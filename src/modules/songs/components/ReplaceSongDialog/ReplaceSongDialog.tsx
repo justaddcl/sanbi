@@ -148,7 +148,7 @@ export const ReplaceSongDialog: React.FC<ReplaceSongDialogProps> = ({
         <SongSearch onSongSelect={handleSongSelect} />
       )}
       {dialogStep === "confirm" && !!selectedSong && (
-        <CommandList className="max-h-[calc(100dvh-24px)] text-center md:max-h-[calc(100dvh-12dvh-5dvh)]">
+        <CommandList className="max-h-[calc(100dvh_-_24px)] text-center md:max-h-[calc(100dvh_-_12dvh_-_5dvh)]">
           <CommandGroup>
             <div className="grid grid-cols-[40px_1fr_40px] items-center">
               <Button

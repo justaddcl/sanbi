@@ -225,7 +225,7 @@ const DialogSurface = () => (
   <>
     <ControlsSurface />
     <Dialog open onOpenChange={() => undefined}>
-      <DialogContent animated={false}>
+      <DialogContent animated={false} data-visual-harness-dialog>
         <DialogHeader>
           <DialogTitle>Archive set</DialogTitle>
           <DialogDescription>
@@ -246,7 +246,7 @@ const SheetSurface = () => (
   <>
     <CardsSurface />
     <Sheet open onOpenChange={() => undefined}>
-      <SheetContent side="right">
+      <SheetContent data-visual-harness-sheet side="right">
         <SheetHeader>
           <SheetTitle>Set options</SheetTitle>
           <SheetDescription>
@@ -270,7 +270,7 @@ const PopoverSurface = () => (
         <PopoverTrigger asChild>
           <Button variant="outline">Open popover</Button>
         </PopoverTrigger>
-        <PopoverContent>
+        <PopoverContent data-visual-harness-popover>
           <div className="space-y-2">
             <Text style="header-medium-semibold">Resource status</Text>
             <Text style="body-small" className="text-muted-foreground">
