@@ -1,6 +1,6 @@
 "use client";
 
-import { type Dispatch, type SetStateAction, useState } from "react";
+import { type Dispatch, type SetStateAction, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 
@@ -68,6 +68,7 @@ export const SongActionMenu: React.FC<SongActionMenuProps> = ({
     useState<boolean>(false);
   const [isSongSearchDialogOpen, setIsSongSearchDialogOpen] =
     useState<boolean>(false);
+  const shouldPreventActionMenuAutoFocusRef = useRef(false);
 
   const params = useParams<{ organization: string }>();
   const router = useRouter();
@@ -201,6 +202,14 @@ export const SongActionMenu: React.FC<SongActionMenuProps> = ({
         isOpen={isSongActionMenuOpen}
         setIsOpen={setIsSongActionMenuOpen}
         buttonVariant="ghost"
+        onCloseAutoFocus={(event) => {
+          if (!shouldPreventActionMenuAutoFocusRef.current) {
+            return;
+          }
+
+          event.preventDefault();
+          shouldPreventActionMenuAutoFocusRef.current = false;
+        }}
       >
         <ActionMenuItem
           icon="Article"
@@ -225,8 +234,9 @@ export const SongActionMenu: React.FC<SongActionMenuProps> = ({
           label="Replace song"
           disabled={isMutationPending}
           onClick={() => {
-            setIsSongActionMenuOpen(false);
+            shouldPreventActionMenuAutoFocusRef.current = true;
             setIsSongSearchDialogOpen(true);
+            setIsSongActionMenuOpen(false);
           }}
         />
         <DropdownMenuSeparator />
