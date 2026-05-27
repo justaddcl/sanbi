@@ -506,36 +506,6 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
           </HStack>
 
           <VStack className="min-h-0 flex-1">
-            {/* {showSuggestedTags && (
-              <div className="mx-2 mb-1 mt-2 rounded-lg bg-secondary/25 px-3 py-3">
-                <div className="mb-2 flex items-center gap-2 text-xs font-medium">
-                  <Sparkles className="h-3.5 w-3.5 text-primary" />
-                  <span className="font-semibold text-primary-foreground/90">
-                    Suggested Tags
-                  </span>
-                </div>
-                <div className="flex flex-wrap gap-1.5">
-                  {suggestedTags.map((tag, index) => (
-                    <Badge
-                      key={tag.id}
-                      variant={
-                        highlightedIndex === index ? "default" : "outline-solid"
-                      }
-                      className={cn(
-                        "h-7 cursor-pointer px-2 text-sm font-normal transition-colors",
-                        highlightedIndex === index
-                          ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                          : "hover:bg-secondary/50",
-                      )}
-                      onClick={() => handleSelectTag(tag)}
-                      data-index={index}
-                    >
-                      {tag.name}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            )} */}
             {isLoading ? (
               <VStack className="gap-4 p-5">
                 <HStack className="h-5 justify-between">
