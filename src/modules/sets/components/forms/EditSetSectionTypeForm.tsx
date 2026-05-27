@@ -1,6 +1,6 @@
 import React, { type Dispatch, type SetStateAction, useState } from "react";
 import { type SubmitHandler, useForm } from "react-hook-form";
-import { redirect, useRouter, useSearchParams } from "next/navigation";
+import { redirect } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CaretDown, CaretUp, Plus } from "@phosphor-icons/react";
 import { toast } from "sonner";
@@ -45,6 +45,7 @@ type EditSetSectionTypeFormProps = Pick<
   setIsExpanded: Dispatch<SetStateAction<boolean>>;
   isFirstSection: boolean;
   isLastSection: boolean;
+  onAddSongClick?: () => void;
 };
 
 export const EditSetSectionTypeForm: React.FC<EditSetSectionTypeFormProps> = ({
@@ -55,13 +56,11 @@ export const EditSetSectionTypeForm: React.FC<EditSetSectionTypeFormProps> = ({
   withActionsMenu,
   isFirstSection,
   isLastSection,
+  onAddSongClick,
 }) => {
   const { textSize } = useResponsive();
 
   const [isEditing, setIsEditing] = useState<boolean>(false);
-
-  const router = useRouter();
-  const searchParams = useSearchParams();
 
   const changeSetSectionTypeMutation = trpc.setSection.changeType.useMutation();
   const apiUtils = trpc.useUtils();
@@ -89,15 +88,6 @@ export const EditSetSectionTypeForm: React.FC<EditSetSectionTypeFormProps> = ({
   const { options: setSectionTypesOptions } = useSectionTypesOptions(
     userMembership.organizationId,
   );
-
-  const openAddSongDialogWithPrePopulatedSection = () => {
-    const params = new URLSearchParams(searchParams.toString());
-    // opens the SongSearchDialog component
-    params.set("addSongDialogOpen", "1");
-    params.set("setSectionId", section.id);
-
-    router.push(`?${params.toString()}`);
-  };
 
   const shouldUpdateSectionButtonBeDisabled =
     !isDirty || !isValid || isSubmitting;
@@ -172,12 +162,13 @@ export const EditSetSectionTypeForm: React.FC<EditSetSectionTypeFormProps> = ({
             </Button>
             <HStack className="flex items-center gap-1 md:gap-2">
               <Button
+                type="button"
                 size="sm"
                 variant="ghost"
                 onClick={(clickEvent) => {
                   clickEvent.preventDefault();
                   clickEvent.stopPropagation();
-                  openAddSongDialogWithPrePopulatedSection();
+                  onAddSongClick?.();
                 }}
               >
                 <Plus className="text-slate-900" size={16} />

@@ -163,11 +163,17 @@ export default function SetListPage({
     redirect(`/`);
   }
 
-  const openAddSongDialog = () => {
+  const openAddSongDialog = (
+    setSectionId?: ConfigureSongForSetProps["prePopulatedSetSectionId"],
+  ) => {
     const params = createURLSearchParams(searchParams);
     params.set("addSongDialogOpen", "1");
+    if (setSectionId) {
+      params.set("setSectionId", setSectionId);
+    }
     const queryString = params.toString();
     window.history.pushState(null, "", `?${queryString}`);
+    setPrePopulatedSetSectionId(setSectionId);
     setIsSongSearchDialogOpen(true);
   };
 
@@ -228,7 +234,10 @@ export default function SetListPage({
           />
           <HStack className="gap-2">
             {setData?.sections && setData.sections.length > 0 && (
-              <Button onClick={openAddSongDialog} className="hidden md:flex">
+              <Button
+                onClick={() => openAddSongDialog()}
+                className="hidden md:flex"
+              >
                 <Plus /> Add a song
               </Button>
             )}
@@ -251,7 +260,7 @@ export default function SetListPage({
           organizationId={userMembership.organizationId}
         />
         {setData?.sections && setData.sections.length > 0 && (
-          <Button onClick={openAddSongDialog} className="md:hidden">
+          <Button onClick={() => openAddSongDialog()} className="md:hidden">
             <Plus /> Add a song
           </Button>
         )}
@@ -283,6 +292,7 @@ export default function SetListPage({
                   setSectionsLength={setData.sections.length}
                   sectionStartIndex={sectionStartIndex}
                   withActionsMenu
+                  onAddSongClick={() => openAddSongDialog(section.id)}
                 />
               );
             })}
