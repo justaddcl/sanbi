@@ -11,6 +11,7 @@ This project is a Next.js web app (bootstrapped by the [T3 Stack](https://create
 
 ### Prerequisites
 
+- Use Node 24 LTS. The repo includes `.nvmrc` and `.node-version` for local version managers.
 - You will need Docker to run the postgres container for the database
 - You will also need the secrets for the `.env` and `.env.local` to set the variables for postgres, Clerk, and Sentry
 - If you have postgres already installed locally, it may conflict with the postgres Docker container. If you are seeing postgres errors while going through the steps below, you may need to remove your local installation of postgres to work with Sanbi. Local development with a postgres instance that is not run on a Docker container is not yet supported.
