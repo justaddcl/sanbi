@@ -196,49 +196,46 @@ export const DatePicker = <Mode extends CalendarMode = "single">({
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant={"outline"}
-          className={cn(
-            "justify-start text-left font-normal",
-            !date && "text-muted-foreground",
-          )}
-        >
-          <CalendarBlank className="mr-2 h-4 w-4" />
-          {alwaysShowPlaceholder ? (
-            <HStack className="items-center gap-1 text-slate-900">
-              <Text asElement="span" className="text-sm font-medium">
-                {placeholder ?? "Pick a date"}
-              </Text>
-              <CaretDown />
-            </HStack>
-          ) : (
-            getDatePickerLabel(placeholder, date, mode)
-          )}
-          {!alwaysShowPlaceholder && date && (
-            <span
-              role="button"
-              tabIndex={0}
-              aria-label="Clear date"
-              className="ml-auto inline-flex size-10 items-center justify-center rounded-md hover:bg-accent hover:text-accent-foreground"
-              onClick={(clickEvent) => {
-                clickEvent.preventDefault();
-                clickEvent.stopPropagation();
-                onDateChange(undefined);
-              }}
-              onKeyDown={(keyDownEvent) => {
-                if (keyDownEvent.key === "Enter" || keyDownEvent.key === " ") {
-                  keyDownEvent.preventDefault();
-                  keyDownEvent.stopPropagation();
-                  onDateChange(undefined);
-                }
-              }}
-            >
-              <X />
-            </span>
-          )}
-        </Button>
-      </PopoverTrigger>
+      <div className="relative inline-flex max-w-full">
+        <PopoverTrigger asChild>
+          <Button
+            variant={"outline"}
+            className={cn(
+              "justify-start text-left font-normal",
+              !alwaysShowPlaceholder && date && "pr-10",
+              !date && "text-muted-foreground",
+            )}
+          >
+            <CalendarBlank className="mr-2 h-4 w-4" />
+            {alwaysShowPlaceholder ? (
+              <HStack className="items-center gap-1 text-slate-900">
+                <Text asElement="span" className="text-sm font-medium">
+                  {placeholder ?? "Pick a date"}
+                </Text>
+                <CaretDown />
+              </HStack>
+            ) : (
+              getDatePickerLabel(placeholder, date, mode)
+            )}
+          </Button>
+        </PopoverTrigger>
+        {!alwaysShowPlaceholder && date && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            aria-label="Clear date"
+            className="absolute top-1/2 right-0 size-10 -translate-y-1/2"
+            onClick={(clickEvent) => {
+              clickEvent.preventDefault();
+              clickEvent.stopPropagation();
+              onDateChange(undefined);
+            }}
+          >
+            <X />
+          </Button>
+        )}
+      </div>
       <PopoverContent className="flex w-auto flex-col space-y-2 p-2">
         {!!presets && mode === "single" && (
           <Select

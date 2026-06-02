@@ -170,6 +170,8 @@ export default function SetListPage({
     params.set("addSongDialogOpen", "1");
     if (setSectionId) {
       params.set("setSectionId", setSectionId);
+    } else {
+      params.delete("setSectionId");
     }
     const queryString = params.toString();
     window.history.pushState(null, "", `?${queryString}`);
