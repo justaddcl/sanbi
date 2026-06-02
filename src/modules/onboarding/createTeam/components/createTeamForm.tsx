@@ -109,7 +109,7 @@ export const CreateTeamForm: React.FC = () => {
         onSubmit={createTeamForm.handleSubmit((formValues) =>
           handleCreateOrganizationMembershipSubmit(formValues),
         )}
-        className="m-auto flex max-w-md flex-col gap-4 rounded border border-slate-200 p-4 shadow"
+        className="m-auto flex max-w-md flex-col gap-4 rounded border border-slate-200 p-4 shadow-sm"
       >
         <FormField
           control={createTeamForm.control}

@@ -67,7 +67,6 @@ export const SetNotes: React.FC<SetNotesProps> = ({
               setNotes(changeEvent.target.value);
             }}
             className="px-2"
-            autoFocus
             onKeyDown={(keyDownEvent) => {
               if (keyDownEvent.key === "Escape") {
                 setIsEditingNotes(false);

@@ -333,13 +333,17 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
           <Button
             variant="outline"
             size="sm"
-            className="h-8 gap-1.5 rounded-full border-dashed text-muted-foreground hover:text-foreground"
+            className="text-muted-foreground hover:text-foreground h-8 gap-1.5 rounded-full border-dashed"
           >
             <Plus className="h-3.5 w-3.5" />
             Add Tag
           </Button>
         </DialogTrigger>
-        <DialogContent fixed className="py-6">
+        <DialogContent
+          fixed
+          className="py-6"
+          onOpenAutoFocus={(event) => event.preventDefault()}
+        >
           <DialogHeader align="left">
             <DialogTitle size="md" className="ml-4">
               Song tags
@@ -348,20 +352,20 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
           <VStack className="max-h-[400px]">
             <VStack className="gap-2">
               <HStack className="items-center rounded-md bg-slate-100 px-3 py-2">
-                <MagnifyingGlass className="mr-2 h-4 w-4 text-muted-foreground" />
+                <MagnifyingGlass className="text-muted-foreground mr-2 h-4 w-4" />
                 <input
                   ref={inputRef}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   onKeyDown={handleKeyDown}
                   placeholder="Search tags..."
-                  className="flex-1 border-0 bg-transparent text-sm outline-none placeholder:text-muted-foreground focus:outline-none focus:ring-0"
+                  className="placeholder:text-muted-foreground flex-1 border-0 bg-transparent text-base outline-hidden focus:ring-0 focus:outline-hidden md:text-sm"
                 />
                 {search && (
                   <button
                     type="button"
                     onClick={handleClearSearch}
-                    className="h-5 w-5 rounded-full text-muted-foreground transition-colors hover:text-foreground"
+                    className="text-muted-foreground hover:text-foreground h-5 w-5 rounded-full transition-colors"
                   >
                     <X className="h-4 w-4" />
                     <span className="sr-only">Clear search</span>
@@ -464,7 +468,7 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
         <Button
           variant="outline"
           size="sm"
-          className="h-8 gap-1.5 rounded-full border-dashed text-muted-foreground hover:text-foreground"
+          className="text-muted-foreground hover:text-foreground h-8 gap-1.5 rounded-full border-dashed"
         >
           <Plus className="h-3.5 w-3.5" />
           Add Tag
@@ -480,20 +484,20 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
       >
         <VStack className="h-[400px]">
           <HStack className="items-center border-b border-slate-300 px-3 py-2">
-            <MagnifyingGlass className="mr-2 h-4 w-4 text-muted-foreground" />
+            <MagnifyingGlass className="text-muted-foreground mr-2 h-4 w-4" />
             <input
               ref={inputRef}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Search tags..."
-              className="flex-1 border-0 bg-transparent text-sm outline-none placeholder:text-muted-foreground focus:outline-none focus:ring-0"
+              className="placeholder:text-muted-foreground flex-1 border-0 bg-transparent text-base outline-hidden focus:ring-0 focus:outline-hidden md:text-sm"
             />
             {search && (
               <button
                 type="button"
                 onClick={handleClearSearch}
-                className="h-5 w-5 rounded-full text-muted-foreground transition-colors hover:text-foreground"
+                className="text-muted-foreground hover:text-foreground h-5 w-5 rounded-full transition-colors"
               >
                 <X className="h-4 w-4" />
                 <span className="sr-only">Clear search</span>
@@ -502,6 +506,7 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
           </HStack>
 
           <VStack className="min-h-0 flex-1">
+            {/* TODO: Review whether suggested tags should be kept, removed, or reworked. */}
             {/* {showSuggestedTags && (
               <div className="mx-2 mb-1 mt-2 rounded-lg bg-secondary/25 px-3 py-3">
                 <div className="mb-2 flex items-center gap-2 text-xs font-medium">
@@ -612,7 +617,7 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
             )}
           </VStack>
 
-          <HStack className="flex-wrap items-center gap-x-6 gap-y-2 border-t border-slate-300 px-3 py-2 text-xs text-muted-foreground">
+          <HStack className="text-muted-foreground flex-wrap items-center gap-x-6 gap-y-2 border-t border-slate-300 px-3 py-2 text-xs">
             <KeyboardShortcut
               primaryKey={<ArrowUp className="h-3 w-3" />}
               secondaryKey={<ArrowDown className="h-3 w-3" />}

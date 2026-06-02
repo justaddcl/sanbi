@@ -54,6 +54,9 @@ type ActionMenuProps = PropsWithChildren & {
 
   /** Accessible label for the action menu trigger. */
   triggerLabel?: string;
+
+  /** Callback fired when the menu tries to restore focus after closing. */
+  onCloseAutoFocus?: DropdownMenuContentProps["onCloseAutoFocus"];
 };
 
 export const ActionMenu: React.FC<ActionMenuProps> = ({
@@ -63,6 +66,7 @@ export const ActionMenu: React.FC<ActionMenuProps> = ({
   side = "bottom",
   buttonVariant,
   triggerLabel = "Open actions menu",
+  onCloseAutoFocus,
   children,
 }) => {
   return (
@@ -77,7 +81,12 @@ export const ActionMenu: React.FC<ActionMenuProps> = ({
           <DotsThree className="text-slate-900" size={16} />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent avoidCollisions align={align} side={side}>
+      <DropdownMenuContent
+        avoidCollisions
+        align={align}
+        side={side}
+        onCloseAutoFocus={onCloseAutoFocus}
+      >
         {children}
       </DropdownMenuContent>
     </DropdownMenu>

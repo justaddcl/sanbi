@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { redirect } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
 import { CaretRight } from "@phosphor-icons/react/dist/ssr";
@@ -43,6 +43,7 @@ export const SongSearch: React.FC<SongSearchProps> = ({
   onSongSelect,
   searchPlaceholder = "Search for a song...",
 }) => {
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const defaultSearchQuery = "";
   const [searchInput, setSearchInput] = useState<string>(defaultSearchQuery);
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useDebounceValue(
@@ -75,6 +76,17 @@ export const SongSearch: React.FC<SongSearchProps> = ({
     },
   );
 
+  const canRenderSearchInput =
+    !!userData?.id && isAuthLoaded && !userQueryLoading;
+
+  useEffect(() => {
+    if (!canRenderSearchInput) {
+      return;
+    }
+
+    searchInputRef.current?.focus();
+  }, [canRenderSearchInput]);
+
   if (!userData?.id) {
     redirect("/");
   }
@@ -106,9 +118,11 @@ export const SongSearch: React.FC<SongSearchProps> = ({
   return (
     <>
       <CommandInput
+        ref={searchInputRef}
         placeholder={searchPlaceholder}
         value={searchInput}
         onValueChange={(newValue) => handleSearchInputChange(newValue)}
+        autoFocus
       />
       <CommandList>
         {songSearchLoading && (

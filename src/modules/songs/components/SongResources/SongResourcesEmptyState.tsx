@@ -12,15 +12,15 @@ type SongResourcesEmptyStateProps = {
 
 export const SongResourcesEmptyStateBackupArt = () => (
   <div className="relative h-24 w-32 shrink-0" aria-hidden>
-    <div className="absolute left-1 top-5 h-14 w-24 rotate-[-8deg] rounded border border-sky-200 bg-sky-50 shadow-sm">
+    <div className="absolute top-5 left-1 h-14 w-24 rotate-[-8deg] rounded border border-sky-200 bg-sky-50 shadow-xs">
       <div className="m-3 h-2 w-14 rounded bg-sky-300" />
       <div className="mx-3 mt-2 h-1.5 w-10 rounded bg-sky-200" />
     </div>
-    <div className="absolute left-5 top-2 h-16 w-24 rotate-[5deg] rounded border border-emerald-200 bg-emerald-50 shadow-sm">
-      <MusicNotes className="ml-4 mt-4 text-emerald-600" size={24} />
+    <div className="absolute top-2 left-5 h-16 w-24 rotate-[5deg] rounded border border-emerald-200 bg-emerald-50 shadow-xs">
+      <MusicNotes className="mt-4 ml-4 text-emerald-600" size={24} />
       <div className="mx-4 mt-3 h-1.5 w-12 rounded bg-emerald-200" />
     </div>
-    <div className="absolute bottom-1 right-1 grid size-12 place-items-center rounded-full border border-rose-200 bg-rose-50 shadow-sm">
+    <div className="absolute right-1 bottom-1 grid size-12 place-items-center rounded-full border border-rose-200 bg-rose-50 shadow-xs">
       <FileAudio className="text-rose-500" size={24} />
     </div>
   </div>
