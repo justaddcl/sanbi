@@ -35,13 +35,13 @@ The active ESLint config is `eslint.config.mjs`. It uses:
 | --- | --- | --- | --- | --- |
 | `eslint` | `9.39.1` | `10.4.1` | N/A | Target major for the future migration. Latest package lists `jiti` as a peer. |
 | `eslint-config-next` | `16.2.6` | `16.2.7` | Declares `eslint: >=9.0.0` | Top-level peer range allows ESLint 10, but its dependency chain still includes plugins that do not currently declare ESLint 10 support. |
-| `typescript-eslint` | `8.59.4` | `8.60.1` | Yes: `^8.57.0 || ^9.0.0 || ^10.0.0` | Likely compatible after upgrading to `8.60.1`. |
-| `@typescript-eslint/eslint-plugin` | `8.59.4` | `8.60.1` | Yes: `^8.57.0 || ^9.0.0 || ^10.0.0` | Keep aligned with `@typescript-eslint/parser` and `typescript-eslint`. |
-| `@typescript-eslint/parser` | `8.59.4` | `8.60.1` | Yes: `^8.57.0 || ^9.0.0 || ^10.0.0` | Keep aligned with `@typescript-eslint/eslint-plugin` and `typescript-eslint`. |
-| `@tanstack/eslint-plugin-query` | `5.100.14` | `5.101.0` | Yes: `^8.57.0 || ^9.0.0 || ^10.0.0` | Latest release declares ESLint 10 support. |
+| `typescript-eslint` | `8.59.4` | `8.60.1` | Yes: `^8.57.0 \|\| ^9.0.0 \|\| ^10.0.0` | Likely compatible after upgrading to `8.60.1`. |
+| `@typescript-eslint/eslint-plugin` | `8.59.4` | `8.60.1` | Yes: `^8.57.0 \|\| ^9.0.0 \|\| ^10.0.0` | Keep aligned with `@typescript-eslint/parser` and `typescript-eslint`. |
+| `@typescript-eslint/parser` | `8.59.4` | `8.60.1` | Yes: `^8.57.0 \|\| ^9.0.0 \|\| ^10.0.0` | Keep aligned with `@typescript-eslint/eslint-plugin` and `typescript-eslint`. |
+| `@tanstack/eslint-plugin-query` | `5.100.14` | `5.101.0` | Yes: `^8.57.0 \|\| ^9.0.0 \|\| ^10.0.0` | Latest release declares ESLint 10 support. |
 | `eslint-plugin-drizzle` | `0.2.3` | `0.2.3` | Likely: `>=8.0.0` | The broad range includes ESLint 10, but this should still be smoke-tested because the package has not had a newer release. |
-| `eslint-plugin-import` | `2.32.0` through `eslint-config-next` | `2.32.0` | No: `^2 || ^3 || ^4 || ^5 || ^6 || ^7.2.0 || ^8 || ^9` | Main blocker. Sanbi also registers this plugin directly in `eslint.config.mjs`, but it is supplied transitively by `eslint-config-next`. |
-| `eslint-plugin-react-hooks` | `7.1.1` through `eslint-config-next` | `7.1.1` | Yes: `^3.0.0 || ^4.0.0 || ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0-0 || ^9.0.0 || ^10.0.0` | Compatible with ESLint 10 by declared peer range. |
+| `eslint-plugin-import` | `2.32.0` through `eslint-config-next` | `2.32.0` | No: `^2 \|\| ^3 \|\| ^4 \|\| ^5 \|\| ^6 \|\| ^7.2.0 \|\| ^8 \|\| ^9` | Main blocker. Sanbi also registers this plugin directly in `eslint.config.mjs`, but it is supplied transitively by `eslint-config-next`. |
+| `eslint-plugin-react-hooks` | `7.1.1` through `eslint-config-next` | `7.1.1` | Yes: `^3.0.0 \|\| ^4.0.0 \|\| ^5.0.0 \|\| ^6.0.0 \|\| ^7.0.0 \|\| ^8.0.0-0 \|\| ^9.0.0 \|\| ^10.0.0` | Compatible with ESLint 10 by declared peer range. |
 | `eslint-plugin-simple-import-sort` | `13.0.0` | `13.0.0` | Likely: `>=5.0.0` | Broad peer range includes ESLint 10. Smoke-test during migration. |
 | `@types/eslint` | `9.6.1` | `9.6.1` | N/A | Type package has no ESLint peer dependency. Re-check during migration for an ESLint 10 type package or built-in type changes. |
 
@@ -61,14 +61,14 @@ Recommended path:
 2. Track `eslint-plugin-import`, `eslint-plugin-react`, `eslint-plugin-jsx-a11y`, and `eslint-config-next` for peer updates that explicitly support ESLint 10.
 3. When those peers are ready, upgrade the lint stack together:
    - `eslint@10.4.1` or newer
-   - `eslint-config-next@16.2.7` or newer
+   - A future `eslint-config-next` version that resolves the transitive blockers; `16.2.7` is not sufficient for ESLint 10
    - `typescript-eslint@8.60.1` or newer
    - `@typescript-eslint/eslint-plugin@8.60.1` or newer
    - `@typescript-eslint/parser@8.60.1` or newer
    - `@tanstack/eslint-plugin-query@5.101.0` or newer
-   - `eslint-plugin-react-hooks@7.1.1` or newer
    - `eslint-plugin-simple-import-sort@13.0.0` or newer
    - `eslint-plugin-drizzle@0.2.3` or newer
+   - Transitive Next lint plugins such as `eslint-plugin-react-hooks`, `eslint-plugin-react`, and `eslint-plugin-jsx-a11y` through the compatible `eslint-config-next` release
 4. Run `pnpm lint` and address only migration-related lint or type fallout.
 
 If the ESLint 10 migration must proceed before `eslint-plugin-import` declares support, evaluate `eslint-plugin-import-x@4.16.2`, which currently declares `eslint: ^8.57.0 || ^9.0.0 || ^10.0.0`. This is not a drop-in decision for Sanbi because `eslint-config-next` still depends on `eslint-plugin-import`, so it would require validating how Next's config behaves with the replacement or waiting for Next to change its dependency chain.
