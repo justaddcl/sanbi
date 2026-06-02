@@ -86,6 +86,7 @@ export const SongSearchDialog: React.FC<SongSearchDialogProps> = ({
 
   return (
     <CommandDialog
+      dialogTitle="Search songs"
       open={open}
       onOpenChange={(open) => {
         setOpen(open);

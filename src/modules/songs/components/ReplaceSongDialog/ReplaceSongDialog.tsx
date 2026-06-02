@@ -72,7 +72,11 @@ export const ReplaceSongDialog: React.FC<ReplaceSongDialogProps> = ({
 
   if (!isAuthLoaded || userQueryLoading) {
     return (
-      <CommandDialog open={open} onOpenChange={setOpen}>
+      <CommandDialog
+        dialogTitle="Replace song"
+        open={open}
+        onOpenChange={setOpen}
+      >
         <HStack className="items-center justify-center p-4">
           <Text>Loading...</Text>
         </HStack>
@@ -127,6 +131,7 @@ export const ReplaceSongDialog: React.FC<ReplaceSongDialogProps> = ({
 
   return (
     <CommandDialog
+      dialogTitle="Replace song"
       open={open}
       onOpenChange={(open) => {
         setOpen(open);

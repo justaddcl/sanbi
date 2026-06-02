@@ -30,6 +30,7 @@ const Command = React.forwardRef<
 Command.displayName = CommandPrimitive.displayName;
 
 type CommandDialogProps = DialogProps & {
+  dialogTitle: React.ReactNode;
   fixed?: boolean;
   loop?: boolean;
   shouldFilter?: boolean;
@@ -41,6 +42,7 @@ type CommandDialogProps = DialogProps & {
 };
 const CommandDialog: React.FC<CommandDialogProps> = ({
   children,
+  dialogTitle,
   fixed = false,
   loop = true,
   shouldFilter,
@@ -96,6 +98,7 @@ const CommandDialog: React.FC<CommandDialogProps> = ({
           [hasDialogContentComponentStyling && !minimalPadding && "p-6"],
           {
             "translate-y-0": fixed,
+            // Fixed command dialogs intentionally keep 12 px of breathing room on each mobile edge.
             "w-[calc(100%_-_24px)]": fixed,
             "mt-3": fixed,
             "top-0": fixed,
@@ -115,7 +118,7 @@ const CommandDialog: React.FC<CommandDialogProps> = ({
         }}
       >
         <VisuallyHidden.Root>
-          <DialogTitle>Search songs</DialogTitle>
+          <DialogTitle>{dialogTitle}</DialogTitle>
         </VisuallyHidden.Root>
         <Command
           loop={loop}

@@ -128,6 +128,7 @@ export const DatePicker = <Mode extends CalendarMode = "single">({
   ...props
 }: DatePickerProps<Mode>) => {
   const [open, setOpen] = React.useState(false);
+  const triggerRef = React.useRef<HTMLButtonElement>(null);
   const [viewMonth, setViewMonth] = React.useState<Date>(() => {
     if (!initialDate) {
       return new Date();
@@ -199,6 +200,8 @@ export const DatePicker = <Mode extends CalendarMode = "single">({
       <div className="relative inline-flex max-w-full">
         <PopoverTrigger asChild>
           <Button
+            ref={triggerRef}
+            type="button"
             variant={"outline"}
             className={cn(
               "justify-start text-left font-normal",
@@ -227,9 +230,15 @@ export const DatePicker = <Mode extends CalendarMode = "single">({
             aria-label="Clear date"
             className="absolute top-1/2 right-0 size-10 -translate-y-1/2"
             onClick={(clickEvent) => {
+              const wasOpen = open;
               clickEvent.preventDefault();
               clickEvent.stopPropagation();
               onDateChange(undefined);
+              if (!wasOpen) {
+                queueMicrotask(() => {
+                  triggerRef.current?.focus();
+                });
+              }
             }}
           >
             <X />
