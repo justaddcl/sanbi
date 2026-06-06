@@ -28,17 +28,18 @@ const FormExample: React.FC<{ withError?: boolean }> = ({
       notes: "Capo 2. Repeat the bridge after the second chorus.",
     },
   });
+  const { setError } = form;
 
   useEffect(() => {
     if (!withError) {
       return;
     }
 
-    form.setError("title", {
+    setError("title", {
       type: "manual",
       message: "Title is required",
     });
-  }, [form, withError]);
+  }, [setError, withError]);
 
   return (
     <Form {...form}>

@@ -1,12 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 
 import { PageContentContainer } from "./PageContentContainer";
-
-const SampleBlock = ({ label }: { label: string }) => (
-  <div className="rounded border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-700">
-    {label}
-  </div>
-);
+import { SampleBlock } from "../../../.storybook/story-helpers";
 
 const meta = {
   title: "Base Components/Page Content Container",

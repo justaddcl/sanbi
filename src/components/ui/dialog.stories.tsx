@@ -22,7 +22,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Open: Story = {
   render: () => (
-    <Dialog open>
+    <Dialog defaultOpen>
       <DialogTrigger asChild>
         <Button>Open dialog</Button>
       </DialogTrigger>

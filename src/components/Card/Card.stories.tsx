@@ -29,6 +29,7 @@ const CardActionMenu = () => {
 
 const meta = {
   title: "Base Components/Card Surfaces",
+  component: Card,
   decorators: [
     (Story) => (
       <div className="max-w-2xl">
@@ -40,7 +41,7 @@ const meta = {
 
 export default meta;
 
-type Story = StoryObj<typeof meta>;
+type Story = StoryObj;
 
 export const Basic: Story = {
   render: () => (

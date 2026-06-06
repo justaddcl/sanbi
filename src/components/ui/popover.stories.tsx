@@ -14,7 +14,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Open: Story = {
   render: () => (
-    <Popover open>
+    <Popover defaultOpen>
       <PopoverTrigger asChild>
         <Button variant="outline">Section options</Button>
       </PopoverTrigger>

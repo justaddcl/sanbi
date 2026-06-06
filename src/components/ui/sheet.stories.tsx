@@ -22,7 +22,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Open: Story = {
   render: () => (
-    <Sheet open>
+    <Sheet defaultOpen>
       <SheetTrigger asChild>
         <Button>Open sheet</Button>
       </SheetTrigger>

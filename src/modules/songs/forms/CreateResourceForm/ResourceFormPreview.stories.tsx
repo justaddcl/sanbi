@@ -1,7 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 
 import { ResourceFormPreview } from "./ResourceFormPreview";
-import { ResourceFormPreviewSkeleton } from "./ResourceFormPreviewSkeleton";
 
 const meta = {
   title: "Resources/Resource Form Preview",
@@ -64,5 +63,4 @@ export const Loading: Story = {
     url: "https://example.com/loading",
     isLoading: true,
   },
-  render: () => <ResourceFormPreviewSkeleton />,
 };

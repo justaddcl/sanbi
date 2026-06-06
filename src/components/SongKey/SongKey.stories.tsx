@@ -16,6 +16,8 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
+export const Default: Story = {};
+
 export const Sizes: Story = {
   render: () => (
     <div className="flex items-center gap-3">
