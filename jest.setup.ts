@@ -10,14 +10,12 @@ if (!globalThis.TransformStream) {
   });
 }
 
-if (!globalThis.fetch) {
-  const fetchMock = jest.fn(() =>
-    Promise.reject(new Error("Unexpected fetch call in test")),
-  );
+const fetchMock = jest.fn(() =>
+  Promise.reject(new Error("Unexpected fetch call in test")),
+);
 
-  Object.defineProperty(globalThis, "fetch", {
-    configurable: true,
-    value: fetchMock,
-    writable: true,
-  });
-}
+Object.defineProperty(globalThis, "fetch", {
+  configurable: true,
+  value: fetchMock,
+  writable: true,
+});
