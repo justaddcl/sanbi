@@ -57,4 +57,4 @@ jobs:
           storybookBuildDir: storybook-static
           onlyChanged: true
           exitZeroOnChanges: ${{ github.event_name == 'pull_request' }}
-          autoAcceptChanges: ${{ github.event_name == 'pull_request' && github.head_ref || 'main' }}
+          autoAcceptChanges: main
