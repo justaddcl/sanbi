@@ -41,6 +41,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Build Storybook
+        run: pnpm build-storybook --output-dir=storybook-static
+        env:
+          SKIP_ENV_VALIDATION: "1"
+
       - name: Publish Storybook to Chromatic
         uses: chromaui/action@v17
         with:
@@ -49,7 +54,7 @@ jobs:
           branchName: ${{ github.event.pull_request.head.ref || github.ref_name }}
           chromaticSha: ${{ github.event.pull_request.head.sha || github.sha }}
           repositorySlug: ${{ github.repository }}
-          buildScriptName: build-storybook
+          storybookBuildDir: storybook-static
           onlyChanged: true
-          exitZeroOnChanges: false
-          autoAcceptChanges: main
+          exitZeroOnChanges: ${{ github.event_name == 'pull_request' }}
+          autoAcceptChanges: ${{ github.event_name == 'pull_request' && github.head_ref || 'main' }}
