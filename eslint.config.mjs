@@ -15,6 +15,7 @@ export default [
       "coverage/**",
       "node_modules/**",
       "next-env.d.ts",
+      "storybook-static/**",
     ],
   },
   ...nextVitals,
