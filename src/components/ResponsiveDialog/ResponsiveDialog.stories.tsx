@@ -18,12 +18,9 @@ import {
 
 type ResponsiveMode = "desktop" | "mobile";
 
-const setResponsiveMode = (mode: ResponsiveMode) => {
-  if (typeof window === "undefined") {
-    return;
-  }
-
-  window.matchMedia = (query: string): MediaQueryList => {
+const createResponsiveMatchMedia =
+  (mode: ResponsiveMode) =>
+  (query: string): MediaQueryList => {
     const matches =
       mode === "desktop"
         ? query === DESKTOP_MEDIA_QUERY_STRING
@@ -40,11 +37,22 @@ const setResponsiveMode = (mode: ResponsiveMode) => {
       dispatchEvent: () => true,
     };
   };
+
+const withResponsiveMode = (mode: ResponsiveMode) => () => {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  const originalMatchMedia = window.matchMedia;
+
+  window.matchMedia = createResponsiveMatchMedia(mode);
+
+  return () => {
+    window.matchMedia = originalMatchMedia;
+  };
 };
 
-const ResponsiveDialogExample = ({ mode }: { mode: ResponsiveMode }) => {
-  setResponsiveMode(mode);
-
+const ResponsiveDialogExample = () => {
   return (
     <ResponsiveDialog open>
       <ResponsiveDialogTrigger asChild>
@@ -78,9 +86,11 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const DesktopDialog: Story = {
-  render: () => <ResponsiveDialogExample mode="desktop" />,
+  beforeEach: withResponsiveMode("desktop"),
+  render: () => <ResponsiveDialogExample />,
 };
 
 export const MobileDrawer: Story = {
-  render: () => <ResponsiveDialogExample mode="mobile" />,
+  beforeEach: withResponsiveMode("mobile"),
+  render: () => <ResponsiveDialogExample />,
 };
