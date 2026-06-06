@@ -6,8 +6,24 @@ Storybook is Sanbi's isolated component workbench for shared UI primitives and v
 
 - `pnpm storybook` starts the local Storybook dev server on port 6006.
 - `pnpm build-storybook` builds the static Storybook bundle into `storybook-static/`.
+- `pnpm chromatic` publishes Storybook to Chromatic and requires `CHROMATIC_PROJECT_TOKEN` in the environment.
 
 Keep stories light-mode only until Sanbi has an official dark-mode design system.
+
+## Chromatic Visual Review
+
+Chromatic publishes the Storybook from `.github/workflows/chromatic.yml`. The workflow runs on same-repository pull requests for visual review and on pushes to `main` for baseline maintenance. Pull requests receive the Chromatic status, UI Tests result, and visual review links from the pushed head commit.
+
+Configure the project token as a GitHub Actions repository secret named `CHROMATIC_PROJECT_TOKEN`. Do not commit the token to env files, workflow files, package scripts, or documentation examples.
+
+Forked pull requests do not run Chromatic because GitHub does not expose repository secrets to fork workflows. Ask a maintainer to push the branch into this repository if a forked change needs visual review.
+
+Baseline policy:
+
+- `main` is the only branch that auto-accepts incoming snapshots. The workflow sets `autoAcceptChanges: main` so merged UI changes become the main baseline after the main build completes.
+- Feature branches and pull requests require review in Chromatic. Accept intentional visual changes in Chromatic; reject unintended changes, fix the component or story, and push again.
+- The workflow fails on unaccepted visual changes with `exitZeroOnChanges: false`, so a PR should not merge until Chromatic is accepted or the visual regression is fixed.
+- Dark-mode baselines are intentionally out of scope. `.storybook/preview.tsx` removes the `dark` class and uses the light background for all stories until Sanbi has an official dark-mode design system.
 
 ## Coverage Guidelines
 
