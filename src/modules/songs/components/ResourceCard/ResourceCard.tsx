@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import * as Sentry from "@sentry/nextjs";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -17,11 +16,7 @@ import {
 } from "@components/ui/alert-dialog";
 import { Button } from "@components/ui/button";
 import { Checkbox } from "@components/ui/checkbox";
-import { DropdownMenuSeparator } from "@components/ui/dropdown-menu";
 import { Label } from "@components/ui/label";
-import { ActionMenu, ActionMenuItem } from "@components/ActionMenu";
-import { Text } from "@components/Text";
-import { getDisplayUrl } from "@modules/songs/utils/getDisplayUrl";
 import { getResourceDisplayTitle } from "@modules/songs/utils/getResourceDisplayTitle";
 import {
   getErrorNameForTelemetry,
@@ -30,7 +25,7 @@ import {
 import { orpc } from "@lib/orpc/client";
 import { type Resource } from "@lib/types";
 
-import { ResourceCardImage } from "../ResourceCardImage";
+import { ResourceCardDisplay } from "./ResourceCardDisplay";
 
 export type ResourceCardProps = {
   resource: Resource;
@@ -160,61 +155,24 @@ export const ResourceCard: React.FC<ResourceCardProps> = ({
 
   return (
     <>
-      <li className="relative">
-        <Link
-          href={url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="focus-visible:ring-ring grid h-full grid-cols-[48px_1fr] items-center gap-2 rounded bg-slate-50 px-3 py-2 pr-14 transition-colors hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
-        >
-          <ResourceCardImage resource={resource} />
-          <div className="flex min-w-0 flex-col gap-1 px-2 py-1">
-            <Text className="truncate text-base leading-4 font-semibold text-slate-900">
-              {displayTitle}
-            </Text>
-            <Text className="truncate text-xs text-slate-400">
-              {getDisplayUrl(url, {
-                onParseError: (error) => {
-                  Sentry.captureMessage("Failed to parse resource URL", {
-                    level: "warning",
-                    extra: {
-                      url: sanitizeResourceUrlForTelemetry(url),
-                      error: getErrorNameForTelemetry(error),
-                    },
-                  });
-                },
-              })}
-            </Text>
-          </div>
-        </Link>
-        <div className="absolute top-1/2 right-2 z-10 -translate-y-1/2">
-          <ActionMenu
-            isOpen={isActionMenuOpen}
-            setIsOpen={setIsActionMenuOpen}
-            buttonVariant="ghost"
-            triggerLabel={`Open actions for ${displayTitle}`}
-          >
-            <ActionMenuItem
-              icon="Pencil"
-              label="Edit resource"
-              onClick={handleEditResource}
-            />
-            <ActionMenuItem
-              icon="ArrowClockwise"
-              label="Refresh preview"
-              disabled={refreshMetadataMutation.isPending}
-              onClick={refreshResourceMetadata}
-            />
-            <DropdownMenuSeparator />
-            <ActionMenuItem
-              icon="LinkBreak"
-              label="Unlink resource"
-              destructive
-              onClick={handleDeleteResource}
-            />
-          </ActionMenu>
-        </div>
-      </li>
+      <ResourceCardDisplay
+        resource={resource}
+        isActionMenuOpen={isActionMenuOpen}
+        setIsActionMenuOpen={setIsActionMenuOpen}
+        isRefreshPending={refreshMetadataMutation.isPending}
+        onEdit={handleEditResource}
+        onRefreshPreview={refreshResourceMetadata}
+        onUnlink={handleDeleteResource}
+        onDisplayUrlParseError={(error) => {
+          Sentry.captureMessage("Failed to parse resource URL", {
+            level: "warning",
+            extra: {
+              url: sanitizeResourceUrlForTelemetry(url),
+              error: getErrorNameForTelemetry(error),
+            },
+          });
+        }}
+      />
       <AlertDialog
         open={isConfirmationDialogOpen}
         onOpenChange={(isOpen) => {
