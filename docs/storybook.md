@@ -22,7 +22,7 @@ Baseline policy:
 
 - `main` is the only branch that auto-accepts incoming snapshots. The workflow sets `autoAcceptChanges: main` so merged UI changes become the main baseline after the main build completes.
 - Feature branches and pull requests require review in Chromatic. Accept intentional visual changes in Chromatic; reject unintended changes, fix the component or story, and push again.
-- The workflow fails on unaccepted visual changes with `exitZeroOnChanges: false`, so a PR should not merge until Chromatic is accepted or the visual regression is fixed.
+- The workflow exits after upload with `exitOnceUploaded: true` because Chromatic reports visual review through its own GitHub statuses. A PR should not merge until the Chromatic UI Tests status is accepted or the visual regression is fixed.
 - Dark-mode baselines are intentionally out of scope. `.storybook/preview.tsx` removes the `dark` class and uses the light background for all stories until Sanbi has an official dark-mode design system.
 
 ## Coverage Guidelines
