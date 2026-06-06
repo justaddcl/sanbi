@@ -42,7 +42,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build Storybook
-        run: pnpm build-storybook --output-dir=storybook-static
+        run: pnpm build-storybook --output-dir=storybook-static --webpack-stats-json
         env:
           SKIP_ENV_VALIDATION: "1"
 
