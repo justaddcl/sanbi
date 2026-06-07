@@ -1,4 +1,3 @@
-import { HStack } from "@components/HStack";
 import { Text } from "@components/Text";
 import { VStack } from "@components/VStack";
 import { cn } from "@lib/utils";
@@ -45,7 +44,7 @@ export const PageTitle: React.FC<PageTitleProps> = ({
         </Text>
       )}
       {details && (
-        <Text asElement="h3" style="header-small" className="text-slate-500">
+        <Text asElement="p" style="header-small" className="text-slate-500">
           {details}
         </Text>
       )}

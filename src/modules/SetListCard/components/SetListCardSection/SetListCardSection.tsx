@@ -10,8 +10,8 @@ export const SetListCardSection: React.FC<
   return (
     <section>
       <Text
-        asElement="h4"
-        className="mb-2 text-sm font-medium uppercase text-slate-500"
+        asElement="h3"
+        className="mb-2 text-sm font-medium text-slate-500 uppercase"
       >
         {title}
       </Text>
