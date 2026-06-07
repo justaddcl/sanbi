@@ -1,14 +1,20 @@
 import { expect, test } from "@playwright/test";
 import { e2eData, e2eIds } from "@testUtils/e2e/fixtures";
 
+import { formatDate } from "@lib/date";
+
 import { expectNoA11yViolations } from "../a11y";
 
 test("set detail renders seeded sections, songs, and notes", async ({
   page,
 }) => {
+  const expectedSetHeading = formatDate(e2eData.set.date, { month: "long" });
+
   await page.goto(`/${e2eIds.organizationId}/sets/${e2eIds.setId}`);
 
-  await expect(page.getByRole("heading", { name: "June 06" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: expectedSetHeading }),
+  ).toBeVisible();
   await expect(
     page.getByRole("heading", { name: e2eData.eventType.name }),
   ).toBeVisible();

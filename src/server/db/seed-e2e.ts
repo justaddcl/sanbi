@@ -223,11 +223,11 @@ const isDirectRun =
 
 if (isDirectRun) {
   seedE2eDatabase()
+    .then(() => {
+      process.exit(0);
+    })
     .catch((error) => {
       console.error("E2E database seed failed.", error);
       process.exit(1);
-    })
-    .finally(() => {
-      process.exit(0);
     });
 }

@@ -38,7 +38,9 @@ test("create-song workflow creates a song and opens its detail page", async ({
   });
   await dialog.getByRole("button", { name: "Create song" }).click();
 
-  await expect(page).toHaveURL(new RegExp(`/${e2eIds.organizationId}/songs/`));
+  await expect
+    .poll(() => page.url())
+    .toContain(`/${e2eIds.organizationId}/songs/`);
   await expect(page.getByRole("heading", { name: songName })).toBeVisible();
   await expect(
     page.getByRole("button", {
