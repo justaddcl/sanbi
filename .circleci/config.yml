@@ -50,8 +50,40 @@ jobs:
           command: |
             pnpm test
 
+  e2e_test:
+    docker:
+      - image: node:24.1.0
+        environment:
+          DATABASE_URL: postgresql://sanbi@localhost:5432/sanbi_e2e
+          POSTGRES_URL: postgresql://sanbi@localhost:5432/sanbi_e2e
+          SANBI_E2E: "1"
+      - image: cimg/postgres:16.4
+        environment:
+          POSTGRES_DB: sanbi_e2e
+          POSTGRES_USER: sanbi
+          POSTGRES_HOST_AUTH_METHOD: trust
+    steps:
+      - setup
+      - run:
+          name: Install Playwright browsers
+          command: |
+            pnpm exec playwright install --with-deps chromium webkit
+      - run:
+          name: Push E2E schema
+          command: |
+            pnpm db:push
+      - run:
+          name: Run E2E tests
+          command: |
+            pnpm test:e2e:ci
+      - store_artifacts:
+          path: playwright-report
+      - store_artifacts:
+          path: test-results
+
 workflows:
   validation:
     jobs:
       - lint
       - unit_test
+      - e2e_test
