@@ -4,7 +4,8 @@ const e2ePort = Number(process.env.E2E_PORT ?? 3100);
 const baseURL =
   process.env.PLAYWRIGHT_BASE_URL ?? `http://localhost:${e2ePort}`;
 const webServerURL = new URL("/api/e2e/health", baseURL).toString();
-const authFile = "playwright/.clerk/user.json";
+const chromiumAuthFile = "playwright/.clerk/chromium-user.json";
+const webkitAuthFile = "playwright/.clerk/webkit-user.json";
 const shouldStartWebServer = process.env.PLAYWRIGHT_SKIP_WEB_SERVER !== "1";
 
 // Project names are report labels. These matchers map spec file suffixes
@@ -40,8 +41,24 @@ export default defineConfig({
     : undefined,
   projects: [
     {
-      name: "setup",
-      testMatch: /global\.setup\.ts/,
+      name: "setup-db",
+      testMatch: /db\.setup\.ts/,
+    },
+    {
+      name: "setup-auth-chromium",
+      testMatch: /auth\.setup\.ts/,
+      use: {
+        ...desktopChromium,
+      },
+      dependencies: ["setup-db"],
+    },
+    {
+      name: "setup-auth-webkit",
+      testMatch: /auth\.setup\.ts/,
+      use: {
+        ...mobileSafari,
+      },
+      dependencies: ["setup-db"],
     },
     {
       name: "unauthenticated-desktop-chromium",
@@ -49,7 +66,7 @@ export default defineConfig({
       use: {
         ...desktopChromium,
       },
-      dependencies: ["setup"],
+      dependencies: ["setup-db"],
     },
     {
       name: "unauthenticated-iphone-se-webkit",
@@ -57,25 +74,25 @@ export default defineConfig({
       use: {
         ...mobileSafari,
       },
-      dependencies: ["setup"],
+      dependencies: ["setup-db"],
     },
     {
       name: "authenticated-desktop-chromium",
       testMatch: authenticatedSpecFiles,
       use: {
         ...desktopChromium,
-        storageState: authFile,
+        storageState: chromiumAuthFile,
       },
-      dependencies: ["setup"],
+      dependencies: ["setup-auth-chromium"],
     },
     {
       name: "authenticated-iphone-se-webkit",
       testMatch: authenticatedSpecFiles,
       use: {
         ...mobileSafari,
-        storageState: authFile,
+        storageState: webkitAuthFile,
       },
-      dependencies: ["setup"],
+      dependencies: ["setup-auth-webkit"],
     },
   ],
 });

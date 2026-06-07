@@ -4,26 +4,26 @@ import { e2eIds } from "@testUtils/e2e/fixtures";
 import { mkdir } from "node:fs/promises";
 import path from "node:path";
 
-import { seedE2eDatabase } from "@server/db/seed-e2e";
-
-const authFile = path.join(process.cwd(), "playwright/.clerk/user.json");
-
-setup.describe.configure({ mode: "serial" });
-
-setup("seed e2e database", async () => {
-  await seedE2eDatabase();
-});
+const authFileForProject = (projectName: string) =>
+  path.join(
+    process.cwd(),
+    projectName.includes("webkit")
+      ? "playwright/.clerk/webkit-user.json"
+      : "playwright/.clerk/chromium-user.json",
+  );
 
 setup("configure clerk testing", async () => {
   await clerkSetup();
 });
 
-setup("authenticate and save clerk state", async ({ page }) => {
+setup("authenticate and save clerk state", async ({ page }, testInfo) => {
   const e2eUserEmail = process.env.E2E_CLERK_USER_EMAIL;
 
   if (!e2eUserEmail) {
     throw new Error("E2E_CLERK_USER_EMAIL is required for Playwright auth.");
   }
+
+  const authFile = authFileForProject(testInfo.project.name);
 
   await mkdir(path.dirname(authFile), { recursive: true });
 
