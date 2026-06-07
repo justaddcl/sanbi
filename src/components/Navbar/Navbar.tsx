@@ -32,6 +32,7 @@ export const Navbar: React.FC = () => {
                   variant="outline"
                   size="icon"
                   className="rounded border-slate-200"
+                  aria-label="Open mobile navigation"
                 >
                   <Sidebar size={16} />
                 </Button>

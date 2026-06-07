@@ -50,8 +50,70 @@ jobs:
           command: |
             pnpm test
 
+  # Playwright browser tests require Clerk project secrets to run:
+  # CLERK_PUBLISHABLE_KEY, CLERK_SECRET_KEY, E2E_CLERK_USER_EMAIL,
+  # E2E_CLERK_USER_ID, and NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY.
+  # See docs/e2e.md for setup details.
+  e2e_test:
+    docker:
+      - image: node:24.1.0
+        environment:
+          DATABASE_URL: postgresql://sanbi@localhost:5432/sanbi_e2e
+          POSTGRES_URL: postgresql://sanbi@localhost:5432/sanbi_e2e
+          SANBI_E2E: "1"
+      - image: cimg/postgres:16.4
+        environment:
+          POSTGRES_DB: sanbi_e2e
+          POSTGRES_USER: sanbi
+          POSTGRES_HOST_AUTH_METHOD: trust
+    steps:
+      - setup
+      - run:
+          name: Install Playwright browsers
+          command: |
+            pnpm exec playwright install --with-deps chromium webkit
+      - run:
+          name: Wait for Postgres
+          command: |
+            for _ in {1..30}; do
+              if timeout 1 bash -c "</dev/tcp/localhost/5432" >/dev/null 2>&1; then
+                exit 0
+              fi
+
+              echo "Waiting for Postgres..."
+              sleep 1
+            done
+
+            echo "Timed out waiting for Postgres"
+            exit 1
+      - run:
+          name: Push E2E schema
+          command: |
+            DATABASE_URL=postgresql://sanbi@localhost:5432/sanbi_e2e POSTGRES_URL=postgresql://sanbi@localhost:5432/sanbi_e2e pnpm db:push
+      - run:
+          name: Run E2E tests
+          command: |
+            missing_e2e_env=""
+            for env_var in CLERK_PUBLISHABLE_KEY CLERK_SECRET_KEY E2E_CLERK_USER_EMAIL E2E_CLERK_USER_ID NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY; do
+              if [ -z "${!env_var}" ]; then
+                missing_e2e_env="$missing_e2e_env $env_var"
+              fi
+            done
+
+            if [ -n "$missing_e2e_env" ]; then
+              echo "Playwright E2E tests cannot run because required Clerk environment variables are not configured:$missing_e2e_env"
+              exit 1
+            fi
+
+            DATABASE_URL=postgresql://sanbi@localhost:5432/sanbi_e2e POSTGRES_URL=postgresql://sanbi@localhost:5432/sanbi_e2e pnpm test:e2e:ci
+      - store_artifacts:
+          path: playwright-report
+      - store_artifacts:
+          path: test-results
+
 workflows:
   validation:
     jobs:
       - lint
       - unit_test
+      - e2e_test

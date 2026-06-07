@@ -58,7 +58,7 @@ export default async function Dashboard({
         details={`${organizationSets.length} ${pluralize(organizationSets.length, { singular: "set", plural: "sets" })}`}
       />
       <section className="flex justify-between py-2">
-        <select>
+        <select aria-label="Filter sets by date range">
           <option value="This week">This week</option>
         </select>
         <a className="text-xs text-slate-900">See all</a>

@@ -13,11 +13,7 @@
     "noUncheckedIndexedAccess": true,
     "checkJs": true,
     /* Bundled projects */
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "ES2023"
-    ],
+    "lib": ["dom", "dom.iterable", "ES2023"],
     "noEmit": true,
     "module": "ESNext",
     "moduleResolution": "Bundler",
@@ -69,6 +65,8 @@
   "exclude": [
     "node_modules",
     "./coverage/",
+    "./playwright-report/",
+    "./test-results/",
     "./storybook-static/"
   ]
 }
