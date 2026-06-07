@@ -68,14 +68,13 @@ The seed creates a placeholder `Stoneway` organization for the current `/` route
 Playwright project names describe the test runner group:
 
 - `setup-db`: seeds the database once before browser tests run.
-- `setup-auth-chromium`: stores Clerk auth state for desktop Chromium tests.
-- `setup-auth-webkit`: stores Clerk auth state for iPhone SE WebKit tests.
+- `setup-auth-chromium`: stores Clerk auth state for authenticated Chromium tests.
 - `unauthenticated-desktop-chromium`: verifies signed-out desktop behavior, including the temporary `/` route.
 - `unauthenticated-iphone-se-webkit`: verifies signed-out iPhone SE behavior, including the temporary `/` route.
 - `authenticated-desktop-chromium`: runs signed-in desktop app workflow tests.
-- `authenticated-iphone-se-webkit`: runs signed-in iPhone SE app workflow tests.
+- `authenticated-mobile-chromium`: runs signed-in mobile viewport app workflow tests.
 
-Project names do not need to match filenames. Spec files are mapped to projects by `testMatch` in `playwright.config.ts`: `db.setup.ts` seeds the database, `auth.setup.ts` creates browser-specific Clerk storage state, files ending in `.unauthenticated.spec.ts` run in both unauthenticated projects, and files ending in `.authenticated.spec.ts` run in both authenticated projects. Organize spec files by product area or workflow, while keeping the suffix that maps to the right Playwright project. For example, use `tests/e2e/sets/set-detail.authenticated.spec.ts` for authenticated set detail coverage and `tests/e2e/songs/create-song.authenticated.spec.ts` for the create-song workflow.
+Project names do not need to match filenames. Spec files are mapped to projects by `testMatch` in `playwright.config.ts`: `db.setup.ts` seeds the database, `auth.setup.ts` creates the Clerk storage state, files ending in `.unauthenticated.spec.ts` run in both unauthenticated projects, and files ending in `.authenticated.spec.ts` run in both authenticated projects. Authenticated mobile coverage uses a Chromium mobile viewport because Clerk's CI sign-in handshake is not stable in WebKit storage-state setup. Organize spec files by product area or workflow, while keeping the suffix that maps to the right Playwright project. For example, use `tests/e2e/sets/set-detail.authenticated.spec.ts` for authenticated set detail coverage and `tests/e2e/songs/create-song.authenticated.spec.ts` for the create-song workflow.
 
 ## Artifacts
 

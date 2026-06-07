@@ -4,13 +4,10 @@ import { e2eIds } from "@testUtils/e2e/fixtures";
 import { mkdir } from "node:fs/promises";
 import path from "node:path";
 
-const authFileForProject = (projectName: string) =>
-  path.join(
-    process.cwd(),
-    projectName.includes("webkit")
-      ? "playwright/.clerk/webkit-user.json"
-      : "playwright/.clerk/chromium-user.json",
-  );
+const authFile = path.join(
+  process.cwd(),
+  "playwright/.clerk/chromium-user.json",
+);
 
 const hasClerkSessionCookie = async (context: BrowserContext) => {
   const cookies = await context.cookies();
@@ -24,7 +21,7 @@ const hasClerkSessionCookie = async (context: BrowserContext) => {
 
 setup.setTimeout(90_000);
 
-setup("authenticate and save clerk state", async ({ page }, testInfo) => {
+setup("authenticate and save clerk state", async ({ page }) => {
   await clerkSetup();
 
   const e2eUserEmail = process.env.E2E_CLERK_USER_EMAIL;
@@ -32,8 +29,6 @@ setup("authenticate and save clerk state", async ({ page }, testInfo) => {
   if (!e2eUserEmail) {
     throw new Error("E2E_CLERK_USER_EMAIL is required for Playwright auth.");
   }
-
-  const authFile = authFileForProject(testInfo.project.name);
 
   await mkdir(path.dirname(authFile), { recursive: true });
 

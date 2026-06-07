@@ -5,7 +5,6 @@ const baseURL =
   process.env.PLAYWRIGHT_BASE_URL ?? `http://localhost:${e2ePort}`;
 const webServerURL = new URL("/api/e2e/health", baseURL).toString();
 const chromiumAuthFile = "playwright/.clerk/chromium-user.json";
-const webkitAuthFile = "playwright/.clerk/webkit-user.json";
 const shouldStartWebServer = process.env.PLAYWRIGHT_SKIP_WEB_SERVER !== "1";
 
 // Project names are report labels. These matchers map spec file suffixes
@@ -14,6 +13,7 @@ const unauthenticatedSpecFiles = /.*\.unauthenticated\.spec\.ts/;
 const authenticatedSpecFiles = /.*\.authenticated\.spec\.ts/;
 
 const desktopChromium = devices["Desktop Chrome"];
+const mobileChromium = devices["Pixel 5"];
 const mobileSafari = devices["iPhone SE (3rd gen)"];
 
 export default defineConfig({
@@ -53,14 +53,6 @@ export default defineConfig({
       dependencies: ["setup-db"],
     },
     {
-      name: "setup-auth-webkit",
-      testMatch: /auth\.setup\.ts/,
-      use: {
-        ...mobileSafari,
-      },
-      dependencies: ["setup-db"],
-    },
-    {
       name: "unauthenticated-desktop-chromium",
       testMatch: unauthenticatedSpecFiles,
       use: {
@@ -86,13 +78,13 @@ export default defineConfig({
       dependencies: ["setup-auth-chromium"],
     },
     {
-      name: "authenticated-iphone-se-webkit",
+      name: "authenticated-mobile-chromium",
       testMatch: authenticatedSpecFiles,
       use: {
-        ...mobileSafari,
-        storageState: webkitAuthFile,
+        ...mobileChromium,
+        storageState: chromiumAuthFile,
       },
-      dependencies: ["setup-auth-webkit"],
+      dependencies: ["setup-auth-chromium"],
     },
   ],
 });
