@@ -71,11 +71,11 @@ jobs:
       - run:
           name: Push E2E schema
           command: |
-            pnpm db:push
+            DATABASE_URL=postgresql://sanbi@localhost:5432/sanbi_e2e POSTGRES_URL=postgresql://sanbi@localhost:5432/sanbi_e2e pnpm db:push
       - run:
           name: Run E2E tests
           command: |
-            pnpm test:e2e:ci
+            DATABASE_URL=postgresql://sanbi@localhost:5432/sanbi_e2e POSTGRES_URL=postgresql://sanbi@localhost:5432/sanbi_e2e pnpm test:e2e:ci
       - store_artifacts:
           path: playwright-report
       - store_artifacts:

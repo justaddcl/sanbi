@@ -3,8 +3,8 @@
  * https://jestjs.io/docs/configuration
  */
 
+import nextJest from "next/jest.js";
 import type { Config } from "jest";
-import nextJest from "next/jest";
 
 const createJestConfig = nextJest({
   dir: "./",
@@ -190,11 +190,6 @@ const config: Config = {
 
   // A map from regular expressions to paths to transformers
   // transform: undefined,
-
-  // An array of regexp pattern strings that are matched against all source file paths, matched files will skip transformation
-  transformIgnorePatterns: [
-    "/node_modules/(?!\\.pnpm|@faker-js/faker|validator).+\\.js$",
-  ],
 
   // An array of regexp pattern strings that are matched against all modules before the module loader will automatically return a mock for them
   // unmockedModulePathPatterns: undefined,

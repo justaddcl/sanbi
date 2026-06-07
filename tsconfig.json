@@ -25,15 +25,28 @@
     ],
     "incremental": true,
     /* Path Aliases */
-    "baseUrl": "src",
     "paths": {
-      "@components/*": ["components/*"],
-      "@modules/*": ["modules/*"],
-      "@lib/*": ["lib/*"],
-      "@server/*": ["server/*"],
-      "@app/*": ["app/*"],
-      "@testUtils/*": ["testUtils/*"],
-      "@/*": ["./*"]
+      "@components/*": [
+        "./src/components/*"
+      ],
+      "@modules/*": [
+        "./src/modules/*"
+      ],
+      "@lib/*": [
+        "./src/lib/*"
+      ],
+      "@server/*": [
+        "./src/server/*"
+      ],
+      "@app/*": [
+        "./src/app/*"
+      ],
+      "@testUtils/*": [
+        "./src/testUtils/*"
+      ],
+      "@/*": [
+        "./src/*"
+      ]
     }
   },
   "include": [
