@@ -21,7 +21,7 @@ SANBI_E2E=1
 
 Use Clerk test or development instance keys only. The Clerk test user must exist, and its Clerk user ID must match `E2E_CLERK_USER_ID`.
 
-CircleCI also needs these Clerk variables configured as project environment variables or context values. If they are absent, the E2E job still validates the database schema push, then skips the Playwright browser run with an explicit message instead of failing during setup.
+CircleCI also needs these Clerk variables configured as project environment variables or context values. If they are absent, the E2E job validates the database schema push, then fails before the Playwright browser run with an explicit message so missing E2E coverage is not reported as a successful test run.
 
 ## Runtime Flags
 

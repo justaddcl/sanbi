@@ -101,8 +101,8 @@ jobs:
             done
 
             if [ -n "$missing_e2e_env" ]; then
-              echo "Skipping Playwright E2E tests because required Clerk environment variables are not configured:$missing_e2e_env"
-              exit 0
+              echo "Playwright E2E tests cannot run because required Clerk environment variables are not configured:$missing_e2e_env"
+              exit 1
             fi
 
             DATABASE_URL=postgresql://sanbi@localhost:5432/sanbi_e2e POSTGRES_URL=postgresql://sanbi@localhost:5432/sanbi_e2e pnpm test:e2e:ci
