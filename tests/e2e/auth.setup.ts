@@ -27,7 +27,7 @@ setup("authenticate and save clerk state", async ({ page }, testInfo) => {
 
   await mkdir(path.dirname(authFile), { recursive: true });
 
-  await page.goto("/sign-in", { waitUntil: "domcontentloaded" });
+  await page.goto("/", { waitUntil: "domcontentloaded" });
   await clerk.signIn({
     page,
     emailAddress: e2eUserEmail,
