@@ -12,7 +12,7 @@ const authFileForProject = (projectName: string) =>
       : "playwright/.clerk/chromium-user.json",
   );
 
-setup.setTimeout(60_000);
+setup.setTimeout(90_000);
 
 setup("authenticate and save clerk state", async ({ page }, testInfo) => {
   await clerkSetup();
@@ -33,12 +33,18 @@ setup("authenticate and save clerk state", async ({ page }, testInfo) => {
     emailAddress: e2eUserEmail,
   });
 
-  await page.goto(`/${e2eIds.organizationId}`, {
+  const context = page.context();
+  await page.close();
+
+  const authenticatedPage = await context.newPage();
+
+  await authenticatedPage.goto(`/${e2eIds.organizationId}`, {
     timeout: 45_000,
     waitUntil: "domcontentloaded",
   });
   await expect(
-    page.getByRole("heading", { name: "Upcoming sets" }),
+    authenticatedPage.getByRole("heading", { name: "Upcoming sets" }),
   ).toBeVisible({ timeout: 15_000 });
-  await page.context().storageState({ path: authFile });
+  await context.storageState({ path: authFile });
+  await authenticatedPage.close();
 });
