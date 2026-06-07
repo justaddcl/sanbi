@@ -95,7 +95,7 @@ jobs:
           command: |
             missing_e2e_env=""
             for env_var in CLERK_PUBLISHABLE_KEY CLERK_SECRET_KEY E2E_CLERK_USER_EMAIL E2E_CLERK_USER_ID NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY; do
-              if [ -z "$(eval "printf '%s' \"\${$env_var:-}\"")" ]; then
+              if [ -z "${!env_var}" ]; then
                 missing_e2e_env="$missing_e2e_env $env_var"
               fi
             done

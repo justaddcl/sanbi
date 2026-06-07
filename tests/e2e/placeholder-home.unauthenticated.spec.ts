@@ -11,7 +11,7 @@ test("placeholder home page links to the seeded Stoneway organization", async ({
   await expect(homeLink).toBeVisible();
   await expect(homeLink).toHaveAttribute(
     "href",
-    `${e2eIds.placeholderHomeOrganizationId}/`,
+    `/${e2eIds.placeholderHomeOrganizationId}/`,
   );
   await expect(page.getByText(e2eData.organization.name)).toHaveCount(0);
 });
