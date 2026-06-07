@@ -87,7 +87,7 @@ Keep the always-on CI suite focused on workflows that are expensive or risky to 
 - Auth boundaries: signed-out users cannot see protected organization data, and signed-in users land in their seeded organization.
 - Organization-scoped reads: pages render only data from the active organization and do not leak placeholder or unrelated seeded data.
 - Critical happy-path mutations: create or edit the records users rely on most, such as songs, sets, set sections, resources, and tags.
-- Navigation and responsive smoke coverage: each protected workflow should keep working on desktop Chromium and iPhone SE WebKit when the layout changes.
+- Navigation and responsive smoke coverage: each protected workflow should keep working on desktop Chromium and mobile Chromium when the layout changes.
 
 Use unit or backend procedure tests instead of Playwright when the behavior is pure validation, authorization branching, conflict mapping, normalization, or data-access orchestration. Those tests are cheaper, faster, and can cover more edge cases without paying the browser startup cost.
 
