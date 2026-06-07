@@ -1,5 +1,5 @@
 import { clerk, clerkSetup } from "@clerk/testing/playwright";
-import { expect, test as setup } from "@playwright/test";
+import { type BrowserContext, expect, test as setup } from "@playwright/test";
 import { e2eIds } from "@testUtils/e2e/fixtures";
 import { mkdir } from "node:fs/promises";
 import path from "node:path";
@@ -11,6 +11,16 @@ const authFileForProject = (projectName: string) =>
       ? "playwright/.clerk/webkit-user.json"
       : "playwright/.clerk/chromium-user.json",
   );
+
+const hasClerkSessionCookie = async (context: BrowserContext) => {
+  const cookies = await context.cookies();
+
+  return cookies.some(
+    ({ name, value }) =>
+      (name === "__session" || name.startsWith("__session_")) &&
+      value.length > 0,
+  );
+};
 
 setup.setTimeout(90_000);
 
@@ -34,6 +44,10 @@ setup("authenticate and save clerk state", async ({ page }, testInfo) => {
   });
 
   const context = page.context();
+
+  await expect
+    .poll(() => hasClerkSessionCookie(context), { timeout: 20_000 })
+    .toBe(true);
   await page.close();
 
   const authenticatedPage = await context.newPage();
