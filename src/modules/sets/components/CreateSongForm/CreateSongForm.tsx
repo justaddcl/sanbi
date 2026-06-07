@@ -63,8 +63,11 @@ export const CreateSongForm: React.FC<CreateSongFormProps> = ({ onSubmit }) => {
 
   const createSongMutation = trpc.song.create.useMutation();
 
-  const { data: userData, isError: isGetUserQueryError } =
-    trpc.user.getUser.useQuery(
+  const {
+    data: userData,
+    isError: isGetUserQueryError,
+    isLoading: isGetUserQueryLoading,
+  } = trpc.user.getUser.useQuery(
       {
         userId: userId!,
       },
@@ -125,7 +128,13 @@ export const CreateSongForm: React.FC<CreateSongFormProps> = ({ onSubmit }) => {
     formState: { isDirty, isSubmitting, isValid },
   } = createSongForm;
 
-  const shouldSubmitBeDisabled = !isDirty || !isValid || isSubmitting;
+  const shouldSubmitBeDisabled =
+    !isDirty ||
+    !isValid ||
+    isSubmitting ||
+    isGetUserQueryLoading ||
+    isGetUserQueryError ||
+    !userData;
 
   return (
     <Form {...createSongForm}>

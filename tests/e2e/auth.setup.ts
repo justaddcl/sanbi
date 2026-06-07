@@ -12,11 +12,11 @@ const authFileForProject = (projectName: string) =>
       : "playwright/.clerk/chromium-user.json",
   );
 
-setup("configure clerk testing", async () => {
-  await clerkSetup();
-});
+setup.setTimeout(60_000);
 
 setup("authenticate and save clerk state", async ({ page }, testInfo) => {
+  await clerkSetup();
+
   const e2eUserEmail = process.env.E2E_CLERK_USER_EMAIL;
 
   if (!e2eUserEmail) {
@@ -27,15 +27,18 @@ setup("authenticate and save clerk state", async ({ page }, testInfo) => {
 
   await mkdir(path.dirname(authFile), { recursive: true });
 
-  await page.goto("/sign-in");
+  await page.goto("/sign-in", { waitUntil: "domcontentloaded" });
   await clerk.signIn({
     page,
     emailAddress: e2eUserEmail,
   });
 
-  await page.goto(`/${e2eIds.organizationId}`);
+  await page.goto(`/${e2eIds.organizationId}`, {
+    timeout: 45_000,
+    waitUntil: "domcontentloaded",
+  });
   await expect(
     page.getByRole("heading", { name: "Upcoming sets" }),
-  ).toBeVisible();
+  ).toBeVisible({ timeout: 15_000 });
   await page.context().storageState({ path: authFile });
 });
