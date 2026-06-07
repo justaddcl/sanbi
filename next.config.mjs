@@ -9,7 +9,27 @@ await import("./src/env.js");
 
 /** @type {import("next").NextConfig} */
 const coreConfig = {
-  transpilePackages: ["@faker-js/faker"],
+  transpilePackages: [
+    "@faker-js/faker",
+    "@orpc/client",
+    "@orpc/contract",
+    "@orpc/experimental-pino",
+    "@orpc/interop",
+    "@orpc/openapi",
+    "@orpc/server",
+    "@orpc/shared",
+    "@orpc/standard-server",
+    "@orpc/standard-server-fetch",
+    "@orpc/standard-server-node",
+    "@orpc/standard-server-peer",
+    "@orpc/tanstack-query",
+    "@orpc/trpc",
+    "@orpc/zod",
+    "copy-anything",
+    "is-what",
+    "superjson",
+    "validator",
+  ],
   images: {
     remotePatterns: [
       {

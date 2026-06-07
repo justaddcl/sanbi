@@ -65,7 +65,6 @@ jest.mock(
       })),
     },
   }),
-  { virtual: true },
 );
 
 jest.mock(
@@ -107,7 +106,6 @@ jest.mock(
       },
     },
   }),
-  { virtual: true },
 );
 
 jest.mock("@modules/songs/queries/useSongResources", () => ({
