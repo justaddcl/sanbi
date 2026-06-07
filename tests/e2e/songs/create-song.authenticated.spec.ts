@@ -22,6 +22,7 @@ test("create-song workflow creates a song and opens its detail page", async ({
   page,
 }) => {
   const songName = `E2E Created Song ${Date.now()}`;
+  const songNotes = "Created by the Playwright smoke test.";
 
   await page.goto(`/${e2eIds.organizationId}`);
   await openNewItemDialog(page);
@@ -29,9 +30,7 @@ test("create-song workflow creates a song and opens its detail page", async ({
   await page.getByLabel("Song name *").fill(songName);
   await page.getByLabel("Preferred key *").click();
   await page.getByRole("option", { name: "D", exact: true }).click();
-  await page
-    .getByLabel("Song notes")
-    .fill("Created by the Playwright smoke test.");
+  await page.getByLabel("Song notes").fill(songNotes);
 
   const dialog = page.getByRole("dialog");
   await expectNoA11yViolations(page, {
@@ -49,7 +48,7 @@ test("create-song workflow creates a song and opens its detail page", async ({
   await expect(page.getByRole("heading", { name: songName })).toBeVisible();
   await expect(
     page.getByRole("button", {
-      name: "Created by the Playwright smoke test.",
+      name: songNotes,
     }),
   ).toBeVisible();
 });
