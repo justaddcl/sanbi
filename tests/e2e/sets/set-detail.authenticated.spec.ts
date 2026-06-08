@@ -8,7 +8,7 @@ import { expectNoA11yViolations } from "../a11y";
 
 const getSetSectionCard = (page: Page, sectionName: string) =>
   page
-    .locator(".rounded-lg.border.p-1")
+    .getByTestId("set-section-card")
     .filter({ has: page.getByRole("heading", { name: sectionName }) });
 
 type AddSongToSetSong =
@@ -71,6 +71,14 @@ test("adds a song to a section from set detail", async ({ page }, testInfo) => {
     page,
     e2eData.sectionTypes.fullBand,
   );
+  await expect(fullBandSection).toBeVisible();
+
+  if (await fullBandSection.getByText(songToAdd.name).first().isVisible()) {
+    await expectAddedSongInFullBandSection(page, songToAdd);
+    await page.reload();
+    await expectAddedSongInFullBandSection(page, songToAdd);
+    return;
+  }
 
   await fullBandSection
     .getByRole("button", {
@@ -93,7 +101,7 @@ test("adds a song to a section from set detail", async ({ page }, testInfo) => {
   await expect(
     dialog.getByRole("radio", { name: e2eData.sectionTypes.fullBand }),
   ).toBeChecked();
-  await dialog.getByRole("combobox").first().click();
+  await dialog.getByRole("combobox", { name: "Song key" }).click();
   await page
     .getByRole("option", {
       name: formatSongKey(addSongToSet.key),

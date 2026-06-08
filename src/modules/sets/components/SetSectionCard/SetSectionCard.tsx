@@ -45,39 +45,43 @@ export const SetSectionCard: FC<SetSectionCardProps> = ({
   const [isSectionExpanded, setIsSectionExpanded] = useState<boolean>(true);
 
   return (
-    <Card
-      externalIsExpanded={isSectionExpanded}
-      header={
-        <EditSetSectionTypeForm
-          section={section}
-          setSectionsLength={setSectionsLength}
-          isExpanded={isSectionExpanded}
-          setIsExpanded={setIsSectionExpanded}
-          withActionsMenu={withActionsMenu}
-          isFirstSection={isFirstSection}
-          isLastSection={isLastSection}
-          onAddSongClick={onAddSongClick}
-        />
-      }
-    >
-      <VStack className="gap-1">
-        {songs &&
-          songs.length > 0 &&
-          section.songs.map((setSectionSong) => (
-            <SongItem
-              key={setSectionSong.id}
-              setSectionSong={setSectionSong}
-              index={sectionStartIndex + setSectionSong.position}
-              setId={setId}
-              setSectionType={type.name}
-              isInFirstSection={isFirstSection}
-              isInLastSection={isLastSection}
-              isFirstSong={setSectionSong.position === 0}
-              isLastSong={setSectionSong.position === section.songs.length - 1}
-              withActionsMenu
-            />
-          ))}
-      </VStack>
-    </Card>
+    <div data-testid="set-section-card">
+      <Card
+        externalIsExpanded={isSectionExpanded}
+        header={
+          <EditSetSectionTypeForm
+            section={section}
+            setSectionsLength={setSectionsLength}
+            isExpanded={isSectionExpanded}
+            setIsExpanded={setIsSectionExpanded}
+            withActionsMenu={withActionsMenu}
+            isFirstSection={isFirstSection}
+            isLastSection={isLastSection}
+            onAddSongClick={onAddSongClick}
+          />
+        }
+      >
+        <VStack className="gap-1">
+          {songs &&
+            songs.length > 0 &&
+            section.songs.map((setSectionSong) => (
+              <SongItem
+                key={setSectionSong.id}
+                setSectionSong={setSectionSong}
+                index={sectionStartIndex + setSectionSong.position}
+                setId={setId}
+                setSectionType={type.name}
+                isInFirstSection={isFirstSection}
+                isInLastSection={isLastSection}
+                isFirstSong={setSectionSong.position === 0}
+                isLastSong={
+                  setSectionSong.position === section.songs.length - 1
+                }
+                withActionsMenu
+              />
+            ))}
+        </VStack>
+      </Card>
+    </div>
   );
 };
