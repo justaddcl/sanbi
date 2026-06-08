@@ -22,7 +22,7 @@ import {
   Tag,
   X,
 } from "@phosphor-icons/react/dist/ssr";
-import { CommandLoading } from "cmdk";
+import { CommandLoading, useCommandState } from "cmdk";
 import { differenceInCalendarDays, differenceInCalendarWeeks } from "date-fns";
 import { useDebounceValue } from "usehooks-ts";
 
@@ -313,15 +313,30 @@ const SearchTagMatchedSongRow = ({
   </div>
 );
 
-const getSelectedSearchItem = () => {
-  const commandItems = document.querySelectorAll<HTMLElement>("[cmdk-item]");
+const getSongIdFromSearchValue = (value: string | undefined) => {
+  if (value?.startsWith("tag-song-")) {
+    return value.slice("tag-song-".length);
+  }
 
-  return Array.from(commandItems).find(
-    (item) =>
-      item.hasAttribute("data-selected") ||
-      item.dataset.selected === "true" ||
-      item.getAttribute("aria-selected") === "true",
-  );
+  if (value?.startsWith("song-")) {
+    return value.slice("song-".length);
+  }
+
+  return undefined;
+};
+
+const SearchSelectionTracker = ({
+  onValueChange,
+}: {
+  onValueChange: (value: string | undefined) => void;
+}) => {
+  const selectedValue = useCommandState((state) => state.value);
+
+  useEffect(() => {
+    onValueChange(selectedValue);
+  }, [onValueChange, selectedValue]);
+
+  return null;
 };
 
 export const GlobalSearch: React.FC<GlobalSearchProps> = ({ className }) => {
@@ -346,6 +361,9 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ className }) => {
   const [actionsMenuSongId, setActionsMenuSongId] = useState<string | null>(
     null,
   );
+  const [selectedSearchValue, setSelectedSearchValue] = useState<
+    string | undefined
+  >(undefined);
   const [hasResultSelectionInteraction, setHasResultSelectionInteraction] =
     useState(false);
 
@@ -384,6 +402,8 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ className }) => {
       enabled: !!organizationId && !!addToSetSongId,
     },
   );
+  const resolvedAddToSetSong =
+    addToSetSong?.id === addToSetSongId ? addToSetSong : undefined;
 
   const songResults = useMemo(() => {
     if (!searchResults) {
@@ -500,6 +520,7 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ className }) => {
     setDebouncedSearchInput("");
     setSelectedFilters({ songs: false, tags: false });
     setActionsMenuSongId(null);
+    setSelectedSearchValue(undefined);
     setHasResultSelectionInteraction(false);
   }, [setDebouncedSearchInput]);
 
@@ -539,6 +560,7 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ className }) => {
   const handleInputChange = (newValue: string) => {
     setSearchInput(newValue);
     setDebouncedSearchInput(newValue);
+    setSelectedSearchValue(undefined);
     setHasResultSelectionInteraction(false);
   };
 
@@ -728,11 +750,7 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ className }) => {
         return;
       }
 
-      const selectedItem = getSelectedSearchItem();
-      const selectedSongId =
-        selectedItem instanceof HTMLElement
-          ? selectedItem.dataset.songId
-          : undefined;
+      const selectedSongId = getSongIdFromSearchValue(selectedSearchValue);
 
       if (!selectedSongId) {
         return;
@@ -751,7 +769,12 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ className }) => {
         handleAddToCurrentSetShortcut,
         true,
       );
-  }, [isSetSearchContext, open, openAddSongToCurrentSet]);
+  }, [
+    isSetSearchContext,
+    open,
+    openAddSongToCurrentSet,
+    selectedSearchValue,
+  ]);
 
   useEffect(() => {
     if (!open || isSetSearchContext) {
@@ -763,11 +786,7 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ className }) => {
         return;
       }
 
-      const selectedItem = getSelectedSearchItem();
-      const selectedSongId =
-        selectedItem instanceof HTMLElement
-          ? selectedItem.dataset.songId
-          : undefined;
+      const selectedSongId = getSongIdFromSearchValue(selectedSearchValue);
 
       if (!selectedSongId) {
         return;
@@ -782,7 +801,7 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ className }) => {
 
     return () =>
       document.removeEventListener("keydown", handleAddToAnySetShortcut, true);
-  }, [isSetSearchContext, open, openAddSongToAnySet]);
+  }, [isSetSearchContext, open, openAddSongToAnySet, selectedSearchValue]);
 
   useEffect(() => {
     if (!open) {
@@ -860,11 +879,7 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ className }) => {
         return;
       }
 
-      const selectedItem = getSelectedSearchItem();
-      const selectedSongId =
-        selectedItem instanceof HTMLElement
-          ? selectedItem.dataset.songId
-          : undefined;
+      const selectedSongId = getSongIdFromSearchValue(selectedSearchValue);
 
       if (!selectedSongId) {
         return;
@@ -879,7 +894,7 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ className }) => {
 
     return () =>
       document.removeEventListener("keydown", handleOpenActionsShortcut, true);
-  }, [open]);
+  }, [open, selectedSearchValue]);
 
   return (
     <>
@@ -928,6 +943,7 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ className }) => {
         }}
         closeButton={null}
       >
+        <SearchSelectionTracker onValueChange={setSelectedSearchValue} />
         <div className={cn(hasSearchableInput && "border-b border-slate-100")}>
           <HStack className="items-center border-b border-slate-100 [&_[cmdk-input-wrapper]]:border-b-0">
             <div className="min-w-0 flex-1">
@@ -1138,9 +1154,10 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ className }) => {
           </HStack>
         )}
       </CommandDialog>
-      {addToSetSong && (
+      {resolvedAddToSetSong && (
         <AddSongToSetDialog
-          song={addToSetSong}
+          key={resolvedAddToSetSong.id}
+          song={resolvedAddToSetSong}
           open={!!addToSetSongId}
           onOpenChange={(nextOpen) => {
             if (!nextOpen) {

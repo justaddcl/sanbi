@@ -60,27 +60,31 @@ export const SongSearchDialog: React.FC<SongSearchDialogProps> = ({
   const {
     data: prePopulatedSong,
     isLoading: isPrePopulatedSongLoading,
+    isFetching: isPrePopulatedSongFetching,
     isError: isPrePopulatedSongError,
   } = trpc.song.get.useQuery(
     { organizationId, songId: prePopulatedSongId! },
     { enabled: open && !!prePopulatedSongId },
   );
 
+  const resolvedPrePopulatedSong =
+    prePopulatedSong?.id === prePopulatedSongId ? prePopulatedSong : undefined;
+
   const prePopulatedSongSearchResult = useMemo<SongSearchResult>(() => {
-    if (!prePopulatedSong) {
+    if (!resolvedPrePopulatedSong) {
       return undefined;
     }
 
     return {
-      songId: prePopulatedSong.id,
-      name: prePopulatedSong.name,
-      preferredKey: prePopulatedSong.preferredKey,
-      isArchived: prePopulatedSong.isArchived,
+      songId: resolvedPrePopulatedSong.id,
+      name: resolvedPrePopulatedSong.name,
+      preferredKey: resolvedPrePopulatedSong.preferredKey,
+      isArchived: resolvedPrePopulatedSong.isArchived,
       similarityScore: 1,
       lastPlayedDate: null,
       tags: [],
     };
-  }, [prePopulatedSong]);
+  }, [resolvedPrePopulatedSong]);
 
   const canUsePrePopulatedSong =
     open &&
@@ -96,13 +100,13 @@ export const SongSearchDialog: React.FC<SongSearchDialogProps> = ({
       : selectedSong;
   const showPrePopulatedSongLoader =
     canUsePrePopulatedSong &&
-    isPrePopulatedSongLoading &&
+    (isPrePopulatedSongLoading ||
+      isPrePopulatedSongFetching ||
+      !prePopulatedSongSearchResult) &&
     !isPrePopulatedSongError;
   const showSongSearch =
     activeDialogStep === "search" &&
-    (!canUsePrePopulatedSong ||
-      isPrePopulatedSongError ||
-      !isPrePopulatedSongLoading);
+    (!canUsePrePopulatedSong || isPrePopulatedSongError);
 
   if (!userId) {
     router.replace("/");
@@ -193,6 +197,7 @@ export const SongSearchDialog: React.FC<SongSearchDialogProps> = ({
       )}
       {activeDialogStep === "configure" && !!activeSelectedSong && (
         <ConfigureSongForSet
+          key={activeSelectedSong.songId}
           existingSetSections={existingSetSections}
           selectedSong={activeSelectedSong}
           setDialogStep={handleDialogStepChange}
