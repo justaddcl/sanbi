@@ -323,7 +323,10 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
                           onValueChange={field.onChange}
                           defaultValue={field.value as string}
                         >
-                          <SelectTrigger className={cn(textSize)}>
+                          <SelectTrigger
+                            aria-label="Song key"
+                            className={cn(textSize)}
+                          >
                             <SelectValue placeholder="Select song key" />
                           </SelectTrigger>
                           <SelectContent>

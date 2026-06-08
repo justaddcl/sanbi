@@ -106,6 +106,8 @@ jobs:
             fi
 
             DATABASE_URL=postgresql://sanbi@localhost:5432/sanbi_e2e POSTGRES_URL=postgresql://sanbi@localhost:5432/sanbi_e2e pnpm test:e2e:ci
+      - store_test_results:
+          path: test-results/junit
       - store_artifacts:
           path: playwright-report
       - store_artifacts:
