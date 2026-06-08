@@ -1,8 +1,9 @@
 "use client";
 
 import type React from "react";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow, isFuture } from "date-fns";
 
+import { Skeleton } from "@components/ui/skeleton";
 import { Card } from "@components/Card/Card";
 import { HStack } from "@components/HStack";
 import { Text } from "@components/Text";
@@ -27,6 +28,21 @@ type SongDetailsPageProps = {
   userMembership: OrganizationMembershipWithOrganization;
 };
 
+const PlayHistoryLoadingRows = () => (
+  <>
+    <Skeleton className="size-2 rounded-full" />
+    <VStack className="gap-1">
+      <Skeleton className="h-3 w-56" />
+      <Skeleton className="h-3 w-40" />
+    </VStack>
+    <Skeleton className="size-2 rounded-full" />
+    <VStack className="gap-1">
+      <Skeleton className="h-3 w-44" />
+      <Skeleton className="h-3 w-36" />
+    </VStack>
+  </>
+);
+
 export const SongDetailsPage: React.FC<SongDetailsPageProps> = ({
   songId,
   organizationId,
@@ -46,9 +62,9 @@ export const SongDetailsPage: React.FC<SongDetailsPageProps> = ({
     isPending: isPlayHistoryPending,
     isError: isPlayHistoryError,
   } = trpc.song.getPlayHistory.useQuery({
-      songId,
-      organizationId,
-    });
+    songId,
+    organizationId,
+  });
 
   if (isSongPending) {
     return <SongDetailsPageLoading />;
@@ -61,8 +77,10 @@ export const SongDetailsPage: React.FC<SongDetailsPageProps> = ({
 
   const dateFormatter = new Intl.DateTimeFormat("en-US");
 
-  const lastPlayInstance =
-    playHistory && playHistory.length > 0 ? playHistory[0] : undefined;
+  const hasPlayHistory = !!playHistory?.length;
+  const lastPlayInstance = playHistory?.find(
+    (playInstance) => !isFuture(new Date(playInstance.set.date)),
+  );
 
   return (
     <>
@@ -83,14 +101,14 @@ export const SongDetailsPage: React.FC<SongDetailsPageProps> = ({
             <dd>
               {isPlayHistoryPending ? (
                 <Text style="body-small" className="text-slate-700">
-                  Loading play history...
+                  Loading play history
                 </Text>
               ) : isPlayHistoryError ? (
                 <Text style="body-small" className="text-slate-700">
-                  Unable to load play history
+                  Play history is unavailable
                 </Text>
-              ) : playHistory && lastPlayInstance ? (
-                <HStack className="gap-[3px] leading-4">
+              ) : lastPlayInstance ? (
+                <HStack className="flex-wrap gap-1 leading-5">
                   <Text
                     asElement="span"
                     style="body-small"
@@ -116,9 +134,13 @@ export const SongDetailsPage: React.FC<SongDetailsPageProps> = ({
                     {lastPlayInstance?.set.eventType}
                   </Text>
                 </HStack>
+              ) : hasPlayHistory ? (
+                <Text style="body-small" className="text-slate-700">
+                  Scheduled for future sets only
+                </Text>
               ) : (
                 <Text style="body-small" className="text-slate-700">
-                  Hasn&apos;t been played in a set yet
+                  Not used in a set yet
                 </Text>
               )}
             </dd>
@@ -137,14 +159,14 @@ export const SongDetailsPage: React.FC<SongDetailsPageProps> = ({
       <Card title="Play history" collapsible>
         <div className="grid grid-cols-[16px_1fr] gap-y-4">
           {isPlayHistoryPending && (
-            <Text style="body-small" className="col-span-2 text-slate-700">
-              Loading play history...
-            </Text>
+            <PlayHistoryLoadingRows />
           )}
           {isPlayHistoryError && (
-            <Text style="body-small" className="col-span-2 text-slate-700">
-              Unable to load play history
-            </Text>
+            <div className="col-span-2 rounded-md border border-dashed border-slate-200 bg-slate-50 px-3 py-4">
+              <Text style="body-small" className="text-slate-700">
+                Play history is unavailable right now. Try refreshing the page.
+              </Text>
+            </div>
           )}
           {!isPlayHistoryPending &&
             !isPlayHistoryError &&

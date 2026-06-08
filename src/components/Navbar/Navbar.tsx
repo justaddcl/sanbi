@@ -1,8 +1,10 @@
 "use client";
+import Link from "next/link";
 import { Show, SignInButton, UserButton } from "@clerk/nextjs";
+import { Sidebar } from "@phosphor-icons/react/dist/ssr";
+import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
+
 import { Button } from "@components/ui/button";
-import { MagnifyingGlass, Sidebar } from "@phosphor-icons/react/dist/ssr";
-import { Input } from "@components/ui/input";
 import {
   Sheet,
   SheetContent,
@@ -10,11 +12,10 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@components/ui/sheet";
-import Link from "next/link";
 import { GlobalNav } from "@components/GlobalNav";
 import { OrganizationHeader } from "@components/OrganizationHeader";
+import { GlobalSearch } from "@modules/search";
 import { useSanbiStore } from "@/providers/sanbi-store-provider";
-import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 
 export const Navbar: React.FC = () => {
   const { isMobileNavOpen, setIsMobileNavOpen } = useSanbiStore(
@@ -48,11 +49,7 @@ export const Navbar: React.FC = () => {
               </SheetContent>
             </Sheet>
           </div>
-          {/* TODO: The search input will be implemented in SWY-36 and SWY-37*/}
-          <div className="relative flex w-full items-center justify-self-center rounded-lg border border-slate-200 bg-white px-3 min-[1025px]:max-w-3xl">
-            <MagnifyingGlass size={16} className="" />
-            <Input placeholder="Search" className="border-none" />
-          </div>
+          <GlobalSearch className="justify-self-center" />
           <div className="grid place-content-center min-[1025px]:block min-[1025px]:place-self-end">
             <UserButton />
           </div>

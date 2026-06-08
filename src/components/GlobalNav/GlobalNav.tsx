@@ -68,7 +68,7 @@ export const GlobalNav = () => {
         >
           Home
         </NavLink>
-        <NavLink href="#" icon={<MagnifyingGlass />}>
+        <NavLink href={`/${organizationId}/search`} icon={<MagnifyingGlass />}>
           Search
         </NavLink>
         <NavLink href="#" icon={<Playlist />}>

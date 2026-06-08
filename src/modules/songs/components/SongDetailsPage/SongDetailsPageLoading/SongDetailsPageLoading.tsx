@@ -14,9 +14,9 @@ import { SongDetailsItem } from "@modules/songs/components";
 
 export const SongDetailsPageLoading: React.FC = () => (
   <>
-    <HStack className="gap-4">
-      <Skeleton className="h-10 w-full" />
-      <HStack className="items-start gap-2">
+    <HStack className="flex-col justify-between gap-4 md:flex-row md:items-start md:gap-8">
+      <Skeleton className="h-10 w-full md:max-w-md" />
+      <HStack className="flex-wrap items-center gap-2 md:justify-end">
         <Button disabled>
           <Plus /> Add to a set
         </Button>
