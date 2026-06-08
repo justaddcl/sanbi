@@ -9,6 +9,8 @@ export const e2eIds = {
   prayerSectionId: "77777777-7777-4777-8777-777777777777",
   firstSongId: "88888888-8888-4888-8888-888888888888",
   secondSongId: "99999999-9999-4999-8999-999999999999",
+  addSongToSetDesktopSongId: "12121212-1212-4121-8121-121212121212",
+  addSongToSetMobileSongId: "13131313-1313-4131-8131-131313131313",
   tagId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
   resourceId: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
   firstSetSectionSongId: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
@@ -27,6 +29,20 @@ export const e2eData = {
   set: {
     date: "2099-06-06",
     notes: "E2E set notes for the Sunday gathering.",
+    addSongToSet: {
+      desktopSong: {
+        name: "E2E Set Detail Anthem",
+        preferredKey: "a",
+        notes: "Available for set-detail add-song coverage.",
+      },
+      mobileSong: {
+        name: "E2E Set Detail Chorus",
+        preferredKey: "e",
+        notes: "Available for mobile set-detail add-song coverage.",
+      },
+      key: "d",
+      notes: "Bring in the band after the first chorus.",
+    },
   },
   eventType: {
     name: "E2E Sunday Gathering",

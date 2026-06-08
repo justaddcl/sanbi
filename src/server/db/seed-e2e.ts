@@ -151,6 +151,26 @@ export const seedE2eDatabase = async () => {
       isArchived: false,
       favoritedAt: null,
     },
+    {
+      id: e2eIds.addSongToSetDesktopSongId,
+      name: e2eData.set.addSongToSet.desktopSong.name,
+      preferredKey: e2eData.set.addSongToSet.desktopSong.preferredKey,
+      notes: e2eData.set.addSongToSet.desktopSong.notes,
+      createdBy: env.E2E_CLERK_USER_ID,
+      organizationId: e2eIds.organizationId,
+      isArchived: false,
+      favoritedAt: null,
+    },
+    {
+      id: e2eIds.addSongToSetMobileSongId,
+      name: e2eData.set.addSongToSet.mobileSong.name,
+      preferredKey: e2eData.set.addSongToSet.mobileSong.preferredKey,
+      notes: e2eData.set.addSongToSet.mobileSong.notes,
+      createdBy: env.E2E_CLERK_USER_ID,
+      organizationId: e2eIds.organizationId,
+      isArchived: false,
+      favoritedAt: null,
+    },
   ];
 
   const setSongs: NewSetSectionSong[] = [
