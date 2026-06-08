@@ -1,9 +1,7 @@
 import { useFormContext } from "react-hook-form";
-import { addWeeks, differenceInCalendarDays, nextSunday } from "date-fns";
 
 import {
   DatePicker,
-  type DatePickerPreset,
   type DatePickerValue,
 } from "@components/ui/datePicker";
 import {
@@ -12,37 +10,13 @@ import {
   FormItem,
   FormLabel,
 } from "@components/ui/form";
-import { getFirstSundayOfNextMonth } from "@lib/date/getFirstSundayOfNextMonth";
+
+import { getSetDatePickerPresets } from "./getSetDatePickerPresets";
 
 export const SetDatePickerFormField: React.FC = () => {
   const { control } = useFormContext();
+  const datePresets = getSetDatePickerPresets();
 
-  const upcomingSunday = nextSunday(new Date());
-  const upcomingSundayInDays = differenceInCalendarDays(
-    upcomingSunday,
-    new Date(),
-  );
-  const sundayAfterNextInDays = differenceInCalendarDays(
-    addWeeks(upcomingSunday, 1),
-    new Date(),
-  );
-
-  const firstSundayOfNextMonthInDays = differenceInCalendarDays(
-    getFirstSundayOfNextMonth(),
-    new Date(),
-  );
-
-  const datePresets: DatePickerPreset[] = [
-    {
-      value: `${upcomingSundayInDays}`,
-      label: "Upcoming Sunday",
-    },
-    { value: `${sundayAfterNextInDays}`, label: "Sunday After Next" },
-    {
-      value: `${firstSundayOfNextMonthInDays}`,
-      label: "First Sunday of Next Month",
-    },
-  ];
   return (
     <FormField
       control={control}

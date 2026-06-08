@@ -131,9 +131,11 @@ export const EditSetSectionTypeForm: React.FC<EditSetSectionTypeFormProps> = ({
         {!isEditing && (
           <HStack className="w-full flex-wrap items-center justify-between gap-4">
             <Button
+              type="button"
               size="sm"
               variant="ghost"
               className="hover:bg-initial flex h-full flex-1 justify-between p-3"
+              aria-expanded={isExpanded}
               onClick={(clickEvent) => {
                 clickEvent.preventDefault();
                 setIsExpanded((isExpanded) => !isExpanded);
@@ -143,7 +145,7 @@ export const EditSetSectionTypeForm: React.FC<EditSetSectionTypeFormProps> = ({
                 <Text
                   asElement="h3"
                   style="header-medium-semibold"
-                  className="text-wrap text-lg md:text-xl"
+                  className="text-lg text-wrap md:text-xl"
                 >
                   {section.type.name}
                 </Text>
@@ -165,6 +167,7 @@ export const EditSetSectionTypeForm: React.FC<EditSetSectionTypeFormProps> = ({
                 type="button"
                 size="sm"
                 variant="ghost"
+                aria-label={`Add song to ${section.type.name} section`}
                 onClick={(clickEvent) => {
                   clickEvent.preventDefault();
                   clickEvent.stopPropagation();
@@ -184,8 +187,11 @@ export const EditSetSectionTypeForm: React.FC<EditSetSectionTypeFormProps> = ({
                 />
               )}
               <Button
+                type="button"
                 size="sm"
                 variant="ghost"
+                aria-label={`${isExpanded ? "Collapse" : "Expand"} ${section.type.name} section`}
+                aria-expanded={isExpanded}
                 onClick={(clickEvent) => {
                   clickEvent.preventDefault();
                   clickEvent.stopPropagation();

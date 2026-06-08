@@ -1,0 +1,126 @@
+import { expect, type Page, test } from "@playwright/test";
+import { e2eData, e2eIds } from "@testUtils/e2e/fixtures";
+
+import { formatDate } from "@lib/date";
+import { formatSongKey } from "@lib/string/formatSongKey";
+
+import { expectNoA11yViolations } from "../a11y";
+
+const getSetSectionCard = (page: Page, sectionName: string) =>
+  page
+    .getByTestId("set-section-card")
+    .filter({ has: page.getByRole("heading", { name: sectionName }) });
+
+type AddSongToSetSong =
+  | typeof e2eData.set.addSongToSet.desktopSong
+  | typeof e2eData.set.addSongToSet.mobileSong;
+
+const getAddSongToSetSong = (projectName: string): AddSongToSetSong =>
+  projectName.includes("mobile")
+    ? e2eData.set.addSongToSet.mobileSong
+    : e2eData.set.addSongToSet.desktopSong;
+
+const expectAddedSongInFullBandSection = async (
+  page: Page,
+  song: AddSongToSetSong,
+) => {
+  const fullBandSection = getSetSectionCard(
+    page,
+    e2eData.sectionTypes.fullBand,
+  );
+  const addSongToSet = e2eData.set.addSongToSet;
+
+  await expect(fullBandSection).toContainText(song.name);
+  await expect(fullBandSection).toContainText(formatSongKey(addSongToSet.key));
+  await expect(fullBandSection).toContainText(addSongToSet.notes);
+};
+
+test("set detail renders seeded sections, songs, and notes", async ({
+  page,
+}) => {
+  const expectedSetHeading = formatDate(e2eData.set.date, { month: "long" });
+
+  await page.goto(`/${e2eIds.organizationId}/sets/${e2eIds.setId}`);
+
+  await expect(
+    page.getByRole("heading", { name: expectedSetHeading }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: e2eData.eventType.name }),
+  ).toBeVisible();
+  await expect(page.getByText(e2eData.set.notes)).toBeVisible();
+  await expect(page.getByText(e2eData.sectionTypes.fullBand)).toBeVisible();
+  await expect(page.getByText(e2eData.sectionTypes.prayer)).toBeVisible();
+  await expect(page.getByText(e2eData.songs.first.name)).toBeVisible();
+  await expect(page.getByText(e2eData.songs.first.setNotes)).toBeVisible();
+  await expect(page.getByText(e2eData.songs.second.name)).toBeVisible();
+
+  await expectNoA11yViolations(page, {
+    include: "main",
+    exclude: ["[data-nextjs-toast]", "nextjs-portal"],
+  });
+});
+
+test("adds a song to a section from set detail", async ({ page }, testInfo) => {
+  const addSongToSet = e2eData.set.addSongToSet;
+  const songToAdd = getAddSongToSetSong(testInfo.project.name);
+
+  await page.goto(`/${e2eIds.organizationId}/sets/${e2eIds.setId}`);
+
+  const fullBandSection = getSetSectionCard(
+    page,
+    e2eData.sectionTypes.fullBand,
+  );
+  await expect(fullBandSection).toBeVisible();
+
+  if (await fullBandSection.getByText(songToAdd.name).first().isVisible()) {
+    await expectAddedSongInFullBandSection(page, songToAdd);
+    await page.reload();
+    await expectAddedSongInFullBandSection(page, songToAdd);
+    return;
+  }
+
+  await fullBandSection
+    .getByRole("button", {
+      name: `Add song to ${e2eData.sectionTypes.fullBand} section`,
+    })
+    .click();
+
+  const dialog = page.getByRole("dialog");
+  await expect(dialog).toBeVisible();
+  await dialog
+    .getByPlaceholder("Search for a song...")
+    .fill(songToAdd.name);
+  await expect(dialog.getByText(songToAdd.name, { exact: true })).toBeVisible();
+  await dialog.getByText(songToAdd.name, { exact: true }).click();
+
+  await expect(
+    dialog.getByRole("heading", { name: "Add song to set" }),
+  ).toBeVisible();
+  await expect(dialog.getByText(songToAdd.name, { exact: true })).toBeVisible();
+  await expect(
+    dialog.getByRole("radio", { name: e2eData.sectionTypes.fullBand }),
+  ).toBeChecked();
+  await dialog.getByRole("combobox", { name: "Song key" }).click();
+  await page
+    .getByRole("option", {
+      name: formatSongKey(addSongToSet.key),
+      exact: true,
+    })
+    .click();
+  await dialog.getByLabel("Song notes").fill(addSongToSet.notes);
+
+  const addSongButton = dialog.getByRole("button", {
+    name: "Add song",
+    exact: true,
+  });
+  await expect(addSongButton).toBeEnabled();
+  await addSongButton.click();
+
+  await expect(page.getByText("Song added to the set!")).toBeVisible();
+  await expect(dialog).toBeHidden();
+  await expectAddedSongInFullBandSection(page, songToAdd);
+
+  await page.reload();
+  await expectAddedSongInFullBandSection(page, songToAdd);
+});

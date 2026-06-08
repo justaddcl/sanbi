@@ -63,17 +63,22 @@ export const CreateSongForm: React.FC<CreateSongFormProps> = ({ onSubmit }) => {
 
   const createSongMutation = trpc.song.create.useMutation();
 
-  const { data: userData, isError: isGetUserQueryError } =
-    trpc.user.getUser.useQuery({
-      userId: userId!,
-    }, {
-      enabled: !!userId
-    });
+  const {
+    data: userData,
+    isError: isGetUserQueryError,
+    isLoading: isGetUserQueryLoading,
+  } = trpc.user.getUser.useQuery(
+      {
+        userId: userId!,
+      },
+      {
+        enabled: !!userId,
+      },
+    );
 
   if (!userId) {
     return null;
   }
-
 
   const handleCreateSongSubmit = async (formValues: CreateSongFormFields) => {
     const toastId = toast.loading("Creating song...");
@@ -123,7 +128,13 @@ export const CreateSongForm: React.FC<CreateSongFormProps> = ({ onSubmit }) => {
     formState: { isDirty, isSubmitting, isValid },
   } = createSongForm;
 
-  const shouldSubmitBeDisabled = !isDirty || !isValid || isSubmitting;
+  const shouldSubmitBeDisabled =
+    !isDirty ||
+    !isValid ||
+    isSubmitting ||
+    isGetUserQueryLoading ||
+    isGetUserQueryError ||
+    !userData;
 
   return (
     <Form {...createSongForm}>
@@ -154,7 +165,7 @@ export const CreateSongForm: React.FC<CreateSongFormProps> = ({ onSubmit }) => {
                   onValueChange={field.onChange}
                   defaultValue={field.value}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger aria-label="Preferred key *">
                     <SelectValue placeholder="Select preferred key..." />
                   </SelectTrigger>
                   <SelectContent>

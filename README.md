@@ -27,6 +27,10 @@ This project is a Next.js web app (bootstrapped by the [T3 Stack](https://create
 5. Push the schema to the database by running `pnpm db:push` and then seed the data with test data with `pnpm db:seed`
 6. Start the dev Next.js server by running `pnpm dev`
 
+## E2E Tests
+
+Playwright E2E setup and required Clerk/Postgres environment variables are documented in [docs/e2e.md](./docs/e2e.md).
+
 ## Copyright & License
 
 Copyright © 2024 justaddcl
