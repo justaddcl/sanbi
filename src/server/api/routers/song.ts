@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import { and, asc, desc, eq, lte, sql } from "drizzle-orm";
+import { and, asc, desc, eq, ilike, lte, or, sql } from "drizzle-orm";
 
 import { type NewSong, type Song } from "@lib/types/db";
 import {
@@ -33,6 +33,7 @@ import {
 } from "@server/db/schema";
 
 const TRIGRAM_SIMILARITY_THRESHOLD = 0.1;
+const DEFAULT_SEARCH_RESULT_LIMIT = 12;
 
 export const songRouter = createTRPCRouter({
   // Queries
@@ -94,6 +95,10 @@ export const songRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       console.log(`🤖 - [song/search] - searching for ${input.searchInput}`);
 
+      const normalizedSearchInput = input.searchInput.trim();
+      const fuzzySearchInput = `%${normalizedSearchInput}%`;
+      const searchResultLimit = input.limit ?? DEFAULT_SEARCH_RESULT_LIMIT;
+
       /**
        * NOTE: using similarity requires the pg_trgm extension to be enabled
        * CREATE EXTENSION IF NOT EXISTS pg_trgm;
@@ -104,10 +109,13 @@ export const songRouter = createTRPCRouter({
           name: songs.name,
           preferredKey: songs.preferredKey,
           isArchived: songs.isArchived,
-          similarityScore: sql<number>`similarity(${songs.name}, ${input.searchInput})`,
+          similarityScore: sql<number>`GREATEST(
+            similarity(${songs.name}, ${normalizedSearchInput}),
+            COALESCE(MAX(similarity(${tags.tag}, ${normalizedSearchInput})), 0)
+          )`,
           tags: sql<
             string[]
-          >`array_agg(DISTINCT ${tags.tag} ORDER BY ${tags.tag})`,
+          >`array_remove(array_agg(DISTINCT ${tags.tag} ORDER BY ${tags.tag}), NULL)`,
           lastPlayedDate: sql<Date | null>`
             MAX(
               CASE WHEN ${sets.date} <= NOW()
@@ -123,13 +131,25 @@ export const songRouter = createTRPCRouter({
         .leftJoin(songTags, eq(songTags.songId, songs.id))
         .leftJoin(tags, eq(tags.id, songTags.tagId))
         .where(
-          sql`similarity(${songs.name}, ${input.searchInput}) > ${TRIGRAM_SIMILARITY_THRESHOLD}`,
+          and(
+            eq(songs.organizationId, input.organizationId),
+            or(
+              ilike(songs.name, fuzzySearchInput),
+              ilike(tags.tag, fuzzySearchInput),
+              sql`similarity(${songs.name}, ${normalizedSearchInput}) > ${TRIGRAM_SIMILARITY_THRESHOLD}`,
+              sql`similarity(${tags.tag}, ${normalizedSearchInput}) > ${TRIGRAM_SIMILARITY_THRESHOLD}`,
+            ),
+          ),
         )
         .groupBy(songs.id)
         .orderBy(
-          desc(sql<number>`similarity(${songs.name}, ${input.searchInput})`),
+          desc(sql<number>`GREATEST(
+            similarity(${songs.name}, ${normalizedSearchInput}),
+            COALESCE(MAX(similarity(${tags.tag}, ${normalizedSearchInput})), 0)
+          )`),
           asc(songs.name),
-        );
+        )
+        .limit(searchResultLimit);
 
       console.log(
         `🤖 - [song/search] - result for ${input.searchInput}:`,

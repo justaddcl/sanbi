@@ -1,6 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import {
+  type Dispatch,
+  type SetStateAction,
+  useMemo,
+  useState,
+} from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
 
@@ -10,6 +15,7 @@ import {
   SongSearch,
   type SongSearchResult,
 } from "@modules/songs/components/SongSearch";
+import { trpc } from "@lib/trpc";
 import { type SetSectionWithSongs } from "@lib/types";
 
 import {
@@ -26,7 +32,9 @@ type SongSearchDialogProps = {
   // TODO: remove prop if unnecessary
   existingSetSections: SetSectionWithSongs[];
   setId: string;
+  organizationId: string;
   prePopulatedSetSectionId?: ConfigureSongForSetProps["prePopulatedSetSectionId"];
+  prePopulatedSongId?: string;
 };
 
 export const SongSearchDialog: React.FC<SongSearchDialogProps> = ({
@@ -34,7 +42,9 @@ export const SongSearchDialog: React.FC<SongSearchDialogProps> = ({
   onOpenChange,
   existingSetSections,
   setId,
+  organizationId,
   prePopulatedSetSectionId,
+  prePopulatedSongId,
 }) => {
   const searchParams = useSearchParams();
   const { userId, isLoaded } = useAuth();
@@ -44,6 +54,59 @@ export const SongSearchDialog: React.FC<SongSearchDialogProps> = ({
   const [selectedSong, setSelectedSong] = useState<SongSearchResult | null>(
     null,
   );
+  const [ignoredPrePopulatedSongId, setIgnoredPrePopulatedSongId] = useState<
+    string | null
+  >(null);
+  const {
+    data: prePopulatedSong,
+    isLoading: isPrePopulatedSongLoading,
+    isFetching: isPrePopulatedSongFetching,
+    isError: isPrePopulatedSongError,
+  } = trpc.song.get.useQuery(
+    { organizationId, songId: prePopulatedSongId! },
+    { enabled: open && !!prePopulatedSongId },
+  );
+
+  const resolvedPrePopulatedSong =
+    prePopulatedSong?.id === prePopulatedSongId ? prePopulatedSong : undefined;
+
+  const prePopulatedSongSearchResult = useMemo<SongSearchResult>(() => {
+    if (!resolvedPrePopulatedSong) {
+      return undefined;
+    }
+
+    return {
+      songId: resolvedPrePopulatedSong.id,
+      name: resolvedPrePopulatedSong.name,
+      preferredKey: resolvedPrePopulatedSong.preferredKey,
+      isArchived: resolvedPrePopulatedSong.isArchived,
+      similarityScore: 1,
+      lastPlayedDate: null,
+      tags: [],
+    };
+  }, [resolvedPrePopulatedSong]);
+
+  const canUsePrePopulatedSong =
+    open &&
+    !!prePopulatedSongId &&
+    ignoredPrePopulatedSongId !== prePopulatedSongId;
+  const activeDialogStep =
+    canUsePrePopulatedSong && prePopulatedSongSearchResult
+      ? "configure"
+      : dialogStep;
+  const activeSelectedSong =
+    canUsePrePopulatedSong && prePopulatedSongSearchResult
+      ? prePopulatedSongSearchResult
+      : selectedSong;
+  const showPrePopulatedSongLoader =
+    canUsePrePopulatedSong &&
+    (isPrePopulatedSongLoading ||
+      isPrePopulatedSongFetching ||
+      !prePopulatedSongSearchResult) &&
+    !isPrePopulatedSongError;
+  const showSongSearch =
+    activeDialogStep === "search" &&
+    (!canUsePrePopulatedSong || isPrePopulatedSongError);
 
   if (!userId) {
     router.replace("/");
@@ -66,6 +129,10 @@ export const SongSearchDialog: React.FC<SongSearchDialogProps> = ({
       if (params.has("setSectionId")) {
         params.delete("setSectionId");
       }
+
+      if (params.has("songId")) {
+        params.delete("songId");
+      }
     }
 
     const queryString = params.toString();
@@ -84,6 +151,19 @@ export const SongSearchDialog: React.FC<SongSearchDialogProps> = ({
     }
   };
 
+  const handleDialogStepChange: Dispatch<
+    SetStateAction<SongSearchDialogSteps>
+  > = (nextStep) => {
+    const resolvedStep =
+      typeof nextStep === "function" ? nextStep(dialogStep) : nextStep;
+
+    if (resolvedStep === "search" && prePopulatedSongId) {
+      setIgnoredPrePopulatedSongId(prePopulatedSongId);
+    }
+
+    setDialogStep(resolvedStep);
+  };
+
   return (
     <CommandDialog
       dialogTitle="Search songs"
@@ -93,25 +173,34 @@ export const SongSearchDialog: React.FC<SongSearchDialogProps> = ({
 
         if (!open) {
           setSelectedSong(null);
+          setIgnoredPrePopulatedSongId(null);
         }
 
         setDialogStep("search");
       }}
       shouldFilter={false}
       fixed
-      hasDialogContentComponentStyling={dialogStep === "configure"}
-      animated={dialogStep !== "configure"}
+      hasDialogContentComponentStyling={activeDialogStep === "configure"}
+      animated={activeDialogStep !== "configure"}
       minimalPadding
-      autoFocusInput={open && dialogStep === "search"}
+      autoFocusInput={open && activeDialogStep === "search"}
     >
-      {dialogStep === "search" && (
-        <SongSearch onSongSelect={handleSongSelect} />
+      {activeDialogStep === "search" && (
+        <>
+          {showPrePopulatedSongLoader && (
+            <div className="px-4 py-8 text-center">
+              <Text>Getting song...</Text>
+            </div>
+          )}
+          {showSongSearch && <SongSearch onSongSelect={handleSongSelect} />}
+        </>
       )}
-      {dialogStep === "configure" && !!selectedSong && (
+      {activeDialogStep === "configure" && !!activeSelectedSong && (
         <ConfigureSongForSet
+          key={activeSelectedSong.songId}
           existingSetSections={existingSetSections}
-          selectedSong={selectedSong}
-          setDialogStep={setDialogStep}
+          selectedSong={activeSelectedSong}
+          setDialogStep={handleDialogStepChange}
           onSubmit={() => {
             setOpen(false);
           }}

@@ -126,6 +126,7 @@ export const unarchiveSongSchema = songIdSchema;
 export const deleteSongSchema = songIdSchema;
 export const searchSongSchema = z.object({
   searchInput: z.string().min(2),
+  limit: z.number().int().min(1).max(50).optional(),
 });
 export const songGetLastPlayInstanceSchema = songIdSchema;
 export const songGetPlayHistorySchema = songIdSchema;

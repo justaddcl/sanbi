@@ -103,6 +103,8 @@ export default function SetListPage({
     setPrePopulatedSetSectionId(setSectionIdFromUrl);
   }, [searchParams]);
 
+  const prePopulatedSongId = getSearchParamValue(searchParams.songId);
+
   const validateParams = useCallback(() => {
     const isOrganizationIdValidUuid = uuidValidate(params.organization);
     const isSetIdValidUuid = uuidValidate(params.setId);
@@ -373,7 +375,9 @@ export default function SetListPage({
         onOpenChange={setIsSongSearchDialogOpen}
         existingSetSections={setData.sections}
         setId={setData.id}
+        organizationId={userMembership.organizationId}
         prePopulatedSetSectionId={prePopulatedSetSectionId}
+        prePopulatedSongId={prePopulatedSongId}
       />
     </PageContentContainer>
   );

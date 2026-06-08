@@ -1,10 +1,16 @@
 "use client";
 import React, { useState } from "react";
 import { Plus } from "@phosphor-icons/react";
+import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { type inferProcedureOutput } from "@trpc/server";
 
 import { Button } from "@components/ui/button";
-import { Dialog, DialogContent, DialogTrigger } from "@components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogTrigger,
+} from "@components/ui/dialog";
 import {
   AddSongToSetDialogHeader,
   ReviewStep,
@@ -57,12 +63,18 @@ const contentMap: Record<
 
 type AddSongToSetDialogProps = {
   song: inferProcedureOutput<AppRouter["song"]["get"]>;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  trigger?: React.ReactNode;
 };
 
 export const AddSongToSetDialog: React.FC<AddSongToSetDialogProps> = ({
   song,
+  open,
+  onOpenChange,
+  trigger,
 }) => {
-  const [isOpen, setIsOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(
     AddSongToSetDialogStep.SELECT_SET,
   );
@@ -81,6 +93,17 @@ export const AddSongToSetDialog: React.FC<AddSongToSetDialogProps> = ({
   const [selectedKey, setSelectedKey] = useState<SongKey | null>(null);
 
   const totalSteps = Object.keys(AddSongToSetDialogStep).length / 2; // this is divided by 2 since the length property combines the number of keys and values
+  const isOpen = open ?? internalOpen;
+  const title =
+    currentStep === AddSongToSetDialogStep.SELECT_SET && isCreatingNewSet
+      ? (contentMap[AddSongToSetDialogStep.SELECT_SET].alternateTitle ??
+        "Create new set")
+      : contentMap[currentStep].title;
+
+  const setDialogOpen = (nextOpen: boolean) => {
+    setInternalOpen(nextOpen);
+    onOpenChange?.(nextOpen);
+  };
 
   const goBack = () => {
     if (currentStep === AddSongToSetDialogStep.SELECT_SET && isCreatingNewSet) {
@@ -98,7 +121,7 @@ export const AddSongToSetDialog: React.FC<AddSongToSetDialogProps> = ({
   };
 
   const resetDialog = () => {
-    setIsOpen(false);
+    setDialogOpen(false);
     setIsCreatingNewSet(false);
     setCurrentStep(AddSongToSetDialogStep.SELECT_SET);
     setSelectedSet(null);
@@ -194,7 +217,6 @@ export const AddSongToSetDialog: React.FC<AddSongToSetDialogProps> = ({
             orderedSongIds={updatedSetSectionOrderedSongIds}
             songKey={selectedKey}
             onAddSong={() => {
-              setIsOpen(false);
               resetDialog();
             }}
           />
@@ -208,31 +230,32 @@ export const AddSongToSetDialog: React.FC<AddSongToSetDialogProps> = ({
     <Dialog
       open={isOpen}
       onOpenChange={(open) => {
-        setIsOpen(open);
+        setDialogOpen(open);
         if (!open) {
           resetDialog();
         }
       }}
     >
-      <DialogTrigger asChild>
-        <Button>
-          <Plus /> Add to a set
-        </Button>
-      </DialogTrigger>
+      {trigger === null ? null : (
+        <DialogTrigger asChild>
+          {trigger ?? (
+            <Button>
+              <Plus /> Add to a set
+            </Button>
+          )}
+        </DialogTrigger>
+      )}
       <DialogContent
         fixed
         minimalPadding
         closeButton={null}
         className="max-h-[90%] gap-0 overflow-y-auto p-0 lg:max-h-[75%] lg:p-0"
       >
+        <VisuallyHidden.Root>
+          <DialogTitle>{title}</DialogTitle>
+        </VisuallyHidden.Root>
         <AddSongToSetDialogHeader
-          title={
-            currentStep === AddSongToSetDialogStep.SELECT_SET &&
-            isCreatingNewSet
-              ? contentMap[AddSongToSetDialogStep.SELECT_SET].alternateTitle ??
-                "Create new set"
-              : contentMap[currentStep].title
-          }
+          title={title}
           step={currentStep}
           totalSteps={totalSteps}
           onBack={goBack}
