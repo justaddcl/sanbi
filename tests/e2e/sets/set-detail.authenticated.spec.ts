@@ -91,13 +91,13 @@ test("adds a song to a section from set detail", async ({ page }, testInfo) => {
   await dialog
     .getByPlaceholder("Search for a song...")
     .fill(songToAdd.name);
-  await expect(dialog.getByText(songToAdd.name)).toBeVisible();
-  await dialog.getByText(songToAdd.name).click();
+  await expect(dialog.getByText(songToAdd.name, { exact: true })).toBeVisible();
+  await dialog.getByText(songToAdd.name, { exact: true }).click();
 
   await expect(
     dialog.getByRole("heading", { name: "Add song to set" }),
   ).toBeVisible();
-  await expect(dialog.getByText(songToAdd.name)).toBeVisible();
+  await expect(dialog.getByText(songToAdd.name, { exact: true })).toBeVisible();
   await expect(
     dialog.getByRole("radio", { name: e2eData.sectionTypes.fullBand }),
   ).toBeChecked();
