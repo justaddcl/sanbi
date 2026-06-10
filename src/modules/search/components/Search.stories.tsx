@@ -1,6 +1,31 @@
+import { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+import { TRPCProvider } from "@lib/trpc/client";
 
 import { Search } from "./Search";
+
+const SearchStoryProviders: React.FC<React.PropsWithChildren> = ({
+  children,
+}) => {
+  const [queryClient] = useState(
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          queries: {
+            retry: false,
+          },
+        },
+      }),
+  );
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TRPCProvider queryClient={queryClient}>{children}</TRPCProvider>
+    </QueryClientProvider>
+  );
+};
 
 const meta = {
   title: "Search/Search",
@@ -8,6 +33,13 @@ const meta = {
   args: {
     className: "max-w-3xl",
   },
+  decorators: [
+    (Story) => (
+      <SearchStoryProviders>
+        <Story />
+      </SearchStoryProviders>
+    ),
+  ],
 } satisfies Meta<typeof Search>;
 
 export default meta;
