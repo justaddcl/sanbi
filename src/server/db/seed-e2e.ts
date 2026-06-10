@@ -102,6 +102,16 @@ export const seedE2eDatabase = async () => {
       name: e2eData.sectionTypes.prayer,
       organizationId: e2eIds.organizationId,
     },
+    {
+      id: e2eIds.songDetailDesktopSectionTypeId,
+      name: e2eData.sectionTypes.songDetailDesktop,
+      organizationId: e2eIds.organizationId,
+    },
+    {
+      id: e2eIds.songDetailMobileSectionTypeId,
+      name: e2eData.sectionTypes.songDetailMobile,
+      organizationId: e2eIds.organizationId,
+    },
   ];
 
   const set: NewSet = {
@@ -126,6 +136,20 @@ export const seedE2eDatabase = async () => {
       setId: e2eIds.setId,
       position: 1,
       sectionTypeId: e2eIds.prayerSectionTypeId,
+      organizationId: e2eIds.organizationId,
+    },
+    {
+      id: e2eIds.songDetailDesktopSectionId,
+      setId: e2eIds.setId,
+      position: 2,
+      sectionTypeId: e2eIds.songDetailDesktopSectionTypeId,
+      organizationId: e2eIds.organizationId,
+    },
+    {
+      id: e2eIds.songDetailMobileSectionId,
+      setId: e2eIds.setId,
+      position: 3,
+      sectionTypeId: e2eIds.songDetailMobileSectionTypeId,
       organizationId: e2eIds.organizationId,
     },
   ];
@@ -171,6 +195,47 @@ export const seedE2eDatabase = async () => {
       isArchived: false,
       favoritedAt: null,
     },
+    {
+      id: e2eIds.addSongToSetFromSongDetailDesktopSongId,
+      name: e2eData.songs.addSongToSetFromSongDetailDesktop.name,
+      preferredKey:
+        e2eData.songs.addSongToSetFromSongDetailDesktop.preferredKey,
+      notes: e2eData.songs.addSongToSetFromSongDetailDesktop.notes,
+      createdBy: env.E2E_CLERK_USER_ID,
+      organizationId: e2eIds.organizationId,
+      isArchived: false,
+      favoritedAt: null,
+    },
+    {
+      id: e2eIds.addSongToSetFromSongDetailMobileSongId,
+      name: e2eData.songs.addSongToSetFromSongDetailMobile.name,
+      preferredKey: e2eData.songs.addSongToSetFromSongDetailMobile.preferredKey,
+      notes: e2eData.songs.addSongToSetFromSongDetailMobile.notes,
+      createdBy: env.E2E_CLERK_USER_ID,
+      organizationId: e2eIds.organizationId,
+      isArchived: false,
+      favoritedAt: null,
+    },
+    {
+      id: e2eIds.songDetailDesktopAnchorSongId,
+      name: e2eData.songs.songDetailDesktopAnchor.name,
+      preferredKey: "g",
+      notes: e2eData.songs.songDetailDesktopAnchor.notes,
+      createdBy: env.E2E_CLERK_USER_ID,
+      organizationId: e2eIds.organizationId,
+      isArchived: false,
+      favoritedAt: null,
+    },
+    {
+      id: e2eIds.songDetailMobileAnchorSongId,
+      name: e2eData.songs.songDetailMobileAnchor.name,
+      preferredKey: "c",
+      notes: e2eData.songs.songDetailMobileAnchor.notes,
+      createdBy: env.E2E_CLERK_USER_ID,
+      organizationId: e2eIds.organizationId,
+      isArchived: false,
+      favoritedAt: null,
+    },
   ];
 
   const setSongs: NewSetSectionSong[] = [
@@ -190,6 +255,24 @@ export const seedE2eDatabase = async () => {
       position: 0,
       key: "c",
       notes: e2eData.songs.second.setNotes,
+      organizationId: e2eIds.organizationId,
+    },
+    {
+      id: e2eIds.songDetailDesktopSetSectionSongId,
+      setSectionId: e2eIds.songDetailDesktopSectionId,
+      songId: e2eIds.songDetailDesktopAnchorSongId,
+      position: 0,
+      key: "g",
+      notes: e2eData.songs.songDetailDesktopAnchor.setNotes,
+      organizationId: e2eIds.organizationId,
+    },
+    {
+      id: e2eIds.songDetailMobileSetSectionSongId,
+      setSectionId: e2eIds.songDetailMobileSectionId,
+      songId: e2eIds.songDetailMobileAnchorSongId,
+      position: 0,
+      key: "c",
+      notes: e2eData.songs.songDetailMobileAnchor.setNotes,
       organizationId: e2eIds.organizationId,
     },
   ];
