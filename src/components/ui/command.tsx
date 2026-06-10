@@ -8,9 +8,9 @@ import { Command as CommandPrimitive } from "cmdk";
 import {
   Dialog,
   DialogContent,
-  DialogTitle,
   type DialogContentProps,
   type DialogProps,
+  DialogTitle,
 } from "@components/ui/dialog";
 import { cn } from "@lib/utils";
 
@@ -38,6 +38,7 @@ type CommandDialogProps = DialogProps & {
   animated?: DialogContentProps["animated"];
   minimalPadding?: boolean;
   autoFocusInput?: boolean;
+  closeButton?: DialogContentProps["closeButton"];
   className?: string;
 };
 const CommandDialog: React.FC<CommandDialogProps> = ({
@@ -50,6 +51,7 @@ const CommandDialog: React.FC<CommandDialogProps> = ({
   animated,
   minimalPadding,
   autoFocusInput = false,
+  closeButton,
   className,
   ...props
 }) => {
@@ -107,6 +109,7 @@ const CommandDialog: React.FC<CommandDialogProps> = ({
           },
           className,
         )}
+        closeButton={closeButton}
         minimalPadding={minimalPadding}
         onOpenAutoFocus={(event) => {
           if (!autoFocusInput) {
