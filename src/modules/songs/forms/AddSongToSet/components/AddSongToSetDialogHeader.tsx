@@ -43,7 +43,6 @@ export const AddSongToSetDialogHeader: React.FC<
           )}
           <DialogTitle asChild>
             <h2
-              id="modal-title"
               className={cn("text-lg font-semibold", {
                 "ml-3":
                   step === AddSongToSetDialogStep.SELECT_SET &&

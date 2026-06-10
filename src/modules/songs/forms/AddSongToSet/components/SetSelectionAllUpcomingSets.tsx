@@ -1,5 +1,6 @@
 import React from "react";
 import { Plus } from "@phosphor-icons/react/dist/ssr";
+import { skipToken } from "@tanstack/react-query";
 import { differenceInCalendarWeeks } from "date-fns";
 import { toast } from "sonner";
 
@@ -37,24 +38,8 @@ type SetSelectionAllUpcomingSetsProps = {
 export const SetSelectionAllUpcomingSets: React.FC<
   SetSelectionAllUpcomingSetsProps
 > = ({ eventTypeFilters, dateFilter, onCreateSetClick, onSetSelect }) => {
-  const {
-    data: userData,
-    error: userQueryError,
-    isLoading: userQueryLoading,
-    isAuthLoaded,
-  } = useUserQuery();
+  const { data: userData } = useUserQuery();
   const userMembership = userData?.memberships[0];
-
-  if (!userMembership) {
-    return (
-      <SetSelectionSection title="All upcoming sets">
-        <div className="p-4 text-center text-muted-foreground">
-          Unable to load sets. Looks like we can&apos;t verify which team
-          you&apos;re a part of
-        </div>
-      </SetSelectionSection>
-    );
-  }
 
   const {
     data: setsData,
@@ -64,16 +49,18 @@ export const SetSelectionAllUpcomingSets: React.FC<
     isLoading,
     error: getInfiniteSetsQueryError,
   } = trpc.set.getInfinite.useInfiniteQuery(
-    {
-      organizationId: userMembership.organizationId,
-      dateRange: dateFilter?.from
-        ? {
-            from: dateFilter.from,
-            to: dateFilter.to ? dateFilter.to : null,
-          }
-        : null,
-      eventTypeFilters: eventTypeFilters.map((filter) => filter.id),
-    },
+    userMembership
+      ? {
+          organizationId: userMembership.organizationId,
+          dateRange: dateFilter?.from
+            ? {
+                from: dateFilter.from,
+                to: dateFilter.to ?? null,
+              }
+            : null,
+          eventTypeFilters: eventTypeFilters.map((filter) => filter.id),
+        }
+      : skipToken,
     {
       getNextPageParam: (last) => {
         const cursor = last.nextCursor;
@@ -89,6 +76,17 @@ export const SetSelectionAllUpcomingSets: React.FC<
       },
     },
   );
+
+  if (!userMembership) {
+    return (
+      <SetSelectionSection title="All upcoming sets">
+        <div className="text-muted-foreground p-4 text-center">
+          Unable to load sets. Looks like we can&apos;t verify which team
+          you&apos;re a part of
+        </div>
+      </SetSelectionSection>
+    );
+  }
 
   if (isLoading) {
     return (
@@ -128,7 +126,7 @@ export const SetSelectionAllUpcomingSets: React.FC<
   if (!setsData) {
     return (
       <SetSelectionSection title="All upcoming sets">
-        <div className="p-4 text-center text-muted-foreground">
+        <div className="text-muted-foreground p-4 text-center">
           No sets found. Try adjusting your filters or create a new set.
         </div>
       </SetSelectionSection>
@@ -189,7 +187,9 @@ export const SetSelectionAllUpcomingSets: React.FC<
         <Button
           variant="secondary"
           size="sm"
-          onClick={() => fetchNextPage()}
+          onClick={() => {
+            void fetchNextPage();
+          }}
           disabled={isFetchingNextPage}
           className="mt-4"
         >

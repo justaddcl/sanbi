@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
-import { and, eq, gt, sql } from "drizzle-orm";
+import { and, eq, gt, gte, sql } from "drizzle-orm";
 
-import { type NewSetSectionSong, type Song } from "@lib/types";
+import { type NewSetSectionSong } from "@lib/types";
 import {
   addAndReorderSongsSchema,
   deleteSetSectionSongSchema,
@@ -36,19 +36,58 @@ export const setSectionSongRouter = createTRPCRouter({
         });
       }
 
-      const newSetSectionSong: NewSetSectionSong = {
-        songId,
-        setSectionId,
-        key: key as Song["preferredKey"],
-        position,
-        notes,
-        organizationId,
-      };
+      return ctx.db.transaction(async (transaction) => {
+        await transaction.execute(
+          sql`SELECT id FROM ${setSections} WHERE ${setSections.id} = ${setSectionId} FOR UPDATE`,
+        );
 
-      return ctx.db
-        .insert(setSectionSongs)
-        .values(newSetSectionSong)
-        .returning();
+        const setSection = await transaction.query.setSections.findFirst({
+          where: eq(setSections.id, setSectionId),
+          columns: {
+            organizationId: true,
+          },
+        });
+
+        if (!setSection) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Set section not found",
+          });
+        }
+
+        if (setSection.organizationId !== organizationId) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Not authorized to update this set section",
+          });
+        }
+
+        await transaction
+          .update(setSectionSongs)
+          .set({
+            position: sql`${setSectionSongs.position} + 1`,
+          })
+          .where(
+            and(
+              eq(setSectionSongs.setSectionId, setSectionId),
+              gte(setSectionSongs.position, position),
+            ),
+          );
+
+        const newSetSectionSong: NewSetSectionSong = {
+          songId,
+          setSectionId,
+          key,
+          position,
+          notes,
+          organizationId,
+        };
+
+        return transaction
+          .insert(setSectionSongs)
+          .values(newSetSectionSong)
+          .returning();
+      });
     }),
 
   delete: adminProcedure
@@ -304,7 +343,7 @@ export const setSectionSongRouter = createTRPCRouter({
       const [updatedSong] = await ctx.db
         .update(setSectionSongs)
         .set({
-          key: key as Song["preferredKey"],
+          key,
           ...updates,
         })
         .where(eq(setSectionSongs.id, setSectionSongId))
@@ -360,6 +399,10 @@ export const setSectionSongRouter = createTRPCRouter({
       }
 
       return await ctx.db.transaction(async (transaction) => {
+        await transaction.execute(
+          sql`SELECT id FROM ${setSections} WHERE ${setSections.id} = ${setSectionId} FOR UPDATE`,
+        );
+
         // 2. Determine the position for the new song from orderedSongIds
         const newSongPosition = orderedSongIds.indexOf(newSongTempId);
 
@@ -382,21 +425,19 @@ export const setSectionSongRouter = createTRPCRouter({
           organizationId: organizationId,
         };
 
-        // 3. Execute fetching current state and inserting new song in parallel
-        const [currentSetSectionSongs, [insertedSetSectionSong]] =
-          await Promise.all([
-            transaction.query.setSectionSongs.findMany({
-              where: eq(setSectionSongs.setSectionId, setSectionId),
-              columns: {
-                id: true,
-                position: true,
-              },
-            }),
-            transaction
-              .insert(setSectionSongs)
-              .values(newSetSectionSongData)
-              .returning(),
-          ]);
+        // 3. Fetch the locked section state, then insert the new song
+        const currentSetSectionSongs =
+          await transaction.query.setSectionSongs.findMany({
+            where: eq(setSectionSongs.setSectionId, setSectionId),
+            columns: {
+              id: true,
+              position: true,
+            },
+          });
+        const [insertedSetSectionSong] = await transaction
+          .insert(setSectionSongs)
+          .values(newSetSectionSongData)
+          .returning();
 
         if (!insertedSetSectionSong) {
           console.error(
@@ -429,55 +470,63 @@ export const setSectionSongRouter = createTRPCRouter({
         currentSetSectionSongs.forEach((song) => {
           currentPositionMap.set(song.id, song.position);
         });
+        currentPositionMap.set(insertedSetSectionSong.id, newSongPosition);
+
+        const requestedOrderedSetSectionSongIds = orderedSongIds.map(
+          (songId) =>
+            songId === newSongTempId ? insertedSetSectionSong.id : songId,
+        );
+        const requestedOrderedSetSectionSongIdsSet = new Set(
+          requestedOrderedSetSectionSongIds,
+        );
+        const missingCurrentSetSectionSongIds = currentSetSectionSongs
+          .toSorted(
+            (firstSong, secondSong) => firstSong.position - secondSong.position,
+          )
+          .map((song) => song.id)
+          .filter(
+            (songId) => !requestedOrderedSetSectionSongIdsSet.has(songId),
+          );
+        const finalOrderedSetSectionSongIds = [
+          ...requestedOrderedSetSectionSongIds,
+          ...missingCurrentSetSectionSongIds,
+        ];
 
         const updatedSetSectionSongs: { id: string; position: number }[] = [];
 
-        const updatePromises = orderedSongIds.reduce<Promise<unknown>[]>(
-          (updatePromises, songIdInOrderedList, desiredPosition) => {
-            // Determine the actual DB ID for the current song in the loop
-            const setSectionSongId =
-              songIdInOrderedList === newSongTempId
-                ? insertedSetSectionSong.id
-                : songIdInOrderedList;
+        const updatePromises = finalOrderedSetSectionSongIds.reduce<
+          Promise<unknown>[]
+        >((updatePromises, setSectionSongId, desiredPosition) => {
+          const currentPosition = currentPositionMap.get(setSectionSongId);
 
-            // Skip updating the newly inserted song as it already has the correct position
-            if (setSectionSongId === insertedSetSectionSong.id) {
-              return updatePromises;
-            }
+          if (
+            currentPosition === undefined ||
+            currentPosition !== desiredPosition
+          ) {
+            updatedSetSectionSongs.push({
+              id: setSectionSongId,
+              position: desiredPosition,
+            });
 
-            const currentPosition = currentPositionMap.get(setSectionSongId);
+            console.info(
+              `🤖 - [setSectionSong/addAndReorderSongs] - Attempting to update song position affected by adding the new song`,
+              {
+                setSectionSongId,
+                currentPosition,
+                desiredPosition,
+              },
+            );
 
-            // If the song is new or an existing song whose position has changed
-            if (
-              currentPosition === undefined ||
-              currentPosition !== desiredPosition
-            ) {
-              updatedSetSectionSongs.push({
-                id: setSectionSongId,
-                position: desiredPosition,
-              });
-
-              console.info(
-                `🤖 - [setSectionSong/addAndReorderSongs] - Attempting to update song position affected by adding the new song`,
-                {
-                  setSectionSongId,
-                  currentPosition,
-                  desiredPosition,
-                },
-              );
-
-              updatePromises.push(
-                transaction
-                  .update(setSectionSongs)
-                  .set({ position: desiredPosition })
-                  .where(eq(setSectionSongs.id, setSectionSongId))
-                  .execute(),
-              );
-            }
-            return updatePromises;
-          },
-          [],
-        );
+            updatePromises.push(
+              transaction
+                .update(setSectionSongs)
+                .set({ position: desiredPosition })
+                .where(eq(setSectionSongs.id, setSectionSongId))
+                .execute(),
+            );
+          }
+          return updatePromises;
+        }, []);
 
         // 5. Execute all position updates in parallel
         await Promise.all(updatePromises);

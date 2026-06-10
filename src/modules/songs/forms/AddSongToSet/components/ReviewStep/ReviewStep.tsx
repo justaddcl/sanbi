@@ -127,23 +127,23 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
           Does this look right?
         </Text>
 
-        <VStack className="gap-1">
+        <VStack data-testid="add-song-review-summary-group" className="gap-1">
           <Text className="font-medium text-slate-700">Adding</Text>
           <HStack className="items-center justify-between rounded-lg border border-slate-200 p-3">
             <Text className="font-medium md:text-lg">{song.name}</Text>
           </HStack>
         </VStack>
-        <VStack className="gap-1">
+        <VStack data-testid="add-song-review-summary-group" className="gap-1">
           <Text className="font-medium text-slate-700">Played in</Text>
           <HStack className="items-center justify-between rounded-lg border border-slate-200 p-3">
             <SongKey songKey={songKey} size="large" />
           </HStack>
         </VStack>
-        <VStack className="gap-1">
+        <VStack data-testid="add-song-review-summary-group" className="gap-1">
           <Text className="font-medium text-slate-700">In set</Text>
           <SelectedSetCard set={setData} countShown="songs" />
         </VStack>
-        <VStack className="gap-1">
+        <VStack data-testid="add-song-review-summary-group" className="gap-1">
           <Text className="font-medium text-slate-700">In section</Text>
           <Card
             title={setSectionData.type.name}
@@ -162,7 +162,7 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
             </VStack>
           </Card>
         </VStack>
-        <VStack className="gap-1">
+        <VStack data-testid="add-song-review-summary-group" className="gap-1">
           <Text className="font-medium text-slate-700">Song notes</Text>
           <Textarea
             value={notes}
