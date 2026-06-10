@@ -57,17 +57,15 @@ const getSetSectionCard = (page: Page, sectionName: string) =>
 const getDialogCardByHeading = (root: Page | Locator, headingName: string) =>
   root
     .getByTestId("set-section-selection-card")
-    .filter({ has: root.getByRole("heading", { name: headingName }) });
+    .filter({ hasText: headingName });
 
 const getDialogSummaryGroup = (dialog: Locator, label: string) =>
   dialog
     .getByTestId("add-song-review-summary-group")
-    .filter({ has: dialog.getByText(label, { exact: true }) });
+    .filter({ hasText: label });
 
 const getSongRow = (root: Page | Locator, songName: string) =>
-  root
-    .getByTestId("song-content")
-    .filter({ has: root.getByText(songName, { exact: true }) });
+  root.getByTestId("song-content").filter({ hasText: songName });
 
 const expectDialogStep = async (
   dialog: Locator,
