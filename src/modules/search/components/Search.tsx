@@ -48,7 +48,9 @@ export const Search: React.FC<SearchProps> = ({ className }) => {
   const normalizedSearchInput = searchInput.trim();
   const hasSearchableInput =
     normalizedSearchInput.length >= MIN_SEARCH_LENGTH;
-  const closeOrClearLabel = searchInput ? "Clear search" : "Close search";
+  const closeOrClearLabel = normalizedSearchInput
+    ? "Clear search"
+    : "Close search";
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -57,13 +59,19 @@ export const Search: React.FC<SearchProps> = ({ className }) => {
       }
 
       event.preventDefault();
+      if (open) {
+        setOpen(false);
+        setSearchInput("");
+        return;
+      }
+
       setOpen(true);
     };
 
     window.addEventListener("keydown", handleKeyDown);
 
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  }, [open]);
 
   const handleOpenChange = (nextOpen: boolean) => {
     setOpen(nextOpen);
@@ -74,7 +82,7 @@ export const Search: React.FC<SearchProps> = ({ className }) => {
   };
 
   const handleSearchControlClick = () => {
-    if (searchInput) {
+    if (normalizedSearchInput) {
       setSearchInput("");
       return;
     }
@@ -129,7 +137,7 @@ export const Search: React.FC<SearchProps> = ({ className }) => {
               placeholder="Search songs or tags"
               className="h-14 text-base md:text-base"
               onKeyDown={(event) => {
-                if (event.key !== "Escape" || !searchInput) {
+                if (event.key !== "Escape" || !normalizedSearchInput) {
                   return;
                 }
 
