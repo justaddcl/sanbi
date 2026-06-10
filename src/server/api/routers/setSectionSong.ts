@@ -480,7 +480,7 @@ export const setSectionSongRouter = createTRPCRouter({
           requestedOrderedSetSectionSongIds,
         );
         const missingCurrentSetSectionSongIds = currentSetSectionSongs
-          .sort(
+          .toSorted(
             (firstSong, secondSong) => firstSong.position - secondSong.position,
           )
           .map((song) => song.id)

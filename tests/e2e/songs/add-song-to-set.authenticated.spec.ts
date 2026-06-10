@@ -56,24 +56,18 @@ const getSetSectionCard = (page: Page, sectionName: string) =>
 
 const getDialogCardByHeading = (root: Page | Locator, headingName: string) =>
   root
-    .getByRole("heading", { name: headingName })
-    .locator(
-      "xpath=ancestor::div[contains(concat(' ', normalize-space(@class), ' '), ' rounded-lg ') and contains(concat(' ', normalize-space(@class), ' '), ' border ')][1]",
-    );
+    .getByTestId("set-section-selection-card")
+    .filter({ has: root.getByRole("heading", { name: headingName }) });
 
 const getDialogSummaryGroup = (dialog: Locator, label: string) =>
   dialog
-    .getByText(label, { exact: true })
-    .locator(
-      "xpath=ancestor::div[contains(concat(' ', normalize-space(@class), ' '), ' gap-1 ')][1]",
-    );
+    .getByTestId("add-song-review-summary-group")
+    .filter({ has: dialog.getByText(label, { exact: true }) });
 
 const getSongRow = (root: Page | Locator, songName: string) =>
   root
-    .getByText(songName, { exact: true })
-    .locator(
-      "xpath=ancestor::div[contains(concat(' ', normalize-space(@class), ' '), ' w-full ') and contains(concat(' ', normalize-space(@class), ' '), ' items-baseline ')][1]",
-    );
+    .getByTestId("song-content")
+    .filter({ has: root.getByText(songName, { exact: true }) });
 
 const expectDialogStep = async (
   dialog: Locator,
