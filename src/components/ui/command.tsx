@@ -39,6 +39,7 @@ type CommandDialogProps = DialogProps & {
   minimalPadding?: boolean;
   autoFocusInput?: boolean;
   closeButton?: DialogContentProps["closeButton"];
+  onEscapeKeyDown?: DialogContentProps["onEscapeKeyDown"];
   className?: string;
 };
 const CommandDialog: React.FC<CommandDialogProps> = ({
@@ -52,6 +53,7 @@ const CommandDialog: React.FC<CommandDialogProps> = ({
   minimalPadding,
   autoFocusInput = false,
   closeButton,
+  onEscapeKeyDown,
   className,
   ...props
 }) => {
@@ -111,6 +113,7 @@ const CommandDialog: React.FC<CommandDialogProps> = ({
         )}
         closeButton={closeButton}
         minimalPadding={minimalPadding}
+        onEscapeKeyDown={onEscapeKeyDown}
         onOpenAutoFocus={(event) => {
           if (!autoFocusInput) {
             return;

@@ -48,9 +48,7 @@ export const Search: React.FC<SearchProps> = ({ className }) => {
   const normalizedSearchInput = searchInput.trim();
   const hasSearchableInput =
     normalizedSearchInput.length >= MIN_SEARCH_LENGTH;
-  const closeOrClearLabel = normalizedSearchInput
-    ? "Clear search"
-    : "Close search";
+  const closeOrClearLabel = searchInput ? "Clear search" : "Close search";
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -127,6 +125,14 @@ export const Search: React.FC<SearchProps> = ({ className }) => {
         shouldFilter={false}
         autoFocusInput={open}
         closeButton={null}
+        onEscapeKeyDown={(event) => {
+          if (!searchInput) {
+            return;
+          }
+
+          event.preventDefault();
+          setSearchInput("");
+        }}
         className="max-h-[calc(100dvh_-_24px)] overflow-hidden !pb-0"
       >
         <HStack className="items-center border-b border-slate-100 [&_[cmdk-input-wrapper]]:border-b-0">
@@ -136,15 +142,6 @@ export const Search: React.FC<SearchProps> = ({ className }) => {
               onValueChange={setSearchInput}
               placeholder="Search songs or tags"
               className="h-14 text-base md:text-base"
-              onKeyDown={(event) => {
-                if (event.key !== "Escape" || !normalizedSearchInput) {
-                  return;
-                }
-
-                event.preventDefault();
-                event.stopPropagation();
-                setSearchInput("");
-              }}
             />
           </div>
           <Button
