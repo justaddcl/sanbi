@@ -1,5 +1,6 @@
 import React from "react";
 import { Plus } from "@phosphor-icons/react/dist/ssr";
+import { skipToken } from "@tanstack/react-query";
 import { differenceInCalendarWeeks } from "date-fns";
 import { toast } from "sonner";
 
@@ -48,16 +49,18 @@ export const SetSelectionAllUpcomingSets: React.FC<
     isLoading,
     error: getInfiniteSetsQueryError,
   } = trpc.set.getInfinite.useInfiniteQuery(
-    {
-      organizationId: userMembership?.organizationId ?? "",
-      dateRange: dateFilter?.from
-        ? {
-            from: dateFilter.from,
-            to: dateFilter.to ?? null,
-          }
-        : null,
-      eventTypeFilters: eventTypeFilters.map((filter) => filter.id),
-    },
+    userMembership
+      ? {
+          organizationId: userMembership.organizationId,
+          dateRange: dateFilter?.from
+            ? {
+                from: dateFilter.from,
+                to: dateFilter.to ?? null,
+              }
+            : null,
+          eventTypeFilters: eventTypeFilters.map((filter) => filter.id),
+        }
+      : skipToken,
     {
       getNextPageParam: (last) => {
         const cursor = last.nextCursor;
@@ -71,7 +74,6 @@ export const SetSelectionAllUpcomingSets: React.FC<
           date: new Date(cursor.date),
         };
       },
-      enabled: !!userMembership?.organizationId,
     },
   );
 
