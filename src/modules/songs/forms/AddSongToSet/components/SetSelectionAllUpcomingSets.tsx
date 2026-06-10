@@ -37,24 +37,8 @@ type SetSelectionAllUpcomingSetsProps = {
 export const SetSelectionAllUpcomingSets: React.FC<
   SetSelectionAllUpcomingSetsProps
 > = ({ eventTypeFilters, dateFilter, onCreateSetClick, onSetSelect }) => {
-  const {
-    data: userData,
-    error: userQueryError,
-    isLoading: userQueryLoading,
-    isAuthLoaded,
-  } = useUserQuery();
+  const { data: userData } = useUserQuery();
   const userMembership = userData?.memberships[0];
-
-  if (!userMembership) {
-    return (
-      <SetSelectionSection title="All upcoming sets">
-        <div className="p-4 text-center text-muted-foreground">
-          Unable to load sets. Looks like we can&apos;t verify which team
-          you&apos;re a part of
-        </div>
-      </SetSelectionSection>
-    );
-  }
 
   const {
     data: setsData,
@@ -65,11 +49,11 @@ export const SetSelectionAllUpcomingSets: React.FC<
     error: getInfiniteSetsQueryError,
   } = trpc.set.getInfinite.useInfiniteQuery(
     {
-      organizationId: userMembership.organizationId,
+      organizationId: userMembership?.organizationId ?? "",
       dateRange: dateFilter?.from
         ? {
             from: dateFilter.from,
-            to: dateFilter.to ? dateFilter.to : null,
+            to: dateFilter.to ?? null,
           }
         : null,
       eventTypeFilters: eventTypeFilters.map((filter) => filter.id),
@@ -87,8 +71,20 @@ export const SetSelectionAllUpcomingSets: React.FC<
           date: new Date(cursor.date),
         };
       },
+      enabled: !!userMembership?.organizationId,
     },
   );
+
+  if (!userMembership) {
+    return (
+      <SetSelectionSection title="All upcoming sets">
+        <div className="text-muted-foreground p-4 text-center">
+          Unable to load sets. Looks like we can&apos;t verify which team
+          you&apos;re a part of
+        </div>
+      </SetSelectionSection>
+    );
+  }
 
   if (isLoading) {
     return (
@@ -128,7 +124,7 @@ export const SetSelectionAllUpcomingSets: React.FC<
   if (!setsData) {
     return (
       <SetSelectionSection title="All upcoming sets">
-        <div className="p-4 text-center text-muted-foreground">
+        <div className="text-muted-foreground p-4 text-center">
           No sets found. Try adjusting your filters or create a new set.
         </div>
       </SetSelectionSection>
@@ -189,7 +185,9 @@ export const SetSelectionAllUpcomingSets: React.FC<
         <Button
           variant="secondary"
           size="sm"
-          onClick={() => fetchNextPage()}
+          onClick={() => {
+            void fetchNextPage();
+          }}
           disabled={isFetchingNextPage}
           className="mt-4"
         >
