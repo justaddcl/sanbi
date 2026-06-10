@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import {
   Command as CommandIcon,
   MagnifyingGlass,
@@ -44,11 +44,16 @@ export const Search: React.FC<SearchProps> = ({ className }) => {
   const searchDescriptionId = useId();
   const [open, setOpen] = useState(false);
   const [searchInput, setSearchInput] = useState("");
+  const openRef = useRef(open);
 
   const normalizedSearchInput = searchInput.trim();
   const hasSearchableInput =
     normalizedSearchInput.length >= MIN_SEARCH_LENGTH;
   const closeOrClearLabel = searchInput ? "Clear search" : "Close search";
+
+  useEffect(() => {
+    openRef.current = open;
+  }, [open]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -57,7 +62,7 @@ export const Search: React.FC<SearchProps> = ({ className }) => {
       }
 
       event.preventDefault();
-      if (open) {
+      if (openRef.current) {
         setOpen(false);
         setSearchInput("");
         return;
@@ -69,7 +74,7 @@ export const Search: React.FC<SearchProps> = ({ className }) => {
     window.addEventListener("keydown", handleKeyDown);
 
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [open]);
+  }, []);
 
   const handleOpenChange = (nextOpen: boolean) => {
     setOpen(nextOpen);
