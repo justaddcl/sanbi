@@ -35,6 +35,23 @@ const expectAddedSongInFullBandSection = async (
   await expect(fullBandSection).toContainText(addSongToSet.notes);
 };
 
+const openGlobalSearch = async (page: Page, isMobileProject: boolean) => {
+  if (!isMobileProject) {
+    await page.keyboard.press("ControlOrMeta+K");
+    return;
+  }
+
+  const searchButton = page.getByRole("button", {
+    name: "Open global search",
+  });
+  const trigger = await searchButton
+    .waitFor({ state: "visible", timeout: 5_000 })
+    .then(() => searchButton)
+    .catch(() => page.getByRole("textbox", { name: "Search" }));
+
+  await trigger.tap();
+};
+
 test("set detail renders seeded sections, songs, and notes", async ({
   page,
 }) => {
@@ -133,11 +150,10 @@ test("opens add-to-set from the search action menu without navigating", async ({
   const setDetailPath = `/${e2eIds.organizationId}/sets/${e2eIds.setId}`;
 
   await page.goto(setDetailPath);
-  if (isMobileProject) {
-    await page.getByRole("button", { name: "Open global search" }).tap();
-  } else {
-    await page.getByRole("button", { name: "Open global search" }).click();
-  }
+  await expect(
+    page.getByRole("heading", { name: e2eData.eventType.name }),
+  ).toBeVisible();
+  await openGlobalSearch(page, isMobileProject);
 
   const searchDialog = page.getByRole("dialog");
   await expect(searchDialog).toBeVisible();
