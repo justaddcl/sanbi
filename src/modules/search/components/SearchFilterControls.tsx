@@ -1,4 +1,8 @@
-import { MusicNoteSimple, Tag, X } from "@phosphor-icons/react/dist/ssr";
+import {
+  MusicNoteSimpleIcon,
+  TagIcon,
+  XIcon,
+} from "@phosphor-icons/react/dist/ssr";
 
 import { HStack } from "@components/HStack";
 import { cn } from "@lib/utils";
@@ -33,14 +37,14 @@ export const SearchFilterControls = ({
         onClick={() => onFilterToggle(filter.value)}
       >
         {filter.value === "songs" && (
-          <MusicNoteSimple aria-hidden size={12} className="shrink-0" />
+          <MusicNoteSimpleIcon aria-hidden size={12} className="shrink-0" />
         )}
         {filter.value === "tags" && (
-          <Tag aria-hidden size={12} className="shrink-0" />
+          <TagIcon aria-hidden size={12} className="shrink-0" />
         )}
         <span className="truncate">{filter.label}</span>
         {selectedFilters[filter.value] && (
-          <X aria-hidden size={11} className="ml-0.5 shrink-0" />
+          <XIcon aria-hidden size={11} className="ml-0.5 shrink-0" />
         )}
       </button>
     ))}

@@ -8,23 +8,17 @@ const songSearchResult = {
 
 describe("getGlobalSearchResultGroups", () => {
   it("uses backend matched tags so fuzzy tag matches stay in tag results", () => {
+    const tagMatchedSongSearchResult = {
+      ...songSearchResult,
+      matchedTags: ["Communion"],
+    };
     const results = getGlobalSearchResultGroups({
       normalizedSearchQuery: "commnion",
-      searchResults: [
-        {
-          ...songSearchResult,
-          matchedTags: ["Communion"],
-        },
-      ],
+      searchResults: [tagMatchedSongSearchResult],
     });
 
     expect(results.songResults).toEqual([]);
-    expect(results.tagResults).toEqual([
-      {
-        ...songSearchResult,
-        matchedTags: ["Communion"],
-      },
-    ]);
+    expect(results.tagResults).toEqual([tagMatchedSongSearchResult]);
   });
 
   it("keeps fuzzy song matches in song results when no tag matched", () => {

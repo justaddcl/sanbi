@@ -9,7 +9,7 @@ import {
   useState,
 } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { X } from "@phosphor-icons/react/dist/ssr";
+import { XIcon } from "@phosphor-icons/react/dist/ssr";
 import { useDebounceValue } from "usehooks-ts";
 
 import { Button } from "@components/ui/button";
@@ -125,12 +125,17 @@ export const Search: React.FC<SearchProps> = ({ className }) => {
   );
   const visibleResultCount =
     visibleSongResults.length + visibleTagResults.length;
-  const totalResultCount =
-    activeFilter === "songs"
-      ? songResults.length
-      : activeFilter === "tags"
-        ? tagResults.length
-        : songResults.length + visibleTagCandidateResults.length;
+  const totalResultCount = useMemo(() => {
+    if (activeFilter === "songs") {
+      return songResults.length;
+    }
+
+    if (activeFilter === "tags") {
+      return tagResults.length;
+    }
+
+    return songResults.length + visibleTagCandidateResults.length;
+  }, [activeFilter, songResults, tagResults, visibleTagCandidateResults]);
   const searchResultCountLabel =
     searchResults && searchResults.length >= GLOBAL_SEARCH_RESULT_COUNT_LIMIT
       ? `${totalResultCount}+`
@@ -274,7 +279,7 @@ export const Search: React.FC<SearchProps> = ({ className }) => {
               title={closeOrClearLabel}
               onClick={handleSearchControlClick}
             >
-              <X aria-hidden size={16} />
+              <XIcon aria-hidden size={16} />
             </Button>
           </HStack>
           <SearchFilterControls

@@ -1,6 +1,6 @@
 import {
-  Command as CommandIcon,
-  MagnifyingGlass,
+  CommandIcon,
+  MagnifyingGlassIcon,
 } from "@phosphor-icons/react/dist/ssr";
 
 import { HStack } from "@components/HStack";
@@ -29,7 +29,7 @@ export const SearchTrigger = ({
       aria-describedby={descriptionId}
       onClick={onOpen}
     >
-      <MagnifyingGlass aria-hidden size={16} className="text-slate-500" />
+      <MagnifyingGlassIcon aria-hidden size={16} className="text-slate-500" />
       <span className="min-w-0 flex-1 truncate text-sm text-slate-500">
         Search songs and tags
       </span>

@@ -1,4 +1,4 @@
-import { Command as CommandIcon } from "@phosphor-icons/react/dist/ssr";
+import { CommandIcon } from "@phosphor-icons/react/dist/ssr";
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 
 import { HStack } from "@components/HStack";

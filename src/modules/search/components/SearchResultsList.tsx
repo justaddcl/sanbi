@@ -1,5 +1,5 @@
 import { type ReactNode } from "react";
-import { MusicNoteSimple, Tag } from "@phosphor-icons/react/dist/ssr";
+import { MusicNoteSimpleIcon, TagIcon } from "@phosphor-icons/react/dist/ssr";
 import { CommandLoading } from "cmdk";
 
 import {
@@ -36,19 +36,60 @@ type SearchResultsListProps = {
 const resultItemClassName =
   "min-h-16 items-center rounded-md px-3 py-3 sm:min-h-0 sm:py-2.5 data-[selected='true']:bg-slate-100";
 
+const SEARCH_RESULT_GROUP_HEADING_ICON_SIZE = 15;
+
+const SearchResultsLoadingState = () => (
+  <CommandLoading>
+    <SearchResultSkeletonRows />
+  </CommandLoading>
+);
+
+const SearchResultsErrorState = () => (
+  <CommandEmpty>
+    Search is unavailable. Please try again in a moment.
+  </CommandEmpty>
+);
+
+type SearchResultsEmptyStateProps = {
+  message: string;
+};
+
+const SearchResultsEmptyState = ({ message }: SearchResultsEmptyStateProps) => (
+  <CommandEmpty>{message}</CommandEmpty>
+);
+
 type SearchGroupHeadingProps = {
   icon: ReactNode;
   label: string;
 };
 
-const SearchGroupHeading = ({
-  icon,
-  label,
-}: SearchGroupHeadingProps) => (
+const SearchGroupHeading = ({ icon, label }: SearchGroupHeadingProps) => (
   <HStack className="items-center gap-1.5">
     <span className="text-slate-400">{icon}</span>
     <span>{label}</span>
   </HStack>
+);
+
+type SearchResultGroupProps = {
+  children: ReactNode;
+  className?: string;
+  heading?: ReactNode;
+  value: string;
+};
+
+const SearchResultGroup = ({
+  children,
+  className,
+  heading,
+  value,
+}: SearchResultGroupProps) => (
+  <CommandGroup
+    className={cn("[&_[cmdk-group-heading]]:px-3", className)}
+    heading={heading}
+    value={value}
+  >
+    <div className="grid gap-0.5">{children}</div>
+  </CommandGroup>
 );
 
 export const SearchResultsList = ({
@@ -90,18 +131,10 @@ export const SearchResultsList = ({
 
   return (
     <CommandList className="max-h-[calc(100dvh_-_132px)] px-2 py-2 sm:max-h-[min(520px,calc(100dvh_-_180px))]">
-      {isLoading && (
-        <CommandLoading>
-          <SearchResultSkeletonRows />
-        </CommandLoading>
-      )}
-      {!isLoading && isError && (
-        <CommandEmpty>
-          Search is unavailable. Please try again in a moment.
-        </CommandEmpty>
-      )}
+      {isLoading && <SearchResultsLoadingState />}
+      {!isLoading && isError && <SearchResultsErrorState />}
       {!isLoading && !isError && visibleResultCount === 0 && (
-        <CommandEmpty>{emptyResultsMessage}</CommandEmpty>
+        <SearchResultsEmptyState message={emptyResultsMessage} />
       )}
       {!isLoading && !isError && visibleResultCount > 0 && (
         <HStack className="items-center justify-between px-3 pt-1 pb-2 text-[11px] font-medium text-slate-500">
@@ -110,39 +143,37 @@ export const SearchResultsList = ({
         </HStack>
       )}
       {!isLoading && !isError && visibleSongResults.length > 0 && (
-        <CommandGroup
-          className="[&_[cmdk-group-heading]]:px-3"
+        <SearchResultGroup
           heading={
             shouldShowResultGroupHeadings ? (
               <SearchGroupHeading
-                icon={<MusicNoteSimple aria-hidden size={15} />}
+                icon={
+                  <MusicNoteSimpleIcon
+                    aria-hidden
+                    size={SEARCH_RESULT_GROUP_HEADING_ICON_SIZE}
+                  />
+                }
                 label="Songs"
               />
             ) : undefined
           }
           value="songs"
         >
-          <div className="grid gap-0.5">
-            {visibleSongResults.map((result) =>
-              renderSongResultItem({
-                keyPrefix: "song",
-                result,
-                row: (
-                  <SearchSongRow
-                    query={normalizedSearchInput}
-                    result={result}
-                  />
-                ),
-                valuePrefix: "song",
-              }),
-            )}
-          </div>
-        </CommandGroup>
+          {visibleSongResults.map((result) =>
+            renderSongResultItem({
+              keyPrefix: "song",
+              result,
+              row: (
+                <SearchSongRow query={normalizedSearchInput} result={result} />
+              ),
+              valuePrefix: "song",
+            }),
+          )}
+        </SearchResultGroup>
       )}
       {!isLoading && !isError && visibleTagResults.length > 0 && (
-        <CommandGroup
+        <SearchResultGroup
           className={cn(
-            "[&_[cmdk-group-heading]]:px-3",
             shouldShowResultGroupHeadings &&
               visibleSongResults.length > 0 &&
               "mt-5 pt-1",
@@ -150,29 +181,32 @@ export const SearchResultsList = ({
           heading={
             shouldShowResultGroupHeadings ? (
               <SearchGroupHeading
-                icon={<Tag aria-hidden size={15} />}
+                icon={
+                  <TagIcon
+                    aria-hidden
+                    size={SEARCH_RESULT_GROUP_HEADING_ICON_SIZE}
+                  />
+                }
                 label="Tags"
               />
             ) : undefined
           }
           value="tags"
         >
-          <div className="grid gap-0.5">
-            {visibleTagResults.map((result) =>
-              renderSongResultItem({
-                keyPrefix: "tag-song",
-                result,
-                row: (
-                  <SearchTagMatchedSongRow
-                    query={normalizedSearchInput}
-                    result={result}
-                  />
-                ),
-                valuePrefix: "tag-song",
-              }),
-            )}
-          </div>
-        </CommandGroup>
+          {visibleTagResults.map((result) =>
+            renderSongResultItem({
+              keyPrefix: "tag-song",
+              result,
+              row: (
+                <SearchTagMatchedSongRow
+                  query={normalizedSearchInput}
+                  result={result}
+                />
+              ),
+              valuePrefix: "tag-song",
+            }),
+          )}
+        </SearchResultGroup>
       )}
     </CommandList>
   );

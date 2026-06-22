@@ -17,7 +17,7 @@ describe("HighlightedText", () => {
     expect(screen.queryByText("Amazing Grace")?.tagName).not.toBe("MARK");
   });
 
-  it("can highlight the full text when there is no exact match", () => {
+  it("highlights the closest word when there is no exact match", () => {
     render(
       <HighlightedText
         highlightWhenNoExactMatch
@@ -26,6 +26,7 @@ describe("HighlightedText", () => {
       />,
     );
 
-    expect(screen.getByText("Amazing Grace").tagName).toBe("MARK");
+    expect(screen.getByText("Amazing").tagName).toBe("MARK");
+    expect(screen.getByText("Grace").tagName).not.toBe("MARK");
   });
 });

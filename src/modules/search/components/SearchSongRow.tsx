@@ -1,4 +1,4 @@
-import { ClockCounterClockwise } from "@phosphor-icons/react/dist/ssr";
+import { ClockCounterClockwiseIcon } from "@phosphor-icons/react/dist/ssr";
 
 import { HighlightedText } from "@components/HighlightedText";
 import { HStack } from "@components/HStack";
@@ -13,10 +13,7 @@ type SearchSongRowProps = {
   result: SearchSongResult;
 };
 
-export const SearchSongRow = ({
-  query,
-  result,
-}: SearchSongRowProps) => (
+export const SearchSongRow = ({ query, result }: SearchSongRowProps) => (
   <div className="min-w-0 flex-1">
     <HStack className="w-fit max-w-full min-w-0 items-center gap-2">
       <Text
@@ -32,7 +29,7 @@ export const SearchSongRow = ({
       <SongKey size="medium" songKey={result.preferredKey} />
     </HStack>
     <HStack className="mt-1 min-w-0 items-center gap-1 text-xs text-slate-500">
-      <ClockCounterClockwise
+      <ClockCounterClockwiseIcon
         aria-hidden
         size={12}
         className="shrink-0 text-slate-400"

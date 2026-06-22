@@ -1,4 +1,4 @@
-import { Tag } from "@phosphor-icons/react/dist/ssr";
+import { TagIcon } from "@phosphor-icons/react/dist/ssr";
 
 import { HighlightedText } from "@components/HighlightedText";
 import { HStack } from "@components/HStack";
@@ -31,7 +31,7 @@ export const SearchTagMatchedSongRow = ({
       <SongKey size="medium" songKey={result.preferredKey} />
     </HStack>
     <HStack className="mt-1 min-w-0 items-center gap-1 text-xs text-slate-500">
-      <Tag aria-hidden className="size-3! shrink-0 text-slate-400" />
+      <TagIcon aria-hidden className="size-3! shrink-0 text-slate-400" />
       <span className="min-w-0 truncate">
         <HighlightedText query={query} text={getMatchedTagContext(result)} />
       </span>

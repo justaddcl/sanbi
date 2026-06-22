@@ -1,4 +1,5 @@
 export * from "./capitalize";
+export * from "./escapeRegExp";
 export * from "./isValidSlug";
 export * from "./pluralize";
 export * from "./sanitizeInput";
