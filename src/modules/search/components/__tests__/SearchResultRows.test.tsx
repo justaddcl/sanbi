@@ -64,12 +64,25 @@ describe("SearchResultRows", () => {
     render(<SearchSongRow query="grace" result={songResult} />);
 
     expect(
-      screen.getByText((_, element) => element?.textContent === songResult.name),
+      screen.getByText(
+        (_, element) => element?.textContent === songResult.name,
+      ),
     ).toBeInTheDocument();
     expect(screen.getByText("G")).toBeInTheDocument();
     expect(
       screen.getByText("Last played 1d ago · Communion, Classic, 1 more"),
     ).toBeInTheDocument();
+  });
+
+  it("renders an archived badge for archived song rows", () => {
+    render(
+      <SearchSongRow
+        query="grace"
+        result={{ ...songResult, isArchived: true }}
+      />,
+    );
+
+    expect(screen.getByText("Archived")).toBeInTheDocument();
   });
 
   it("renders a tag-matched song row with matched tag context", () => {
@@ -83,5 +96,17 @@ describe("SearchResultRows", () => {
     expect(screen.getByText("Amazing Grace")).toBeInTheDocument();
     expect(screen.getByText("Communion")).toBeInTheDocument();
     expect(screen.getByText("Last played 1d ago")).toBeInTheDocument();
+  });
+
+  it("renders an archived badge for archived tag-matched song rows", () => {
+    const tagResult: TagSearchResult = {
+      ...songResult,
+      isArchived: true,
+      matchedTags: ["Communion"],
+    };
+
+    render(<SearchTagMatchedSongRow query="communion" result={tagResult} />);
+
+    expect(screen.getByText("Archived")).toBeInTheDocument();
   });
 });

@@ -42,9 +42,24 @@ export const SongResult: Story = {
   render: () => <SearchSongRow query="grace" result={songResult} />,
 };
 
+export const ArchivedSongResult: Story = {
+  render: () => (
+    <SearchSongRow query="grace" result={{ ...songResult, isArchived: true }} />
+  ),
+};
+
 export const TagResult: Story = {
   render: () => (
     <SearchTagMatchedSongRow query="communion" result={tagResult} />
+  ),
+};
+
+export const ArchivedTagResult: Story = {
+  render: () => (
+    <SearchTagMatchedSongRow
+      query="communion"
+      result={{ ...tagResult, isArchived: true }}
+    />
   ),
 };
 

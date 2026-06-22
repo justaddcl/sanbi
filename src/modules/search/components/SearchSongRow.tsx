@@ -1,5 +1,9 @@
-import { ClockCounterClockwiseIcon } from "@phosphor-icons/react/dist/ssr";
+import {
+  ArchiveIcon,
+  ClockCounterClockwiseIcon,
+} from "@phosphor-icons/react/dist/ssr";
 
+import { Badge } from "@components/ui/badge";
 import { HighlightedText } from "@components/HighlightedText";
 import { HStack } from "@components/HStack";
 import { SongKey } from "@components/SongKey";
@@ -27,6 +31,15 @@ export const SearchSongRow = ({ query, result }: SearchSongRowProps) => (
         />
       </Text>
       <SongKey size="medium" songKey={result.preferredKey} />
+      {result.isArchived && (
+        <Badge
+          variant="warn"
+          className="shrink-0 gap-1 px-1.5 py-0 text-[10px]"
+        >
+          <ArchiveIcon aria-hidden size={11} />
+          Archived
+        </Badge>
+      )}
     </HStack>
     <HStack className="mt-1 min-w-0 items-center gap-1 text-xs text-slate-500">
       <ClockCounterClockwiseIcon
