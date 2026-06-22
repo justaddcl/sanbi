@@ -1,22 +1,18 @@
 import { type ReactNode } from "react";
 import { MusicNoteSimpleIcon, TagIcon } from "@phosphor-icons/react/dist/ssr";
-import { CommandLoading } from "cmdk";
 
-import {
-  CommandEmpty,
-  CommandGroup,
-  CommandItem,
-  CommandList,
-} from "@components/ui/command";
+import { CommandItem, CommandList } from "@components/ui/command";
 import { HStack } from "@components/HStack";
 import { type SearchFilter } from "@modules/search/utils/getVisibleGlobalSearchResults";
 import { cn } from "@lib/utils";
 
+import { SearchGroupHeading, SearchResultGroup } from "./SearchResultGroup";
+import { SearchSongRow, SearchTagMatchedSongRow } from "./SearchResultRows";
 import {
-  SearchResultSkeletonRows,
-  SearchSongRow,
-  SearchTagMatchedSongRow,
-} from "./SearchResultRows";
+  SearchResultsEmptyState,
+  SearchResultsErrorState,
+  SearchResultsLoadingState,
+} from "./SearchResultsStates";
 import { type SearchSongResult, type TagSearchResult } from "./types";
 
 type SearchResultsListProps = {
@@ -37,60 +33,6 @@ const resultItemClassName =
   "min-h-16 items-center rounded-md px-3 py-3 sm:min-h-0 sm:py-2.5 data-[selected='true']:bg-slate-100";
 
 const SEARCH_RESULT_GROUP_HEADING_ICON_SIZE = 15;
-
-const SearchResultsLoadingState = () => (
-  <CommandLoading>
-    <SearchResultSkeletonRows />
-  </CommandLoading>
-);
-
-const SearchResultsErrorState = () => (
-  <CommandEmpty>
-    Search is unavailable. Please try again in a moment.
-  </CommandEmpty>
-);
-
-type SearchResultsEmptyStateProps = {
-  message: string;
-};
-
-const SearchResultsEmptyState = ({ message }: SearchResultsEmptyStateProps) => (
-  <CommandEmpty>{message}</CommandEmpty>
-);
-
-type SearchGroupHeadingProps = {
-  icon: ReactNode;
-  label: string;
-};
-
-const SearchGroupHeading = ({ icon, label }: SearchGroupHeadingProps) => (
-  <HStack className="items-center gap-1.5">
-    <span className="text-slate-400">{icon}</span>
-    <span>{label}</span>
-  </HStack>
-);
-
-type SearchResultGroupProps = {
-  children: ReactNode;
-  className?: string;
-  heading?: ReactNode;
-  value: string;
-};
-
-const SearchResultGroup = ({
-  children,
-  className,
-  heading,
-  value,
-}: SearchResultGroupProps) => (
-  <CommandGroup
-    className={cn("[&_[cmdk-group-heading]]:px-3", className)}
-    heading={heading}
-    value={value}
-  >
-    <div className="grid gap-0.5">{children}</div>
-  </CommandGroup>
-);
 
 export const SearchResultsList = ({
   activeFilter,

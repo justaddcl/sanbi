@@ -11,7 +11,7 @@ export const GLOBAL_SEARCH_PREVIEW_RESULT_LIMIT =
   GLOBAL_SEARCH_DIALOG_RESULT_LIMIT + 1;
 export const GLOBAL_SEARCH_RESULT_COUNT_LIMIT = 50;
 
-const GLOBAL_SEARCH_DIALOG_MAX_TAG_ROWS_IN_ALL_RESULTS = 3;
+export const GLOBAL_SEARCH_DIALOG_MAX_TAG_ROWS_IN_ALL_RESULTS = 3;
 
 export const getVisibleGlobalSearchResults = <SongResult, TagResult>({
   activeFilter,

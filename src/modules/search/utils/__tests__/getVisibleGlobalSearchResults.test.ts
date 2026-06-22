@@ -1,5 +1,6 @@
 import {
   getVisibleGlobalSearchResults,
+  GLOBAL_SEARCH_DIALOG_MAX_TAG_ROWS_IN_ALL_RESULTS,
   GLOBAL_SEARCH_DIALOG_RESULT_LIMIT,
   GLOBAL_SEARCH_PREVIEW_RESULT_LIMIT,
 } from "../getVisibleGlobalSearchResults";
@@ -40,10 +41,16 @@ describe("getVisibleGlobalSearchResults", () => {
   });
 
   it("balances all results by favoring songs and reserving up to three tag rows", () => {
-    const songResults = makeResults("song", 9);
-    const tagResults = makeResults("tag", 4);
-    const expectedSongResultCount = 5;
-    const expectedTagResultCount = 3;
+    const songResultCount = GLOBAL_SEARCH_PREVIEW_RESULT_LIMIT;
+    const tagResultCount = GLOBAL_SEARCH_DIALOG_MAX_TAG_ROWS_IN_ALL_RESULTS + 1;
+    const songResults = makeResults("song", songResultCount);
+    const tagResults = makeResults("tag", tagResultCount);
+    const expectedTagResultCount = Math.min(
+      GLOBAL_SEARCH_DIALOG_MAX_TAG_ROWS_IN_ALL_RESULTS,
+      tagResultCount,
+    );
+    const expectedSongResultCount =
+      GLOBAL_SEARCH_DIALOG_RESULT_LIMIT - expectedTagResultCount;
 
     const visibleResults = getVisibleGlobalSearchResults({
       activeFilter: "all",
