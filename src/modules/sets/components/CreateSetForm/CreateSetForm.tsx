@@ -45,21 +45,8 @@ export const CreateSetForm: React.FC<CreateSetFormProps> = ({
 
   const createSetMutation = trpc.set.create.useMutation();
 
-  if (!userId) {
-    return null;
-  }
-
-  const { data: userData, isError } = trpc.user.getUser.useQuery({ userId });
-
-  const {
-    data: eventTypeData,
-    isError: eventTypeQueryError,
-    isFetching: isEventTypeQueryFetching,
-    isFetched: isEventTypeQueryFetched,
-  } = trpc.eventType.getEventTypes.useQuery(
-    userData?.memberships[0]
-      ? { organizationId: userData.memberships[0].organizationId }
-      : skipToken,
+  const { data: userData, isError } = trpc.user.getUser.useQuery(
+    userId ? { userId } : skipToken,
   );
 
   const handleCreateSetSubmit = async (formValues: CreateSetFormFields) => {
@@ -113,6 +100,10 @@ export const CreateSetForm: React.FC<CreateSetFormProps> = ({
   } = createSetForm;
 
   const shouldSubmitBeDisabled = !isDirty || !isValid || isSubmitting;
+
+  if (!userId) {
+    return null;
+  }
 
   return (
     <FormProvider {...createSetForm}>

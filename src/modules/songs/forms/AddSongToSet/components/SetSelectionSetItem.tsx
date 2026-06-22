@@ -26,6 +26,7 @@ export const SetSelectionSetItem: React.FC<SetSelectionSetItemProps> = ({
 }) => {
   return (
     <HStack
+      data-testid="set-selection-set-item"
       className={cn(
         "cursor-pointer items-center justify-between rounded-lg px-3 py-2 hover:bg-slate-100",
         className,

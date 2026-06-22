@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useState } from "react";
 import { skipToken } from "@tanstack/react-query";
 
 import {
@@ -69,10 +69,6 @@ export const EventTypeSelect: React.FC<EventTypeSelectProps> = ({
 
   const [open, setOpen] = useState(false);
 
-  // helper ref just to avoid stale closures
-  const latestValueRef = useRef(value);
-  latestValueRef.current = value;
-
   const handleValueChange = (selectedEventTypeId: string) => {
     onSelectChange(selectedEventTypeId);
   };
@@ -131,7 +127,7 @@ export const EventTypeSelect: React.FC<EventTypeSelectProps> = ({
       onValueChange={handleValueChange}
       {...props}
     >
-      <SelectTrigger>
+      <SelectTrigger aria-label={displayLabel(value)}>
         <SelectValue
           placeholder={displayValue(value)}
           aria-label={displayLabel(value)}
@@ -158,7 +154,7 @@ export const EventTypeSelect: React.FC<EventTypeSelectProps> = ({
               value={eventType.id}
               // intercept before Radix handles selection
               onMouseDownCapture={(mouseDownEvent) => {
-                if (eventType.id === latestValueRef.current) {
+                if (eventType.id === value) {
                   // stop Radix’s internal “same‐value” logic
                   mouseDownEvent.preventDefault();
                   mouseDownEvent.stopPropagation();

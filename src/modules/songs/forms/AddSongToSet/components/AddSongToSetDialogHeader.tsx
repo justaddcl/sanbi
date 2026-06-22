@@ -41,16 +41,15 @@ export const AddSongToSetDialogHeader: React.FC<
               <CaretLeft weight="bold" className="h-5 w-5" />
             </Button>
           )}
-          <DialogTitle asChild>
-            <h2
-              className={cn("text-lg font-semibold", {
-                "ml-3":
-                  step === AddSongToSetDialogStep.SELECT_SET &&
-                  !isCreatingNewSet,
-              })}
-            >
-              {title}
-            </h2>
+          <DialogTitle
+            id="modal-title"
+            className={cn("text-lg font-semibold", {
+              "ml-3":
+                step === AddSongToSetDialogStep.SELECT_SET &&
+                !isCreatingNewSet,
+            })}
+          >
+            {title}
           </DialogTitle>
         </HStack>
         <DialogClose asChild>

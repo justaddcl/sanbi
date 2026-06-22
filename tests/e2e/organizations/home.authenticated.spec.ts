@@ -9,7 +9,9 @@ test("organization home renders seeded upcoming sets", async ({ page }) => {
   await expect(
     page.getByRole("heading", { name: "Upcoming sets" }),
   ).toBeVisible();
-  await expect(page.getByText(e2eData.eventType.name)).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: e2eData.eventType.name }).first(),
+  ).toBeVisible();
   await expect(page.getByText(e2eData.songs.first.name)).toBeVisible();
 
   await expectNoA11yViolations(page, {
