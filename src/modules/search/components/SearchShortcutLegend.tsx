@@ -73,6 +73,21 @@ export const SearchShortcutLegend = ({
         ]}
         label="Open"
       />
+      <SearchShortcutHint
+        keys={[
+          { content: "Shift", label: "Shift" },
+          {
+            content: (
+              <ArrowElbowDownLeftIcon
+                aria-hidden
+                size={SHORTCUT_ENTER_ICON_SIZE}
+              />
+            ),
+            label: "Enter",
+          },
+        ]}
+        label="Actions"
+      />
     </HStack>
     <SearchShortcutHint
       keys={[{ content: "Esc", label: "Escape" }]}

@@ -21,6 +21,7 @@ import {
   GLOBAL_SEARCH_RESULT_COUNT_LIMIT,
   type SearchFilter,
 } from "@modules/search/utils/getVisibleGlobalSearchResults";
+import { AddSongToSetDialog } from "@modules/songs/forms/AddSongToSet/components/AddSongToSetDialog";
 import { trpc } from "@lib/trpc";
 import { cn } from "@lib/utils";
 
@@ -28,7 +29,7 @@ import { SearchFilterControls } from "./SearchFilterControls";
 import { SearchResultsList } from "./SearchResultsList";
 import { SearchShortcutLegend } from "./SearchShortcutLegend";
 import { SearchTrigger } from "./SearchTrigger";
-import { type SearchToggleFilter } from "./types";
+import { type SearchSongResult, type SearchToggleFilter } from "./types";
 
 type SearchProps = {
   className?: string;
@@ -38,7 +39,7 @@ const MIN_SEARCH_LENGTH = 2;
 const SEARCH_DEBOUNCE_DELAY = 300;
 
 export const Search: React.FC<SearchProps> = ({ className }) => {
-  const params = useParams<{ organization?: string }>();
+  const params = useParams<{ organization?: string; setId?: string }>();
   const router = useRouter();
   const searchDescriptionId = useId();
   const [open, setOpen] = useState(false);
@@ -53,9 +54,13 @@ export const Search: React.FC<SearchProps> = ({ className }) => {
     songs: false,
     tags: false,
   });
+  const [songToAddToSet, setSongToAddToSet] = useState<SearchSongResult | null>(
+    null,
+  );
   const openRef = useRef(open);
 
   const organizationId = params.organization;
+  const currentSetId = params.setId;
   const normalizedSearchInput = debouncedSearchInput.trim();
   const normalizedSearchQuery = normalizedSearchInput.toLowerCase();
   const hasSearchableInput = searchInput.trim().length >= MIN_SEARCH_LENGTH;
@@ -230,6 +235,32 @@ export const Search: React.FC<SearchProps> = ({ className }) => {
     router.push(`/${organizationId}/songs/${songId}`);
   };
 
+  const addSongToCurrentSet = (result: SearchSongResult) => {
+    if (!organizationId || !currentSetId) {
+      return;
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    params.set("addSongDialogOpen", "1");
+    params.set("songId", result.songId);
+
+    handleOpenChange(false);
+    router.push(`/${organizationId}/sets/${currentSetId}?${params}`);
+  };
+
+  const addSongToSet = (result: SearchSongResult) => {
+    handleOpenChange(false);
+    setSongToAddToSet(result);
+  };
+
+  const addSongToSetDialogSong = songToAddToSet
+    ? {
+        id: songToAddToSet.songId,
+        name: songToAddToSet.name,
+        preferredKey: songToAddToSet.preferredKey,
+      }
+    : null;
+
   return (
     <>
       <SearchTrigger
@@ -296,6 +327,10 @@ export const Search: React.FC<SearchProps> = ({ className }) => {
             isError={isSearchError}
             isLoading={shouldShowLoading}
             normalizedSearchInput={normalizedSearchInput}
+            onAddSongToCurrentSet={
+              currentSetId ? addSongToCurrentSet : undefined
+            }
+            onAddSongToSet={addSongToSet}
             onSongSelect={openSong}
             resultCountLabel={searchResultCountLabel}
             visibleResultCount={visibleResultCount}
@@ -307,6 +342,18 @@ export const Search: React.FC<SearchProps> = ({ className }) => {
           <SearchShortcutLegend escapeShortcutLabel={escapeShortcutLabel} />
         )}
       </CommandDialog>
+      {addSongToSetDialogSong && (
+        <AddSongToSetDialog
+          song={addSongToSetDialogSong}
+          open={!!songToAddToSet}
+          onOpenChange={(open) => {
+            if (!open) {
+              setSongToAddToSet(null);
+            }
+          }}
+          trigger={null}
+        />
+      )}
     </>
   );
 };
