@@ -1,5 +1,7 @@
-import { HStack } from "@components/HStack";
 import type React from "react";
+
+import { HStack } from "@components/HStack";
+import { Keycap } from "@components/Keycap";
 
 type KeyboardShortcutProps = {
   primaryKey: React.ReactNode;
@@ -15,14 +17,8 @@ export const KeyboardShortcut: React.FC<KeyboardShortcutProps> = ({
   return (
     <HStack className="flex items-center gap-2">
       <HStack className="gap-1">
-        <kbd className="rounded-lg bg-slate-200 p-1 text-slate-900">
-          {primaryKey}
-        </kbd>
-        {secondaryKey && (
-          <kbd className="rounded-lg bg-slate-200 p-1 text-slate-900">
-            {secondaryKey}
-          </kbd>
-        )}
+        <Keycap>{primaryKey}</Keycap>
+        {secondaryKey && <Keycap>{secondaryKey}</Keycap>}
       </HStack>
       {label && <span>{label}</span>}
     </HStack>
