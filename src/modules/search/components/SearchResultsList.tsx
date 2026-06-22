@@ -6,13 +6,12 @@ import { HStack } from "@components/HStack";
 import { type SearchFilter } from "@modules/search/utils/getVisibleGlobalSearchResults";
 import { cn } from "@lib/utils";
 
-import { SearchGroupHeading, SearchResultGroup } from "./SearchResultGroup";
+import { SearchGroupHeading } from "./SearchGroupHeading";
+import { SearchResultGroup } from "./SearchResultGroup";
 import { SearchSongRow, SearchTagMatchedSongRow } from "./SearchResultRows";
-import {
-  SearchResultsEmptyState,
-  SearchResultsErrorState,
-  SearchResultsLoadingState,
-} from "./SearchResultsStates";
+import { SearchResultsEmptyState } from "./SearchResultsEmptyState";
+import { SearchResultsErrorState } from "./SearchResultsErrorState";
+import { SearchResultsLoadingState } from "./SearchResultsLoadingState";
 import { type SearchSongResult, type TagSearchResult } from "./types";
 
 type SearchResultsListProps = {

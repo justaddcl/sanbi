@@ -1,23 +1,7 @@
 import { type ReactNode } from "react";
 
 import { CommandGroup } from "@components/ui/command";
-import { HStack } from "@components/HStack";
 import { cn } from "@lib/utils";
-
-type SearchGroupHeadingProps = {
-  icon: ReactNode;
-  label: string;
-};
-
-export const SearchGroupHeading = ({
-  icon,
-  label,
-}: SearchGroupHeadingProps) => (
-  <HStack className="items-center gap-1.5">
-    <span className="text-slate-400">{icon}</span>
-    <span>{label}</span>
-  </HStack>
-);
 
 type SearchResultGroupProps = {
   children: ReactNode;
