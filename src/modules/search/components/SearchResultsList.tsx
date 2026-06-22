@@ -1,4 +1,4 @@
-import { type ReactNode } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import { MusicNoteSimpleIcon, TagIcon } from "@phosphor-icons/react/dist/ssr";
 
 import { CommandItem, CommandList } from "@components/ui/command";
@@ -7,6 +7,7 @@ import { type SearchFilter } from "@modules/search/utils/getVisibleGlobalSearchR
 import { cn } from "@lib/utils";
 
 import { SearchGroupHeading } from "./SearchGroupHeading";
+import { SearchResultActions } from "./SearchResultActions";
 import { SearchResultGroup } from "./SearchResultGroup";
 import { SearchSongRow, SearchTagMatchedSongRow } from "./SearchResultRows";
 import { SearchResultsEmptyState } from "./SearchResultsEmptyState";
@@ -21,6 +22,8 @@ type SearchResultsListProps = {
   isError: boolean;
   isLoading: boolean;
   normalizedSearchInput: string;
+  onAddSongToCurrentSet?: (result: SearchSongResult) => void;
+  onAddSongToSet: (result: SearchSongResult) => void;
   onSongSelect: (songId: string) => void;
   resultCountLabel: string;
   visibleResultCount: number;
@@ -40,6 +43,8 @@ export const SearchResultsList = ({
   isError,
   isLoading,
   normalizedSearchInput,
+  onAddSongToCurrentSet,
+  onAddSongToSet,
   onSongSelect,
   resultCountLabel,
   visibleResultCount,
@@ -47,6 +52,85 @@ export const SearchResultsList = ({
   visibleTagResults,
 }: SearchResultsListProps) => {
   const shouldShowResultGroupHeadings = activeFilter === "all";
+  const canAddToCurrentSet = !!onAddSongToCurrentSet;
+  const [openActionsSongId, setOpenActionsSongId] = useState<string | null>(
+    null,
+  );
+  const listRef = useRef<HTMLDivElement>(null);
+  const suppressNextSongSelectRef = useRef(false);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (openActionsSongId && event.key === "Enter" && !event.shiftKey) {
+        const target = event.target;
+        if (
+          target instanceof Element &&
+          target.closest("[data-search-result-actions-menu='true']")
+        ) {
+          return;
+        }
+
+        event.preventDefault();
+        event.stopPropagation();
+        return;
+      }
+
+      if (event.key !== "Enter" || !event.shiftKey) {
+        return;
+      }
+
+      const selectedItem = listRef.current?.querySelector(
+        "[cmdk-item][data-selected='true'][data-song-id]",
+      );
+
+      if (!(selectedItem instanceof HTMLElement)) {
+        return;
+      }
+
+      const selectedSongId = selectedItem.dataset.songId;
+      if (!selectedSongId) {
+        return;
+      }
+
+      event.preventDefault();
+      event.stopPropagation();
+      setOpenActionsSongId(selectedSongId);
+    };
+
+    document.addEventListener("keydown", handleKeyDown, { capture: true });
+
+    return () =>
+      document.removeEventListener("keydown", handleKeyDown, {
+        capture: true,
+      });
+  }, [openActionsSongId]);
+
+  const suppressNextSongSelect = () => {
+    suppressNextSongSelectRef.current = true;
+    window.setTimeout(() => {
+      suppressNextSongSelectRef.current = false;
+    }, 0);
+  };
+
+  useEffect(() => {
+    if (!openActionsSongId) {
+      return;
+    }
+
+    const isOpenActionSongVisible =
+      visibleSongResults.some((result) => result.songId === openActionsSongId) ||
+      visibleTagResults.some((result) => result.songId === openActionsSongId);
+
+    if (isOpenActionSongVisible) {
+      return;
+    }
+
+    const clearStaleOpenActions = window.setTimeout(() => {
+      setOpenActionsSongId(null);
+    }, 0);
+
+    return () => window.clearTimeout(clearStaleOpenActions);
+  }, [openActionsSongId, visibleSongResults, visibleTagResults]);
 
   const renderSongResultItem = ({
     keyPrefix,
@@ -64,14 +148,36 @@ export const SearchResultsList = ({
       value={`${valuePrefix}-${result.songId}`}
       data-song-id={result.songId}
       className={resultItemClassName}
-      onSelect={() => onSongSelect(result.songId)}
+      onSelect={() => {
+        if (openActionsSongId || suppressNextSongSelectRef.current) {
+          suppressNextSongSelectRef.current = false;
+          return;
+        }
+
+        onSongSelect(result.songId);
+      }}
     >
       {row}
+      <SearchResultActions
+        canAddToCurrentSet={canAddToCurrentSet}
+        open={openActionsSongId === result.songId}
+        result={result}
+        onAddToCurrentSet={onAddSongToCurrentSet ?? onAddSongToSet}
+        onAddToSet={onAddSongToSet}
+        onActionSelect={suppressNextSongSelect}
+        onOpenChange={(open) => {
+          setOpenActionsSongId(open ? result.songId : null);
+        }}
+        onOpenSong={onSongSelect}
+      />
     </CommandItem>
   );
 
   return (
-    <CommandList className="max-h-[calc(100dvh_-_132px)] px-2 py-2 sm:max-h-[min(520px,calc(100dvh_-_180px))]">
+    <CommandList
+      ref={listRef}
+      className="max-h-[calc(100dvh_-_132px)] px-2 py-2 sm:max-h-[min(520px,calc(100dvh_-_180px))]"
+    >
       {isLoading && <SearchResultsLoadingState />}
       {!isLoading && isError && <SearchResultsErrorState />}
       {!isLoading && !isError && visibleResultCount === 0 && (

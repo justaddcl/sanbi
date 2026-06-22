@@ -21,6 +21,7 @@ import {
   GLOBAL_SEARCH_RESULT_COUNT_LIMIT,
   type SearchFilter,
 } from "@modules/search/utils/getVisibleGlobalSearchResults";
+import { AddSongToSetDialog } from "@modules/songs/forms/AddSongToSet/components/AddSongToSetDialog";
 import { trpc } from "@lib/trpc";
 import { cn } from "@lib/utils";
 
@@ -28,7 +29,7 @@ import { SearchFilterControls } from "./SearchFilterControls";
 import { SearchResultsList } from "./SearchResultsList";
 import { SearchShortcutLegend } from "./SearchShortcutLegend";
 import { SearchTrigger } from "./SearchTrigger";
-import { type SearchToggleFilter } from "./types";
+import { type SearchSongResult, type SearchToggleFilter } from "./types";
 
 type SearchProps = {
   className?: string;
@@ -36,9 +37,10 @@ type SearchProps = {
 
 const MIN_SEARCH_LENGTH = 2;
 const SEARCH_DEBOUNCE_DELAY = 300;
+const DIALOG_EXIT_ANIMATION_DELAY = 200;
 
 export const Search: React.FC<SearchProps> = ({ className }) => {
-  const params = useParams<{ organization?: string }>();
+  const params = useParams<{ organization?: string; setId?: string }>();
   const router = useRouter();
   const searchDescriptionId = useId();
   const [open, setOpen] = useState(false);
@@ -53,9 +55,18 @@ export const Search: React.FC<SearchProps> = ({ className }) => {
     songs: false,
     tags: false,
   });
+  const [songToAddToSet, setSongToAddToSet] = useState<SearchSongResult | null>(
+    null,
+  );
+  const [isAddSongToSetDialogOpen, setIsAddSongToSetDialogOpen] =
+    useState(false);
   const openRef = useRef(open);
+  const clearAddSongToSetDialogTimeoutRef = useRef<number | undefined>(
+    undefined,
+  );
 
   const organizationId = params.organization;
+  const currentSetId = params.setId;
   const normalizedSearchInput = debouncedSearchInput.trim();
   const normalizedSearchQuery = normalizedSearchInput.toLowerCase();
   const hasSearchableInput = searchInput.trim().length >= MIN_SEARCH_LENGTH;
@@ -169,6 +180,15 @@ export const Search: React.FC<SearchProps> = ({ className }) => {
     openRef.current = open;
   }, [open]);
 
+  useEffect(
+    () => () => {
+      if (clearAddSongToSetDialogTimeoutRef.current) {
+        window.clearTimeout(clearAddSongToSetDialogTimeoutRef.current);
+      }
+    },
+    [],
+  );
+
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (
@@ -229,6 +249,56 @@ export const Search: React.FC<SearchProps> = ({ className }) => {
     handleOpenChange(false);
     router.push(`/${organizationId}/songs/${songId}`);
   };
+
+  const addSongToCurrentSet = (result: SearchSongResult) => {
+    if (!organizationId || !currentSetId) {
+      return;
+    }
+
+    const searchParams = new URLSearchParams(window.location.search);
+    searchParams.set("addSongDialogOpen", "1");
+    searchParams.set("songId", result.songId);
+
+    handleOpenChange(false);
+    router.push(`/${organizationId}/sets/${currentSetId}?${searchParams}`);
+  };
+
+  const addSongToSet = (result: SearchSongResult) => {
+    if (clearAddSongToSetDialogTimeoutRef.current) {
+      window.clearTimeout(clearAddSongToSetDialogTimeoutRef.current);
+      clearAddSongToSetDialogTimeoutRef.current = undefined;
+    }
+
+    handleOpenChange(false);
+    setSongToAddToSet(result);
+    setIsAddSongToSetDialogOpen(true);
+  };
+
+  const handleAddSongToSetDialogOpenChange = (nextOpen: boolean) => {
+    setIsAddSongToSetDialogOpen(nextOpen);
+
+    if (clearAddSongToSetDialogTimeoutRef.current) {
+      window.clearTimeout(clearAddSongToSetDialogTimeoutRef.current);
+      clearAddSongToSetDialogTimeoutRef.current = undefined;
+    }
+
+    if (nextOpen) {
+      return;
+    }
+
+    clearAddSongToSetDialogTimeoutRef.current = window.setTimeout(() => {
+      setSongToAddToSet(null);
+      clearAddSongToSetDialogTimeoutRef.current = undefined;
+    }, DIALOG_EXIT_ANIMATION_DELAY);
+  };
+
+  const addSongToSetDialogSong = songToAddToSet
+    ? {
+        id: songToAddToSet.songId,
+        name: songToAddToSet.name,
+        preferredKey: songToAddToSet.preferredKey,
+      }
+    : null;
 
   return (
     <>
@@ -296,6 +366,10 @@ export const Search: React.FC<SearchProps> = ({ className }) => {
             isError={isSearchError}
             isLoading={shouldShowLoading}
             normalizedSearchInput={normalizedSearchInput}
+            onAddSongToCurrentSet={
+              currentSetId ? addSongToCurrentSet : undefined
+            }
+            onAddSongToSet={addSongToSet}
             onSongSelect={openSong}
             resultCountLabel={searchResultCountLabel}
             visibleResultCount={visibleResultCount}
@@ -307,6 +381,14 @@ export const Search: React.FC<SearchProps> = ({ className }) => {
           <SearchShortcutLegend escapeShortcutLabel={escapeShortcutLabel} />
         )}
       </CommandDialog>
+      {addSongToSetDialogSong && (
+        <AddSongToSetDialog
+          song={addSongToSetDialogSong}
+          open={isAddSongToSetDialogOpen}
+          onOpenChange={handleAddSongToSetDialogOpenChange}
+          trigger={null}
+        />
+      )}
     </>
   );
 };

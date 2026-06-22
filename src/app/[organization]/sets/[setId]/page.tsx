@@ -79,6 +79,9 @@ export default function SetListPage({
     useState<boolean>(false);
   const [prePopulatedSetSectionId, setPrePopulatedSetSectionId] =
     useState<ConfigureSongForSetProps["prePopulatedSetSectionId"]>(undefined);
+  const [preSelectedSongId, setPreSelectedSongId] = useState<string | null>(
+    null,
+  );
   const [isSongSearchDialogOpen, setIsSongSearchDialogOpen] =
     useState<boolean>(false);
   const [newSetSectionType, setNewSetSectionType] =
@@ -94,6 +97,7 @@ export default function SetListPage({
       searchParams.addSongDialogOpen,
     );
     const setSectionIdFromUrl = getSearchParamValue(searchParams.setSectionId);
+    const songIdFromUrl = getSearchParamValue(searchParams.songId);
 
     const isSongSearchDialogOpenFromUrl = [null, undefined, "false", "0"].every(
       (falsyValue) => addSongDialogOpen !== falsyValue,
@@ -101,6 +105,7 @@ export default function SetListPage({
 
     setIsSongSearchDialogOpen(isSongSearchDialogOpenFromUrl);
     setPrePopulatedSetSectionId(setSectionIdFromUrl);
+    setPreSelectedSongId(songIdFromUrl ?? null);
   }, [searchParams]);
 
   const validateParams = useCallback(() => {
@@ -374,6 +379,7 @@ export default function SetListPage({
         existingSetSections={setData.sections}
         setId={setData.id}
         prePopulatedSetSectionId={prePopulatedSetSectionId}
+        preSelectedSongId={preSelectedSongId}
       />
     </PageContentContainer>
   );
