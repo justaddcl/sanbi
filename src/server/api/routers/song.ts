@@ -99,6 +99,10 @@ export const songRouter = createTRPCRouter({
       console.log(`🤖 - [song/search] - searching for ${input.searchInput}`);
 
       const normalizedSearchInput = input.searchInput.trim();
+      if (!normalizedSearchInput) {
+        return [];
+      }
+
       const fuzzySearchInput = `%${escapeLikePattern(normalizedSearchInput)}%`;
       const likeEscapeCharacter = "\\";
       const canFuzzyMatchTags =
@@ -161,7 +165,13 @@ export const songRouter = createTRPCRouter({
         .leftJoin(setSections, eq(setSections.id, setSectionSongs.setSectionId))
         .leftJoin(sets, eq(sets.id, setSections.setId))
         .leftJoin(songTags, eq(songTags.songId, songs.id))
-        .leftJoin(tags, eq(tags.id, songTags.tagId))
+        .leftJoin(
+          tags,
+          and(
+            eq(tags.id, songTags.tagId),
+            eq(tags.organizationId, input.organizationId),
+          ),
+        )
         .where(
           and(
             eq(songs.organizationId, input.organizationId),

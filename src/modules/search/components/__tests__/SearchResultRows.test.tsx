@@ -32,6 +32,9 @@ describe("SearchResultRows", () => {
 
   it("formats last played context for never played, day, and week distances", () => {
     expect(getLastPlayedContext(null)).toBe("Never played");
+    expect(getLastPlayedContext(new Date("2026-06-11T12:00:00.000Z"))).toBe(
+      "Last played 0d ago",
+    );
     expect(getLastPlayedContext(new Date("2026-06-09T12:00:00.000Z"))).toBe(
       "Last played 1d ago",
     );
@@ -60,8 +63,9 @@ describe("SearchResultRows", () => {
   it("renders a song row with title, key, last played, and tag context", () => {
     render(<SearchSongRow query="grace" result={songResult} />);
 
-    expect(screen.getByText("Amazing")).toBeInTheDocument();
-    expect(screen.getByText("Grace")).toBeInTheDocument();
+    expect(
+      screen.getByText((_, element) => element?.textContent === songResult.name),
+    ).toBeInTheDocument();
     expect(screen.getByText("G")).toBeInTheDocument();
     expect(
       screen.getByText("Last played 1d ago · Communion, Classic, 1 more"),

@@ -20,9 +20,9 @@ export const Keycap = ({
         ? "h-6 min-w-6 rounded border border-slate-200 bg-slate-50 px-1.5 text-[11px] shadow-[0_1px_0_rgba(15,23,42,0.04)]"
         : "min-w-3 text-[10px]",
     )}
+    aria-label={label}
     title={label}
   >
     {children}
-    {label && <span className="sr-only">{label}</span>}
   </kbd>
 );

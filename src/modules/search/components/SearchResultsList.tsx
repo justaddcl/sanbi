@@ -36,13 +36,15 @@ type SearchResultsListProps = {
 const resultItemClassName =
   "min-h-16 items-center rounded-md px-3 py-3 sm:min-h-0 sm:py-2.5 data-[selected='true']:bg-slate-100";
 
+type SearchGroupHeadingProps = {
+  icon: ReactNode;
+  label: string;
+};
+
 const SearchGroupHeading = ({
   icon,
   label,
-}: {
-  icon: ReactNode;
-  label: string;
-}) => (
+}: SearchGroupHeadingProps) => (
   <HStack className="items-center gap-1.5">
     <span className="text-slate-400">{icon}</span>
     <span>{label}</span>

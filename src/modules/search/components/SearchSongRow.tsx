@@ -8,20 +8,26 @@ import { Text } from "@components/Text";
 import { getSongContext } from "./searchResultContext";
 import { type SearchSongResult } from "./types";
 
+type SearchSongRowProps = {
+  query: string;
+  result: SearchSongResult;
+};
+
 export const SearchSongRow = ({
   query,
   result,
-}: {
-  query: string;
-  result: SearchSongResult;
-}) => (
+}: SearchSongRowProps) => (
   <div className="min-w-0 flex-1">
     <HStack className="w-fit max-w-full min-w-0 items-center gap-2">
       <Text
         style="header-small-semibold"
         className="min-w-0 truncate text-slate-500"
       >
-        <HighlightedText query={query} text={result.name} />
+        <HighlightedText
+          highlightWhenNoExactMatch
+          query={query}
+          text={result.name}
+        />
       </Text>
       <SongKey size="medium" songKey={result.preferredKey} />
     </HStack>

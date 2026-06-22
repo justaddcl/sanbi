@@ -198,7 +198,6 @@ export const Search: React.FC<SearchProps> = ({ className }) => {
 
   const handleInputChange = (newValue: string) => {
     setSearchInput(newValue);
-    setDebouncedSearchInput(newValue);
   };
 
   const handleSearchControlClick = () => {
@@ -252,8 +251,8 @@ export const Search: React.FC<SearchProps> = ({ className }) => {
           handleInputChange("");
         }}
         className={cn(
-          "max-h-[calc(100dvh_-_24px)] overflow-hidden !pb-0",
-          hasSearchableInput && "sm:!pb-3",
+          "max-h-[calc(100dvh_-_24px)] overflow-hidden pb-0!",
+          hasSearchableInput && "sm:pb-3!",
         )}
       >
         <div className={cn(hasSearchableInput && "border-b border-slate-100")}>

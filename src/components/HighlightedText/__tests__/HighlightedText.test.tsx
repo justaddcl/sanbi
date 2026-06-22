@@ -16,4 +16,16 @@ describe("HighlightedText", () => {
     expect(screen.getByText("Amazing Grace")).toBeInTheDocument();
     expect(screen.queryByText("Amazing Grace")?.tagName).not.toBe("MARK");
   });
+
+  it("can highlight the full text when there is no exact match", () => {
+    render(
+      <HighlightedText
+        highlightWhenNoExactMatch
+        query="amazng"
+        text="Amazing Grace"
+      />,
+    );
+
+    expect(screen.getByText("Amazing Grace").tagName).toBe("MARK");
+  });
 });

@@ -7,13 +7,14 @@ export const getLastPlayedContext = (lastPlayedDate: Date | null) => {
     return "Never played";
   }
 
-  const distanceFromLastPlayedInDays = differenceInCalendarDays(
-    new Date(),
-    lastPlayedDate,
+  const now = new Date();
+  const distanceFromLastPlayedInDays = Math.max(
+    0,
+    differenceInCalendarDays(now, lastPlayedDate),
   );
-  const distanceFromLastPlayedInWeeks = differenceInCalendarWeeks(
-    new Date(),
-    lastPlayedDate,
+  const distanceFromLastPlayedInWeeks = Math.max(
+    0,
+    differenceInCalendarWeeks(now, lastPlayedDate),
   );
 
   if (distanceFromLastPlayedInWeeks > 0) {

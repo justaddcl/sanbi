@@ -17,7 +17,7 @@ export const SearchFilterControls = ({
   <HStack
     className="flex-wrap items-center gap-1.5 px-3 py-2 sm:px-4"
     role="group"
-    aria-label="Search filter"
+    aria-label="Search filters"
   >
     {searchFilters.map((filter) => (
       <button
