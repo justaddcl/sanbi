@@ -90,6 +90,12 @@ const requireOrganizationMembership = o
       });
     } catch (error) {
       if (error instanceof ClerkUserSyncError) {
+        if (error.code === "SANBI_USER_AUTH_DELETED") {
+          throw new ORPCError("UNAUTHORIZED", {
+            message: error.message,
+          });
+        }
+
         if (error.code === "CLERK_USER_NOT_FOUND") {
           throw new ORPCError("NOT_FOUND", {
             message: error.message,

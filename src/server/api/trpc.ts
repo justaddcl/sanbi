@@ -104,6 +104,10 @@ export const createTRPCRouter = t.router;
 export const publicProcedure = t.procedure;
 
 const getTRPCCodeForClerkUserSyncError = (error: ClerkUserSyncError) => {
+  if (error.code === "SANBI_USER_AUTH_DELETED") {
+    return "UNAUTHORIZED";
+  }
+
   if (error.code === "CLERK_USER_NOT_FOUND") {
     return "NOT_FOUND";
   }

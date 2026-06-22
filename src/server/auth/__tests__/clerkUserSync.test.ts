@@ -243,6 +243,36 @@ describe("clerkUserSync", () => {
     expect(db.insert).not.toHaveBeenCalled();
   });
 
+  it("rejects an auth-deleted existing Sanbi user without calling Clerk", async () => {
+    const existingUser = {
+      id: userId,
+      email: `${userId}@deleted.sanbi.invalid`,
+      firstName: null,
+      lastName: null,
+      onboardingStep: "createTeam",
+      onboardingCompletedAt: null,
+      authDeletedAt: new Date("2026-01-02T00:00:00Z"),
+      createdAt: new Date("2026-01-01T00:00:00Z"),
+      updatedAt: new Date("2026-01-02T00:00:00Z"),
+    };
+    const db = createEnsureUserDb({
+      existingUser,
+      syncedUser: null,
+    });
+
+    await expect(
+      ensureSanbiUserFromClerkSession({
+        database: db.db as never,
+        userId,
+      }),
+    ).rejects.toMatchObject({
+      code: "SANBI_USER_AUTH_DELETED",
+    });
+
+    expect(currentUser).not.toHaveBeenCalled();
+    expect(db.insert).not.toHaveBeenCalled();
+  });
+
   it("repairs a missing Sanbi user from the current Clerk session", async () => {
     const syncedUser = {
       id: userId,
@@ -275,6 +305,45 @@ describe("clerkUserSync", () => {
         userId,
       }),
     ).resolves.toEqual(syncedUser);
+
+    expect(currentUser).toHaveBeenCalledTimes(1);
+    expect(db.insert).toHaveBeenCalledWith(users);
+  });
+
+  it("rejects a fallback sync that races with an auth-deleted Sanbi user", async () => {
+    const syncedUser = {
+      id: userId,
+      email: `${userId}@deleted.sanbi.invalid`,
+      firstName: null,
+      lastName: null,
+      onboardingStep: "createTeam",
+      onboardingCompletedAt: null,
+      authDeletedAt: new Date("2026-01-02T00:00:00Z"),
+      createdAt: new Date("2026-01-01T00:00:00Z"),
+      updatedAt: new Date("2026-01-02T00:00:00Z"),
+    };
+    const db = createEnsureUserDb({
+      existingUser: null,
+      syncedUser,
+    });
+
+    (currentUser as jest.Mock).mockResolvedValue({
+      id: userId,
+      primaryEmailAddress: {
+        emailAddress: "ada@example.com",
+      },
+      firstName: "Ada",
+      lastName: "Lovelace",
+    });
+
+    await expect(
+      ensureSanbiUserFromClerkSession({
+        database: db.db as never,
+        userId,
+      }),
+    ).rejects.toMatchObject({
+      code: "SANBI_USER_AUTH_DELETED",
+    });
 
     expect(currentUser).toHaveBeenCalledTimes(1);
     expect(db.insert).toHaveBeenCalledWith(users);

@@ -6,7 +6,10 @@ import {
 import { createUpsertUserPreferencesDb } from "@testUtils/models/user/upsertUserPreferencesDb";
 
 import { userRouter } from "@server/api/routers/user";
-import { ensureSanbiUserFromClerkSession } from "@server/auth/clerkUserSync";
+import {
+  ClerkUserSyncError,
+  ensureSanbiUserFromClerkSession,
+} from "@server/auth/clerkUserSync";
 import { userPreferences } from "@server/db/schema";
 
 jest.mock("@clerk/nextjs/server", () => ({
@@ -15,7 +18,13 @@ jest.mock("@clerk/nextjs/server", () => ({
 }));
 jest.mock("@server/auth/clerkUserSync", () => ({
   ClerkUserSyncError: class ClerkUserSyncError extends Error {
-    code = "MISSING_PRIMARY_EMAIL";
+    constructor(
+      message = "Clerk user sync failed",
+      public readonly code = "MISSING_PRIMARY_EMAIL",
+    ) {
+      super(message);
+      this.name = "ClerkUserSyncError";
+    }
   },
   ensureSanbiUserFromClerkSession: jest.fn(),
 }));
@@ -62,6 +71,21 @@ describe("userRouter", () => {
     expect(ensureSanbiUserFromClerkSession).toHaveBeenCalledWith({
       database: db,
       userId,
+    });
+  });
+
+  it("returns UNAUTHORIZED when the authenticated Sanbi user is auth-deleted", async () => {
+    const caller = createUserRouterCaller({});
+
+    (ensureSanbiUserFromClerkSession as jest.Mock).mockRejectedValueOnce(
+      new ClerkUserSyncError(
+        "Sanbi user is marked as auth-deleted",
+        "SANBI_USER_AUTH_DELETED",
+      ),
+    );
+
+    await expect(caller.hello()).rejects.toMatchObject({
+      code: "UNAUTHORIZED",
     });
   });
 

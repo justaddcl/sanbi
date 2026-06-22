@@ -33,6 +33,7 @@ export class ClerkUserSyncError extends Error {
     public readonly code:
       | "CLERK_USER_NOT_FOUND"
       | "MISSING_PRIMARY_EMAIL"
+      | "SANBI_USER_AUTH_DELETED"
       | "SANBI_USER_SYNC_FAILED",
   ) {
     super(message);
@@ -105,6 +106,12 @@ export const createSanbiUserFromClerkUser = (
   };
 };
 
+const createSanbiUserAuthDeletedError = (userId: string) =>
+  new ClerkUserSyncError(
+    `Sanbi user, ${userId}, is marked as auth-deleted`,
+    "SANBI_USER_AUTH_DELETED",
+  );
+
 export const syncSanbiUserFromClerkUser = async ({
   database,
   clerkUser,
@@ -152,6 +159,10 @@ export const ensureSanbiUserFromClerkSession = async ({
   });
 
   if (existingUser) {
+    if (existingUser.authDeletedAt) {
+      throw createSanbiUserAuthDeletedError(userId);
+    }
+
     return existingUser;
   }
 
@@ -174,6 +185,10 @@ export const ensureSanbiUserFromClerkSession = async ({
       `Could not sync Sanbi user, ${userId}`,
       "SANBI_USER_SYNC_FAILED",
     );
+  }
+
+  if (syncedUser.authDeletedAt) {
+    throw createSanbiUserAuthDeletedError(userId);
   }
 
   return syncedUser;
