@@ -226,11 +226,13 @@ export const AddSongToSetDialog: React.FC<AddSongToSetDialogProps> = ({
   return (
     <Dialog
       open={isOpen}
-      onOpenChange={(open) => {
-        setDialogOpen(open);
-        if (!open) {
-          resetDialog(open);
+      onOpenChange={(nextOpen) => {
+        if (!nextOpen) {
+          resetDialog();
+          return;
         }
+
+        setDialogOpen(true);
       }}
     >
       {trigger !== null && (

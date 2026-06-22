@@ -1,4 +1,5 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { createSearchSongResultFixture } from "@testUtils/models/search/fixtures";
 
 import { Command } from "@components/ui/command";
 
@@ -11,16 +12,7 @@ class ResizeObserverMock {
   disconnect = jest.fn();
 }
 
-const songResult: SearchSongResult = {
-  songId: "4af1ad2a-5aac-4a35-91f9-f51edc376e03",
-  name: "Amazing Grace",
-  preferredKey: "g",
-  isArchived: false,
-  similarityScore: 0.9,
-  tags: ["Communion", "Classic"],
-  matchedTags: [],
-  lastPlayedDate: null,
-};
+const songResult = createSearchSongResultFixture();
 
 const renderSearchResultsList = ({
   onAddSongToCurrentSet,

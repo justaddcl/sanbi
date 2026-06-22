@@ -112,6 +112,26 @@ export const SearchResultsList = ({
     }, 0);
   };
 
+  useEffect(() => {
+    if (!openActionsSongId) {
+      return;
+    }
+
+    const isOpenActionSongVisible =
+      visibleSongResults.some((result) => result.songId === openActionsSongId) ||
+      visibleTagResults.some((result) => result.songId === openActionsSongId);
+
+    if (isOpenActionSongVisible) {
+      return;
+    }
+
+    const clearStaleOpenActions = window.setTimeout(() => {
+      setOpenActionsSongId(null);
+    }, 0);
+
+    return () => window.clearTimeout(clearStaleOpenActions);
+  }, [openActionsSongId, visibleSongResults, visibleTagResults]);
+
   const renderSongResultItem = ({
     keyPrefix,
     result,
