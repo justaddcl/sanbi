@@ -124,3 +124,45 @@ test("adds a song to a section from set detail", async ({ page }, testInfo) => {
   await page.reload();
   await expectAddedSongInFullBandSection(page, songToAdd);
 });
+
+test("opens add-to-set from the search action menu without navigating", async ({
+  page,
+}, testInfo) => {
+  const isMobileProject = testInfo.project.name.includes("mobile");
+  const songToAdd = getAddSongToSetSong(testInfo.project.name);
+  const setDetailPath = `/${e2eIds.organizationId}/sets/${e2eIds.setId}`;
+
+  await page.goto(setDetailPath);
+  if (isMobileProject) {
+    await page.getByRole("button", { name: "Open global search" }).tap();
+  } else {
+    await page.getByRole("button", { name: "Open global search" }).click();
+  }
+
+  const searchDialog = page.getByRole("dialog");
+  await expect(searchDialog).toBeVisible();
+  await searchDialog
+    .getByPlaceholder("Search songs or tags")
+    .fill(songToAdd.name);
+  await expect(
+    searchDialog.getByText(songToAdd.name, { exact: true }),
+  ).toBeVisible();
+
+  if (isMobileProject) {
+    await searchDialog
+      .getByRole("button", { name: `Open actions for ${songToAdd.name}` })
+      .tap();
+    await page.getByRole("menuitem", { name: /Add to a set/ }).tap();
+  } else {
+    await page.keyboard.press("Shift+Enter");
+    await expect(
+      page.getByRole("menuitem", { name: /Open song/ }),
+    ).toBeVisible();
+    await page.getByRole("menuitem", { name: /Add to a set/ }).press("Enter");
+  }
+
+  await expect(
+    page.getByRole("heading", { name: "Add to which set?" }),
+  ).toBeVisible();
+  await expect(page).toHaveURL(new RegExp(`${setDetailPath}$`));
+});
