@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { type inferProcedureOutput } from "@trpc/server";
 import { toast } from "sonner";
 
 import { Button } from "@components/ui/button";
@@ -14,12 +13,13 @@ import { SelectedSetCard } from "@modules/songs/forms/AddSongToSet/components";
 import { useUserQuery } from "@modules/users/api/queries";
 import { type SongKey as SongKeyType } from "@lib/constants";
 import { trpc } from "@lib/trpc";
-import { type AppRouter } from "@server/api/root";
+
+import { type AddSongToSetDialogSong } from "../AddSongToSetDialog";
 
 type ReviewStepProps = {
   selectedSetId: string;
   selectedSetSection: string;
-  song: inferProcedureOutput<AppRouter["song"]["get"]>;
+  song: AddSongToSetDialogSong;
   songKey: SongKeyType;
   orderedSongIds: string[];
   onAddSong?: () => void;
@@ -165,6 +165,7 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
         <VStack data-testid="add-song-review-summary-group" className="gap-1">
           <Text className="font-medium text-slate-700">Song notes</Text>
           <Textarea
+            aria-label="Song notes"
             value={notes}
             onChange={(changeEvent) => {
               setNotes(changeEvent.target.value);

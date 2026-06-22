@@ -1,7 +1,8 @@
 import { TRPCError } from "@trpc/server";
-import { and, asc, desc, eq, lte, sql } from "drizzle-orm";
+import { and, asc, desc, eq, lte, or, sql } from "drizzle-orm";
 
-import { type NewSong, type Song } from "@lib/types/db";
+import { escapeLikePattern } from "@lib/string/escapeLikePattern";
+import { type NewSong } from "@lib/types/db";
 import {
   archiveSongSchema,
   deleteSongSchema,
@@ -33,6 +34,9 @@ import {
 } from "@server/db/schema";
 
 const TRIGRAM_SIMILARITY_THRESHOLD = 0.1;
+const TAG_TRIGRAM_SIMILARITY_THRESHOLD = 0.3;
+const MIN_FUZZY_TAG_SEARCH_LENGTH = 4;
+const DEFAULT_SEARCH_RESULT_LIMIT = 12;
 
 export const songRouter = createTRPCRouter({
   // Queries
@@ -94,6 +98,36 @@ export const songRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       console.log(`🤖 - [song/search] - searching for ${input.searchInput}`);
 
+      const normalizedSearchInput = input.searchInput.trim();
+      if (!normalizedSearchInput) {
+        return [];
+      }
+
+      const fuzzySearchInput = `%${escapeLikePattern(normalizedSearchInput)}%`;
+      const likeEscapeCharacter = "\\";
+      const canFuzzyMatchTags =
+        normalizedSearchInput.length >= MIN_FUZZY_TAG_SEARCH_LENGTH;
+      const searchResultLimit = input.limit ?? DEFAULT_SEARCH_RESULT_LIMIT;
+      const songNameContainsSearchInput = sql`${songs.name} ILIKE ${fuzzySearchInput} ESCAPE ${likeEscapeCharacter}`;
+      const songNameSimilarToSearchInput = sql`similarity(${songs.name}, ${normalizedSearchInput}) > ${TRIGRAM_SIMILARITY_THRESHOLD}`;
+      const tagContainsSearchInput = sql`${tags.tag} ILIKE ${fuzzySearchInput} ESCAPE ${likeEscapeCharacter}`;
+      const tagSimilarToSearchInput = sql`(${canFuzzyMatchTags} AND similarity(${tags.tag}, ${normalizedSearchInput}) > ${TAG_TRIGRAM_SIMILARITY_THRESHOLD})`;
+      const tagMatchesSearchInput = sql`(${tagContainsSearchInput} OR ${tagSimilarToSearchInput})`;
+      const songHasMatchingTag = sql`EXISTS (
+        SELECT 1
+        FROM ${songTags} matched_song_tags
+        INNER JOIN ${tags} matched_tags ON matched_tags.id = matched_song_tags.tag_id
+        WHERE matched_song_tags.song_id = ${songs.id}
+          AND matched_tags.organization_id = ${input.organizationId}
+          AND (
+            matched_tags.tag ILIKE ${fuzzySearchInput} ESCAPE ${likeEscapeCharacter}
+            OR (
+              ${canFuzzyMatchTags}
+              AND similarity(matched_tags.tag, ${normalizedSearchInput}) > ${TAG_TRIGRAM_SIMILARITY_THRESHOLD}
+            )
+          )
+      )`;
+
       /**
        * NOTE: using similarity requires the pg_trgm extension to be enabled
        * CREATE EXTENSION IF NOT EXISTS pg_trgm;
@@ -104,10 +138,20 @@ export const songRouter = createTRPCRouter({
           name: songs.name,
           preferredKey: songs.preferredKey,
           isArchived: songs.isArchived,
-          similarityScore: sql<number>`similarity(${songs.name}, ${input.searchInput})`,
+          similarityScore: sql<number>`GREATEST(
+            similarity(${songs.name}, ${normalizedSearchInput}),
+            COALESCE(MAX(similarity(${tags.tag}, ${normalizedSearchInput})), 0)
+          )`,
           tags: sql<
             string[]
-          >`array_agg(DISTINCT ${tags.tag} ORDER BY ${tags.tag})`,
+          >`array_remove(array_agg(DISTINCT ${tags.tag} ORDER BY ${tags.tag}), NULL)`,
+          matchedTags: sql<string[]>`COALESCE(
+            array_remove(
+              array_agg(DISTINCT ${tags.tag} ORDER BY ${tags.tag}) FILTER (WHERE ${tagMatchesSearchInput}),
+              NULL
+            ),
+            ARRAY[]::text[]
+          )`,
           lastPlayedDate: sql<Date | null>`
             MAX(
               CASE WHEN ${sets.date} <= NOW()
@@ -121,15 +165,32 @@ export const songRouter = createTRPCRouter({
         .leftJoin(setSections, eq(setSections.id, setSectionSongs.setSectionId))
         .leftJoin(sets, eq(sets.id, setSections.setId))
         .leftJoin(songTags, eq(songTags.songId, songs.id))
-        .leftJoin(tags, eq(tags.id, songTags.tagId))
+        .leftJoin(
+          tags,
+          and(
+            eq(tags.id, songTags.tagId),
+            eq(tags.organizationId, input.organizationId),
+          ),
+        )
         .where(
-          sql`similarity(${songs.name}, ${input.searchInput}) > ${TRIGRAM_SIMILARITY_THRESHOLD}`,
+          and(
+            eq(songs.organizationId, input.organizationId),
+            or(
+              songNameContainsSearchInput,
+              songNameSimilarToSearchInput,
+              songHasMatchingTag,
+            ),
+          ),
         )
         .groupBy(songs.id)
         .orderBy(
-          desc(sql<number>`similarity(${songs.name}, ${input.searchInput})`),
+          desc(sql<number>`GREATEST(
+            similarity(${songs.name}, ${normalizedSearchInput}),
+            COALESCE(MAX(similarity(${tags.tag}, ${normalizedSearchInput})), 0)
+          )`),
           asc(songs.name),
-        );
+        )
+        .limit(searchResultLimit);
 
       console.log(
         `🤖 - [song/search] - result for ${input.searchInput}:`,
@@ -164,7 +225,7 @@ export const songRouter = createTRPCRouter({
 
       const newSong: NewSong = {
         name,
-        preferredKey: preferredKey as Song["preferredKey"],
+        preferredKey,
         organizationId,
         notes,
         isArchived,
