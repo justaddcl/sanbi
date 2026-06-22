@@ -4,11 +4,10 @@ import {
   createUserWithMembershipsFixture,
 } from "@testUtils/models/user/fixtures";
 import { createUpsertUserPreferencesDb } from "@testUtils/models/user/upsertUserPreferencesDb";
-import { eq } from "drizzle-orm";
 
 import { userRouter } from "@server/api/routers/user";
-import { syncSanbiUserFromClerkUser } from "@server/auth/clerkUserSync";
-import { userPreferences, users } from "@server/db/schema";
+import { ensureSanbiUserFromClerkSession } from "@server/auth/clerkUserSync";
+import { userPreferences } from "@server/db/schema";
 
 jest.mock("@clerk/nextjs/server", () => ({
   auth: jest.fn(() => ({ userId: "user_123" })),
@@ -18,7 +17,7 @@ jest.mock("@server/auth/clerkUserSync", () => ({
   ClerkUserSyncError: class ClerkUserSyncError extends Error {
     code = "MISSING_PRIMARY_EMAIL";
   },
-  syncSanbiUserFromClerkUser: jest.fn(),
+  ensureSanbiUserFromClerkSession: jest.fn(),
 }));
 jest.mock("superjson", () => ({
   __esModule: true,
@@ -43,46 +42,26 @@ describe("userRouter", () => {
     jest.useRealTimers();
   });
 
-  it("repairs a missing Sanbi user from the authenticated Clerk user", async () => {
-    const clerkUser = {
-      id: userId,
-      firstName: "Ada",
-      lastName: "Lovelace",
-      primaryEmailAddress: {
-        emailAddress: "ada@example.com",
-      },
-    };
+  it("ensures a Sanbi user exists for the authenticated Clerk session", async () => {
     const syncedUser = createUserWithMembershipsFixture({
       id: userId,
-      firstName: clerkUser.firstName,
-      lastName: clerkUser.lastName,
-      email: clerkUser.primaryEmailAddress.emailAddress,
       memberships: [],
     });
-    const findFirst = jest.fn().mockResolvedValue(null);
-    const db = {
-      query: {
-        users: {
-          findFirst,
-        },
-      },
-    };
+    const db = {};
     const caller = createUserRouterCaller(db);
 
-    (currentUser as jest.Mock).mockResolvedValue(clerkUser);
-    (syncSanbiUserFromClerkUser as jest.Mock).mockResolvedValue(syncedUser);
+    (ensureSanbiUserFromClerkSession as jest.Mock).mockResolvedValue(
+      syncedUser,
+    );
 
     await expect(caller.hello()).resolves.toEqual({
       greeting: `Hello ${userId}`,
     });
 
-    expect(findFirst).toHaveBeenCalledWith({
-      where: eq(users.id, userId),
-    });
-    expect(currentUser).toHaveBeenCalledTimes(1);
-    expect(syncSanbiUserFromClerkUser).toHaveBeenCalledWith({
+    expect(currentUser).not.toHaveBeenCalled();
+    expect(ensureSanbiUserFromClerkSession).toHaveBeenCalledWith({
       database: db,
-      clerkUser,
+      userId,
     });
   });
 

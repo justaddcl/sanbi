@@ -6,7 +6,7 @@
  * TL;DR - This is where all the tRPC server stuff is created and plugged in. The pieces you will
  * need to use are documented accordingly near the end.
  */
-import { auth, currentUser } from "@clerk/nextjs/server";
+import { auth } from "@clerk/nextjs/server";
 import { type ORPCMeta } from "@orpc/trpc";
 import { initTRPC, TRPCError } from "@trpc/server";
 import { and, eq } from "drizzle-orm";
@@ -17,9 +17,9 @@ import { db } from "@/server/db";
 
 import {
   ClerkUserSyncError,
-  syncSanbiUserFromClerkUser,
+  ensureSanbiUserFromClerkSession,
 } from "../auth/clerkUserSync";
-import { organizationMemberships, organizations, users } from "../db/schema";
+import { organizationMemberships, organizations } from "../db/schema";
 
 /**
  * 1. CONTEXT
@@ -103,6 +103,18 @@ export const createTRPCRouter = t.router;
  */
 export const publicProcedure = t.procedure;
 
+const getTRPCCodeForClerkUserSyncError = (error: ClerkUserSyncError) => {
+  if (error.code === "CLERK_USER_NOT_FOUND") {
+    return "NOT_FOUND";
+  }
+
+  if (error.code === "SANBI_USER_SYNC_FAILED") {
+    return "INTERNAL_SERVER_ERROR";
+  }
+
+  return "BAD_REQUEST";
+};
+
 export const authedProcedure = t.procedure.use(async (opts) => {
   const { ctx } = opts;
 
@@ -110,50 +122,28 @@ export const authedProcedure = t.procedure.use(async (opts) => {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 
-  let user = await ctx.db.query.users.findFirst({
-    where: eq(users.id, ctx.auth.userId),
-  });
-
-  if (!user) {
-    const clerkUser = await currentUser();
-
-    if (!clerkUser) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: `Clerk user, ${ctx.auth.userId}, not found`,
-      });
-    }
-
-    try {
-      user = await syncSanbiUserFromClerkUser({
-        database: ctx.db,
-        clerkUser,
-      });
-    } catch (error) {
-      if (error instanceof ClerkUserSyncError) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: error.message,
-        });
-      }
-
-      throw error;
-    }
-  }
-
-  if (!user) {
-    throw new TRPCError({
-      code: "INTERNAL_SERVER_ERROR",
-      message: `Could not sync Sanbi user, ${ctx.auth.userId}`,
+  try {
+    const user = await ensureSanbiUserFromClerkSession({
+      database: ctx.db,
+      userId: ctx.auth.userId,
     });
-  }
 
-  return opts.next({
-    ctx: {
-      auth: ctx.auth,
-      user,
-    },
-  });
+    return opts.next({
+      ctx: {
+        auth: ctx.auth,
+        user,
+      },
+    });
+  } catch (error) {
+    if (error instanceof ClerkUserSyncError) {
+      throw new TRPCError({
+        code: getTRPCCodeForClerkUserSyncError(error),
+        message: error.message,
+      });
+    }
+
+    throw error;
+  }
 });
 
 export const organizationProcedure = authedProcedure

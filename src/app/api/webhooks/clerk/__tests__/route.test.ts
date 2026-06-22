@@ -55,6 +55,7 @@ describe("Clerk webhook route", () => {
 
   beforeEach(() => {
     jest.spyOn(console, "error").mockImplementation(() => undefined);
+    jest.spyOn(console, "warn").mockImplementation(() => undefined);
   });
 
   afterEach(() => {
@@ -114,6 +115,24 @@ describe("Clerk webhook route", () => {
       database: db,
       userId: "user_123",
     });
+  });
+
+  it("logs user.deleted events that are missing a Clerk user id", async () => {
+    (verifyWebhook as jest.Mock).mockResolvedValue({
+      type: "user.deleted",
+      data: {},
+    });
+
+    const response = await POST(createWebhookRequest());
+
+    expect(response.status).toBe(200);
+    expect(markSanbiUserAuthDeleted).not.toHaveBeenCalled();
+    expect(console.warn).toHaveBeenCalledWith(
+      "Clerk user.deleted webhook missing user id",
+      {
+        eventType: "user.deleted",
+      },
+    );
   });
 
   it("returns 422 when a Clerk user payload cannot be synced", async () => {

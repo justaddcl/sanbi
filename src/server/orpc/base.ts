@@ -1,4 +1,4 @@
-import { auth, currentUser } from "@clerk/nextjs/server";
+import { auth } from "@clerk/nextjs/server";
 import { type LoggerContext } from "@orpc/experimental-pino";
 import { ORPCError, os } from "@orpc/server";
 import { and, eq } from "drizzle-orm";
@@ -14,9 +14,9 @@ import { db } from "@/server/db";
 
 import {
   ClerkUserSyncError,
-  syncSanbiUserFromClerkUser,
+  ensureSanbiUserFromClerkSession,
 } from "../auth/clerkUserSync";
-import { organizationMemberships, organizations, users } from "../db/schema";
+import { organizationMemberships, organizations } from "../db/schema";
 
 export const createORPCContext = async (opts: { headers: HeadersInit }) => {
   return {
@@ -82,39 +82,32 @@ const requireOrganizationMembership = o
     const organizationInput = input as z.infer<typeof organizationInputSchema>;
     const { organizationId } = organizationInput;
 
-    let user = await context.db.query.users.findFirst({
-      where: eq(users.id, context.auth.userId),
-    });
-
-    if (!user) {
-      const clerkUser = await currentUser();
-
-      if (!clerkUser) {
-        throw new ORPCError("NOT_FOUND", {
-          message: `Clerk user, ${context.auth.userId}, not found`,
-        });
-      }
-
-      try {
-        user = await syncSanbiUserFromClerkUser({
-          database: context.db,
-          clerkUser,
-        });
-      } catch (error) {
-        if (error instanceof ClerkUserSyncError) {
-          throw new ORPCError("BAD_REQUEST", {
+    let user;
+    try {
+      user = await ensureSanbiUserFromClerkSession({
+        database: context.db,
+        userId: context.auth.userId,
+      });
+    } catch (error) {
+      if (error instanceof ClerkUserSyncError) {
+        if (error.code === "CLERK_USER_NOT_FOUND") {
+          throw new ORPCError("NOT_FOUND", {
             message: error.message,
           });
         }
 
-        throw error;
-      }
-    }
+        if (error.code === "SANBI_USER_SYNC_FAILED") {
+          throw new ORPCError("INTERNAL_SERVER_ERROR", {
+            message: error.message,
+          });
+        }
 
-    if (!user) {
-      throw new ORPCError("INTERNAL_SERVER_ERROR", {
-        message: `Could not sync Sanbi user, ${context.auth.userId}`,
-      });
+        throw new ORPCError("BAD_REQUEST", {
+          message: error.message,
+        });
+      }
+
+      throw error;
     }
 
     const organization = await context.db.query.organizations.findFirst({

@@ -1,12 +1,18 @@
+import { currentUser } from "@clerk/nextjs/server";
 import { eq } from "drizzle-orm";
 
 import {
   ClerkUserSyncError,
   createSanbiUserFromClerkUser,
+  ensureSanbiUserFromClerkSession,
   markSanbiUserAuthDeleted,
   syncSanbiUserFromClerkUser,
 } from "@server/auth/clerkUserSync";
 import { userPreferences, users } from "@server/db/schema";
+
+jest.mock("@clerk/nextjs/server", () => ({
+  currentUser: jest.fn(),
+}));
 
 const userId = "user_123";
 
@@ -37,6 +43,30 @@ const createSyncUserDb = (syncedUser: unknown) => {
     userReturning,
     preferenceValues,
     preferenceOnConflictDoNothing,
+  };
+};
+
+const createEnsureUserDb = ({
+  existingUser,
+  syncedUser,
+}: {
+  existingUser: unknown;
+  syncedUser: unknown;
+}) => {
+  const syncDb = createSyncUserDb(syncedUser);
+  const findFirst = jest.fn().mockResolvedValue(existingUser);
+
+  return {
+    ...syncDb,
+    db: {
+      query: {
+        users: {
+          findFirst,
+        },
+      },
+      insert: syncDb.insert,
+    },
+    findFirst,
   };
 };
 
@@ -169,7 +199,6 @@ describe("clerkUserSync", () => {
         email: "ada@example.com",
         firstName: "Ada",
         lastName: "Lovelace",
-        authDeletedAt: null,
         updatedAt,
       },
     });
@@ -181,6 +210,74 @@ describe("clerkUserSync", () => {
     expect(db.preferenceOnConflictDoNothing).toHaveBeenCalledWith({
       target: userPreferences.userId,
     });
+  });
+
+  it("returns an existing Sanbi user without calling Clerk", async () => {
+    const existingUser = {
+      id: userId,
+      email: "ada@example.com",
+      firstName: "Ada",
+      lastName: "Lovelace",
+      onboardingStep: "createTeam",
+      onboardingCompletedAt: null,
+      authDeletedAt: null,
+      createdAt: new Date("2026-01-01T00:00:00Z"),
+      updatedAt: new Date("2026-01-01T00:00:00Z"),
+    };
+    const db = createEnsureUserDb({
+      existingUser,
+      syncedUser: null,
+    });
+
+    await expect(
+      ensureSanbiUserFromClerkSession({
+        database: db.db as never,
+        userId,
+      }),
+    ).resolves.toEqual(existingUser);
+
+    expect(db.findFirst).toHaveBeenCalledWith({
+      where: eq(users.id, userId),
+    });
+    expect(currentUser).not.toHaveBeenCalled();
+    expect(db.insert).not.toHaveBeenCalled();
+  });
+
+  it("repairs a missing Sanbi user from the current Clerk session", async () => {
+    const syncedUser = {
+      id: userId,
+      email: "ada@example.com",
+      firstName: "Ada",
+      lastName: "Lovelace",
+      onboardingStep: "createTeam",
+      onboardingCompletedAt: null,
+      authDeletedAt: null,
+      createdAt: new Date("2026-01-01T00:00:00Z"),
+      updatedAt: new Date("2026-01-01T00:00:00Z"),
+    };
+    const db = createEnsureUserDb({
+      existingUser: null,
+      syncedUser,
+    });
+
+    (currentUser as jest.Mock).mockResolvedValue({
+      id: userId,
+      primaryEmailAddress: {
+        emailAddress: "ada@example.com",
+      },
+      firstName: "Ada",
+      lastName: "Lovelace",
+    });
+
+    await expect(
+      ensureSanbiUserFromClerkSession({
+        database: db.db as never,
+        userId,
+      }),
+    ).resolves.toEqual(syncedUser);
+
+    expect(currentUser).toHaveBeenCalledTimes(1);
+    expect(db.insert).toHaveBeenCalledWith(users);
   });
 
   it("marks a Sanbi user as auth-deleted without deleting product data", async () => {

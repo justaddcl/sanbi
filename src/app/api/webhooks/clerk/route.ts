@@ -34,6 +34,10 @@ export async function POST(req: NextRequest) {
             database: db,
             userId: event.data.id,
           });
+        } else {
+          console.warn("Clerk user.deleted webhook missing user id", {
+            eventType: event.type,
+          });
         }
         break;
       }

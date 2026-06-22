@@ -1,6 +1,7 @@
+import { currentUser } from "@clerk/nextjs/server";
 import { eq } from "drizzle-orm";
 
-import { type NewUser } from "@lib/types";
+import { type NewUser, type User } from "@lib/types";
 import { userPreferences, users } from "@server/db/schema";
 import { type db as appDb } from "@/server/db";
 
@@ -29,7 +30,10 @@ export type SyncableClerkUser = {
 export class ClerkUserSyncError extends Error {
   constructor(
     message: string,
-    public readonly code: "MISSING_PRIMARY_EMAIL",
+    public readonly code:
+      | "CLERK_USER_NOT_FOUND"
+      | "MISSING_PRIMARY_EMAIL"
+      | "SANBI_USER_SYNC_FAILED",
   ) {
     super(message);
     this.name = "ClerkUserSyncError";
@@ -120,7 +124,6 @@ export const syncSanbiUserFromClerkUser = async ({
         email: sanbiUser.email,
         firstName: sanbiUser.firstName,
         lastName: sanbiUser.lastName,
-        authDeletedAt: null,
         updatedAt,
       },
     })
@@ -133,6 +136,45 @@ export const syncSanbiUserFromClerkUser = async ({
       confirmResourceDelete: true,
     })
     .onConflictDoNothing({ target: userPreferences.userId });
+
+  return syncedUser;
+};
+
+export const ensureSanbiUserFromClerkSession = async ({
+  database,
+  userId,
+}: {
+  database: SanbiDb;
+  userId: string;
+}): Promise<User> => {
+  const existingUser = await database.query.users.findFirst({
+    where: eq(users.id, userId),
+  });
+
+  if (existingUser) {
+    return existingUser;
+  }
+
+  const clerkUser = await currentUser();
+
+  if (!clerkUser) {
+    throw new ClerkUserSyncError(
+      `Clerk user, ${userId}, not found`,
+      "CLERK_USER_NOT_FOUND",
+    );
+  }
+
+  const syncedUser = await syncSanbiUserFromClerkUser({
+    database,
+    clerkUser,
+  });
+
+  if (!syncedUser) {
+    throw new ClerkUserSyncError(
+      `Could not sync Sanbi user, ${userId}`,
+      "SANBI_USER_SYNC_FAILED",
+    );
+  }
 
   return syncedUser;
 };
