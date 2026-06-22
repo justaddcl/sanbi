@@ -31,6 +31,14 @@ type ArchivedSongBannerProps = {
 
 type ArchivedBannerProps = ArchivedSetBannerProps | ArchivedSongBannerProps;
 
+export const getArchivedBannerDescription = (itemType: "set" | "song") => {
+  if (itemType === "song") {
+    return "This song is hidden from your main library, but it can still appear in search results with an Archived badge. All song history and data are preserved, and you can find it in the archived section.";
+  }
+
+  return "This set won't show up in your library or in your searches by default. However, all set history and data are preserved, and you can find it in the archived section.";
+};
+
 export const ArchivedBanner: React.FC<ArchivedBannerProps> = ({
   itemType,
   setId,
@@ -61,9 +69,9 @@ export const ArchivedBanner: React.FC<ArchivedBannerProps> = ({
     unarchiveSetMutation.mutate(
       { organizationId: userMembership.organizationId, setId },
       {
-        async onSuccess() {
+        onSuccess() {
           toast.success("Set has been unarchived", { id: toastId });
-          await apiUtils.set.get.invalidate({
+          void apiUtils.set.get.invalidate({
             organizationId: userMembership.organizationId,
             setId,
           });
@@ -81,7 +89,7 @@ export const ArchivedBanner: React.FC<ArchivedBannerProps> = ({
     unarchiveSongMutation.mutate(
       { organizationId: userMembership.organizationId, songId },
       {
-        async onSuccess() {
+        onSuccess() {
           toast.success("Song has been unarchived");
           router.refresh();
         },
@@ -93,7 +101,12 @@ export const ArchivedBanner: React.FC<ArchivedBannerProps> = ({
   };
 
   const onCtaClick = () => {
-    itemType === "set" ? unarchiveSet(setId) : unarchiveSong(songId);
+    if (itemType === "set") {
+      unarchiveSet(setId);
+      return;
+    }
+
+    unarchiveSong(songId);
   };
 
   return (
@@ -127,10 +140,7 @@ export const ArchivedBanner: React.FC<ArchivedBannerProps> = ({
               <VStack className="justify-start gap-3">
                 <VStack className="gap-1">
                   <Text className="text-amber-700">
-                    This means this {itemType}{" "}won&apos;t show up in your
-                    library or in your searches by default. However, all{" "}
-                    {itemType} history and data are preserved, and you can find
-                    it in the archived section.
+                    {getArchivedBannerDescription(itemType)}
                   </Text>
                 </VStack>
                 <Button
