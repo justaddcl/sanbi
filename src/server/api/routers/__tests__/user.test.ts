@@ -1,15 +1,24 @@
 import { currentUser } from "@clerk/nextjs/server";
-import { createCreateUserDb } from "@testUtils/models/user/createUserDb";
-import { createUserPreferencesFixture } from "@testUtils/models/user/fixtures";
+import {
+  createUserPreferencesFixture,
+  createUserWithMembershipsFixture,
+} from "@testUtils/models/user/fixtures";
 import { createUpsertUserPreferencesDb } from "@testUtils/models/user/upsertUserPreferencesDb";
 import { eq } from "drizzle-orm";
 
 import { userRouter } from "@server/api/routers/user";
+import { syncSanbiUserFromClerkUser } from "@server/auth/clerkUserSync";
 import { userPreferences, users } from "@server/db/schema";
 
 jest.mock("@clerk/nextjs/server", () => ({
   auth: jest.fn(() => ({ userId: "user_123" })),
   currentUser: jest.fn(),
+}));
+jest.mock("@server/auth/clerkUserSync", () => ({
+  ClerkUserSyncError: class ClerkUserSyncError extends Error {
+    code = "MISSING_PRIMARY_EMAIL";
+  },
+  syncSanbiUserFromClerkUser: jest.fn(),
 }));
 jest.mock("superjson", () => ({
   __esModule: true,
@@ -34,7 +43,7 @@ describe("userRouter", () => {
     jest.useRealTimers();
   });
 
-  it("creates a default opt-out resource delete confirmation preference for new users", async () => {
+  it("repairs a missing Sanbi user from the authenticated Clerk user", async () => {
     const clerkUser = {
       id: userId,
       firstName: "Ada",
@@ -43,34 +52,37 @@ describe("userRouter", () => {
         emailAddress: "ada@example.com",
       },
     };
-    const createdUser = {
+    const syncedUser = createUserWithMembershipsFixture({
       id: userId,
       firstName: clerkUser.firstName,
       lastName: clerkUser.lastName,
       email: clerkUser.primaryEmailAddress.emailAddress,
+      memberships: [],
+    });
+    const findFirst = jest.fn().mockResolvedValue(null);
+    const db = {
+      query: {
+        users: {
+          findFirst,
+        },
+      },
     };
-    const db = createCreateUserDb(createdUser);
-    const caller = createUserRouterCaller(db.db);
+    const caller = createUserRouterCaller(db);
 
     (currentUser as jest.Mock).mockResolvedValue(clerkUser);
+    (syncSanbiUserFromClerkUser as jest.Mock).mockResolvedValue(syncedUser);
 
-    await expect(caller.createMe()).resolves.toEqual([createdUser]);
+    await expect(caller.hello()).resolves.toEqual({
+      greeting: `Hello ${userId}`,
+    });
 
-    expect(db.findFirst).toHaveBeenCalledWith({
+    expect(findFirst).toHaveBeenCalledWith({
       where: eq(users.id, userId),
     });
-    expect(db.insert).toHaveBeenNthCalledWith(1, users);
-    expect(db.userValues).toHaveBeenCalledWith(createdUser);
-    expect(db.userOnConflictDoNothing).toHaveBeenCalledWith({
-      target: users.id,
-    });
-    expect(db.insert).toHaveBeenNthCalledWith(2, userPreferences);
-    expect(db.preferenceValues).toHaveBeenCalledWith({
-      userId,
-      confirmResourceDelete: true,
-    });
-    expect(db.preferenceOnConflictDoNothing).toHaveBeenCalledWith({
-      target: userPreferences.userId,
+    expect(currentUser).toHaveBeenCalledTimes(1);
+    expect(syncSanbiUserFromClerkUser).toHaveBeenCalledWith({
+      database: db,
+      clerkUser,
     });
   });
 

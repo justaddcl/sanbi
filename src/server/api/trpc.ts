@@ -6,7 +6,7 @@
  * TL;DR - This is where all the tRPC server stuff is created and plugged in. The pieces you will
  * need to use are documented accordingly near the end.
  */
-import { auth } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
 import { type ORPCMeta } from "@orpc/trpc";
 import { initTRPC, TRPCError } from "@trpc/server";
 import { and, eq } from "drizzle-orm";
@@ -15,6 +15,10 @@ import * as z from "zod";
 
 import { db } from "@/server/db";
 
+import {
+  ClerkUserSyncError,
+  syncSanbiUserFromClerkUser,
+} from "../auth/clerkUserSync";
 import { organizationMemberships, organizations, users } from "../db/schema";
 
 /**
@@ -106,22 +110,48 @@ export const authedProcedure = t.procedure.use(async (opts) => {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 
-  // FIXME: this will always fail if a user signs up and has a Clerk user, but not a Sanbi user
-  // const user = await db.query.users.findFirst({
-  //   where: eq(users.id, ctx.auth.userId),
-  // });
+  let user = await ctx.db.query.users.findFirst({
+    where: eq(users.id, ctx.auth.userId),
+  });
 
-  // if (!user) {
-  //   throw new TRPCError({
-  //     code: "NOT_FOUND",
-  //     message: `Sanbi user, ${ctx.auth.userId}, not found`,
-  //   });
-  // }
+  if (!user) {
+    const clerkUser = await currentUser();
+
+    if (!clerkUser) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: `Clerk user, ${ctx.auth.userId}, not found`,
+      });
+    }
+
+    try {
+      user = await syncSanbiUserFromClerkUser({
+        database: ctx.db,
+        clerkUser,
+      });
+    } catch (error) {
+      if (error instanceof ClerkUserSyncError) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: error.message,
+        });
+      }
+
+      throw error;
+    }
+  }
+
+  if (!user) {
+    throw new TRPCError({
+      code: "INTERNAL_SERVER_ERROR",
+      message: `Could not sync Sanbi user, ${ctx.auth.userId}`,
+    });
+  }
 
   return opts.next({
     ctx: {
       auth: ctx.auth,
-      // user,
+      user,
     },
   });
 });
@@ -135,19 +165,7 @@ export const organizationProcedure = authedProcedure
   .use(async (opts) => {
     const { ctx, input } = opts;
 
-    // authedProcedure guarantees ctx.auth.userId before this lookup.
-    const user = await db.query.users.findFirst({
-      where: eq(users.id, ctx.auth.userId),
-    });
-
-    if (!user) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: `Sanbi user, ${ctx.auth.userId}, not found`,
-      });
-    }
-
-    const organization = await db.query.organizations.findFirst({
+    const organization = await ctx.db.query.organizations.findFirst({
       where: eq(organizations.id, input.organizationId),
     });
 
@@ -167,7 +185,7 @@ export const organizationProcedure = authedProcedure
       await opts.ctx.db.query.organizationMemberships.findFirst({
         where: and(
           eq(organizationMemberships.organizationId, input.organizationId),
-          eq(organizationMemberships.userId, user.id),
+          eq(organizationMemberships.userId, ctx.user.id),
         ),
         with: {
           organization: true,
@@ -183,7 +201,7 @@ export const organizationProcedure = authedProcedure
     return opts.next({
       ctx: {
         user: {
-          ...user,
+          ...ctx.user,
           membership,
         },
         organization: membership.organization,
