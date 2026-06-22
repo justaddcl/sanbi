@@ -59,6 +59,13 @@ const getDialogCardByHeading = (root: Page | Locator, headingName: string) =>
     .getByTestId("set-section-selection-card")
     .filter({ hasText: headingName });
 
+const getSeededSetSelectionItem = (dialog: Locator) =>
+  dialog
+    .getByTestId("set-selection-set-item")
+    .filter({ hasText: formatFriendlyDate(e2eData.set.date) })
+    .filter({ hasText: e2eData.eventType.name })
+    .first();
+
 const getDialogSummaryGroup = (dialog: Locator, label: string) =>
   dialog
     .getByTestId("add-song-review-summary-group")
@@ -153,7 +160,7 @@ test("song detail workflow adds a song to an existing set section", async ({
   const dialog = page.getByRole("dialog");
   await expectDialogStep(dialog, 1, "Add to which set?");
 
-  await dialog.getByText(e2eData.eventType.name).first().click();
+  await getSeededSetSelectionItem(dialog).click();
   await expectDialogStep(dialog, 2, "Which section?");
 
   const selectedSection = getDialogCardByHeading(dialog, song.sectionName);
