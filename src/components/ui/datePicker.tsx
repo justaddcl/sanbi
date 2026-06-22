@@ -261,7 +261,7 @@ export const DatePicker = <Mode extends CalendarMode = "single">({
             <SelectContent position="popper">
               {presets?.map((preset, presetIndex) => (
                 <SelectItem
-                  key={`${preset.value}-${preset.label}`}
+                  key={`${preset.value}-${preset.label}-${presetIndex}`}
                   value={`${preset.value}:${presetIndex}`}
                 >
                   {preset.label}

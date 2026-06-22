@@ -124,7 +124,12 @@ test("adds a song to a newly created set with a newly created section", async ({
     page,
     config,
   ).first();
-  if (await existingPlayHistoryLink.isVisible()) {
+  const hasExistingPlayHistory = await existingPlayHistoryLink
+    .waitFor({ state: "visible", timeout: 3_000 })
+    .then(() => true)
+    .catch(() => false);
+
+  if (hasExistingPlayHistory) {
     await openPersistedSetFromSongHistory(page, config);
     return;
   }
