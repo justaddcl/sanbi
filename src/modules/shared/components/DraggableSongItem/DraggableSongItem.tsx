@@ -45,7 +45,7 @@ export const DraggableSongItem: React.FC<DraggableSongItemProps> = ({
     <HStack
       ref={setNodeRef}
       style={style}
-      className={cn("gap-1 rounded-lg border p-3", "touch-none", {
+      className={cn("w-full gap-1 rounded-lg border p-3", "touch-none", {
         "opacity-40": active,
         "hover:cursor-grab": !disabled,
         "cursor-not-allowed bg-slate-100 pl-8": disabled,

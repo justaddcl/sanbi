@@ -55,14 +55,25 @@ const contentMap: Record<
   },
 };
 
+export type AddSongToSetDialogSong = Pick<
+  inferProcedureOutput<AppRouter["song"]["get"]>,
+  "id" | "name" | "preferredKey"
+>;
+
 type AddSongToSetDialogProps = {
-  song: inferProcedureOutput<AppRouter["song"]["get"]>;
+  song: AddSongToSetDialogSong;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  trigger?: React.ReactNode | null;
 };
 
 export const AddSongToSetDialog: React.FC<AddSongToSetDialogProps> = ({
   song,
+  open,
+  onOpenChange,
+  trigger,
 }) => {
-  const [isOpen, setIsOpen] = useState(false);
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(
     AddSongToSetDialogStep.SELECT_SET,
   );
@@ -81,6 +92,15 @@ export const AddSongToSetDialog: React.FC<AddSongToSetDialogProps> = ({
   const [selectedKey, setSelectedKey] = useState<SongKey | null>(null);
 
   const totalSteps = Object.keys(AddSongToSetDialogStep).length / 2; // this is divided by 2 since the length property combines the number of keys and values
+  const isOpen = open ?? uncontrolledOpen;
+
+  const setDialogOpen = (nextOpen: boolean) => {
+    if (open === undefined) {
+      setUncontrolledOpen(nextOpen);
+    }
+
+    onOpenChange?.(nextOpen);
+  };
 
   const goBack = () => {
     if (currentStep === AddSongToSetDialogStep.SELECT_SET && isCreatingNewSet) {
@@ -97,8 +117,8 @@ export const AddSongToSetDialog: React.FC<AddSongToSetDialogProps> = ({
     }
   };
 
-  const resetDialog = () => {
-    setIsOpen(false);
+  const resetDialog = (nextOpen = false) => {
+    setDialogOpen(nextOpen);
     setIsCreatingNewSet(false);
     setCurrentStep(AddSongToSetDialogStep.SELECT_SET);
     setSelectedSet(null);
@@ -194,7 +214,6 @@ export const AddSongToSetDialog: React.FC<AddSongToSetDialogProps> = ({
             orderedSongIds={updatedSetSectionOrderedSongIds}
             songKey={selectedKey}
             onAddSong={() => {
-              setIsOpen(false);
               resetDialog();
             }}
           />
@@ -207,18 +226,24 @@ export const AddSongToSetDialog: React.FC<AddSongToSetDialogProps> = ({
   return (
     <Dialog
       open={isOpen}
-      onOpenChange={(open) => {
-        setIsOpen(open);
-        if (!open) {
+      onOpenChange={(nextOpen) => {
+        if (!nextOpen) {
           resetDialog();
+          return;
         }
+
+        setDialogOpen(true);
       }}
     >
-      <DialogTrigger asChild>
-        <Button>
-          <Plus /> Add to a set
-        </Button>
-      </DialogTrigger>
+      {trigger !== null && (
+        <DialogTrigger asChild>
+          {trigger ?? (
+            <Button>
+              <Plus /> Add to a set
+            </Button>
+          )}
+        </DialogTrigger>
+      )}
       <DialogContent
         fixed
         minimalPadding
@@ -229,8 +254,8 @@ export const AddSongToSetDialog: React.FC<AddSongToSetDialogProps> = ({
           title={
             currentStep === AddSongToSetDialogStep.SELECT_SET &&
             isCreatingNewSet
-              ? contentMap[AddSongToSetDialogStep.SELECT_SET].alternateTitle ??
-                "Create new set"
+              ? (contentMap[AddSongToSetDialogStep.SELECT_SET].alternateTitle ??
+                "Create new set")
               : contentMap[currentStep].title
           }
           step={currentStep}

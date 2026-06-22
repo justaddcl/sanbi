@@ -137,40 +137,44 @@ export const SetSectionSelectionStep: React.FC<
         </Text>
         <VStack className="gap-4">
           {setData.sections.map((section) => (
-            <Card
+            <div
               key={section.id}
-              title={section.type.name}
-              headerClassName="p-0"
-              titleClassName="md:text-lg"
-              button={
-                <Button
-                  size="sm"
-                  onClick={(clickEvent) => {
-                    clickEvent.stopPropagation();
-                    onSelectSetSection(section.id, section.songs.length);
-                  }}
-                >
-                  <span className="md:hidden">Select</span>
-                  <span className="hidden md:inline">Select section</span>
-                </Button>
-              }
-              // collapsible
-              initialIsExpanded={false}
+              data-testid="set-section-selection-card"
             >
-              <VStack className="gap-3 md:gap-4">
-                {section.songs &&
-                  section.songs.length > 0 &&
-                  section.songs.map((setSectionSong, songPosition) => (
-                    <SongContent
-                      key={setSectionSong.id}
-                      songKey={setSectionSong.key}
-                      name={setSectionSong.song.name}
-                      notes={setSectionSong.notes}
-                      index={songPosition + 1}
-                    />
-                  ))}
-              </VStack>
-            </Card>
+              <Card
+                title={section.type.name}
+                headerClassName="p-0"
+                titleClassName="md:text-lg"
+                button={
+                  <Button
+                    size="sm"
+                    onClick={(clickEvent) => {
+                      clickEvent.stopPropagation();
+                      onSelectSetSection(section.id, section.songs.length);
+                    }}
+                  >
+                    <span className="md:hidden">Select</span>
+                    <span className="hidden md:inline">Select section</span>
+                  </Button>
+                }
+                // collapsible
+                initialIsExpanded={false}
+              >
+                <VStack className="gap-3 md:gap-4">
+                  {section.songs &&
+                    section.songs.length > 0 &&
+                    section.songs.map((setSectionSong, songPosition) => (
+                      <SongContent
+                        key={setSectionSong.id}
+                        songKey={setSectionSong.key}
+                        name={setSectionSong.song.name}
+                        notes={setSectionSong.notes}
+                        index={songPosition + 1}
+                      />
+                    ))}
+                </VStack>
+              </Card>
+            </div>
           ))}
           {!isAddingSection && (
             <Button

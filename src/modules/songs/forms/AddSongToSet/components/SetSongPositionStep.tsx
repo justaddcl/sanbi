@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { type inferProcedureOutput } from "@trpc/server";
 
 import { Button } from "@components/ui/button";
 import { Input } from "@components/ui/input";
@@ -12,7 +11,8 @@ import { DraggableSongList } from "@modules/shared/components/DraggableSongList/
 import { useUserQuery } from "@modules/users/api/queries";
 import { clamp } from "@lib/numbers";
 import { trpc } from "@lib/trpc";
-import { type AppRouter } from "@server/api/root";
+
+import { type AddSongToSetDialogSong } from "./AddSongToSetDialog";
 
 export type DraggableSongListItem = Omit<DraggableSongItem, "songKey"> &
   Partial<Pick<DraggableSongItem, "songKey">> & {
@@ -21,7 +21,7 @@ export type DraggableSongListItem = Omit<DraggableSongItem, "songKey"> &
 
 type SetSongPositionStepProps = {
   selectedSetSection: string | null;
-  song: inferProcedureOutput<AppRouter["song"]["get"]>;
+  song: AddSongToSetDialogSong;
   newSongInitialPosition: number;
   onSongPositionSet: (orderedSongIds: string[]) => void;
 };

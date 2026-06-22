@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { type inferProcedureOutput } from "@trpc/server";
 import { toast } from "sonner";
 
 import { Button } from "@components/ui/button";
@@ -14,12 +13,13 @@ import { SelectedSetCard } from "@modules/songs/forms/AddSongToSet/components";
 import { useUserQuery } from "@modules/users/api/queries";
 import { type SongKey as SongKeyType } from "@lib/constants";
 import { trpc } from "@lib/trpc";
-import { type AppRouter } from "@server/api/root";
+
+import { type AddSongToSetDialogSong } from "../AddSongToSetDialog";
 
 type ReviewStepProps = {
   selectedSetId: string;
   selectedSetSection: string;
-  song: inferProcedureOutput<AppRouter["song"]["get"]>;
+  song: AddSongToSetDialogSong;
   songKey: SongKeyType;
   orderedSongIds: string[];
   onAddSong?: () => void;
@@ -127,23 +127,23 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
           Does this look right?
         </Text>
 
-        <VStack className="gap-1">
+        <VStack data-testid="add-song-review-summary-group" className="gap-1">
           <Text className="font-medium text-slate-700">Adding</Text>
           <HStack className="items-center justify-between rounded-lg border border-slate-200 p-3">
             <Text className="font-medium md:text-lg">{song.name}</Text>
           </HStack>
         </VStack>
-        <VStack className="gap-1">
+        <VStack data-testid="add-song-review-summary-group" className="gap-1">
           <Text className="font-medium text-slate-700">Played in</Text>
           <HStack className="items-center justify-between rounded-lg border border-slate-200 p-3">
             <SongKey songKey={songKey} size="large" />
           </HStack>
         </VStack>
-        <VStack className="gap-1">
+        <VStack data-testid="add-song-review-summary-group" className="gap-1">
           <Text className="font-medium text-slate-700">In set</Text>
           <SelectedSetCard set={setData} countShown="songs" />
         </VStack>
-        <VStack className="gap-1">
+        <VStack data-testid="add-song-review-summary-group" className="gap-1">
           <Text className="font-medium text-slate-700">In section</Text>
           <Card
             title={setSectionData.type.name}
@@ -162,7 +162,7 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
             </VStack>
           </Card>
         </VStack>
-        <VStack className="gap-1">
+        <VStack data-testid="add-song-review-summary-group" className="gap-1">
           <Text className="font-medium text-slate-700">Song notes</Text>
           <Textarea
             aria-label="Song notes"

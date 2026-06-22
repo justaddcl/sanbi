@@ -44,6 +44,7 @@ export const SongContent: React.FC<SongContentProps> = ({
 
   return (
     <HStack
+      data-testid="song-content"
       className={cn(
         "w-full items-baseline gap-3 text-xs font-semibold",
         className,
