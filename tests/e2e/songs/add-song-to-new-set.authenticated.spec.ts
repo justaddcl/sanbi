@@ -78,7 +78,11 @@ const expectAddedSongOnNewSetPage = async (
 ) => {
   await expect(
     page.getByRole("heading", {
-      name: formatDate(config.setDate, { month: "long" }),
+      name: formatDate(config.setDate, {
+        locale: "en-US",
+        month: "long",
+        day: "2-digit",
+      }),
     }),
   ).toBeVisible();
   await expect(
