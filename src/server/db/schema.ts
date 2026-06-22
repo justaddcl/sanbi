@@ -40,9 +40,16 @@ export const users = createTable(
   "users",
   {
     id: varchar("id", { length: 48 }).primaryKey(),
-    firstName: varchar("firstName", { length: 256 }).notNull(),
+    firstName: varchar("firstName", { length: 256 }),
     lastName: varchar("lastName", { length: 256 }),
     email: varchar("email", { length: 256 }).notNull().unique(),
+    onboardingStep: varchar("onboarding_step", { length: 64 })
+      .default("createTeam")
+      .notNull(),
+    onboardingCompletedAt: timestamp("onboarding_completed_at", {
+      withTimezone: true,
+    }),
+    authDeletedAt: timestamp("auth_deleted_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .default(sql`CURRENT_TIMESTAMP`)
       .notNull(),
