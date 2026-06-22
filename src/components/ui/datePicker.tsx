@@ -255,12 +255,15 @@ export const DatePicker = <Mode extends CalendarMode = "single">({
               setViewMonth(selectedDate);
             }}
           >
-            <SelectTrigger>
+            <SelectTrigger aria-label={presetSelectPlaceholder}>
               <SelectValue placeholder={presetSelectPlaceholder} />
             </SelectTrigger>
             <SelectContent position="popper">
-              {presets?.map((preset) => (
-                <SelectItem key={preset.value} value={preset.value}>
+              {presets?.map((preset, presetIndex) => (
+                <SelectItem
+                  key={`${preset.value}-${preset.label}`}
+                  value={`${preset.value}:${presetIndex}`}
+                >
                   {preset.label}
                 </SelectItem>
               ))}

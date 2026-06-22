@@ -1,8 +1,13 @@
 "use client";
 
 import * as React from "react";
+import {
+  CaretDown,
+  CaretUp,
+  Check,
+  CircleNotch,
+} from "@phosphor-icons/react/dist/ssr";
 
-import { cn } from "@lib/utils";
 import { Button } from "@components/ui/button";
 import {
   Command,
@@ -19,12 +24,7 @@ import {
   PopoverTrigger,
 } from "@components/ui/popover";
 import { Text } from "@components/Text";
-import {
-  CaretDown,
-  CaretUp,
-  Check,
-  CircleNotch,
-} from "@phosphor-icons/react/dist/ssr";
+import { cn } from "@lib/utils";
 
 export type ComboboxOption = {
   id: string;
@@ -67,6 +67,7 @@ export const Combobox: React.FC<React.PropsWithChildren<ComboboxProps>> = ({
         <Button
           variant="outline"
           role="combobox"
+          aria-label={value?.label ?? placeholder}
           aria-expanded={open}
           className="min-w-[300px] max-w-full justify-between"
           disabled={disabled}
@@ -108,7 +109,7 @@ export const Combobox: React.FC<React.PropsWithChildren<ComboboxProps>> = ({
                   <Check
                     className={cn(
                       "ml-auto",
-                      value && value.id === option.id
+                      value?.id === option.id
                         ? "opacity-100"
                         : "opacity-0",
                     )}

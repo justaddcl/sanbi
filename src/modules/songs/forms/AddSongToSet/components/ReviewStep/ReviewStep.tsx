@@ -165,6 +165,7 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
         <VStack className="gap-1">
           <Text className="font-medium text-slate-700">Song notes</Text>
           <Textarea
+            aria-label="Song notes"
             value={notes}
             onChange={(changeEvent) => {
               setNotes(changeEvent.target.value);
