@@ -5,6 +5,7 @@ const isPublicRoute = createRouteMatcher([
   "/sign-in(.*)",
   "/sign-up(.*)",
   "/monitoring(.*)",
+  "/api/webhooks/clerk(.*)",
   "/api/(.*)", // "allowing" api routes since we want the API to return errors rather than redirecting to sign-in
 ]);
 
