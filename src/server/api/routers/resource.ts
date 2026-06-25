@@ -73,23 +73,11 @@ export const resourceRouter = createTRPCRouter({
 
   previewMetadata: organizationProcedure
     .input(previewResourceMetadataSchema)
-    .query(async ({ ctx, input }) => {
+    .mutation(async ({ ctx, input }) => {
       console.info("🤖 - [resource/preview] ~ attempting to preview metadata:", {
         user: ctx.user,
-        queryInput: input,
+        mutationInput: input,
       });
-
-      if (input.organizationId !== ctx.user.membership.organizationId) {
-        console.error(
-          `🤖 - [resource/preview] - user ${ctx.user.id} is not authorized to preview resources for organization ${input.organizationId}`,
-        );
-
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message:
-            "User is not authorized to preview resources for this organization",
-        });
-      }
 
       try {
         const previewMetadata = await fetchResourcePreviewMetadata(input.url);
@@ -98,7 +86,7 @@ export const resourceRouter = createTRPCRouter({
           "🤖 - [resource/preview] - successfully previewed metadata",
           {
             previewMetadata,
-            queryInput: input,
+            mutationInput: input,
           },
         );
 
@@ -106,7 +94,7 @@ export const resourceRouter = createTRPCRouter({
       } catch (error) {
         console.error("🤖 - [resource/preview] - could not preview metadata", {
           error,
-          queryInput: input,
+          mutationInput: input,
         });
 
         throw error;
@@ -123,18 +111,6 @@ export const resourceRouter = createTRPCRouter({
         user: ctx.user,
         mutationInput: input,
       });
-
-      if (organizationId !== ctx.user.membership.organizationId) {
-        console.error(
-          `🤖 - [resource/create] - user ${ctx.user.id} is not authorized to create resources for organization ${organizationId}`,
-        );
-
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message:
-            "User is not authorized to create resources for this organization",
-        });
-      }
 
       const songToCreateResourceFor = await ctx.db.query.songs.findFirst({
         where: eq(songs.id, songId),

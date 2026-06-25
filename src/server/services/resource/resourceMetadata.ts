@@ -13,7 +13,8 @@ import {
   resolveMetadataUrl,
   sanitizeNullableMetadataText,
 } from "@server/utils/htmlMetadata";
-import { validateUrl } from "@server/utils/urls/validateUrl";
+
+import { validateResourceUrl } from "./validateResourceUrl";
 
 const MAX_REDIRECTS = 5;
 const FETCH_TIMEOUT_MS = 5_000;
@@ -259,7 +260,7 @@ const fetchHtmlWithRedirects = async (
         throw new Error("Redirect response did not include a Location header");
       }
 
-      currentUrl = validateUrl(new URL(location, currentUrl).toString());
+      currentUrl = validateResourceUrl(new URL(location, currentUrl).toString());
       continue;
     }
 
@@ -287,7 +288,7 @@ export const fetchResourcePreviewMetadata = async (
   rawUrl: string,
   options: FetchResourceMetadataOptions = {},
 ): Promise<ResourcePreviewMetadata> => {
-  const normalizedUrl = validateUrl(rawUrl);
+  const normalizedUrl = validateResourceUrl(rawUrl);
   const now = new Date();
   const fetchOptions = {
     requestUrl: options.requestUrl ?? requestResourceMetadataUrl,
@@ -348,7 +349,7 @@ export const toResourceMetadataWriteValues = (
 
 /** Fetches server-controlled metadata for values that will be persisted. */
 export const resolveResourceMetadataForUrl = async (rawUrl: string) => {
-  const normalizedUrl = validateUrl(rawUrl);
+  const normalizedUrl = validateResourceUrl(rawUrl);
   const fetchedMetadata = await fetchResourcePreviewMetadata(normalizedUrl);
 
   return {

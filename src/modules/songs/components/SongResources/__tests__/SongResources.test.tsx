@@ -1,7 +1,6 @@
 import {
   QueryClient,
   QueryClientProvider,
-  type UseQueryOptions,
 } from "@tanstack/react-query";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { createUuid } from "@testUtils/generators/createUuid";
@@ -37,11 +36,6 @@ const mockUpdateResourceDeleteConfirmationPreference = jest.fn<
 const mockInvalidateUser = jest.fn();
 const mockInvalidateResources = jest.fn();
 let mockUserData: NonNullable<UserWithMemberships>;
-
-type MockPreviewMetadataQueryOptions = Pick<
-  UseQueryOptions<unknown, Error, unknown, readonly unknown[]>,
-  "enabled" | "refetchOnWindowFocus" | "staleTime"
->;
 
 jest.mock("@clerk/nextjs", () => ({
   useAuth: () => ({ userId: "user_123" }),
@@ -80,28 +74,10 @@ jest.mock(
           })),
         },
         previewMetadata: {
-          useQuery: jest.fn(
-            (input: unknown, options: MockPreviewMetadataQueryOptions) => {
-              const { useQuery } = jest.requireActual(
-                "@tanstack/react-query",
-              ) as {
-                useQuery: (
-                  options: UseQueryOptions<
-                    unknown,
-                    Error,
-                    unknown,
-                    readonly unknown[]
-                  >,
-                ) => unknown;
-              };
-
-              return useQuery({
-                queryKey: ["trpc", "resource", "previewMetadata", input],
-                queryFn: () => mockPreviewMetadata(input),
-                ...options,
-              });
-            },
-          ),
+          useMutation: jest.fn(() => ({
+            mutateAsync: mockPreviewMetadata,
+            isPending: false,
+          })),
         },
       },
       user: {

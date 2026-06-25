@@ -5,12 +5,12 @@ import { type getRouteLogger } from "@lib/loggers/logger";
 import { type Resource } from "@lib/types";
 import { type updateResourceSchema } from "@lib/types/zod";
 import { isUniqueConstraintViolation } from "@server/utils/db/postgres";
-import { validateUrl } from "@server/utils/urls/validateUrl";
 
 import {
   resolveResourceMetadataForUrl,
   type ResourceMetadataWriteValues,
 } from "./resourceMetadata";
+import { validateResourceUrl } from "./validateResourceUrl";
 
 type UpdateResourceInput = z.infer<typeof updateResourceSchema>;
 
@@ -85,7 +85,7 @@ export const updateResourceForOrganization = async ({
   }
 
   if (url !== undefined) {
-    const validatedUrl = validateUrl(url);
+    const validatedUrl = validateResourceUrl(url);
 
     if (validatedUrl !== resourceToUpdate.url) {
       const { normalizedUrl, metadataValues } =

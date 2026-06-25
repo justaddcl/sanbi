@@ -1,4 +1,3 @@
-import { TRPCError } from "@trpc/server";
 import { isValid as isValidIpAddress } from "ipaddr.js";
 import { toASCII } from "punycode";
 
@@ -16,6 +15,16 @@ export const DEFAULTS = {
   allowedSchemes: ["https"],
   bannedHosts: new Set<string>([]),
 };
+
+export class UrlValidationError extends Error {
+  cause?: unknown;
+
+  constructor(message: string, cause?: unknown) {
+    super(message);
+    this.name = "UrlValidationError";
+    this.cause = cause;
+  }
+}
 
 /**
  * Validates and normalizes a URL string for song resource creation.
@@ -35,23 +44,17 @@ export const DEFAULTS = {
  *
  * @param input - The URL string to validate
  * @returns The normalized URL string
- * @throws {TRPCError} With BAD_REQUEST code and specific error message for validation failures
+ * @throws {UrlValidationError} With a specific error message for validation failures
  */
 export const validateUrl = (input: string): string => {
   if (!input) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: ERROR_URL_EMPTY,
-    });
+    throw new UrlValidationError(ERROR_URL_EMPTY);
   }
 
   const trimmedInput = input.trim();
 
   if (!trimmedInput) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: ERROR_URL_EMPTY,
-    });
+    throw new UrlValidationError(ERROR_URL_EMPTY);
   }
 
   let url: URL;
@@ -59,73 +62,62 @@ export const validateUrl = (input: string): string => {
   try {
     url = new URL(trimmedInput);
   } catch (error) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: ERROR_URL_MALFORMED,
-      cause: error,
-    });
+    throw new UrlValidationError(ERROR_URL_MALFORMED, error);
   }
 
   const scheme = url.protocol.replace(":", "");
 
   if (!DEFAULTS.allowedSchemes.includes(scheme)) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: ERROR_INVALID_SCHEME,
-      cause: new Error(`Invalid URL scheme: ${scheme}`),
-    });
+    throw new UrlValidationError(
+      ERROR_INVALID_SCHEME,
+      new Error(`Invalid URL scheme: ${scheme}`),
+    );
   }
 
   if (url.username || url.password) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: ERROR_CONTAINS_CREDENTIALS,
-      cause: new Error(`URL contains username or password`),
-    });
+    throw new UrlValidationError(
+      ERROR_CONTAINS_CREDENTIALS,
+      new Error("URL contains username or password"),
+    );
   }
 
   if (!url.hostname) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: ERROR_NO_HOSTNAME,
-      cause: new Error(`URL contains no hostname: ${url.toString()}`),
-    });
+    throw new UrlValidationError(
+      ERROR_NO_HOSTNAME,
+      new Error(`URL contains no hostname: ${url.toString()}`),
+    );
   }
 
   const punyHost = toASCII(url.hostname.replace(/\.$/, "")).toLowerCase();
 
   if (!punyHost) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: ERROR_INVALID_HOSTNAME,
-      cause: new Error(`URL contains invalid hostname`),
-    });
+    throw new UrlValidationError(
+      ERROR_INVALID_HOSTNAME,
+      new Error("URL contains invalid hostname"),
+    );
   }
 
   url.hostname = punyHost;
 
   if (url.port && !(url.protocol === "https:" && url.port === "443")) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: ERROR_CONTAINS_PORT,
-      cause: new Error(`URL contains port`),
-    });
+    throw new UrlValidationError(
+      ERROR_CONTAINS_PORT,
+      new Error("URL contains port"),
+    );
   }
 
   if (DEFAULTS.bannedHosts.has(url.hostname)) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: ERROR_BANNED_HOSTNAME,
-      cause: new Error(`URL contains banned hostname`),
-    });
+    throw new UrlValidationError(
+      ERROR_BANNED_HOSTNAME,
+      new Error("URL contains banned hostname"),
+    );
   }
 
   if (isValidIpAddress(url.hostname)) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: ERROR_CONTAINS_IP,
-      cause: new Error(`URL contains IP address`),
-    });
+    throw new UrlValidationError(
+      ERROR_CONTAINS_IP,
+      new Error("URL contains IP address"),
+    );
   }
 
   // Collapse consecutive slashes in the path for consistent formatting

@@ -1,5 +1,3 @@
-import { TRPCError } from "@trpc/server";
-
 import {
   DEFAULTS,
   ERROR_BANNED_HOSTNAME,
@@ -9,6 +7,7 @@ import {
   ERROR_INVALID_SCHEME,
   ERROR_URL_EMPTY,
   ERROR_URL_MALFORMED,
+  UrlValidationError,
   validateUrl,
 } from "@server/utils/urls/validateUrl";
 
@@ -45,7 +44,9 @@ describe("validateUrl", () => {
       expect(() => validateUrl("data:text/html;base64,AAAA")).toThrow(
         ERROR_INVALID_SCHEME,
       );
-      expect(() => validateUrl("ftp://example.com")).toThrow(TRPCError);
+      expect(() => validateUrl("ftp://example.com")).toThrow(
+        UrlValidationError,
+      );
     });
 
     it("username/password present", () => {
@@ -66,11 +67,13 @@ describe("validateUrl", () => {
     });
 
     it("port present (even default port)", () => {
-      expect(() => validateUrl("https://example.com:444/")).toThrow(TRPCError);
+      expect(() => validateUrl("https://example.com:444/")).toThrow(
+        UrlValidationError,
+      );
 
       // WHATWG URL deop default ports when parsing/serializing so if :443, url.port === ""
       expect(() => validateUrl("https://example.com:443/path")).not.toThrow(
-        TRPCError,
+        UrlValidationError,
       );
     });
 
