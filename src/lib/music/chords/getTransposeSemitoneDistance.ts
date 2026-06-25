@@ -3,9 +3,7 @@ import * as Interval from "@tonaljs/interval";
 import * as Note from "@tonaljs/note";
 
 import { spellSongKeyRoot } from "./getSongKeySemitone";
-
-const modulo = (value: number, divisor: number) =>
-  ((value % divisor) + divisor) % divisor;
+import { modulo } from "./modulo";
 
 export const getTransposeSemitoneDistance = ({
   sourceKey,

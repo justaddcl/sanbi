@@ -125,6 +125,23 @@ describe("transposeChordToken", () => {
     });
   });
 
+  it("does not report same-key normalization as transposition", () => {
+    expect(
+      transposeChordToken({
+        token: "am",
+        sourceKey: "c",
+        targetKey: "c",
+      }),
+    ).toEqual({
+      originalToken: "am",
+      transposedToken: "Am",
+      wasTransposed: false,
+      status: "transposed",
+      requiresReview: true,
+      reviewReasons: ["lowercase-root"],
+    });
+  });
+
   it("returns unchanged metadata for unsupported tokens", () => {
     expect(
       transposeChordToken({

@@ -1,7 +1,7 @@
 import { type ChordAccidental } from "./types";
 
 export const normalizeChordAccidental = (
-  accidental: string,
+  accidental: string | undefined,
 ): ChordAccidental | "" | null => {
   if (accidental === "" || accidental === undefined) {
     return "";

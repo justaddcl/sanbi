@@ -3,10 +3,8 @@ import * as Note from "@tonaljs/note";
 
 import { FLAT_KEY_ROOTS } from "./constants/flatKeyRoots";
 import { spellSongKeyRoot } from "./getSongKeySemitone";
+import { modulo } from "./modulo";
 import { type ChordRoot } from "./types";
-
-const modulo = (value: number, divisor: number) =>
-  ((value % divisor) + divisor) % divisor;
 
 const getTargetSpelling = (targetKey: SongKey) =>
   FLAT_KEY_ROOTS.has(spellSongKeyRoot(targetKey)) ? "flat" : "sharp";

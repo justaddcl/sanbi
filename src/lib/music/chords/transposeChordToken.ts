@@ -87,7 +87,7 @@ export const transposeChordToken = ({
   return {
     originalToken: token,
     transposedToken,
-    wasTransposed: transposedToken !== token,
+    wasTransposed: semitoneDistance !== 0 && transposedToken !== token,
     status: "transposed",
     requiresReview: reviewReasons.length > 0,
     reviewReasons,
