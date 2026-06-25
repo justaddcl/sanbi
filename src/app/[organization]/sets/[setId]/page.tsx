@@ -31,11 +31,11 @@ import { SetPageLoadingState } from "@modules/sets/components/SetLoadingState";
 import { SetNotes } from "@modules/sets/components/SetNotes";
 import { SetSectionCard } from "@modules/sets/components/SetSectionCard";
 import { SetSectionTypeCombobox } from "@modules/sets/components/SetSectionTypeCombobox";
+import { getSetSongNumbering } from "@modules/sets/utils/getSetSongNumbering";
 import { ArchivedBanner } from "@modules/shared/components";
 import { type ConfigureSongForSetProps } from "@modules/songs/components/ConfigureSongForSet/ConfigureSongForSet";
 import { SongSearchDialog } from "@modules/songs/components/SongSearchDialog";
 import { trpc } from "@lib/trpc";
-import { type SetSectionWithSongs } from "@lib/types";
 import { cn } from "@lib/utils";
 import { useResponsive } from "@/hooks/useResponsive";
 
@@ -282,27 +282,17 @@ export default function SetListPage({
       {setData?.sections && setData.sections.length > 0 && (
         <VStack className="gap-6">
           <>
-            {setData.sections.map((section) => {
-              let sectionStartIndex = 1;
-              for (
-                let sectionPosition = 0;
-                sectionPosition < section.position;
-                sectionPosition++
-              ) {
-                sectionStartIndex +=
-                  setData.sections[sectionPosition]!.songs.length;
-              }
-              return (
-                <SetSectionCard
-                  key={section.id}
-                  section={section as SetSectionWithSongs}
-                  setSectionsLength={setData.sections.length}
-                  sectionStartIndex={sectionStartIndex}
-                  withActionsMenu
-                  onAddSongClick={() => openAddSongDialog(section.id)}
-                />
-              );
-            })}
+            {getSetSongNumbering(setData.sections).map((numberedSection) => (
+              <SetSectionCard
+                key={numberedSection.section.id}
+                numberedSection={numberedSection}
+                setSectionsLength={setData.sections.length}
+                withActionsMenu
+                onAddSongClick={() =>
+                  openAddSongDialog(numberedSection.section.id)
+                }
+              />
+            ))}
           </>
           <Button
             variant="outline"

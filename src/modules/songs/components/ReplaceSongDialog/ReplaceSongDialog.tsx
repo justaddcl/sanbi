@@ -160,9 +160,10 @@ export const ReplaceSongDialog: React.FC<ReplaceSongDialogProps> = ({
               <Button
                 size="icon"
                 variant="ghost"
+                aria-label="Back to song search"
                 onClick={() => setDialogStep("search")}
               >
-                <CaretLeft />
+                <CaretLeft aria-hidden />
               </Button>
               <DialogTitle className="text-center">Replace song</DialogTitle>
             </div>
