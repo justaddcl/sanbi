@@ -13,7 +13,6 @@ describe("resolveDatabaseUrl", () => {
   it("uses DATABASE_URL for local development", () => {
     const result = resolveDatabaseUrl({
       DATABASE_URL: localDatabaseUrl,
-      NODE_ENV: "development",
     });
 
     expect(result).toBe(localDatabaseUrl);
@@ -49,6 +48,17 @@ describe("resolveDatabaseUrl", () => {
     });
 
     expect(result).toBe(previewDatabaseUrl);
+  });
+
+  it("uses DATABASE_URL when SANBI_APP_ENV explicitly selects development", () => {
+    const result = resolveDatabaseUrl({
+      DATABASE_URL: localDatabaseUrl,
+      POSTGRES_URL: productionDatabaseUrl,
+      SANBI_APP_ENV: "development",
+      VERCEL_ENV: "production",
+    });
+
+    expect(result).toBe(localDatabaseUrl);
   });
 
   it("uses POSTGRES_URL for Vercel Production", () => {
@@ -91,6 +101,21 @@ describe("resolveDatabaseUrl", () => {
         VERCEL_ENV: "preview",
       }),
     ).toThrow("DATABASE_URL is required for the preview database connection.");
+  });
+
+  it("fails clearly when local DATABASE_URL is missing", () => {
+    expect(() => resolveDatabaseUrl({})).toThrow(
+      "DATABASE_URL is required for the local database connection.",
+    );
+  });
+
+  it("fails clearly when E2E DATABASE_URL is missing", () => {
+    expect(() =>
+      resolveDatabaseUrl({
+        POSTGRES_URL: productionDatabaseUrl,
+        SANBI_E2E: "1",
+      }),
+    ).toThrow("DATABASE_URL is required for the e2e database connection.");
   });
 
   it("fails clearly when the selected database URL is missing", () => {

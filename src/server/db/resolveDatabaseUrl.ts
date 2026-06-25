@@ -1,6 +1,5 @@
 type DatabaseUrlEnv = {
   DATABASE_URL?: string;
-  NODE_ENV?: string;
   POSTGRES_URL?: string;
   SANBI_APP_ENV?: string;
   SANBI_E2E?: string;
@@ -17,6 +16,10 @@ const resolveDatabaseRuntimeEnvironment = (
   }
 
   // SANBI_APP_ENV is for local scripts and non-Vercel overrides; VERCEL_ENV is set by Vercel deployments.
+  if (env.SANBI_APP_ENV === "development") {
+    return "local";
+  }
+
   if (env.SANBI_APP_ENV === "preview" || env.SANBI_APP_ENV === "production") {
     return env.SANBI_APP_ENV;
   }
