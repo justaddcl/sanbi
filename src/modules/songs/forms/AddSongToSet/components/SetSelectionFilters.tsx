@@ -105,8 +105,9 @@ export const SetSelectionFilters: React.FC<SetSelectionFiltersProps> = ({
                   size="icon"
                   variant="secondary"
                   className="rounded-full"
+                  aria-label="Close filters"
                 >
-                  <X />
+                  <X aria-hidden />
                 </Button>
               </DrawerClose>
             </HStack>
