@@ -7,8 +7,15 @@ export const env = createEnv({
    * isn't built with invalid env vars.
    */
   server: {
-    DATABASE_URL: z.url(),
-    POSTGRES_URL: z.url(),
+    DATABASE_URL: z.url().optional(),
+    POSTGRES_URL: z.url().optional(),
+    SANBI_APP_ENV: z
+      .enum(["development", "preview", "production"])
+      .optional(),
+    SANBI_E2E: z.string().optional(),
+    VERCEL_ENV: z
+      .enum(["development", "preview", "production"])
+      .optional(),
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
@@ -30,6 +37,9 @@ export const env = createEnv({
   runtimeEnv: {
     DATABASE_URL: process.env.DATABASE_URL,
     POSTGRES_URL: process.env.POSTGRES_URL,
+    SANBI_APP_ENV: process.env.SANBI_APP_ENV,
+    SANBI_E2E: process.env.SANBI_E2E,
+    VERCEL_ENV: process.env.VERCEL_ENV,
     NODE_ENV: process.env.NODE_ENV,
     // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
   },
