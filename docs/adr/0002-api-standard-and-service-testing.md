@@ -26,8 +26,9 @@ New internal Sanbi APIs use tRPC by default.
 Use `createTRPCRouter` and the procedure helpers from `src/server/api/trpc.ts`.
 For organization-owned data, start with `organizationProcedure` or
 `adminProcedure` instead of repeating auth, user lookup, organization lookup, or
-membership checks inside each endpoint. Use `publicProcedure` only for behavior
-that is intentionally unauthenticated.
+membership checks inside each endpoint. Use `authedProcedure` for signed-in
+behavior that does not need organization scoping. Use `publicProcedure` only for
+behavior that is intentionally unauthenticated.
 
 Input validation belongs at the procedure boundary with Zod. Prefer named,
 exported schemas when an input shape is shared across callers, services, or
