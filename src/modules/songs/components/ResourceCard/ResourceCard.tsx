@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import * as Sentry from "@sentry/nextjs";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import {
@@ -22,7 +21,7 @@ import {
   getErrorNameForTelemetry,
   sanitizeResourceUrlForTelemetry,
 } from "@modules/songs/utils/resourceTelemetry";
-import { orpc } from "@lib/orpc/client";
+import { trpc } from "@lib/trpc";
 import { type Resource } from "@lib/types";
 
 import { ResourceCardDisplay } from "./ResourceCardDisplay";
@@ -46,7 +45,7 @@ export const ResourceCard: React.FC<ResourceCardProps> = ({
 }) => {
   const { url } = resource;
   const displayTitle = getResourceDisplayTitle(resource);
-  const queryClient = useQueryClient();
+  const apiUtils = trpc.useUtils();
   const [isActionMenuOpen, setIsActionMenuOpen] = useState(false);
   const [isConfirmationDialogOpen, setIsConfirmationDialogOpen] =
     useState(false);
@@ -55,12 +54,8 @@ export const ResourceCard: React.FC<ResourceCardProps> = ({
   const canPersistDeleteWarningPreference =
     onResourceDeleteConfirmationPreferenceChange !== undefined;
 
-  const deleteResourceMutation = useMutation(
-    orpc.resource.delete.mutationOptions(),
-  );
-  const refreshMetadataMutation = useMutation(
-    orpc.resource.refreshMetadata.mutationOptions(),
-  );
+  const deleteResourceMutation = trpc.resource.delete.useMutation();
+  const refreshMetadataMutation = trpc.resource.refreshMetadata.useMutation();
 
   const handleEditResource = () => {
     setIsActionMenuOpen(false);
@@ -86,13 +81,9 @@ export const ResourceCard: React.FC<ResourceCardProps> = ({
         organizationId: resource.organizationId,
       });
 
-      await queryClient.invalidateQueries({
-        queryKey: orpc.resource.getBySongId.queryOptions({
-          input: {
-            songId: resource.songId,
-            organizationId: resource.organizationId,
-          },
-        }).queryKey,
+      await apiUtils.resource.getBySongId.invalidate({
+        songId: resource.songId,
+        organizationId: resource.organizationId,
       });
 
       toast.success("Resource was unlinked", { id: toastId });
@@ -131,13 +122,9 @@ export const ResourceCard: React.FC<ResourceCardProps> = ({
         organizationId: resource.organizationId,
       });
 
-      await queryClient.invalidateQueries({
-        queryKey: orpc.resource.getBySongId.queryOptions({
-          input: {
-            songId: resource.songId,
-            organizationId: resource.organizationId,
-          },
-        }).queryKey,
+      await apiUtils.resource.getBySongId.invalidate({
+        songId: resource.songId,
+        organizationId: resource.organizationId,
       });
 
       toast.success("Resource preview was refreshed", { id: toastId });

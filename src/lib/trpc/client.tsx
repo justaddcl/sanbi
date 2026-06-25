@@ -42,6 +42,7 @@ export function TRPCProvider(props: {
             (op.direction === "down" && op.result instanceof Error),
         }),
         httpLink({
+          methodOverride: "POST",
           transformer: SuperJSON,
           url: getBaseUrl() + "/api/trpc",
           headers: () => {
