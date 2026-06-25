@@ -18,9 +18,22 @@ jest.mock("@lib/trpc", () => ({
 }));
 
 jest.mock("usehooks-ts", () => {
+  const React = jest.requireActual<typeof import("react")>("react");
+
   return {
-    useDebounceValue: <Value,>(initialValue: Value) =>
-      [initialValue, jest.fn()] as const,
+    useDebounceValue: <Value,>(value: Value, delay: number) => {
+      const [debouncedValue, setDebouncedValue] = React.useState(value);
+
+      React.useEffect(() => {
+        const timeoutId = window.setTimeout(() => {
+          setDebouncedValue(value);
+        }, delay);
+
+        return () => window.clearTimeout(timeoutId);
+      }, [delay, value]);
+
+      return [debouncedValue, setDebouncedValue] as const;
+    },
   };
 });
 
@@ -115,7 +128,7 @@ describe("SongSearch", () => {
     expect(mockSongSearchUseQuery).toHaveBeenLastCalledWith(
       {
         organizationId: "organization-1",
-        searchInput: "c",
+        searchInput: "",
         limit: 50,
       },
       {

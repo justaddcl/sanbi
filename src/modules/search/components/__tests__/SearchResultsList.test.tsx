@@ -165,7 +165,9 @@ describe("SearchResultsList", () => {
 
     expect(onSongSelect).toHaveBeenCalledWith(songResult, "song");
     expect(
-      screen.queryByRole("menuitem", { name: /add to a set/i }),
+      screen.queryByRole("button", {
+        name: `Open actions for ${songResult.name}`,
+      }),
     ).not.toBeInTheDocument();
   });
 });
