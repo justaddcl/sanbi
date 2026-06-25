@@ -8,7 +8,6 @@ import { createUuid } from "@testUtils/generators/createUuid";
 import { eq } from "drizzle-orm";
 
 import { logger } from "@lib/loggers/logger";
-import { pluralize } from "@lib/string";
 import { setRouter } from "@server/api/routers/set";
 import { db } from "@server/db";
 import { organizations, sets, users } from "@server/db/schema";
@@ -188,7 +187,7 @@ describe("setRouter", () => {
 
       expect(loggerChild.info).toHaveBeenCalledWith(
         { setCount: organizationSetsCount },
-        `${organizationSetsCount} ${pluralize(organizationSetsCount, { singular: "set", plural: "sets" })} found for organization`,
+        "1 set found for organization",
       );
     });
 
