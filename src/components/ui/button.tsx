@@ -52,16 +52,28 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       isLoading = false,
       leftIcon,
       rightIcon,
+      disabled,
+      type,
       ...props
     },
     ref,
   ) => {
-    const Comp = asChild ? Slot : "button";
+    const buttonClassName = cn(buttonVariants({ variant, size, className }));
+
+    if (asChild) {
+      return (
+        <Slot className={buttonClassName} ref={ref} {...props}>
+          {props.children}
+        </Slot>
+      );
+    }
+
     return (
-      <Comp
-        className={cn(buttonVariants({ variant, size, className }))}
+      <button
+        className={buttonClassName}
         ref={ref}
-        {...(isLoading && { disabled: true })}
+        type={type ?? "button"}
+        disabled={isLoading ? true : disabled}
         {...props}
       >
         {isLoading && (
@@ -70,7 +82,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         {!isLoading && leftIcon}
         {props.children}
         {rightIcon}
-      </Comp>
+      </button>
     );
   },
 );
