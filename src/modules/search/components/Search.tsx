@@ -45,6 +45,7 @@ export const Search: React.FC<SearchProps> = ({ className }) => {
     emptyResultsMessage,
     handleFilterToggle,
     handleInputChange,
+    handleSearchEscapeKeyDown,
     hasSearchResultOverflow,
     hasSearchableInput,
     isSearchError,
@@ -57,9 +58,9 @@ export const Search: React.FC<SearchProps> = ({ className }) => {
     visibleResultCount,
     visibleSongResults,
     visibleTagResults,
+    escapeShortcutLabel,
   } = useSongSearchResults({ organizationId });
   const closeOrClearLabel = searchInput ? "Clear search" : "Close search";
-  const escapeShortcutLabel = searchInput.trim().length > 0 ? "Clear" : "Close";
 
   useEffect(() => {
     openRef.current = open;
@@ -191,14 +192,7 @@ export const Search: React.FC<SearchProps> = ({ className }) => {
         shouldFilter={false}
         autoFocusInput={open}
         closeButton={null}
-        onEscapeKeyDown={(event) => {
-          if (searchInput.trim().length === 0) {
-            return;
-          }
-
-          event.preventDefault();
-          handleInputChange("");
-        }}
+        onEscapeKeyDown={handleSearchEscapeKeyDown}
         className={cn(
           "max-h-[calc(100dvh_-_24px)] overflow-hidden pb-0!",
           hasSearchableInput && "sm:pb-3!",

@@ -14,8 +14,9 @@ import { DialogDescription, DialogTitle } from "@components/ui/dialog";
 import { HStack } from "@components/HStack";
 import { Text } from "@components/Text";
 import { VStack } from "@components/VStack";
+import { useSongSearchResults } from "@modules/search/hooks/useSongSearchResults";
 import {
-  SongSearch,
+  SongSearchContent,
   type SongSearchResult,
 } from "@modules/songs/components/SongSearch";
 import { useUserQuery } from "@modules/users/api/queries";
@@ -56,6 +57,9 @@ export const ReplaceSongDialog: React.FC<ReplaceSongDialogProps> = ({
     isAuthLoaded,
   } = useUserQuery();
   const userMembership = userData?.memberships[0];
+  const songSearchState = useSongSearchResults({
+    organizationId: userMembership?.organizationId,
+  });
 
   const [dialogStep, setDialogStep] =
     useState<ReplaceSongDialogSteps>("search");
@@ -148,10 +152,17 @@ export const ReplaceSongDialog: React.FC<ReplaceSongDialogProps> = ({
       minimalPadding
       autoFocusInput={open && dialogStep === "search"}
       className={cn([dialogStep === "confirm" && "max-w-lg"])}
+      onEscapeKeyDown={(event) => {
+        if (dialogStep !== "search") {
+          return;
+        }
+
+        songSearchState.handleSearchEscapeKeyDown(event);
+      }}
     >
       {dialogStep === "search" && (
-        <SongSearch
-          organizationId={userMembership.organizationId}
+        <SongSearchContent
+          searchState={songSearchState}
           onSongSelect={handleSongSelect}
         />
       )}

@@ -19,6 +19,10 @@ type UseSongSearchResultsInput = {
   organizationId?: string;
 };
 
+type SearchEscapeEvent = {
+  preventDefault: () => void;
+};
+
 export const MIN_SONG_SEARCH_LENGTH = 2;
 export const SONG_SEARCH_DEBOUNCE_DELAY = 300;
 
@@ -124,6 +128,7 @@ export const useSongSearchResults = ({
       : totalResultCount.toString();
   const shouldShowLoading =
     hasSearchableInput && (isWaitingForDebounce || isSearchFetching);
+  const escapeShortcutLabel = searchInput.trim().length > 0 ? "Clear" : "Close";
 
   const emptyResultsMessage = useMemo(() => {
     if (!organizationId) {
@@ -148,6 +153,23 @@ export const useSongSearchResults = ({
     [setSearchInput],
   );
 
+  const clearSearchInput = useCallback(() => {
+    setSearchInput("");
+  }, []);
+
+  const handleSearchEscapeKeyDown = useCallback(
+    (event: SearchEscapeEvent) => {
+      if (searchInput.trim().length === 0) {
+        return false;
+      }
+
+      event.preventDefault();
+      clearSearchInput();
+      return true;
+    },
+    [clearSearchInput, searchInput],
+  );
+
   const handleFilterToggle = useCallback((filter: SearchToggleFilter) => {
     setSelectedFilters((currentFilters) => ({
       ...currentFilters,
@@ -164,8 +186,11 @@ export const useSongSearchResults = ({
   return {
     activeFilter,
     emptyResultsMessage,
+    escapeShortcutLabel,
+    clearSearchInput,
     handleFilterToggle,
     handleInputChange,
+    handleSearchEscapeKeyDown,
     hasSearchResultOverflow,
     hasSearchableInput,
     isSearchError,

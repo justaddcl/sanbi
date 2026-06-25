@@ -1,4 +1,8 @@
-import { type ComponentProps } from "react";
+import {
+  type ComponentProps,
+  type useEffect,
+  type useState,
+} from "react";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { createSearchSongResultFixture } from "@testUtils/models/search/fixtures";
 
@@ -18,7 +22,10 @@ jest.mock("@lib/trpc", () => ({
 }));
 
 jest.mock("usehooks-ts", () => {
-  const React = jest.requireActual<typeof import("react")>("react");
+  const React = jest.requireActual<{
+    useEffect: typeof useEffect;
+    useState: typeof useState;
+  }>("react");
 
   return {
     useDebounceValue: <Value,>(value: Value, delay: number) => {
@@ -164,6 +171,21 @@ describe("SongSearch", () => {
     expect(screen.getAllByText("Songs")).toHaveLength(2);
     expect(screen.getAllByText("Tags")).toHaveLength(2);
     expect(screen.getByText("Search results (2)")).toBeInTheDocument();
+  });
+
+  it("renders picker keyboard shortcuts without action menu shortcuts", async () => {
+    renderSongSearch();
+
+    enterSearchInput("comm");
+
+    await waitFor(() => {
+      expect(screen.getByText("Search results (2)")).toBeInTheDocument();
+    });
+
+    expect(screen.getByText("Navigate")).toBeInTheDocument();
+    expect(screen.getByText("Select")).toBeInTheDocument();
+    expect(screen.getByText("Clear")).toBeInTheDocument();
+    expect(screen.queryByText("Actions")).not.toBeInTheDocument();
   });
 
   it("filters picker results by song and tag result groups", async () => {

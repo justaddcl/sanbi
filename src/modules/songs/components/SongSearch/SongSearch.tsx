@@ -6,12 +6,14 @@ import {
   type SearchResultMatchType,
   SearchResultsList,
 } from "@modules/search/components/SearchResultsList";
+import { SearchShortcutLegend } from "@modules/search/components/SearchShortcutLegend";
 import { type SearchSongResult } from "@modules/search/components/types";
 import { useSongSearchResults } from "@modules/search/hooks/useSongSearchResults";
 
 export type SongSearchMatchType = SearchResultMatchType;
 
 export type SongSearchResult = SearchSongResult;
+export type SongSearchState = ReturnType<typeof useSongSearchResults>;
 
 type SongSearchProps = {
   organizationId?: string;
@@ -22,14 +24,19 @@ type SongSearchProps = {
   searchPlaceholder?: string;
 };
 
-export const SongSearch: React.FC<SongSearchProps> = ({
-  organizationId,
+type SongSearchContentProps = Omit<SongSearchProps, "organizationId"> & {
+  searchState: SongSearchState;
+};
+
+export const SongSearchContent: React.FC<SongSearchContentProps> = ({
   onSongSelect,
+  searchState,
   searchPlaceholder = "Search songs or tags",
 }) => {
   const {
     activeFilter,
     emptyResultsMessage,
+    escapeShortcutLabel,
     handleFilterToggle,
     handleInputChange,
     hasSearchResultOverflow,
@@ -43,7 +50,7 @@ export const SongSearch: React.FC<SongSearchProps> = ({
     visibleResultCount,
     visibleSongResults,
     visibleTagResults,
-  } = useSongSearchResults({ organizationId });
+  } = searchState;
 
   return (
     <>
@@ -76,6 +83,27 @@ export const SongSearch: React.FC<SongSearchProps> = ({
           visibleTagResults={visibleTagResults}
         />
       )}
+      {hasSearchableInput && (
+        <SearchShortcutLegend
+          enterShortcutLabel="Select"
+          escapeShortcutLabel={escapeShortcutLabel}
+          showActionsShortcut={false}
+        />
+      )}
     </>
+  );
+};
+
+export const SongSearch: React.FC<SongSearchProps> = ({
+  organizationId,
+  ...songSearchContentProps
+}) => {
+  const searchState = useSongSearchResults({ organizationId });
+
+  return (
+    <SongSearchContent
+      {...songSearchContentProps}
+      searchState={searchState}
+    />
   );
 };

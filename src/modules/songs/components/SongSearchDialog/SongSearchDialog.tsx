@@ -6,8 +6,9 @@ import { useAuth } from "@clerk/nextjs";
 
 import { CommandDialog } from "@components/ui/command";
 import { Text } from "@components/Text";
+import { useSongSearchResults } from "@modules/search/hooks/useSongSearchResults";
 import {
-  SongSearch,
+  SongSearchContent,
   type SongSearchResult,
 } from "@modules/songs/components/SongSearch";
 import { trpc } from "@lib/trpc";
@@ -50,6 +51,9 @@ export const SongSearchDialog: React.FC<SongSearchDialogProps> = ({
   const [dismissedPreSelectedSongId, setDismissedPreSelectedSongId] = useState<
     string | null
   >(null);
+  const songSearchState = useSongSearchResults({
+    organizationId: params.organization,
+  });
   const { data: preSelectedSong, isLoading: isPreSelectedSongLoading } =
     trpc.song.get.useQuery(
       {
@@ -156,13 +160,20 @@ export const SongSearchDialog: React.FC<SongSearchDialogProps> = ({
       animated={activeDialogStep !== "configure"}
       minimalPadding
       autoFocusInput={open && activeDialogStep === "search"}
+      onEscapeKeyDown={(event) => {
+        if (activeDialogStep !== "search") {
+          return;
+        }
+
+        songSearchState.handleSearchEscapeKeyDown(event);
+      }}
     >
       {activeDialogStep === "search" && isPreSelectedSongLoading && (
         <Text>Loading song...</Text>
       )}
       {activeDialogStep === "search" && !isPreSelectedSongLoading && (
-        <SongSearch
-          organizationId={params.organization}
+        <SongSearchContent
+          searchState={songSearchState}
           onSongSelect={handleSongSelect}
         />
       )}
