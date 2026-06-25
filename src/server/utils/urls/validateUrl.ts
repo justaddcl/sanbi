@@ -17,12 +17,9 @@ export const DEFAULTS = {
 };
 
 export class UrlValidationError extends Error {
-  cause?: unknown;
-
   constructor(message: string, cause?: unknown) {
-    super(message);
+    super(message, { cause });
     this.name = "UrlValidationError";
-    this.cause = cause;
   }
 }
 

@@ -1,3 +1,4 @@
+import { createUserFixture } from "@testUtils/fixtures/users";
 import { createUuid } from "@testUtils/generators/createUuid";
 import { createResourceFixture } from "@testUtils/models/resource/fixtures";
 import {
@@ -91,14 +92,9 @@ const membership = createOrganizationMembershipFixture({
   organizationId,
 });
 const organization = membership.organization;
-const user = {
+const user = createUserFixture({
   id: userId,
-  firstName: "Ada",
-  lastName: "Lovelace",
-  email: "ada@example.com",
-  createdAt: new Date("2026-01-01T00:00:00Z"),
-  updatedAt: new Date("2026-01-01T00:00:00Z"),
-};
+});
 
 const createCaller = () =>
   resourceRouter.createCaller({

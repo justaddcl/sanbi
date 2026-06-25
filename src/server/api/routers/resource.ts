@@ -28,7 +28,7 @@ export const resourceRouter = createTRPCRouter({
       const { songId } = input;
 
       console.info("🤖 - [resource/song] ~ attempting to get resources:", {
-        user: ctx.user,
+        userId: ctx.user.id,
         queryInput: input,
       });
 
@@ -75,7 +75,7 @@ export const resourceRouter = createTRPCRouter({
     .input(previewResourceMetadataSchema)
     .mutation(async ({ ctx, input }) => {
       console.info("🤖 - [resource/preview] ~ attempting to preview metadata:", {
-        user: ctx.user,
+        userId: ctx.user.id,
         mutationInput: input,
       });
 
@@ -108,7 +108,7 @@ export const resourceRouter = createTRPCRouter({
       const { organizationId, songId, url, title } = input;
 
       console.info("🤖 - [resource/create] ~ attempting to create resource:", {
-        user: ctx.user,
+        userId: ctx.user.id,
         mutationInput: input,
       });
 
@@ -191,7 +191,7 @@ export const resourceRouter = createTRPCRouter({
     .input(updateResourceSchema)
     .mutation(async ({ ctx, input }) => {
       console.info("🤖 - [resource/update] ~ attempting to update resource:", {
-        user: ctx.user,
+        userId: ctx.user.id,
         mutationInput: input,
       });
 
@@ -239,7 +239,7 @@ export const resourceRouter = createTRPCRouter({
     .input(deleteResourceSchema)
     .mutation(async ({ ctx, input }) => {
       console.info("🤖 - [resource/delete] ~ attempting to delete resource:", {
-        user: ctx.user,
+        userId: ctx.user.id,
         mutationInput: input,
       });
 
@@ -293,7 +293,7 @@ export const resourceRouter = createTRPCRouter({
       console.info(
         "🤖 - [resource/refresh] ~ attempting to refresh resource metadata:",
         {
-          user: ctx.user,
+          userId: ctx.user.id,
           mutationInput: input,
         },
       );
