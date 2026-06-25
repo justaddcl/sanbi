@@ -1,32 +1,17 @@
 import { createUuid } from "@testUtils/generators/createUuid";
+import { expectTRPCErrorCode } from "@testUtils/models/resource/expectTRPCErrorCode";
 import { createResourceFixture } from "@testUtils/models/resource/fixtures";
 import {
   createResourceName,
   createResourceUrl,
 } from "@testUtils/models/resource/generators";
 import { createUpdateResourceDataAccessFixture } from "@testUtils/models/resource/updateResourceDataAccess";
-import { expectOrpcErrorCode } from "@testUtils/orpc/expectOrpcErrorCode";
-import { type MockOrpcErrorModule } from "@testUtils/orpc/mockOrpcError";
 
-import { updateResourceForOrganization } from "@server/orpc/services/resource/updateResource";
+import { updateResourceForOrganization } from "@server/services/resource/updateResource";
 import { POSTGRES_UNIQUE_CONSTRAINT_VIOLATION_CODE } from "@server/utils/db/postgres";
 
 import { resolveResourceMetadataForUrl } from "../resourceMetadata";
 
-jest.mock("@orpc/server", () => {
-  const { mockOrpcErrorModule } = jest.requireActual<{
-    mockOrpcErrorModule: MockOrpcErrorModule;
-  }>("@testUtils/orpc/mockOrpcError");
-
-  return mockOrpcErrorModule;
-});
-jest.mock("@orpc/client", () => {
-  const { mockOrpcErrorModule } = jest.requireActual<{
-    mockOrpcErrorModule: MockOrpcErrorModule;
-  }>("@testUtils/orpc/mockOrpcError");
-
-  return mockOrpcErrorModule;
-});
 jest.mock("../resourceMetadata", () => ({
   resolveResourceMetadataForUrl: jest.fn(),
 }));
@@ -57,7 +42,7 @@ describe("updateResourceForOrganization", () => {
     const resource = createResourceFixture();
     const resourceDataAccess = createUpdateResourceDataAccessFixture();
 
-    await expectOrpcErrorCode(
+    await expectTRPCErrorCode(
       updateResourceForOrganization({
         input: {
           resourceId: resource.id,
@@ -81,7 +66,7 @@ describe("updateResourceForOrganization", () => {
       findResourceById: jest.fn().mockResolvedValue(null),
     });
 
-    await expectOrpcErrorCode(
+    await expectTRPCErrorCode(
       updateResourceForOrganization({
         input: {
           resourceId: createUuid(),
@@ -107,7 +92,7 @@ describe("updateResourceForOrganization", () => {
       findResourceById: jest.fn().mockResolvedValue(resource),
     });
 
-    await expectOrpcErrorCode(
+    await expectTRPCErrorCode(
       updateResourceForOrganization({
         input: {
           resourceId: resource.id,
@@ -260,7 +245,7 @@ describe("updateResourceForOrganization", () => {
       updateResource: jest.fn().mockResolvedValue(null),
     });
 
-    await expectOrpcErrorCode(
+    await expectTRPCErrorCode(
       updateResourceForOrganization({
         input: {
           resourceId: resource.id,
@@ -287,7 +272,7 @@ describe("updateResourceForOrganization", () => {
     const nextUrl = createResourceUrl();
     mockResolvedResourceMetadata(nextUrl);
 
-    await expectOrpcErrorCode(
+    await expectTRPCErrorCode(
       updateResourceForOrganization({
         input: {
           resourceId: resource.id,

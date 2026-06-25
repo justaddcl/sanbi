@@ -1,4 +1,4 @@
-import { type DeleteResourceDataAccess } from "@server/orpc/services/resource/deleteResource";
+import { type DeleteResourceDataAccess } from "@server/services/resource/deleteResource";
 
 export type MockDeleteResourceDataAccess = {
   findResourceById: jest.MockedFunction<

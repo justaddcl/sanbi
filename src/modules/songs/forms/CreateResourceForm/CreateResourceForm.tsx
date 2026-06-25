@@ -3,7 +3,6 @@ import { FormProvider, useForm, useWatch } from "react-hook-form";
 import { useAuth } from "@clerk/nextjs";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as Sentry from "@sentry/nextjs";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useDebounceValue } from "usehooks-ts";
 import type * as z from "zod";
@@ -20,15 +19,13 @@ import {
 import { Input } from "@components/ui/input";
 import { VStack } from "@components/VStack";
 import { ResourceFormPreview } from "@modules/songs/forms/CreateResourceForm/ResourceFormPreview";
-import { orpc } from "@lib/orpc/client";
-import { trpc } from "@lib/trpc";
+import { type RouterOutputs, trpc } from "@lib/trpc";
 import { type Resource } from "@lib/types";
 import { insertResourceSchema } from "@lib/types/zod";
 import { isPreviewableResourceUrl } from "@lib/urls/resourcePreviewUrl";
 import { cn } from "@lib/utils";
 
 const RESOURCE_URL_PREVIEW_DEBOUNCE_MS = 400;
-const RESOURCE_PREVIEW_METADATA_STALE_TIME_MS = 5 * 60 * 1000;
 
 const resourceFormSchema = insertResourceSchema.pick({
   title: true,
@@ -69,19 +66,19 @@ export const ResourceForm: React.FC<ResourceFormProps> = ({
   ...props
 }) => {
   const { userId } = useAuth();
-  const queryClient = useQueryClient();
+  const apiUtils = trpc.useUtils();
 
   const resource = props.resource;
   const songId = resource?.songId ?? props.songId;
   const requestedOrganizationId =
     resource?.organizationId ?? props.organizationId;
 
-  const createResourceMutation = useMutation(
-    orpc.resource.create.mutationOptions(),
-  );
-  const updateResourceMutation = useMutation(
-    orpc.resource.update.mutationOptions(),
-  );
+  const createResourceMutation = trpc.resource.create.useMutation();
+  const updateResourceMutation = trpc.resource.update.useMutation();
+  const {
+    isPending: isPreviewMetadataPending,
+    mutateAsync: previewResourceMetadata,
+  } = trpc.resource.previewMetadata.useMutation();
 
   const defaultValues = useMemo<ResourceFormFields>(
     () => ({
@@ -124,23 +121,58 @@ export const ResourceForm: React.FC<ResourceFormProps> = ({
   const canPreviewUrl = isPreviewableResourceUrl(trimmedUrl);
   const isWaitingForPreviewDebounce =
     canPreviewUrl && trimmedUrl !== trimmedDebouncedUrl;
-  const previewMetadataQuery = useQuery({
-    ...orpc.resource.previewMetadata.queryOptions({
-      input: {
-        organizationId: requestedOrganizationId ?? "",
-        url: trimmedDebouncedUrl || "https://example.com",
-      },
-    }),
-    enabled:
-      !!requestedOrganizationId &&
-      canPreviewUrl &&
-      !isWaitingForPreviewDebounce,
-    staleTime: RESOURCE_PREVIEW_METADATA_STALE_TIME_MS,
-    refetchOnWindowFocus: false,
-  });
+  const [previewMetadataResult, setPreviewMetadataResult] = useState<{
+    data: RouterOutputs["resource"]["previewMetadata"];
+    url: string;
+  } | null>(null);
+
+  useEffect(() => {
+    if (
+      !requestedOrganizationId ||
+      !canPreviewUrl ||
+      isWaitingForPreviewDebounce
+    ) {
+      return;
+    }
+
+    let isCurrentPreview = true;
+    const previewUrl = trimmedDebouncedUrl;
+
+    void previewResourceMetadata({
+      organizationId: requestedOrganizationId,
+      url: previewUrl,
+    })
+      .then((data) => {
+        if (!isCurrentPreview) {
+          return;
+        }
+
+        setPreviewMetadataResult({ data, url: previewUrl });
+      })
+      .catch((error) => {
+        Sentry.captureException(error);
+
+        if (isCurrentPreview) {
+          setPreviewMetadataResult(null);
+        }
+      });
+
+    return () => {
+      isCurrentPreview = false;
+    };
+  }, [
+    canPreviewUrl,
+    isWaitingForPreviewDebounce,
+    previewResourceMetadata,
+    requestedOrganizationId,
+    trimmedDebouncedUrl,
+  ]);
+
   const previewMetadataForCurrentUrl =
-    canPreviewUrl && trimmedUrl === trimmedDebouncedUrl
-      ? previewMetadataQuery.data
+    canPreviewUrl &&
+    trimmedUrl === trimmedDebouncedUrl &&
+    previewMetadataResult?.url === trimmedDebouncedUrl
+      ? previewMetadataResult.data
       : undefined;
   const suggestedTitleForCurrentUrl =
     previewMetadataForCurrentUrl?.title?.trim() ?? null;
@@ -306,13 +338,9 @@ export const ResourceForm: React.FC<ResourceFormProps> = ({
         });
       }
 
-      await queryClient.invalidateQueries({
-        queryKey: orpc.resource.getBySongId.queryOptions({
-          input: {
-            songId,
-            organizationId,
-          },
-        }).queryKey,
+      await apiUtils.resource.getBySongId.invalidate({
+        songId,
+        organizationId,
       });
 
       toast.success(resource ? "Resource was updated" : "Resource was linked", {
@@ -334,7 +362,7 @@ export const ResourceForm: React.FC<ResourceFormProps> = ({
 
   const shouldSubmitButtonBeDisabled =
     isSubmitting ||
-    previewMetadataQuery.isFetching ||
+    isPreviewMetadataPending ||
     isWaitingForPreviewDebounce ||
     Object.keys(errors).length > 0 ||
     Boolean(resource && !isDirty);
@@ -350,9 +378,7 @@ export const ResourceForm: React.FC<ResourceFormProps> = ({
             title={watchedTitle ?? ""}
             url={watchedUrl ?? ""}
             previewMetadata={previewMetadataForCurrentUrl}
-            isLoading={
-              isWaitingForPreviewDebounce || previewMetadataQuery.isFetching
-            }
+            isLoading={isWaitingForPreviewDebounce || isPreviewMetadataPending}
           />
           <FormField
             control={resourceForm.control}

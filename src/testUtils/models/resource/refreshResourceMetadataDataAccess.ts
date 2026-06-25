@@ -1,4 +1,4 @@
-import { type RefreshResourceMetadataDataAccess } from "@server/orpc/services/resource/refreshResourceMetadata";
+import { type RefreshResourceMetadataDataAccess } from "@server/services/resource/refreshResourceMetadata";
 
 export type MockRefreshResourceMetadataDataAccess = {
   findResourceById: jest.MockedFunction<

@@ -1,6 +1,3 @@
-import { ORPCError } from "@orpc/client";
-import { TRPCError } from "@trpc/server";
-
 import {
   DEFAULTS,
   ERROR_BANNED_HOSTNAME,
@@ -10,38 +7,9 @@ import {
   ERROR_INVALID_SCHEME,
   ERROR_URL_EMPTY,
   ERROR_URL_MALFORMED,
+  UrlValidationError,
   validateUrl,
 } from "@server/utils/urls/validateUrl";
-
-jest.mock("@orpc/client", () => {
-  type ORPCErrorOptions = {
-    message?: string;
-    cause?: unknown;
-    status?: number;
-    data?: unknown;
-    defined?: unknown;
-  };
-
-  class ORPCError extends Error {
-    public readonly code: string;
-    public readonly status?: number;
-    public readonly data?: unknown;
-    public readonly defined?: unknown;
-
-    constructor(code: string, ...rest: [ORPCErrorOptions] | []) {
-      const opts: ORPCErrorOptions = rest[0] ?? {};
-      super(opts.message ?? `Mock ORPCError with code ${code}`);
-      this.name = "ORPCError";
-      this.code = code;
-      this.cause = opts.cause;
-      this.status = opts.status;
-      this.data = opts.data;
-      this.defined = opts.defined;
-    }
-  }
-
-  return { __esModule: true, ORPCError };
-});
 
 describe("validateUrl", () => {
   describe("rejects", () => {
@@ -76,7 +44,9 @@ describe("validateUrl", () => {
       expect(() => validateUrl("data:text/html;base64,AAAA")).toThrow(
         ERROR_INVALID_SCHEME,
       );
-      expect(() => validateUrl("ftp://example.com")).toThrow(ORPCError);
+      expect(() => validateUrl("ftp://example.com")).toThrow(
+        UrlValidationError,
+      );
     });
 
     it("username/password present", () => {
@@ -97,11 +67,13 @@ describe("validateUrl", () => {
     });
 
     it("port present (even default port)", () => {
-      expect(() => validateUrl("https://example.com:444/")).toThrow(ORPCError);
+      expect(() => validateUrl("https://example.com:444/")).toThrow(
+        UrlValidationError,
+      );
 
       // WHATWG URL deop default ports when parsing/serializing so if :443, url.port === ""
       expect(() => validateUrl("https://example.com:443/path")).not.toThrow(
-        TRPCError,
+        UrlValidationError,
       );
     });
 

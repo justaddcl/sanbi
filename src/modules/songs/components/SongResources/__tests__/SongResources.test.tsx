@@ -1,4 +1,7 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import {
+  QueryClient,
+  QueryClientProvider,
+} from "@tanstack/react-query";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { createUuid } from "@testUtils/generators/createUuid";
 import { createResourceFixture } from "@testUtils/models/resource/fixtures";
@@ -31,6 +34,7 @@ const mockUpdateResourceDeleteConfirmationPreference = jest.fn<
   [unknown]
 >();
 const mockInvalidateUser = jest.fn();
+const mockInvalidateResources = jest.fn();
 let mockUserData: NonNullable<UserWithMemberships>;
 
 jest.mock("@clerk/nextjs", () => ({
@@ -46,6 +50,36 @@ jest.mock(
   "@lib/trpc",
   () => ({
     trpc: {
+      resource: {
+        create: {
+          useMutation: jest.fn(() => ({
+            mutateAsync: mockCreateResource,
+          })),
+        },
+        update: {
+          useMutation: jest.fn(() => ({
+            mutateAsync: mockUpdateResource,
+          })),
+        },
+        delete: {
+          useMutation: jest.fn(() => ({
+            mutateAsync: mockDeleteResource,
+            isPending: false,
+          })),
+        },
+        refreshMetadata: {
+          useMutation: jest.fn(() => ({
+            mutateAsync: mockRefreshResourceMetadata,
+            isPending: false,
+          })),
+        },
+        previewMetadata: {
+          useMutation: jest.fn(() => ({
+            mutateAsync: mockPreviewMetadata,
+            isPending: false,
+          })),
+        },
+      },
       user: {
         getUser: {
           useQuery: jest.fn(() => ({ data: mockUserData })),
@@ -57,53 +91,17 @@ jest.mock(
         },
       },
       useUtils: jest.fn(() => ({
+        resource: {
+          getBySongId: {
+            invalidate: mockInvalidateResources,
+          },
+        },
         user: {
           getUser: {
             invalidate: mockInvalidateUser,
           },
         },
       })),
-    },
-  }),
-);
-
-jest.mock(
-  "@lib/orpc/client",
-  () => ({
-    orpc: {
-      resource: {
-        create: {
-          mutationOptions: () => ({
-            mutationFn: mockCreateResource,
-          }),
-        },
-        update: {
-          mutationOptions: () => ({
-            mutationFn: mockUpdateResource,
-          }),
-        },
-        delete: {
-          mutationOptions: () => ({
-            mutationFn: mockDeleteResource,
-          }),
-        },
-        refreshMetadata: {
-          mutationOptions: () => ({
-            mutationFn: mockRefreshResourceMetadata,
-          }),
-        },
-        previewMetadata: {
-          queryOptions: ({ input }: { input: unknown }) => ({
-            queryKey: ["orpc", "resource", "previewMetadata", input],
-            queryFn: () => mockPreviewMetadata(input),
-          }),
-        },
-        getBySongId: {
-          queryOptions: ({ input }: { input: unknown }) => ({
-            queryKey: ["orpc", "resource", "getBySongId", input],
-          }),
-        },
-      },
     },
   }),
 );
@@ -165,7 +163,6 @@ const renderSongResources = () => {
       mutations: { retry: false },
     },
   });
-  const invalidateQueriesSpy = jest.spyOn(queryClient, "invalidateQueries");
 
   render(
     <QueryClientProvider client={queryClient}>
@@ -176,8 +173,6 @@ const renderSongResources = () => {
       />
     </QueryClientProvider>,
   );
-
-  return { invalidateQueriesSpy };
 };
 
 const openEditDrawer = async () => {
@@ -224,6 +219,7 @@ describe("SongResources resource editing", () => {
       createUserPreferencesFixture({ confirmResourceDelete: false }),
     );
     mockInvalidateUser.mockResolvedValue(undefined);
+    mockInvalidateResources.mockResolvedValue(undefined);
     (useSongResources as jest.Mock).mockReturnValue(
       createSongResourcesQueryFixture(),
     );
@@ -339,7 +335,7 @@ describe("SongResources resource editing", () => {
         }),
       ],
     });
-    const { invalidateQueriesSpy } = renderSongResources();
+    renderSongResources();
 
     await openCreateDrawer();
 
@@ -369,16 +365,9 @@ describe("SongResources resource editing", () => {
       title: newResourceName,
       url: newResourceUrl,
     });
-    expect(invalidateQueriesSpy).toHaveBeenCalledWith({
-      queryKey: [
-        "orpc",
-        "resource",
-        "getBySongId",
-        {
-          songId,
-          organizationId,
-        },
-      ],
+    expect(mockInvalidateResources).toHaveBeenCalledWith({
+      songId,
+      organizationId,
     });
   });
 
@@ -618,7 +607,7 @@ describe("SongResources resource editing", () => {
     const updatedResourceName = createResourceName();
     const updatedResourceUrl = createResourceUrl();
 
-    const { invalidateQueriesSpy } = renderSongResources();
+    renderSongResources();
 
     await openEditDrawer();
 
@@ -650,16 +639,9 @@ describe("SongResources resource editing", () => {
       url: updatedResourceUrl,
     });
 
-    expect(invalidateQueriesSpy).toHaveBeenCalledWith({
-      queryKey: [
-        "orpc",
-        "resource",
-        "getBySongId",
-        {
-          songId,
-          organizationId,
-        },
-      ],
+    expect(mockInvalidateResources).toHaveBeenCalledWith({
+      songId,
+      organizationId,
     });
 
     await waitFor(() => {
@@ -681,7 +663,7 @@ describe("SongResources resource editing", () => {
         }),
       ],
     });
-    const { invalidateQueriesSpy } = renderSongResources();
+    renderSongResources();
 
     await openEditDrawer();
 
@@ -706,21 +688,14 @@ describe("SongResources resource editing", () => {
         organizationId,
       }),
     );
-    expect(invalidateQueriesSpy).toHaveBeenCalledWith({
-      queryKey: [
-        "orpc",
-        "resource",
-        "getBySongId",
-        {
-          songId,
-          organizationId,
-        },
-      ],
+    expect(mockInvalidateResources).toHaveBeenCalledWith({
+      songId,
+      organizationId,
     });
   });
 
   it("refreshes preview metadata from the resource action menu", async () => {
-    const { invalidateQueriesSpy } = renderSongResources();
+    renderSongResources();
 
     fireEvent.keyDown(
       screen.getByRole("button", {
@@ -737,16 +712,9 @@ describe("SongResources resource editing", () => {
       resourceId: resource.id,
       organizationId,
     });
-    expect(invalidateQueriesSpy).toHaveBeenCalledWith({
-      queryKey: [
-        "orpc",
-        "resource",
-        "getBySongId",
-        {
-          songId,
-          organizationId,
-        },
-      ],
+    expect(mockInvalidateResources).toHaveBeenCalledWith({
+      songId,
+      organizationId,
     });
     expect(toast.success).toHaveBeenCalledWith(
       "Resource preview was refreshed",
@@ -805,7 +773,7 @@ describe("SongResources resource editing", () => {
   });
 
   it("confirms delete, invalidates resources, closes the dialog, and shows success", async () => {
-    const { invalidateQueriesSpy } = renderSongResources();
+    renderSongResources();
 
     fireEvent.keyDown(
       screen.getByRole("button", {
@@ -828,16 +796,9 @@ describe("SongResources resource editing", () => {
     expect(
       mockUpdateResourceDeleteConfirmationPreference,
     ).not.toHaveBeenCalled();
-    expect(invalidateQueriesSpy).toHaveBeenCalledWith({
-      queryKey: [
-        "orpc",
-        "resource",
-        "getBySongId",
-        {
-          songId,
-          organizationId,
-        },
-      ],
+    expect(mockInvalidateResources).toHaveBeenCalledWith({
+      songId,
+      organizationId,
     });
     expect(toast.success).toHaveBeenCalledWith("Resource was unlinked", {
       id: "toast-id",
@@ -849,7 +810,7 @@ describe("SongResources resource editing", () => {
 
   it("shows an error toast and does not invalidate when delete fails", async () => {
     mockDeleteResource.mockRejectedValue(new Error("Delete failed"));
-    const { invalidateQueriesSpy } = renderSongResources();
+    renderSongResources();
 
     fireEvent.keyDown(
       screen.getByRole("button", {
@@ -868,11 +829,11 @@ describe("SongResources resource editing", () => {
         { id: "toast-id" },
       );
     });
-    expect(invalidateQueriesSpy).not.toHaveBeenCalled();
+    expect(mockInvalidateResources).not.toHaveBeenCalled();
   });
 
   it("persists the warning opt-out before unlinking the resource", async () => {
-    const { invalidateQueriesSpy } = renderSongResources();
+    renderSongResources();
 
     fireEvent.keyDown(
       screen.getByRole("button", {
@@ -900,16 +861,9 @@ describe("SongResources resource editing", () => {
     });
     expect(mockInvalidateUser).toHaveBeenCalledWith({ userId: "user_123" });
     expect(mockDeleteResource).toHaveBeenCalled();
-    expect(invalidateQueriesSpy).toHaveBeenCalledWith({
-      queryKey: [
-        "orpc",
-        "resource",
-        "getBySongId",
-        {
-          songId,
-          organizationId,
-        },
-      ],
+    expect(mockInvalidateResources).toHaveBeenCalledWith({
+      songId,
+      organizationId,
     });
   });
 

@@ -1,25 +1,16 @@
 import { createUuid } from "@testUtils/generators/createUuid";
 import { createDeleteResourceDataAccessFixture } from "@testUtils/models/resource/deleteResourceDataAccess";
+import { expectTRPCErrorCode } from "@testUtils/models/resource/expectTRPCErrorCode";
 import { createResourceFixture } from "@testUtils/models/resource/fixtures";
-import { expectOrpcErrorCode } from "@testUtils/orpc/expectOrpcErrorCode";
-import { type MockOrpcErrorModule } from "@testUtils/orpc/mockOrpcError";
 
-import { deleteResourceForOrganization } from "@server/orpc/services/resource/deleteResource";
-
-jest.mock("@orpc/server", () => {
-  const { mockOrpcErrorModule } = jest.requireActual<{
-    mockOrpcErrorModule: MockOrpcErrorModule;
-  }>("@testUtils/orpc/mockOrpcError");
-
-  return mockOrpcErrorModule;
-});
+import { deleteResourceForOrganization } from "@server/services/resource/deleteResource";
 
 describe("deleteResourceForOrganization", () => {
   it("rejects deletes outside of the user's organization before fetching the resource", async () => {
     const resource = createResourceFixture();
     const resourceDataAccess = createDeleteResourceDataAccessFixture();
 
-    await expectOrpcErrorCode(
+    await expectTRPCErrorCode(
       deleteResourceForOrganization({
         input: {
           resourceId: resource.id,
@@ -41,7 +32,7 @@ describe("deleteResourceForOrganization", () => {
       findResourceById: jest.fn().mockResolvedValue(null),
     });
 
-    await expectOrpcErrorCode(
+    await expectTRPCErrorCode(
       deleteResourceForOrganization({
         input: {
           resourceId: createUuid(),
@@ -65,7 +56,7 @@ describe("deleteResourceForOrganization", () => {
       findResourceById: jest.fn().mockResolvedValue(resource),
     });
 
-    await expectOrpcErrorCode(
+    await expectTRPCErrorCode(
       deleteResourceForOrganization({
         input: {
           resourceId: resource.id,
@@ -111,7 +102,7 @@ describe("deleteResourceForOrganization", () => {
       deleteResource: jest.fn().mockResolvedValue(null),
     });
 
-    await expectOrpcErrorCode(
+    await expectTRPCErrorCode(
       deleteResourceForOrganization({
         input: {
           resourceId: resource.id,

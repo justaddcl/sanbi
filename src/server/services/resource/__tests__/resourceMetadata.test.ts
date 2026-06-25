@@ -1,19 +1,9 @@
-import { type MockOrpcErrorModule } from "@testUtils/orpc/mockOrpcError";
-
 import {
   createPinnedAddressLookup,
   fetchResourcePreviewMetadata,
   isBlockedResourceMetadataIpAddress,
   type ResourceMetadataHttpResponse,
-} from "@server/orpc/services/resource/resourceMetadata";
-
-jest.mock("@orpc/client", () => {
-  const { mockOrpcErrorModule } = jest.requireActual<{
-    mockOrpcErrorModule: MockOrpcErrorModule;
-  }>("@testUtils/orpc/mockOrpcError");
-
-  return mockOrpcErrorModule;
-});
+} from "@server/services/resource/resourceMetadata";
 
 const createLookup = (address = "93.184.216.34") =>
   jest.fn().mockResolvedValue([{ address, family: 4 }]);

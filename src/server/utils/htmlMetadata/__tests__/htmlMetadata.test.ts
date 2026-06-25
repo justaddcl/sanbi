@@ -9,21 +9,6 @@ import {
   sanitizeNullableMetadataText,
 } from "../htmlMetadata";
 
-jest.mock("@orpc/client", () => {
-  class ORPCError extends Error {
-    public readonly code: string;
-
-    constructor(code: string, options: { message?: string; cause?: unknown }) {
-      super(options.message);
-      this.name = "ORPCError";
-      this.code = code;
-      this.cause = options.cause;
-    }
-  }
-
-  return { __esModule: true, ORPCError };
-});
-
 describe("htmlMetadata", () => {
   describe("decodeHtmlEntities", () => {
     it("decodes named and numeric HTML entities", () => {

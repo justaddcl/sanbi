@@ -10,36 +10,40 @@ import { getResourceDisplayTitle } from "@modules/songs/utils/getResourceDisplay
 
 import { ResourceCard } from "../ResourceCard";
 
+const mockDeleteResource = jest.fn();
+const mockRefreshResourceMetadata = jest.fn();
+const mockInvalidateResources = jest.fn();
+
 jest.mock("@sentry/nextjs", () => ({
   captureException: jest.fn(),
   captureMessage: jest.fn(),
 }));
 
-jest.mock(
-  "@lib/orpc/client",
-  () => ({
-    orpc: {
-      resource: {
-        delete: {
-          mutationOptions: () => ({
-            mutationFn: jest.fn(),
-          }),
-        },
-        refreshMetadata: {
-          mutationOptions: () => ({
-            mutationFn: jest.fn(),
-          }),
-        },
-        getBySongId: {
-          queryOptions: ({ input }: { input: unknown }) => ({
-            queryKey: ["orpc", "resource", "getBySongId", input],
-          }),
-        },
+jest.mock("@lib/trpc", () => ({
+  trpc: {
+    resource: {
+      delete: {
+        useMutation: jest.fn(() => ({
+          mutateAsync: mockDeleteResource,
+          isPending: false,
+        })),
+      },
+      refreshMetadata: {
+        useMutation: jest.fn(() => ({
+          mutateAsync: mockRefreshResourceMetadata,
+          isPending: false,
+        })),
       },
     },
-  }),
-  { virtual: true },
-);
+    useUtils: jest.fn(() => ({
+      resource: {
+        getBySongId: {
+          invalidate: mockInvalidateResources,
+        },
+      },
+    })),
+  },
+}));
 
 const renderResourceCard = (props: ComponentProps<typeof ResourceCard>) => {
   const queryClient = new QueryClient({
@@ -61,6 +65,9 @@ describe("ResourceCard", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockDeleteResource.mockResolvedValue(undefined);
+    mockRefreshResourceMetadata.mockResolvedValue(undefined);
+    mockInvalidateResources.mockResolvedValue(undefined);
   });
 
   it("keeps the external link and edit action as separate targets", async () => {
