@@ -1,9 +1,10 @@
-import { createUuid } from "@testUtils/generators/createUuid";
-import { createOrganizationSetFixture } from "@testUtils/models/set/fixtures";
 import {
-  createOrganizationMembershipFixture,
-  createUserWithMembershipsFixture,
-} from "@testUtils/models/user/fixtures";
+  createEventTypeFixture,
+  createOrganizationMembershipWithOrganizationFixture,
+  createSetWithSectionsSongsAndEventTypeFixture,
+  createUserFixture,
+} from "@testUtils/fixtures";
+import { createUuid } from "@testUtils/generators/createUuid";
 import { eq } from "drizzle-orm";
 
 import { logger } from "@lib/loggers/logger";
@@ -70,28 +71,26 @@ describe("setRouter", () => {
   describe("getOrganizationSets", () => {
     it("returns sets for the authenticated user's organization", async () => {
       const organizationId = createUuid();
-      const membership = createOrganizationMembershipFixture({
+      const membership = createOrganizationMembershipWithOrganizationFixture({
         organizationId,
         userId,
       });
-      const user = createUserWithMembershipsFixture({
+      const user = createUserFixture({
         id: userId,
-        memberships: [membership],
       });
       const organization = membership.organization;
       const eventTypeId = createUuid();
+      const eventType = createEventTypeFixture({
+        id: eventTypeId,
+        organizationId,
+        name: "Sunday Service",
+      });
       const organizationSets = [
-        createOrganizationSetFixture({
+        createSetWithSectionsSongsAndEventTypeFixture({
           organizationId,
           eventTypeId,
-          eventType: {
-            id: eventTypeId,
-            name: "Sunday Service",
-            organizationId,
-            favoritedAt: null,
-            createdAt: new Date("2026-01-01T00:00:00Z"),
-            updatedAt: new Date("2026-01-01T00:00:00Z"),
-          },
+          eventType,
+          sections: [],
         }),
       ];
       const membershipFindFirst = jest.fn().mockResolvedValue(membership);
