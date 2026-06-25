@@ -122,29 +122,31 @@ export const syncSanbiUserFromClerkUser = async ({
   const sanbiUser = createSanbiUserFromClerkUser(clerkUser);
   const updatedAt = new Date();
 
-  const [syncedUser] = await database
-    .insert(users)
-    .values(sanbiUser)
-    .onConflictDoUpdate({
-      target: users.id,
-      set: {
-        email: sanbiUser.email,
-        firstName: sanbiUser.firstName,
-        lastName: sanbiUser.lastName,
-        updatedAt,
-      },
-    })
-    .returning();
+  return database.transaction(async (tx) => {
+    const [syncedUser] = await tx
+      .insert(users)
+      .values(sanbiUser)
+      .onConflictDoUpdate({
+        target: users.id,
+        set: {
+          email: sanbiUser.email,
+          firstName: sanbiUser.firstName,
+          lastName: sanbiUser.lastName,
+          updatedAt,
+        },
+      })
+      .returning();
 
-  await database
-    .insert(userPreferences)
-    .values({
-      userId: sanbiUser.id,
-      confirmResourceDelete: true,
-    })
-    .onConflictDoNothing({ target: userPreferences.userId });
+    await tx
+      .insert(userPreferences)
+      .values({
+        userId: sanbiUser.id,
+        confirmResourceDelete: true,
+      })
+      .onConflictDoNothing({ target: userPreferences.userId });
 
-  return syncedUser;
+    return syncedUser;
+  });
 };
 
 export const ensureSanbiUserFromClerkSession = async ({

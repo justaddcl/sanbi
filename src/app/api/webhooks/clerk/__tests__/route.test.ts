@@ -83,9 +83,11 @@ describe("Clerk webhook route", () => {
   it.each(["user.created", "user.updated"])(
     "syncs Sanbi users for %s",
     async (eventType) => {
+      const clerkUserId = "user_123";
+      const primaryEmail = "ada@example.com";
       const clerkUser = {
-        id: "user_123",
-        email_addresses: [{ email_address: "ada@example.com" }],
+        id: clerkUserId,
+        email_addresses: [{ email_address: primaryEmail }],
       };
       (verifyWebhook as jest.Mock).mockResolvedValue({
         type: eventType,
@@ -103,9 +105,11 @@ describe("Clerk webhook route", () => {
   );
 
   it("marks Sanbi users as auth-deleted for user.deleted", async () => {
+    const clerkUserId = "user_123";
+
     (verifyWebhook as jest.Mock).mockResolvedValue({
       type: "user.deleted",
-      data: { id: "user_123" },
+      data: { id: clerkUserId },
     });
 
     const response = await POST(createWebhookRequest());
@@ -113,13 +117,15 @@ describe("Clerk webhook route", () => {
     expect(response.status).toBe(200);
     expect(markSanbiUserAuthDeleted).toHaveBeenCalledWith({
       database: db,
-      userId: "user_123",
+      userId: clerkUserId,
     });
   });
 
   it("logs user.deleted events that are missing a Clerk user id", async () => {
+    const eventType = "user.deleted";
+
     (verifyWebhook as jest.Mock).mockResolvedValue({
-      type: "user.deleted",
+      type: eventType,
       data: {},
     });
 
@@ -130,15 +136,17 @@ describe("Clerk webhook route", () => {
     expect(console.warn).toHaveBeenCalledWith(
       "Clerk user.deleted webhook missing user id",
       {
-        eventType: "user.deleted",
+        eventType,
       },
     );
   });
 
   it("returns 422 when a Clerk user payload cannot be synced", async () => {
+    const clerkUserId = "user_123";
+
     (verifyWebhook as jest.Mock).mockResolvedValue({
       type: "user.created",
-      data: { id: "user_123" },
+      data: { id: clerkUserId },
     });
     (syncSanbiUserFromClerkUser as jest.Mock).mockRejectedValue(
       new ClerkUserSyncError("missing email", "MISSING_PRIMARY_EMAIL"),
@@ -150,9 +158,11 @@ describe("Clerk webhook route", () => {
   });
 
   it("acknowledges unsupported events without syncing", async () => {
+    const sessionId = "sess_123";
+
     (verifyWebhook as jest.Mock).mockResolvedValue({
       type: "session.created",
-      data: { id: "sess_123" },
+      data: { id: sessionId },
     });
 
     const response = await POST(createWebhookRequest());

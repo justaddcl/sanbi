@@ -34,10 +34,19 @@ const createSyncUserDb = (syncedUser: unknown) => {
     .fn()
     .mockReturnValueOnce({ values: userValues })
     .mockReturnValueOnce({ values: preferenceValues });
+  const transactionDb = { insert };
+  const transaction = jest.fn(
+    async <TransactionResult>(
+      callback: (
+        tx: typeof transactionDb,
+      ) => TransactionResult | Promise<TransactionResult>,
+    ) => callback(transactionDb),
+  );
 
   return {
-    db: { insert },
+    db: { insert, transaction },
     insert,
+    transaction,
     userValues,
     userOnConflictDoUpdate,
     userReturning,
@@ -65,6 +74,7 @@ const createEnsureUserDb = ({
         },
       },
       insert: syncDb.insert,
+      transaction: syncDb.transaction,
     },
     findFirst,
   };
@@ -185,6 +195,7 @@ describe("clerkUserSync", () => {
       }),
     ).resolves.toEqual(syncedUser);
 
+    expect(db.transaction).toHaveBeenCalledTimes(1);
     expect(db.insert).toHaveBeenNthCalledWith(1, users);
     expect(db.userValues).toHaveBeenCalledWith({
       id: userId,

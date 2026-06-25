@@ -39,7 +39,7 @@ export const userRouter = createTRPCRouter({
       const [updatedPreference] = await ctx.db
         .insert(userPreferences)
         .values({
-          userId: ctx.auth.userId,
+          userId: ctx.user.id,
           confirmResourceDelete: input.confirmResourceDelete,
         })
         .onConflictDoUpdate({
@@ -54,7 +54,7 @@ export const userRouter = createTRPCRouter({
       if (!updatedPreference) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: `Could not upsert preferences for user ${ctx.auth.userId}`,
+          message: `Could not upsert preferences for user ${ctx.user.id}`,
         });
       }
 

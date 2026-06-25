@@ -9,7 +9,7 @@ import {
 import { db } from "@/server/db";
 
 export async function POST(req: NextRequest) {
-  let event;
+  let event: Awaited<ReturnType<typeof verifyWebhook>>;
 
   try {
     event = await verifyWebhook(req);

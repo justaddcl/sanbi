@@ -91,13 +91,20 @@ describe("userRouter", () => {
 
   it("upserts the authenticated user's resource delete confirmation preference", async () => {
     const updatedAt = new Date("2026-05-17T00:00:00Z");
+    const resolvedUser = createUserWithMembershipsFixture({
+      id: userId,
+      memberships: [],
+    });
     const updatedPreference = createUserPreferencesFixture({
-      userId,
+      userId: resolvedUser.id,
       confirmResourceDelete: false,
     });
-    const db = createUpsertUserPreferencesDb(updatedPreference);
+    const db = createUpsertUserPreferencesDb(updatedPreference, resolvedUser);
     const caller = createUserRouterCaller(db.db);
 
+    (ensureSanbiUserFromClerkSession as jest.Mock).mockResolvedValue(
+      resolvedUser,
+    );
     jest.useFakeTimers().setSystemTime(updatedAt);
 
     await expect(
@@ -108,7 +115,7 @@ describe("userRouter", () => {
 
     expect(db.insert).toHaveBeenCalledWith(userPreferences);
     expect(db.values).toHaveBeenCalledWith({
-      userId,
+      userId: resolvedUser.id,
       confirmResourceDelete: updatedPreference.confirmResourceDelete,
     });
     expect(db.onConflictDoUpdate).toHaveBeenCalledWith({
@@ -121,8 +128,16 @@ describe("userRouter", () => {
   });
 
   it("returns INTERNAL_SERVER_ERROR when the authenticated user's preferences cannot be upserted", async () => {
-    const db = createUpsertUserPreferencesDb(null);
+    const resolvedUser = createUserWithMembershipsFixture({
+      id: userId,
+      memberships: [],
+    });
+    const db = createUpsertUserPreferencesDb(null, resolvedUser);
     const caller = createUserRouterCaller(db.db);
+
+    (ensureSanbiUserFromClerkSession as jest.Mock).mockResolvedValue(
+      resolvedUser,
+    );
 
     await expect(
       caller.updateResourceDeleteConfirmationPreference({
