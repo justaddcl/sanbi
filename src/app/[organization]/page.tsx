@@ -63,7 +63,17 @@ export default async function Dashboard({
         <select aria-label="Filter sets by date range">
           <option value="This week">This week</option>
         </select>
-        <a className="text-xs text-slate-900">See all</a>
+        <button
+          type="button"
+          className="text-xs text-slate-400"
+          disabled
+          aria-describedby="upcoming-sets-see-all-description"
+        >
+          See all
+        </button>
+        <span id="upcoming-sets-see-all-description" className="sr-only">
+          All sets are already shown
+        </span>
       </section>
       {/* FIXME: update set list styling */}
       <VStack className="gap-8">
