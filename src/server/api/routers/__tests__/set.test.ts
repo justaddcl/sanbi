@@ -2,6 +2,7 @@ import { createUuid } from "@testUtils/generators/createUuid";
 import { eq } from "drizzle-orm";
 
 import { logger } from "@lib/loggers/logger";
+import { pluralize } from "@lib/string";
 import { setRouter } from "@server/api/routers/set";
 import { db } from "@server/db";
 import { organizations, sets, users } from "@server/db/schema";
@@ -174,18 +175,16 @@ describe("setRouter", () => {
       expect(mockedLogger.child).toHaveBeenCalledWith({
         route: "/set/organization",
         input: { organizationId },
-        user: {
-          ...user,
-          membership,
-        },
+        userId,
       });
       const loggerChild = mockedLogger.child.mock.results[0]?.value as {
         info: jest.Mock;
       };
+      const organizationSetsCount = organizationSets.length;
 
       expect(loggerChild.info).toHaveBeenCalledWith(
-        { setCount: organizationSets.length },
-        "1 set found for organization",
+        { setCount: organizationSetsCount },
+        `${organizationSetsCount} ${pluralize(organizationSetsCount, { singular: "set", plural: "sets" })} found for organization`,
       );
     });
 

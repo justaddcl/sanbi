@@ -46,7 +46,9 @@ export const OrganizationDashboardSets = ({
         <select aria-label="Filter sets by date range">
           <option value="This week">This week</option>
         </select>
-        <a className="text-xs text-slate-900">See all</a>
+        <button type="button" className="text-xs text-slate-900">
+          See all
+        </button>
       </section>
       {error ? (
         <SetPageErrorState />
@@ -75,40 +77,38 @@ export const OrganizationDashboardSets = ({
                   )}
                 />
                 <VStack className="gap-6">
-                  {orgSet.sections.map((section) => (
-                    <SetListCardSection
-                      key={section.id}
-                      title={section.type.name}
-                    >
-                      {section.songs.map((setSectionSong) => {
-                        let indexStart = 1;
+                  {(() => {
+                    let sectionSongOffset = 1;
 
-                        for (
-                          let sectionPosition = 0;
-                          sectionPosition < section.position;
-                          sectionPosition++
-                        ) {
-                          indexStart +=
-                            orgSet.sections[sectionPosition]!.songs.length;
-                        }
+                    return orgSet.sections.map((section) => {
+                      const sectionStartIndex = sectionSongOffset;
+                      sectionSongOffset += section.songs.length;
 
-                        return (
-                          <Link
-                            key={setSectionSong.songId}
-                            href={`/${organizationId}/songs/${setSectionSong.songId}`}
-                            className="relative z-10"
-                          >
-                            <SongItem
-                              index={indexStart + setSectionSong.position}
-                              setSectionSong={setSectionSong}
-                              setSectionType={section.type.name}
-                              setId={orgSet.id}
-                            />
-                          </Link>
-                        );
-                      })}
-                    </SetListCardSection>
-                  ))}
+                      return (
+                        <SetListCardSection
+                          key={section.id}
+                          title={section.type.name}
+                        >
+                          {section.songs.map((setSectionSong) => (
+                            <Link
+                              key={setSectionSong.songId}
+                              href={`/${organizationId}/songs/${setSectionSong.songId}`}
+                              className="relative z-10"
+                            >
+                              <SongItem
+                                index={
+                                  sectionStartIndex + setSectionSong.position
+                                }
+                                setSectionSong={setSectionSong}
+                                setSectionType={section.type.name}
+                                setId={orgSet.id}
+                              />
+                            </Link>
+                          ))}
+                        </SetListCardSection>
+                      );
+                    });
+                  })()}
                 </VStack>
               </VStack>
             </div>

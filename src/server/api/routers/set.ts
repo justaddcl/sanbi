@@ -100,7 +100,7 @@ export const setRouter = createTRPCRouter({
       .child({
         route: "/set/organization",
         input,
-        user: ctx.user,
+        userId: ctx.user.id,
       })
       .info(
         { setCount: organizationSets.length },
