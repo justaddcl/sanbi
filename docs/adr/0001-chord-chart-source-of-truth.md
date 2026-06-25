@@ -16,7 +16,8 @@ API, editor, import, and export work begins. The model should support structured
 editing and transposition without treating a rendered file or loosely spaced text
 as the canonical record.
 
-Shared terms used by this ADR are defined in the [chord chart glossary](../chord-charts/glossary.md).
+Shared terms used by this ADR are defined in the
+[chord chart glossary](../chord-charts/glossary.md).
 
 ## Decision
 
