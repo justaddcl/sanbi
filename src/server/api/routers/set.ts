@@ -1,6 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { and, asc, eq, gt, gte, inArray, lte, or, sql } from "drizzle-orm";
 
+import { logger } from "@lib/loggers/logger";
 import { pluralize } from "@lib/string";
 import { type NewSet } from "@lib/types";
 import {
@@ -73,6 +74,41 @@ export const setRouter = createTRPCRouter({
 
       return setData;
     }),
+
+  getOrganizationSets: organizationProcedure.query(async ({ ctx, input }) => {
+    const organizationSets = await ctx.db.query.sets.findMany({
+      where: eq(sets.organizationId, input.organizationId),
+      with: {
+        sections: {
+          orderBy: (sections, { asc }) => [asc(sections.position)],
+          with: {
+            songs: {
+              orderBy: (songs, { asc }) => [asc(songs.position)],
+              with: {
+                song: true,
+              },
+            },
+            type: true,
+          },
+        },
+        eventType: true,
+      },
+      orderBy: (sets, { desc }) => [desc(sets.date)],
+    });
+
+    logger
+      .child({
+        route: "/set/organization",
+        input,
+        user: ctx.user,
+      })
+      .info(
+        { setCount: organizationSets.length },
+        `${organizationSets.length} ${pluralize(organizationSets.length, { singular: "set", plural: "sets" })} found for organization`,
+      );
+
+    return organizationSets;
+  }),
 
   getUpcoming: organizationProcedure.query(async ({ ctx, input }) => {
     const { organizationId } = ctx.user.membership;
