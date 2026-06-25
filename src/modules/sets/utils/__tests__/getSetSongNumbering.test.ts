@@ -92,4 +92,30 @@ describe("getSetSongNumbering", () => {
       ),
     ).toEqual([[1], [], [2, 3, 4], [5]]);
   });
+
+  it("computes section starts by position while preserving input order", () => {
+    const firstSection = createSection({
+      position: 0,
+      songs: [createSong({ position: 0 }), createSong({ position: 1 })],
+    });
+    const secondSection = createSection({
+      position: 1,
+      songs: [createSong({ position: 0 })],
+    });
+
+    const numbering = getSetSongNumbering([secondSection, firstSection]);
+
+    expect(numbering.map(({ section }) => section.id)).toEqual([
+      secondSection.id,
+      firstSection.id,
+    ]);
+    expect(numbering.map((section) => section.sectionStartIndex)).toEqual([
+      3, 1,
+    ]);
+    expect(
+      numbering.map((section) =>
+        section.songs.map((song) => song.displayIndex),
+      ),
+    ).toEqual([[3], [1, 2]]);
+  });
 });
