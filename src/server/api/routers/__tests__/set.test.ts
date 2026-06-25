@@ -1,4 +1,9 @@
 import { createUuid } from "@testUtils/generators/createUuid";
+import { createOrganizationSetFixture } from "@testUtils/models/set/fixtures";
+import {
+  createOrganizationMembershipFixture,
+  createUserWithMembershipsFixture,
+} from "@testUtils/models/user/fixtures";
 import { eq } from "drizzle-orm";
 
 import { logger } from "@lib/loggers/logger";
@@ -65,29 +70,29 @@ describe("setRouter", () => {
   describe("getOrganizationSets", () => {
     it("returns sets for the authenticated user's organization", async () => {
       const organizationId = createUuid();
-      const user = {
-        id: userId,
-      };
-      const organization = {
-        id: organizationId,
-      };
-      const membership = {
+      const membership = createOrganizationMembershipFixture({
         organizationId,
         userId,
-        organization,
-      };
+      });
+      const user = createUserWithMembershipsFixture({
+        id: userId,
+        memberships: [membership],
+      });
+      const organization = membership.organization;
+      const eventTypeId = createUuid();
       const organizationSets = [
-        {
-          id: createUuid(),
+        createOrganizationSetFixture({
           organizationId,
-          date: "2026-06-25",
-          sections: [],
+          eventTypeId,
           eventType: {
-            id: createUuid(),
+            id: eventTypeId,
             name: "Sunday Service",
             organizationId,
+            favoritedAt: null,
+            createdAt: new Date("2026-01-01T00:00:00Z"),
+            updatedAt: new Date("2026-01-01T00:00:00Z"),
           },
-        },
+        }),
       ];
       const membershipFindFirst = jest.fn().mockResolvedValue(membership);
       const setsFindMany = jest.fn().mockResolvedValue(organizationSets);
