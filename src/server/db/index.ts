@@ -1,11 +1,12 @@
 import {
-  type PostgresJsDatabase,
   drizzle,
+  type PostgresJsDatabase,
 } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 
-import { env } from "@/env";
+import { resolveDatabaseUrl } from "@server/db/resolveDatabaseUrl";
 import * as schema from "@server/db/schema";
+import { env } from "@/env";
 
 /**
  * Cache the database connection in development. This avoids creating a new connection on every HMR
@@ -17,7 +18,7 @@ const globalForDb = globalThis as unknown as {
 
 const conn =
   globalForDb.conn ??
-  postgres(env.NODE_ENV === "production" ? env.POSTGRES_URL : env.DATABASE_URL, {
+  postgres(resolveDatabaseUrl(env), {
     max: 5,
     prepare: false,
   });

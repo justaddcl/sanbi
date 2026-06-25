@@ -27,6 +27,12 @@ This project is a Next.js web app (bootstrapped by the [T3 Stack](https://create
 5. Push the schema to the database by running `pnpm db:push` and then seed the data with test data with `pnpm db:seed`
 6. Start the dev Next.js server by running `pnpm dev`
 
+## Database Environments
+
+Local development and E2E use `DATABASE_URL`. Vercel Preview deployments also use `DATABASE_URL`, which should point at a dedicated non-production Neon database. Vercel Production and production database scripts use `POSTGRES_URL`.
+
+Use the `db:*:preview` scripts to run schema, seed, clear, or update operations against a preview/staging `DATABASE_URL`. Use the `db:*:prod` scripts for production operations against `POSTGRES_URL`. Vercel deployments can rely on `VERCEL_ENV=preview` or `VERCEL_ENV=production`; set `SANBI_APP_ENV=preview` only when you need to force preview behavior outside Vercel.
+
 ## E2E Tests
 
 Playwright E2E setup and required Clerk/Postgres environment variables are documented in [docs/e2e.md](./docs/e2e.md).
