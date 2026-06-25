@@ -1,6 +1,7 @@
 export * from "./eventType";
 export * from "./organization";
 export * from "./organizationMemberships";
+export * from "./resource";
 export * from "./set";
 export * from "./setSection";
 export * from "./setSectionSong";
