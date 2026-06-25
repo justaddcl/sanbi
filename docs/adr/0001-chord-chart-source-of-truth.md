@@ -27,6 +27,10 @@ and edited in Sanbi. It stores chart structure, musical metadata, and chord
 placement in an application-readable shape. Rendered files and imported source
 materials are not the source of truth.
 
+When a user accepts an import, Sanbi normalizes the imported material into the
+editable primary chart. Later typo, lyric, chord, and metadata fixes should edit
+that structured chart, not the retained raw import text or original source file.
+
 Generated PDFs are output-only. They may be produced from the primary chart for
 printing, sharing, or download, but Sanbi does not store generated PDFs in v1.
 
@@ -38,6 +42,9 @@ must not be used as the rendering source when structured chart data exists.
 Existing external song resources remain separate from chord charts. Song
 resources continue to represent external links associated with a song. They do
 not replace the primary chart and are not promoted into chord chart source data.
+If Sanbi later supports general file uploads, a separate workflow may allow users
+to save an uploaded chord chart file as a song resource, but that file-backed
+resource would still be a supporting artifact rather than the primary chart.
 
 ## Alternatives Rejected
 
@@ -75,5 +82,7 @@ keeps chart APIs focused on first-party chart data.
 - Exporters should render from structured chart content, not from raw import
   text or a previously generated file.
 - Raw import text, if retained, is for audit, troubleshooting, and recovery.
+- File-backed song resources are out of scope for v1 and should not change the
+  primary chart source-of-truth boundary when added later.
 - OCR and capo-shape behavior are intentionally not specified here; future ADRs
   or implementation tickets should define those details when needed.

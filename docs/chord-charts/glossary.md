@@ -60,10 +60,12 @@ download. Generated PDFs are not stored by Sanbi in v1.
 ## Original Uploaded PDF
 
 A source file a user provides for import. Original uploaded PDFs are not stored
-by Sanbi in v1.
+by Sanbi in v1. If Sanbi later supports file-backed song resources, an uploaded
+chart file may be retained as a supporting song resource without becoming the
+primary chart.
 
 ## External Song Resource
 
 An existing Sanbi song resource that points to an external URL associated with a
 song. External resources remain separate from chord charts and do not become the
-primary chart.
+primary chart. Future file-backed song resources should follow the same boundary.
