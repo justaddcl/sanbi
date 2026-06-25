@@ -106,7 +106,7 @@ test("adds a song to a section from set detail", async ({ page }, testInfo) => {
   const dialog = page.getByRole("dialog");
   await expect(dialog).toBeVisible();
   await dialog
-    .getByPlaceholder("Search for a song...")
+    .getByPlaceholder("Search songs or tags")
     .fill(songToAdd.name);
   await expect(dialog.getByText(songToAdd.name, { exact: true })).toBeVisible();
   await dialog.getByText(songToAdd.name, { exact: true }).click();

@@ -1,163 +1,109 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { redirect } from "next/navigation";
-import { useAuth } from "@clerk/nextjs";
-import { CaretRight } from "@phosphor-icons/react/dist/ssr";
-import { CommandLoading } from "cmdk";
-import { useDebounceValue } from "usehooks-ts";
-
-import { Text } from "@components/Text";
+import { CommandInput } from "@components/ui/command";
+import { SearchFilterControls } from "@modules/search/components/SearchFilterControls";
 import {
-  SongListItem,
-  type SongListItemProps,
-} from "@modules/songs/components/SongListItem";
-import { useUserQuery } from "@modules/users/api/queries";
-import { trpc } from "@lib/trpc";
-import { type Song, type Tag } from "@lib/types";
-import {
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
+  type SearchResultMatchType,
+  SearchResultsList,
+} from "@modules/search/components/SearchResultsList";
+import { SearchShortcutLegend } from "@modules/search/components/SearchShortcutLegend";
+import { type SearchSongResult } from "@modules/search/components/types";
+import { useSongSearchResults } from "@modules/search/hooks/useSongSearchResults";
 
-export type SongSearchResult =
-  | (Pick<Song, "name" | "preferredKey" | "isArchived"> & {
-      songId: Song["id"];
-      similarityScore: number;
-      lastPlayedDate: SongListItemProps["lastPlayed"];
-      tags?: Tag["tag"][];
-    })
-  | undefined;
+export type SongSearchMatchType = SearchResultMatchType;
+
+export type SongSearchResult = SearchSongResult;
+export type SongSearchState = ReturnType<typeof useSongSearchResults>;
 
 type SongSearchProps = {
-  onSongSelect?: (selectedSong?: SongSearchResult) => void;
+  organizationId?: string;
+  onSongSelect?: (
+    selectedSong: SongSearchResult,
+    matchType: SongSearchMatchType,
+  ) => void;
   searchPlaceholder?: string;
 };
 
-const SEARCH_DEBOUNCE_DELAY = 350;
+type SongSearchContentProps = Omit<SongSearchProps, "organizationId"> & {
+  searchState: SongSearchState;
+};
 
-export const SongSearch: React.FC<SongSearchProps> = ({
+export const SongSearchContent: React.FC<SongSearchContentProps> = ({
   onSongSelect,
-  searchPlaceholder = "Search for a song...",
+  searchState,
+  searchPlaceholder = "Search songs or tags",
 }) => {
-  const searchInputRef = useRef<HTMLInputElement>(null);
-  const defaultSearchQuery = "";
-  const [searchInput, setSearchInput] = useState<string>(defaultSearchQuery);
-  const [debouncedSearchQuery, setDebouncedSearchQuery] = useDebounceValue(
+  const {
+    activeFilter,
+    emptyResultsMessage,
+    escapeShortcutLabel,
+    handleFilterToggle,
+    handleInputChange,
+    hasSearchResultOverflow,
+    hasSearchableInput,
+    isSearchError,
+    normalizedSearchInput,
     searchInput,
-    SEARCH_DEBOUNCE_DELAY,
-  );
-
-  const {
-    data: userData,
-    error: userQueryError,
-    isLoading: userQueryLoading,
-    isAuthLoaded,
-  } = useUserQuery();
-  const userMembership = userData?.memberships[0];
-
-  const {
-    data: songSearchData,
-    error: songSearchError,
-    isLoading: songSearchLoading,
-  } = trpc.song.search.useQuery(
-    {
-      organizationId: userMembership!.organizationId, // we use a type assertion here since if this isn't true, the query will be disabled
-      searchInput: debouncedSearchQuery,
-    },
-    {
-      enabled:
-        !!userMembership?.organizationId &&
-        !!debouncedSearchQuery &&
-        debouncedSearchQuery.length > 2,
-    },
-  );
-
-  const canRenderSearchInput =
-    !!userData?.id && isAuthLoaded && !userQueryLoading;
-
-  useEffect(() => {
-    if (!canRenderSearchInput) {
-      return;
-    }
-
-    searchInputRef.current?.focus();
-  }, [canRenderSearchInput]);
-
-  if (!userData?.id) {
-    redirect("/");
-  }
-
-  if (!isAuthLoaded) {
-    return <Text>Loading auth...</Text>;
-  }
-
-  if (userQueryLoading) {
-    return <Text>Getting user...</Text>;
-  }
-
-  if (!songSearchData || songSearchError) {
-    // TODO: handle the error
-  }
-
-  const handleSearchInputChange = (newValue: string) => {
-    setSearchInput(newValue);
-    setDebouncedSearchQuery(newValue);
-  };
-
-  const handleSongSelect = (selectedSongId: string) => {
-    const selectedSong = songSearchData?.find(
-      (songData) => songData.songId === selectedSongId,
-    );
-    onSongSelect?.(selectedSong);
-  };
+    searchResultCountLabel,
+    selectedFilters,
+    shouldShowLoading,
+    visibleResultCount,
+    visibleSongResults,
+    visibleTagResults,
+  } = searchState;
 
   return (
     <>
-      <CommandInput
-        ref={searchInputRef}
-        placeholder={searchPlaceholder}
-        value={searchInput}
-        onValueChange={(newValue) => handleSearchInputChange(newValue)}
-        autoFocus
-      />
-      <CommandList>
-        {songSearchLoading && (
-          <CommandLoading>Searching songs...</CommandLoading>
-        )}
-        {!songSearchLoading &&
-          debouncedSearchQuery &&
-          debouncedSearchQuery.length > 0 && (
-            <CommandEmpty>
-              No songs found for &quot;{debouncedSearchQuery}&quot;.
-            </CommandEmpty>
-          )}
-        <CommandGroup heading="Songs">
-          <div className="flex flex-col gap-2">
-            {songSearchData?.map((searchResult) => {
-              const { lastPlayedDate, tags, ...songData } = searchResult;
-              return (
-                <CommandItem
-                  key={searchResult.songId}
-                  value={searchResult.songId}
-                  className="flex items-center justify-between"
-                  onSelect={handleSongSelect}
-                >
-                  <SongListItem
-                    song={{ id: songData.songId, ...songData }}
-                    lastPlayed={lastPlayedDate}
-                    tags={tags}
-                  />
-                  <CaretRight size="12px" className="text-slate-500" />
-                </CommandItem>
-              );
-            })}
-          </div>
-        </CommandGroup>
-      </CommandList>
+      <div className={hasSearchableInput ? "border-b border-slate-100" : ""}>
+        <CommandInput
+          value={searchInput}
+          onValueChange={handleInputChange}
+          placeholder={searchPlaceholder}
+          className="h-14 text-base md:text-base"
+        />
+        <SearchFilterControls
+          selectedFilters={selectedFilters}
+          onFilterToggle={handleFilterToggle}
+        />
+      </div>
+      {hasSearchableInput && (
+        <SearchResultsList
+          activeFilter={activeFilter}
+          emptyResultsMessage={emptyResultsMessage}
+          hasOverflow={hasSearchResultOverflow}
+          isError={isSearchError}
+          isLoading={shouldShowLoading}
+          normalizedSearchInput={normalizedSearchInput}
+          onSongSelect={(result, matchType) =>
+            onSongSelect?.(result, matchType)
+          }
+          resultCountLabel={searchResultCountLabel}
+          visibleResultCount={visibleResultCount}
+          visibleSongResults={visibleSongResults}
+          visibleTagResults={visibleTagResults}
+        />
+      )}
+      {hasSearchableInput && (
+        <SearchShortcutLegend
+          enterShortcutLabel="Select"
+          escapeShortcutLabel={escapeShortcutLabel}
+          showActionsShortcut={false}
+        />
+      )}
     </>
+  );
+};
+
+export const SongSearch: React.FC<SongSearchProps> = ({
+  organizationId,
+  ...songSearchContentProps
+}) => {
+  const searchState = useSongSearchResults({ organizationId });
+
+  return (
+    <SongSearchContent
+      {...songSearchContentProps}
+      searchState={searchState}
+    />
   );
 };

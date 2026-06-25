@@ -14,8 +14,9 @@ import { DialogDescription, DialogTitle } from "@components/ui/dialog";
 import { HStack } from "@components/HStack";
 import { Text } from "@components/Text";
 import { VStack } from "@components/VStack";
+import { useSongSearchResults } from "@modules/search/hooks/useSongSearchResults";
 import {
-  SongSearch,
+  SongSearchContent,
   type SongSearchResult,
 } from "@modules/songs/components/SongSearch";
 import { useUserQuery } from "@modules/users/api/queries";
@@ -56,12 +57,14 @@ export const ReplaceSongDialog: React.FC<ReplaceSongDialogProps> = ({
     isAuthLoaded,
   } = useUserQuery();
   const userMembership = userData?.memberships[0];
+  const songSearchState = useSongSearchResults({
+    organizationId: userMembership?.organizationId,
+  });
 
   const [dialogStep, setDialogStep] =
     useState<ReplaceSongDialogSteps>("search");
-  const [selectedSong, setSelectedSong] = useState<SongSearchResult | null>(
-    null,
-  );
+  const [selectedSong, setSelectedSong] =
+    useState<SongSearchResult | null>(null);
 
   const replaceSongMutation =
     trpc.setSectionSong.replaceSong.useMutation<Error>();
@@ -149,9 +152,19 @@ export const ReplaceSongDialog: React.FC<ReplaceSongDialogProps> = ({
       minimalPadding
       autoFocusInput={open && dialogStep === "search"}
       className={cn([dialogStep === "confirm" && "max-w-lg"])}
+      onEscapeKeyDown={(event) => {
+        if (dialogStep !== "search") {
+          return;
+        }
+
+        songSearchState.handleSearchEscapeKeyDown(event);
+      }}
     >
       {dialogStep === "search" && (
-        <SongSearch onSongSelect={handleSongSelect} />
+        <SongSearchContent
+          searchState={songSearchState}
+          onSongSelect={handleSongSelect}
+        />
       )}
       {dialogStep === "confirm" && !!selectedSong && (
         <CommandList className="max-h-[calc(100dvh_-_24px)] text-center md:max-h-[calc(100dvh_-_12dvh_-_5dvh)]">

@@ -34,11 +34,15 @@ const SearchShortcutHint = ({ keys, label }: SearchShortcutHintProps) => (
 );
 
 type SearchShortcutLegendProps = {
+  enterShortcutLabel?: string;
   escapeShortcutLabel: string;
+  showActionsShortcut?: boolean;
 };
 
 export const SearchShortcutLegend = ({
+  enterShortcutLabel = "Open",
   escapeShortcutLabel,
+  showActionsShortcut = true,
 }: SearchShortcutLegendProps) => (
   <HStack className="hidden items-center justify-between gap-4 border-t border-slate-100 px-4 py-2.5 text-xs text-slate-500 sm:flex">
     <HStack className="items-center gap-4">
@@ -71,23 +75,25 @@ export const SearchShortcutLegend = ({
             label: "Enter",
           },
         ]}
-        label="Open"
+        label={enterShortcutLabel}
       />
-      <SearchShortcutHint
-        keys={[
-          { content: "Shift", label: "Shift" },
-          {
-            content: (
-              <ArrowElbowDownLeftIcon
-                aria-hidden
-                size={SHORTCUT_ENTER_ICON_SIZE}
-              />
-            ),
-            label: "Enter",
-          },
-        ]}
-        label="Actions"
-      />
+      {showActionsShortcut && (
+        <SearchShortcutHint
+          keys={[
+            { content: "Shift", label: "Shift" },
+            {
+              content: (
+                <ArrowElbowDownLeftIcon
+                  aria-hidden
+                  size={SHORTCUT_ENTER_ICON_SIZE}
+                />
+              ),
+              label: "Enter",
+            },
+          ]}
+          label="Actions"
+        />
+      )}
     </HStack>
     <SearchShortcutHint
       keys={[{ content: "Esc", label: "Escape" }]}

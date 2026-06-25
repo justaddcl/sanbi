@@ -1,3 +1,4 @@
+import { type ComponentProps } from "react";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { createSearchSongResultFixture } from "@testUtils/models/search/fixtures";
 
@@ -15,25 +16,34 @@ class ResizeObserverMock {
 const songResult = createSearchSongResultFixture();
 
 const renderSearchResultsList = ({
+  includeActions = true,
   onAddSongToCurrentSet,
   onAddSongToSet = jest.fn(),
   onSongSelect = jest.fn(),
 }: {
+  includeActions?: boolean;
   onAddSongToCurrentSet?: (result: SearchSongResult) => void;
   onAddSongToSet?: (result: SearchSongResult) => void;
-  onSongSelect?: (songId: string) => void;
+  onSongSelect?: ComponentProps<typeof SearchResultsList>["onSongSelect"];
 } = {}) => {
   render(
     <Command shouldFilter={false}>
       <SearchResultsList
+        actions={
+          includeActions
+            ? {
+                onAddSongToCurrentSet,
+                onAddSongToSet,
+                onOpenSong: (_songId) => onSongSelect(songResult, "song"),
+              }
+            : undefined
+        }
         activeFilter="songs"
         emptyResultsMessage="No results"
         hasOverflow={false}
         isError={false}
         isLoading={false}
         normalizedSearchInput="grace"
-        onAddSongToCurrentSet={onAddSongToCurrentSet}
-        onAddSongToSet={onAddSongToSet}
         onSongSelect={onSongSelect}
         resultCountLabel="1"
         visibleResultCount={1}
@@ -142,5 +152,22 @@ describe("SearchResultsList", () => {
         screen.queryByRole("menuitem", { name: /add to a set/i }),
       ).not.toBeInTheDocument();
     });
+  });
+
+  it("selects the result directly when action menus are disabled", () => {
+    const onSongSelect = jest.fn();
+    const { resultItem } = renderSearchResultsList({
+      includeActions: false,
+      onSongSelect,
+    });
+
+    fireEvent.click(resultItem);
+
+    expect(onSongSelect).toHaveBeenCalledWith(songResult, "song");
+    expect(
+      screen.queryByRole("button", {
+        name: `Open actions for ${songResult.name}`,
+      }),
+    ).not.toBeInTheDocument();
   });
 });
