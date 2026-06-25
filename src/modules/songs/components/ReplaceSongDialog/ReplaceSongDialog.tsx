@@ -59,9 +59,8 @@ export const ReplaceSongDialog: React.FC<ReplaceSongDialogProps> = ({
 
   const [dialogStep, setDialogStep] =
     useState<ReplaceSongDialogSteps>("search");
-  const [selectedSong, setSelectedSong] = useState<SongSearchResult | null>(
-    null,
-  );
+  const [selectedSong, setSelectedSong] =
+    useState<SongSearchResult | null>(null);
 
   const replaceSongMutation =
     trpc.setSectionSong.replaceSong.useMutation<Error>();
@@ -151,7 +150,10 @@ export const ReplaceSongDialog: React.FC<ReplaceSongDialogProps> = ({
       className={cn([dialogStep === "confirm" && "max-w-lg"])}
     >
       {dialogStep === "search" && (
-        <SongSearch onSongSelect={handleSongSelect} />
+        <SongSearch
+          organizationId={userMembership.organizationId}
+          onSongSelect={handleSongSelect}
+        />
       )}
       {dialogStep === "confirm" && !!selectedSong && (
         <CommandList className="max-h-[calc(100dvh_-_24px)] text-center md:max-h-[calc(100dvh_-_12dvh_-_5dvh)]">

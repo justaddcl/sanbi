@@ -45,9 +45,8 @@ export const SongSearchDialog: React.FC<SongSearchDialogProps> = ({
   const router = useRouter();
 
   const [dialogStep, setDialogStep] = useState<SongSearchDialogSteps>("search");
-  const [selectedSong, setSelectedSong] = useState<SongSearchResult | null>(
-    null,
-  );
+  const [selectedSong, setSelectedSong] =
+    useState<SongSearchResult | null>(null);
   const [dismissedPreSelectedSongId, setDismissedPreSelectedSongId] = useState<
     string | null
   >(null);
@@ -70,6 +69,8 @@ export const SongSearchDialog: React.FC<SongSearchDialogProps> = ({
           preferredKey: preSelectedSong.preferredKey,
           isArchived: preSelectedSong.isArchived,
           similarityScore: 0,
+          tags: [],
+          matchedTags: [],
           lastPlayedDate: null,
         }
       : null;
@@ -113,7 +114,7 @@ export const SongSearchDialog: React.FC<SongSearchDialogProps> = ({
   };
 
   const handleSongSelect = (song?: SongSearchResult) => {
-    if (!!song) {
+    if (song) {
       setSelectedSong(song);
       setDialogStep("configure");
     }
@@ -160,7 +161,10 @@ export const SongSearchDialog: React.FC<SongSearchDialogProps> = ({
         <Text>Loading song...</Text>
       )}
       {activeDialogStep === "search" && !isPreSelectedSongLoading && (
-        <SongSearch onSongSelect={handleSongSelect} />
+        <SongSearch
+          organizationId={params.organization}
+          onSongSelect={handleSongSelect}
+        />
       )}
       {activeDialogStep === "configure" && !!activeSelectedSong && (
         <ConfigureSongForSet

@@ -68,7 +68,7 @@ export type AddSongToSetFormFields = z.infer<
 
 export type ConfigureSongForSetProps = {
   existingSetSections: SetSectionWithSongs[];
-  selectedSong: NonNullable<SongSearchResult>;
+  selectedSong: SongSearchResult;
   setDialogStep: Dispatch<SetStateAction<SongSearchDialogSteps>>;
   onSubmit?: () => void;
   setId: string;
