@@ -19,17 +19,17 @@ import { ActionMenu, ActionMenuItem } from "@components/ActionMenu";
 import { Text } from "@components/Text";
 import { VStack } from "@components/VStack";
 import { type SongItemWithActionsMenuProps } from "@modules/SetListCard/components/SongItem";
-import { type SetSectionCardProps } from "@modules/sets/components/SetSectionCard";
+import { type SetSectionCardSectionProps } from "@modules/sets/components/SetSectionCard";
 import { type SwapSetSectionPositionDirection } from "@modules/setSections/api/mutations";
 import { useUserQuery } from "@modules/users/api/queries";
 import { trpc } from "@lib/trpc";
 
 type SetSectionActionMenuProps = {
   /** set section the action menu is attached to */
-  setSection: SetSectionCardProps["section"];
+  setSection: SetSectionCardSectionProps["section"];
 
   /** how many set sections are in the set this section is attached to */
-  setSectionsLength: SetSectionCardProps["setSectionsLength"];
+  setSectionsLength: SetSectionCardSectionProps["setSectionsLength"];
 
   /** the type of set section this song is attached to */
   // setSectionType: string;

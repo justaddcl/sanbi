@@ -1,20 +1,18 @@
 import { Text } from "@components/Text";
 import { VStack } from "@components/VStack";
-import { type SetSectionWithSongs } from "@lib/types";
 import { SongItem } from "@modules/SetListCard";
+import { type NumberedSetSection } from "@modules/sets/utils/getSetSongNumbering";
+import { type SetSectionWithSongs } from "@lib/types";
 
 type SetSectionListProps = {
-  /** The section data including songs, type, and position */
-  section: SetSectionWithSongs;
-
-  /** The 1-based index where this section's songs start in the overall set */
-  sectionStartIndex: number;
+  /** The section data and computed display indexes for its songs */
+  numberedSection: NumberedSetSection<SetSectionWithSongs>;
 };
 
 export const SetSectionList: React.FC<SetSectionListProps> = ({
-  section,
-  sectionStartIndex,
+  numberedSection,
 }) => {
+  const { section, songs: numberedSongs } = numberedSection;
   const { type, songs, setId } = section;
   return (
     <VStack className="gap-y-2">
@@ -23,11 +21,11 @@ export const SetSectionList: React.FC<SetSectionListProps> = ({
       </div>
       {songs &&
         songs.length > 0 &&
-        section.songs.map((setSectionSong) => (
+        numberedSongs.map(({ song: setSectionSong, displayIndex }) => (
           <SongItem
             key={setSectionSong.id}
             setSectionSong={setSectionSong}
-            index={sectionStartIndex + setSectionSong.position}
+            index={displayIndex}
             setId={setId}
             setSectionType={type.name}
             small

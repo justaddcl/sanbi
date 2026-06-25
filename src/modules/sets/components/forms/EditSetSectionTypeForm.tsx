@@ -29,7 +29,7 @@ import { insertSetSectionSchema } from "@lib/types/zod";
 import { cn } from "@lib/utils";
 import { useResponsive } from "@/hooks/useResponsive";
 
-import { type SetSectionCardProps } from "../SetSectionCard";
+import { type SetSectionCardSectionProps } from "../SetSectionCard";
 
 const updateSetSectionSchema = insertSetSectionSchema.pick({
   sectionTypeId: true,
@@ -37,10 +37,7 @@ const updateSetSectionSchema = insertSetSectionSchema.pick({
 
 export type UpdateSetSectionFormFields = z.infer<typeof updateSetSectionSchema>;
 
-type EditSetSectionTypeFormProps = Pick<
-  SetSectionCardProps,
-  "section" | "setSectionsLength" | "withActionsMenu"
-> & {
+type EditSetSectionTypeFormProps = SetSectionCardSectionProps & {
   isExpanded: boolean;
   setIsExpanded: Dispatch<SetStateAction<boolean>>;
   isFirstSection: boolean;
