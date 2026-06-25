@@ -16,6 +16,8 @@ API, editor, import, and export work begins. The model should support structured
 editing and transposition without treating a rendered file or loosely spaced text
 as the canonical record.
 
+Shared terms used by this ADR are defined in the [chord chart glossary](../chord-charts/glossary.md).
+
 ## Decision
 
 Sanbi stores one primary editable structured chord chart per song.
@@ -29,9 +31,9 @@ Generated PDFs are output-only. They may be produced from the primary chart for
 printing, sharing, or download, but Sanbi does not store generated PDFs in v1.
 
 Original uploaded PDFs are not stored in v1. If an import flow extracts text
-from a source file, Sanbi may retain raw import text only as recovery and debug
-context for that chart. Raw import text is not editable chart content and must
-not be used as the rendering source when structured chart data exists.
+from a source file, Sanbi may retain raw import text only as recovery, audit, and
+debug context for that chart. Raw import text is not editable chart content and
+must not be used as the rendering source when structured chart data exists.
 
 Existing external song resources remain separate from chord charts. Song
 resources continue to represent external links associated with a song. They do
