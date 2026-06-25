@@ -1,4 +1,4 @@
-import { type UpdateResourceDataAccess } from "@server/orpc/services/resource/updateResource";
+import { type UpdateResourceDataAccess } from "@server/services/resource/updateResource";
 
 export type MockUpdateResourceDataAccess = {
   findResourceById: jest.MockedFunction<

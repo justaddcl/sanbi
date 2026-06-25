@@ -1,4 +1,4 @@
-import { ORPCError } from "@orpc/server";
+import { TRPCError } from "@trpc/server";
 import { type z } from "zod";
 
 import { type getRouteLogger } from "@lib/loggers/logger";
@@ -36,9 +36,9 @@ export const deleteResourceForOrganization = async ({
       "User is not authorized to delete resources for this organization",
     );
 
-    throw new ORPCError("FORBIDDEN", {
-      message:
-        "User is not authorized to delete resources for this organization",
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "User is not authorized to delete resources for this organization",
     });
   }
 
@@ -48,7 +48,8 @@ export const deleteResourceForOrganization = async ({
   if (!resourceToDelete) {
     logger?.warn?.("Could not find song resource");
 
-    throw new ORPCError("NOT_FOUND", {
+    throw new TRPCError({
+      code: "NOT_FOUND",
       message: "Could not find target song resource",
     });
   }
@@ -56,7 +57,8 @@ export const deleteResourceForOrganization = async ({
   if (resourceToDelete.organizationId !== organizationId) {
     logger?.warn?.("Song resource is not associated with organization");
 
-    throw new ORPCError("FORBIDDEN", {
+    throw new TRPCError({
+      code: "FORBIDDEN",
       message: "Song resource is not associated with this organization",
     });
   }
@@ -69,7 +71,8 @@ export const deleteResourceForOrganization = async ({
   if (!deletedResource) {
     logger?.error?.("Could not delete resource");
 
-    throw new ORPCError("INTERNAL_SERVER_ERROR", {
+    throw new TRPCError({
+      code: "INTERNAL_SERVER_ERROR",
       message: "Could not delete resource",
     });
   }

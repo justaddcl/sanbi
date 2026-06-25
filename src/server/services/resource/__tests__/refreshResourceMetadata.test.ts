@@ -1,30 +1,13 @@
+import { expectTRPCErrorCode } from "@testUtils/models/resource/expectTRPCErrorCode";
 import { createResourceFixture } from "@testUtils/models/resource/fixtures";
 import {
   createResourceName,
   createResourceUrl,
 } from "@testUtils/models/resource/generators";
 import { createRefreshResourceMetadataDataAccessFixture } from "@testUtils/models/resource/refreshResourceMetadataDataAccess";
-import { expectOrpcErrorCode } from "@testUtils/orpc/expectOrpcErrorCode";
-import { type MockOrpcErrorModule } from "@testUtils/orpc/mockOrpcError";
 
 import { refreshResourceMetadataForOrganization } from "../refreshResourceMetadata";
 import { type ResourcePreviewMetadata } from "../resourceMetadata";
-
-jest.mock("@orpc/server", () => {
-  const { mockOrpcErrorModule } = jest.requireActual<{
-    mockOrpcErrorModule: MockOrpcErrorModule;
-  }>("@testUtils/orpc/mockOrpcError");
-
-  return mockOrpcErrorModule;
-});
-
-jest.mock("@orpc/client", () => {
-  const { mockOrpcErrorModule } = jest.requireActual<{
-    mockOrpcErrorModule: MockOrpcErrorModule;
-  }>("@testUtils/orpc/mockOrpcError");
-
-  return mockOrpcErrorModule;
-});
 
 const createResourcePreviewMetadata = (
   overrides: Partial<ResourcePreviewMetadata> = {},
@@ -109,7 +92,7 @@ describe("refreshResourceMetadataForOrganization", () => {
       }),
     );
 
-    await expectOrpcErrorCode(
+    await expectTRPCErrorCode(
       refreshResourceMetadataForOrganization({
         input: {
           resourceId: resource.id,

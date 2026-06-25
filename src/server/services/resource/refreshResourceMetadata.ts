@@ -1,4 +1,4 @@
-import { ORPCError } from "@orpc/server";
+import { TRPCError } from "@trpc/server";
 import { type z } from "zod";
 
 import { type getRouteLogger } from "@lib/loggers/logger";
@@ -52,9 +52,9 @@ export const refreshResourceMetadataForOrganization = async ({
       "User is not authorized to refresh resources for this organization",
     );
 
-    throw new ORPCError("FORBIDDEN", {
-      message:
-        "User is not authorized to refresh resources for this organization",
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "User is not authorized to refresh resources for this organization",
     });
   }
 
@@ -64,7 +64,8 @@ export const refreshResourceMetadataForOrganization = async ({
   if (!resourceToRefresh) {
     logger?.warn?.("Could not find song resource");
 
-    throw new ORPCError("NOT_FOUND", {
+    throw new TRPCError({
+      code: "NOT_FOUND",
       message: "Could not find target song resource",
     });
   }
@@ -72,7 +73,8 @@ export const refreshResourceMetadataForOrganization = async ({
   if (resourceToRefresh.organizationId !== organizationId) {
     logger?.warn?.("Song resource is not associated with organization");
 
-    throw new ORPCError("FORBIDDEN", {
+    throw new TRPCError({
+      code: "FORBIDDEN",
       message: "Song resource is not associated with this organization",
     });
   }
@@ -82,7 +84,8 @@ export const refreshResourceMetadataForOrganization = async ({
   if (refreshedMetadata.status === "failed") {
     logger?.warn?.("Could not refresh resource preview metadata");
 
-    throw new ORPCError("BAD_REQUEST", {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
       message: "Could not refresh resource preview metadata",
     });
   }
@@ -99,7 +102,8 @@ export const refreshResourceMetadataForOrganization = async ({
     if (!updatedResource) {
       logger?.error?.("Could not refresh resource metadata");
 
-      throw new ORPCError("INTERNAL_SERVER_ERROR", {
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
         message: "Could not refresh resource metadata",
       });
     }
@@ -109,7 +113,8 @@ export const refreshResourceMetadataForOrganization = async ({
     if (isUniqueConstraintViolation(error)) {
       logger?.warn?.("URL conflict detected while refreshing metadata");
 
-      throw new ORPCError("CONFLICT", {
+      throw new TRPCError({
+        code: "CONFLICT",
         message: "A resource with this URL already exists for this song",
       });
     }

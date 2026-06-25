@@ -1,4 +1,3 @@
-import { ORPCError } from "@orpc/client";
 import { TRPCError } from "@trpc/server";
 import { isValid as isValidIpAddress } from "ipaddr.js";
 import { toASCII } from "punycode";
@@ -40,7 +39,8 @@ export const DEFAULTS = {
  */
 export const validateUrl = (input: string): string => {
   if (!input) {
-    throw new ORPCError("BAD_REQUEST", {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
       message: ERROR_URL_EMPTY,
     });
   }
@@ -48,7 +48,8 @@ export const validateUrl = (input: string): string => {
   const trimmedInput = input.trim();
 
   if (!trimmedInput) {
-    throw new ORPCError("BAD_REQUEST", {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
       message: ERROR_URL_EMPTY,
     });
   }
@@ -58,7 +59,8 @@ export const validateUrl = (input: string): string => {
   try {
     url = new URL(trimmedInput);
   } catch (error) {
-    throw new ORPCError("BAD_REQUEST", {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
       message: ERROR_URL_MALFORMED,
       cause: error,
     });
@@ -67,21 +69,24 @@ export const validateUrl = (input: string): string => {
   const scheme = url.protocol.replace(":", "");
 
   if (!DEFAULTS.allowedSchemes.includes(scheme)) {
-    throw new ORPCError("BAD_REQUEST", {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
       message: ERROR_INVALID_SCHEME,
       cause: new Error(`Invalid URL scheme: ${scheme}`),
     });
   }
 
   if (url.username || url.password) {
-    throw new ORPCError("BAD_REQUEST", {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
       message: ERROR_CONTAINS_CREDENTIALS,
       cause: new Error(`URL contains username or password`),
     });
   }
 
   if (!url.hostname) {
-    throw new ORPCError("BAD_REQUEST", {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
       message: ERROR_NO_HOSTNAME,
       cause: new Error(`URL contains no hostname: ${url.toString()}`),
     });
@@ -90,7 +95,8 @@ export const validateUrl = (input: string): string => {
   const punyHost = toASCII(url.hostname.replace(/\.$/, "")).toLowerCase();
 
   if (!punyHost) {
-    throw new ORPCError("BAD_REQUEST", {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
       message: ERROR_INVALID_HOSTNAME,
       cause: new Error(`URL contains invalid hostname`),
     });
@@ -99,21 +105,24 @@ export const validateUrl = (input: string): string => {
   url.hostname = punyHost;
 
   if (url.port && !(url.protocol === "https:" && url.port === "443")) {
-    throw new ORPCError("BAD_REQUEST", {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
       message: ERROR_CONTAINS_PORT,
       cause: new Error(`URL contains port`),
     });
   }
 
   if (DEFAULTS.bannedHosts.has(url.hostname)) {
-    throw new ORPCError("BAD_REQUEST", {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
       message: ERROR_BANNED_HOSTNAME,
       cause: new Error(`URL contains banned hostname`),
     });
   }
 
   if (isValidIpAddress(url.hostname)) {
-    throw new ORPCError("BAD_REQUEST", {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
       message: ERROR_CONTAINS_IP,
       cause: new Error(`URL contains IP address`),
     });

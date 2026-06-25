@@ -1,4 +1,4 @@
-import { ORPCError } from "@orpc/server";
+import { TRPCError } from "@trpc/server";
 import { type z } from "zod";
 
 import { type getRouteLogger } from "@lib/loggers/logger";
@@ -46,9 +46,9 @@ export const updateResourceForOrganization = async ({
       "User is not authorized to update resources for this organization",
     );
 
-    throw new ORPCError("FORBIDDEN", {
-      message:
-        "User is not authorized to update resources for this organization",
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "User is not authorized to update resources for this organization",
     });
   }
 
@@ -58,7 +58,8 @@ export const updateResourceForOrganization = async ({
   if (!resourceToUpdate) {
     logger?.warn?.("Could not find song resource");
 
-    throw new ORPCError("NOT_FOUND", {
+    throw new TRPCError({
+      code: "NOT_FOUND",
       message: "Could not find target song resource",
     });
   }
@@ -66,7 +67,8 @@ export const updateResourceForOrganization = async ({
   if (resourceToUpdate.organizationId !== organizationId) {
     logger?.warn?.("Song resource is not associated with organization");
 
-    throw new ORPCError("FORBIDDEN", {
+    throw new TRPCError({
+      code: "FORBIDDEN",
       message: "Song resource is not associated with this organization",
     });
   }
@@ -108,7 +110,8 @@ export const updateResourceForOrganization = async ({
     if (!updatedResource) {
       logger?.error?.("Could not update resource");
 
-      throw new ORPCError("CONFLICT", {
+      throw new TRPCError({
+        code: "CONFLICT",
         message: "Could not update resource",
       });
     }
@@ -120,7 +123,8 @@ export const updateResourceForOrganization = async ({
     if (isUniqueConstraintViolation(error)) {
       logger?.warn?.("URL conflict detected");
 
-      throw new ORPCError("CONFLICT", {
+      throw new TRPCError({
+        code: "CONFLICT",
         message: "A resource with this URL already exists for this song",
       });
     }
