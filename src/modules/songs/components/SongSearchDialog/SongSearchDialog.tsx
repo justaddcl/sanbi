@@ -6,8 +6,9 @@ import { useAuth } from "@clerk/nextjs";
 
 import { CommandDialog } from "@components/ui/command";
 import { Text } from "@components/Text";
+import { useSongSearchResults } from "@modules/search/hooks/useSongSearchResults";
 import {
-  SongSearch,
+  SongSearchContent,
   type SongSearchResult,
 } from "@modules/songs/components/SongSearch";
 import { trpc } from "@lib/trpc";
@@ -45,12 +46,14 @@ export const SongSearchDialog: React.FC<SongSearchDialogProps> = ({
   const router = useRouter();
 
   const [dialogStep, setDialogStep] = useState<SongSearchDialogSteps>("search");
-  const [selectedSong, setSelectedSong] = useState<SongSearchResult | null>(
-    null,
-  );
+  const [selectedSong, setSelectedSong] =
+    useState<SongSearchResult | null>(null);
   const [dismissedPreSelectedSongId, setDismissedPreSelectedSongId] = useState<
     string | null
   >(null);
+  const songSearchState = useSongSearchResults({
+    organizationId: params.organization,
+  });
   const { data: preSelectedSong, isLoading: isPreSelectedSongLoading } =
     trpc.song.get.useQuery(
       {
@@ -70,6 +73,8 @@ export const SongSearchDialog: React.FC<SongSearchDialogProps> = ({
           preferredKey: preSelectedSong.preferredKey,
           isArchived: preSelectedSong.isArchived,
           similarityScore: 0,
+          tags: [],
+          matchedTags: [],
           lastPlayedDate: null,
         }
       : null;
@@ -113,7 +118,7 @@ export const SongSearchDialog: React.FC<SongSearchDialogProps> = ({
   };
 
   const handleSongSelect = (song?: SongSearchResult) => {
-    if (!!song) {
+    if (song) {
       setSelectedSong(song);
       setDialogStep("configure");
     }
@@ -155,12 +160,22 @@ export const SongSearchDialog: React.FC<SongSearchDialogProps> = ({
       animated={activeDialogStep !== "configure"}
       minimalPadding
       autoFocusInput={open && activeDialogStep === "search"}
+      onEscapeKeyDown={(event) => {
+        if (activeDialogStep !== "search") {
+          return;
+        }
+
+        songSearchState.handleSearchEscapeKeyDown(event);
+      }}
     >
       {activeDialogStep === "search" && isPreSelectedSongLoading && (
         <Text>Loading song...</Text>
       )}
       {activeDialogStep === "search" && !isPreSelectedSongLoading && (
-        <SongSearch onSongSelect={handleSongSelect} />
+        <SongSearchContent
+          searchState={songSearchState}
+          onSongSelect={handleSongSelect}
+        />
       )}
       {activeDialogStep === "configure" && !!activeSelectedSong && (
         <ConfigureSongForSet

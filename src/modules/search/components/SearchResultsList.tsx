@@ -15,16 +15,26 @@ import { SearchResultsErrorState } from "./SearchResultsErrorState";
 import { SearchResultsLoadingState } from "./SearchResultsLoadingState";
 import { type SearchSongResult, type TagSearchResult } from "./types";
 
+export type SearchResultMatchType = "song" | "tag";
+
+type SearchResultActionsConfig = {
+  onAddSongToCurrentSet?: (result: SearchSongResult) => void;
+  onAddSongToSet: (result: SearchSongResult) => void;
+  onOpenSong: (songId: string) => void;
+};
+
 type SearchResultsListProps = {
+  actions?: SearchResultActionsConfig;
   activeFilter: SearchFilter;
   emptyResultsMessage: string;
   hasOverflow: boolean;
   isError: boolean;
   isLoading: boolean;
   normalizedSearchInput: string;
-  onAddSongToCurrentSet?: (result: SearchSongResult) => void;
-  onAddSongToSet: (result: SearchSongResult) => void;
-  onSongSelect: (songId: string) => void;
+  onSongSelect: (
+    result: SearchSongResult,
+    matchType: SearchResultMatchType,
+  ) => void;
   resultCountLabel: string;
   visibleResultCount: number;
   visibleSongResults: SearchSongResult[];
@@ -37,14 +47,13 @@ const resultItemClassName =
 const SEARCH_RESULT_GROUP_HEADING_ICON_SIZE = 15;
 
 export const SearchResultsList = ({
+  actions,
   activeFilter,
   emptyResultsMessage,
   hasOverflow,
   isError,
   isLoading,
   normalizedSearchInput,
-  onAddSongToCurrentSet,
-  onAddSongToSet,
   onSongSelect,
   resultCountLabel,
   visibleResultCount,
@@ -52,7 +61,8 @@ export const SearchResultsList = ({
   visibleTagResults,
 }: SearchResultsListProps) => {
   const shouldShowResultGroupHeadings = activeFilter === "all";
-  const canAddToCurrentSet = !!onAddSongToCurrentSet;
+  const canAddToCurrentSet = !!actions?.onAddSongToCurrentSet;
+  const hasResultActions = !!actions;
   const [openActionsSongId, setOpenActionsSongId] = useState<string | null>(
     null,
   );
@@ -60,6 +70,10 @@ export const SearchResultsList = ({
   const suppressNextSongSelectRef = useRef(false);
 
   useEffect(() => {
+    if (!hasResultActions) {
+      return;
+    }
+
     const handleKeyDown = (event: KeyboardEvent) => {
       if (openActionsSongId && event.key === "Enter" && !event.shiftKey) {
         const target = event.target;
@@ -103,7 +117,7 @@ export const SearchResultsList = ({
       document.removeEventListener("keydown", handleKeyDown, {
         capture: true,
       });
-  }, [openActionsSongId]);
+  }, [hasResultActions, openActionsSongId]);
 
   const suppressNextSongSelect = () => {
     suppressNextSongSelectRef.current = true;
@@ -113,7 +127,7 @@ export const SearchResultsList = ({
   };
 
   useEffect(() => {
-    if (!openActionsSongId) {
+    if (!hasResultActions || !openActionsSongId) {
       return;
     }
 
@@ -130,15 +144,22 @@ export const SearchResultsList = ({
     }, 0);
 
     return () => window.clearTimeout(clearStaleOpenActions);
-  }, [openActionsSongId, visibleSongResults, visibleTagResults]);
+  }, [
+    hasResultActions,
+    openActionsSongId,
+    visibleSongResults,
+    visibleTagResults,
+  ]);
 
   const renderSongResultItem = ({
     keyPrefix,
+    matchType,
     result,
     row,
     valuePrefix,
   }: {
     keyPrefix: string;
+    matchType: SearchResultMatchType;
     result: SearchSongResult;
     row: ReactNode;
     valuePrefix: string;
@@ -147,29 +168,37 @@ export const SearchResultsList = ({
       key={`${keyPrefix}-${result.songId}`}
       value={`${valuePrefix}-${result.songId}`}
       data-song-id={result.songId}
+      data-search-match-type={matchType}
       className={resultItemClassName}
       onSelect={() => {
-        if (openActionsSongId || suppressNextSongSelectRef.current) {
+        if (
+          hasResultActions &&
+          (openActionsSongId || suppressNextSongSelectRef.current)
+        ) {
           suppressNextSongSelectRef.current = false;
           return;
         }
 
-        onSongSelect(result.songId);
+        onSongSelect(result, matchType);
       }}
     >
       {row}
-      <SearchResultActions
-        canAddToCurrentSet={canAddToCurrentSet}
-        open={openActionsSongId === result.songId}
-        result={result}
-        onAddToCurrentSet={onAddSongToCurrentSet ?? onAddSongToSet}
-        onAddToSet={onAddSongToSet}
-        onActionSelect={suppressNextSongSelect}
-        onOpenChange={(open) => {
-          setOpenActionsSongId(open ? result.songId : null);
-        }}
-        onOpenSong={onSongSelect}
-      />
+      {actions && (
+        <SearchResultActions
+          canAddToCurrentSet={canAddToCurrentSet}
+          open={openActionsSongId === result.songId}
+          result={result}
+          onAddToCurrentSet={
+            actions.onAddSongToCurrentSet ?? actions.onAddSongToSet
+          }
+          onAddToSet={actions.onAddSongToSet}
+          onActionSelect={suppressNextSongSelect}
+          onOpenChange={(open) => {
+            setOpenActionsSongId(open ? result.songId : null);
+          }}
+          onOpenSong={actions.onOpenSong}
+        />
+      )}
     </CommandItem>
   );
 
@@ -209,6 +238,7 @@ export const SearchResultsList = ({
           {visibleSongResults.map((result) =>
             renderSongResultItem({
               keyPrefix: "song",
+              matchType: "song",
               result,
               row: (
                 <SearchSongRow query={normalizedSearchInput} result={result} />
@@ -243,6 +273,7 @@ export const SearchResultsList = ({
           {visibleTagResults.map((result) =>
             renderSongResultItem({
               keyPrefix: "tag-song",
+              matchType: "tag",
               result,
               row: (
                 <SearchTagMatchedSongRow
