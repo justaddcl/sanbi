@@ -31,6 +31,11 @@ This project is a Next.js web app (bootstrapped by the [T3 Stack](https://create
 
 Playwright E2E setup and required Clerk/Postgres environment variables are documented in [docs/e2e.md](./docs/e2e.md).
 
+## Project Docs
+
+- Chord chart source model: [docs/adr/0001-chord-chart-source-of-truth.md](./docs/adr/0001-chord-chart-source-of-truth.md)
+- Chord chart glossary: [docs/chord-charts/glossary.md](./docs/chord-charts/glossary.md)
+
 ## Copyright & License
 
 Copyright © 2024 justaddcl
