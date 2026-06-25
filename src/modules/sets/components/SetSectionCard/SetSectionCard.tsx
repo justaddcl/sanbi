@@ -3,40 +3,40 @@ import { type FC, useState } from "react";
 import { Card } from "@components/Card/Card";
 import { VStack } from "@components/VStack";
 import { SongItem } from "@modules/SetListCard";
+import { type NumberedSetSection } from "@modules/sets/utils/getSetSongNumbering";
 import { type SetSectionWithSongs } from "@lib/types";
 
 import { EditSetSectionTypeForm } from "../forms/EditSetSectionTypeForm";
 
-export type SetSectionCardProps = {
+export type SetSectionCardSectionProps = {
   /** The section data including songs, type, and position */
   section: SetSectionWithSongs;
 
   /** how many set sections are in the set this section is attached to */
   setSectionsLength: number;
 
-  /** The 1-based index where this section's songs start in the overall set */
-  sectionStartIndex: number;
-
-  /** Whether this is the first section in the set */
-  // isFirstSection: boolean;
-
-  /** Whether this is the last section in the set */
-  // isLastSection: boolean;
-
   /** should the SetSection card have the action menu? */
   withActionsMenu?: boolean;
+};
+
+export type SetSectionCardProps = Omit<
+  SetSectionCardSectionProps,
+  "section"
+> & {
+  /** The section data and computed display indexes for its songs */
+  numberedSection: NumberedSetSection<SetSectionCardSectionProps["section"]>;
 
   /** Opens the add-song dialog scoped to this section. */
   onAddSongClick?: () => void;
 };
 
 export const SetSectionCard: FC<SetSectionCardProps> = ({
-  section,
+  numberedSection,
   setSectionsLength,
-  sectionStartIndex,
   withActionsMenu,
   onAddSongClick,
 }) => {
+  const { section, songs: numberedSongs } = numberedSection;
   const { type, songs, setId, position } = section;
 
   const isFirstSection = position === 0;
@@ -64,11 +64,11 @@ export const SetSectionCard: FC<SetSectionCardProps> = ({
         <VStack className="gap-1">
           {songs &&
             songs.length > 0 &&
-            section.songs.map((setSectionSong) => (
+            numberedSongs.map(({ song: setSectionSong, displayIndex }) => (
               <SongItem
                 key={setSectionSong.id}
                 setSectionSong={setSectionSong}
-                index={sectionStartIndex + setSectionSong.position}
+                index={displayIndex}
                 setId={setId}
                 setSectionType={type.name}
                 isInFirstSection={isFirstSection}
