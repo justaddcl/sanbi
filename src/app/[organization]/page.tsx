@@ -1,5 +1,8 @@
-import { PageTitle } from "@/components";
-import { pluralize } from "@/lib/string";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { eq } from "drizzle-orm";
+import { validate as uuidValidate } from "uuid";
+
 import { PageContentContainer } from "@components/PageContentContainer";
 import { VStack } from "@components/VStack";
 import {
@@ -7,12 +10,11 @@ import {
   SetListCardSection,
   SongItem,
 } from "@modules/SetListCard";
+import { getSetSongNumbering } from "@modules/sets/utils/getSetSongNumbering";
+import { pluralize } from "@lib/string";
 import { db } from "@server/db";
 import { sets } from "@server/db/schema";
-import { eq } from "drizzle-orm";
-import Link from "next/link";
-import { notFound } from "next/navigation";
-import { validate as uuidValidate } from "uuid";
+import { PageTitle } from "@/components";
 
 export default async function Dashboard({
   params,
@@ -82,39 +84,29 @@ export default async function Dashboard({
                 )}
               />
               <VStack className="gap-6">
-                {orgSet.sections.map((section) => (
-                  <SetListCardSection
-                    key={section.id}
-                    title={section.type.name}
-                  >
-                    {section.songs.map((setSectionSong) => {
-                      let indexStart = 1;
-
-                      for (
-                        let sectionPosition = 0;
-                        sectionPosition < section.position;
-                        sectionPosition++
-                      ) {
-                        indexStart +=
-                          orgSet.sections[sectionPosition]!.songs.length;
-                      }
-                      return (
+                {getSetSongNumbering(orgSet.sections).map(
+                  ({ section, songs }) => (
+                    <SetListCardSection
+                      key={section.id}
+                      title={section.type.name}
+                    >
+                      {songs.map(({ song: setSectionSong, displayIndex }) => (
                         <Link
                           key={setSectionSong.songId}
                           href={`/${organization}/songs/${setSectionSong.songId}`}
                           className="relative z-10"
                         >
                           <SongItem
-                            index={indexStart + setSectionSong.position}
+                            index={displayIndex}
                             setSectionSong={setSectionSong}
                             setSectionType={section.type.name}
                             setId={orgSet.id}
                           />
                         </Link>
-                      );
-                    })}
-                  </SetListCardSection>
-                ))}
+                      ))}
+                    </SetListCardSection>
+                  ),
+                )}
               </VStack>
             </VStack>
           </div>

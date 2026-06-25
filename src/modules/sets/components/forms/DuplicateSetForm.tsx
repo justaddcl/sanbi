@@ -18,10 +18,10 @@ import { VStack } from "@components/VStack";
 import { useSetQuery } from "@modules/sets/api";
 import { type CreateSetFormFields } from "@modules/sets/components/CreateSetForm";
 import { SetDatePickerFormField } from "@modules/sets/components/forms/SetDatePickerFormField";
+import { getSetSongNumbering } from "@modules/sets/utils/getSetSongNumbering";
 import { useUserQuery } from "@modules/users/api/queries";
 import { sanitizeInput } from "@lib/string";
 import { trpc } from "@lib/trpc";
-import { type SetSectionWithSongs } from "@lib/types";
 import { insertSetSchema } from "@lib/types/zod";
 import { useResponsive } from "@/hooks/useResponsive";
 
@@ -134,7 +134,7 @@ export const DuplicateSetForm: React.FC<DuplicateSetFormProps> = ({
             >
               <CollapsibleTrigger>
                 <HStack className="gap-4">
-                  <Text className="text-sm font-medium leading-none">
+                  <Text className="text-sm leading-none font-medium">
                     Songs
                   </Text>
                   {isSectionsAndSongsOpen ? <CaretUp /> : <CaretDown />}
@@ -144,24 +144,14 @@ export const DuplicateSetForm: React.FC<DuplicateSetFormProps> = ({
                 {setQueryLoading && <Text>Loading...</Text>}
                 {!setQueryLoading && setData && (
                   <VStack className="mt-2 gap-6 lg:gap-8">
-                    {setData.sections.map((section) => {
-                      let sectionStartIndex = 1;
-                      for (
-                        let sectionPosition = 0;
-                        sectionPosition < section.position;
-                        sectionPosition++
-                      ) {
-                        sectionStartIndex +=
-                          setData.sections[sectionPosition]!.songs.length;
-                      }
-                      return (
+                    {getSetSongNumbering(setData.sections).map(
+                      (numberedSection) => (
                         <SetSectionList
-                          key={section.id}
-                          section={section as SetSectionWithSongs}
-                          sectionStartIndex={sectionStartIndex}
+                          key={numberedSection.section.id}
+                          numberedSection={numberedSection}
                         />
-                      );
-                    })}
+                      ),
+                    )}
                   </VStack>
                 )}
               </CollapsibleContent>
