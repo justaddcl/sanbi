@@ -41,8 +41,7 @@ export const createOrganizationMembershipWithOrganizationFixture = (
 ): OrganizationMembershipWithOrganization => {
   const { organization: organizationOverride, ...membershipOverrides } =
     overrides;
-  const organization =
-    organizationOverride ?? createOrganizationFixture(organizationOverride);
+  const organization = organizationOverride ?? createOrganizationFixture();
 
   return {
     ...createOrganizationMembershipFixture({

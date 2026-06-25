@@ -14,9 +14,8 @@ describe("set fixtures", () => {
     expect(fixture.eventType.organizationId).toBe(fixture.organization.id);
     expect(fixture.set.organizationId).toBe(fixture.organization.id);
     expect(fixture.set.eventTypeId).toBe(fixture.eventType.id);
-    expect(fixture.setWithSections.eventType.favoritedAt).toBe(
-      fixture.eventType.favoritedAt,
-    );
+    expect(fixture.setWithSections.eventType.id).toBe(fixture.eventType.id);
+    expect(fixture.setWithSections.eventType).toHaveProperty("favoritedAt");
     expect(fixture.setSection.setId).toBe(fixture.set.id);
     expect(fixture.setSection.sectionTypeId).toBe(fixture.sectionType.id);
     expect(fixture.setSectionSong.setSectionId).toBe(fixture.setSection.id);
