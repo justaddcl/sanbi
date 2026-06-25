@@ -61,11 +61,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     const buttonClassName = cn(buttonVariants({ variant, size, className }));
 
     if (asChild) {
-      return (
-        <Slot className={buttonClassName} ref={ref} {...props}>
-          {props.children}
-        </Slot>
-      );
+      return <Slot className={buttonClassName} ref={ref} {...props} />;
     }
 
     return (
