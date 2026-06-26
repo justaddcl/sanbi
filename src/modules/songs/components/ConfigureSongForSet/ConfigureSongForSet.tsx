@@ -39,6 +39,7 @@ import { HStack } from "@components/HStack";
 import { Text } from "@components/Text";
 import { VStack } from "@components/VStack";
 import { SetSectionTypeCombobox } from "@modules/sets/components/SetSectionTypeCombobox";
+import { useCreateSetSection } from "@modules/setSections/hooks";
 import { SongListItem } from "@modules/songs/components/SongListItem";
 import { type SongSearchResult } from "@modules/songs/components/SongSearch";
 import { type SongSearchDialogSteps } from "@modules/songs/components/SongSearchDialog";
@@ -104,7 +105,6 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
   const {
     formState: { isDirty, isSubmitting, isValid },
     setValue,
-    setError,
     clearErrors,
   } = addSongToSetForm;
 
@@ -120,7 +120,8 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
   const shouldAddSongBeDisabled = !isDirty || !isValid || isSubmitting;
 
   const addSetSectionSongMutation = trpc.setSectionSong.create.useMutation();
-  const createSetSectionMutation = trpc.setSection.create.useMutation();
+  const { createSetSection, isPending: isCreateSetSectionPending } =
+    useCreateSetSection();
   const apiUtils = trpc.useUtils();
 
   const {
@@ -175,58 +176,22 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
   ) => {
     clickEvent.preventDefault();
 
-    if (!newSetSectionType) {
-      // TODO: this case shouldn't happen, but how would we properly handle it just in case?
-      return;
-    }
+    const result = await createSetSection({
+      setId,
+      organizationId: userMembership.organizationId,
+      sectionType: newSetSectionType,
+      existingSetSections: sectionsForSetData,
+    });
 
-    const setAlreadyHasSelectedSection = sectionsForSetData.some(
-      (setSection) => setSection.sectionTypeId === newSetSectionType.id,
-    );
-
-    if (!setAlreadyHasSelectedSection) {
-      const positionForNewSetSection = sectionsForSetData.length;
-
-      await createSetSectionMutation.mutateAsync(
-        {
-          setId,
-          organizationId: userMembership.organizationId,
-          sectionTypeId: newSetSectionType.id,
-          position: positionForNewSetSection,
-        },
-        {
-          async onSuccess(createSetSectionMutationResult) {
-            const [newSetSection] = createSetSectionMutationResult;
-
-            if (newSetSection) {
-              setValue("setSectionId", newSetSection.id, {
-                shouldValidate: true,
-                shouldDirty: true,
-                shouldTouch: true,
-              });
-
-              setNewSetSectionType(null);
-
-              toast.success(`Section added to set`);
-
-              await apiUtils.setSection.getSectionsForSet.refetch({
-                organizationId: userMembership.organizationId,
-                setId,
-              });
-
-              await apiUtils.set.get.invalidate({
-                setId,
-                organizationId: userMembership.organizationId,
-              });
-            }
-          },
-        },
-      );
-    } else {
-      setError("setSectionId", {
-        type: "custom",
-        message: "Section already exists on set",
+    if (result.status === "created") {
+      setValue("setSectionId", result.setSection.id, {
+        shouldValidate: true,
+        shouldDirty: true,
+        shouldTouch: true,
       });
+
+      setNewSetSectionType(null);
+      clearErrors("setSectionId");
     }
   };
 
@@ -534,9 +499,9 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
                           disabled={
                             !newSetSectionType ||
                             newSetSectionType.id === "" ||
-                            createSetSectionMutation.isPending
+                            isCreateSetSectionPending
                           }
-                          isLoading={createSetSectionMutation.isPending}
+                          isLoading={isCreateSetSectionPending}
                           className={cn(textSize)}
                         >
                           Add section to set
