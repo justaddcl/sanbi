@@ -24,6 +24,10 @@ export type MutationCallbacks<Result = unknown> = {
   onSettled?: () => void;
 };
 
+type QueryOptions = {
+  enabled?: boolean;
+};
+
 type CreateTagInput = {
   organizationId: string;
   tag: string;
@@ -125,7 +129,13 @@ export const mockTrpc = {
       }),
     },
     getByOrganization: {
-      useQuery: jest.fn(() => mockOrganizationTagsQuery),
+      useQuery: jest.fn((_input: unknown, options?: QueryOptions) => {
+        if (options?.enabled === false) {
+          return createQueryResult<Tag[] | undefined>(undefined);
+        }
+
+        return mockOrganizationTagsQuery;
+      }),
     },
   },
   useUtils: jest.fn(() => ({

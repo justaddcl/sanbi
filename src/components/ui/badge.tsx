@@ -53,7 +53,7 @@ function Badge({
             closeEvent.stopPropagation();
             onDismiss();
           }}
-          aria-label={dismissLabel}
+          aria-label={dismissLabel ?? "Remove"}
           disabled={onDismissPending}
           className="ring-offset-background focus:ring-ring ml-2 rounded-full outline-hidden focus:ring-2 focus:ring-offset-2"
         >

@@ -251,9 +251,8 @@ describe("SongTagSelector", () => {
 
     renderSongTagSelector();
 
-    expect(
-      screen.queryByRole("button", { name: "Add Tag" }),
-    ).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Add Tag" }));
+
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith(
         `Could not get the tags for your team: ${queryError.message}`,
