@@ -105,9 +105,7 @@ test("adds a song to a section from set detail", async ({ page }, testInfo) => {
 
   const dialog = page.getByRole("dialog");
   await expect(dialog).toBeVisible();
-  await dialog
-    .getByPlaceholder("Search songs or tags")
-    .fill(songToAdd.name);
+  await dialog.getByPlaceholder("Search songs or tags").fill(e2eData.tag.tag);
   await expect(dialog.getByText(songToAdd.name, { exact: true })).toBeVisible();
   await dialog.getByText(songToAdd.name, { exact: true }).click();
 

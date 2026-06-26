@@ -283,10 +283,20 @@ export const seedE2eDatabase = async () => {
     organizationId: e2eIds.organizationId,
   };
 
-  const songTag: NewSongTag = {
-    songId: e2eIds.firstSongId,
-    tagId: e2eIds.tagId,
-  };
+  const seededSongTags: NewSongTag[] = [
+    {
+      songId: e2eIds.firstSongId,
+      tagId: e2eIds.tagId,
+    },
+    {
+      songId: e2eIds.addSongToSetDesktopSongId,
+      tagId: e2eIds.tagId,
+    },
+    {
+      songId: e2eIds.addSongToSetMobileSongId,
+      tagId: e2eIds.tagId,
+    },
+  ];
 
   const resource: NewResource = {
     id: e2eIds.resourceId,
@@ -315,7 +325,7 @@ export const seedE2eDatabase = async () => {
   await db.insert(songs).values(seededSongs);
   await db.insert(setSectionSongs).values(setSongs);
   await db.insert(tags).values(tag);
-  await db.insert(songTags).values(songTag);
+  await db.insert(songTags).values(seededSongTags);
   await db.insert(resources).values(resource);
 
   console.log("E2E database seed completed.");
