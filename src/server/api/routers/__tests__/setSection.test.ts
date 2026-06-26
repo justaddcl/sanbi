@@ -35,6 +35,7 @@ type MockSetSectionRouterDb = {
       findFirst: jest.Mock;
     };
     setSections: {
+      findMany?: jest.Mock;
       findFirst: jest.Mock;
     };
   };
@@ -392,6 +393,49 @@ describe("setSectionRouter", () => {
       ).rejects.toMatchObject({
         code: "INTERNAL_SERVER_ERROR",
         message: `Failed to delete set section ${setSectionId}`,
+      });
+    });
+  });
+
+  describe("getSectionsForSet", () => {
+    it("returns sections and songs ordered by their set positions", async () => {
+      const setId = createUuid();
+      const sectionsForSet = [
+        createSetSectionFixture({ organizationId, position: 0, setId }),
+        createSetSectionFixture({ organizationId, position: 1, setId }),
+      ];
+      const findMany = jest.fn().mockResolvedValue(sectionsForSet);
+      const db = {
+        query: {
+          organizationMemberships: {
+            findFirst: jest.fn().mockResolvedValue(membership),
+          },
+          setSections: {
+            findMany,
+            findFirst: jest.fn(),
+          },
+        },
+        transaction: jest.fn(),
+        delete: jest.fn(),
+        update: jest.fn(),
+      };
+
+      await expect(
+        createCaller(db).getSectionsForSet({ organizationId, setId }),
+      ).resolves.toEqual(sectionsForSet);
+
+      expect(findMany).toHaveBeenCalledWith({
+        where: eq(setSections.setId, setId),
+        orderBy: expect.any(Function) as unknown,
+        with: {
+          type: true,
+          songs: {
+            orderBy: expect.any(Function) as unknown,
+            with: {
+              song: true,
+            },
+          },
+        },
       });
     });
   });

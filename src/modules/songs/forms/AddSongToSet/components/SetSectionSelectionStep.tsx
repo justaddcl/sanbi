@@ -11,7 +11,7 @@ import { VStack } from "@components/VStack";
 import { SongContent } from "@modules/SetListCard/components/SongContent";
 import { SetSectionTypeCombobox } from "@modules/sets/components/SetSectionTypeCombobox";
 import { SelectedSetCard } from "@modules/songs/forms/AddSongToSet/components";
-import { type SelectedSet } from "@modules/songs/forms/AddSongToSet/components/AddSongToSetDialog";
+import { type SelectedSet } from "@modules/songs/forms/AddSongToSet/components/addSongToSetWorkflow";
 import { useUserQuery } from "@modules/users/api/queries";
 import { trpc } from "@lib/trpc";
 import { cn } from "@lib/utils";
@@ -40,8 +40,8 @@ export const SetSectionSelectionStep: React.FC<
 
   const { data: setData } = trpc.set.get.useQuery(
     {
-      setId: selectedSet!.id,
-      organizationId: userMembership!.organizationId,
+      setId: selectedSet?.id ?? "",
+      organizationId: userMembership?.organizationId ?? "",
     },
     {
       enabled: !!selectedSet && !!userMembership,
@@ -80,44 +80,48 @@ export const SetSectionSelectionStep: React.FC<
     if (!setAlreadyHasSelectedSection) {
       const positionForNewSetSection = setData.sections.length;
 
-      await createSetSectionMutation.mutateAsync(
-        {
-          setId: setData.id,
-          organizationId: userMembership.organizationId,
-          sectionTypeId: newSetSectionType.id,
-          position: positionForNewSetSection,
-        },
-        {
-          async onSuccess(createSetSectionMutationResult) {
-            const [newSetSection] = createSetSectionMutationResult;
+      try {
+        const createSetSectionMutationResult =
+          await createSetSectionMutation.mutateAsync({
+            setId: setData.id,
+            organizationId: userMembership.organizationId,
+            sectionTypeId: newSetSectionType.id,
+            position: positionForNewSetSection,
+          });
 
-            if (newSetSection) {
-              setNewSetSectionType(null);
+        const [newSetSection] = createSetSectionMutationResult;
 
-              toast.success(`Section added to set`, { id: toastId });
+        if (newSetSection) {
+          setNewSetSectionType(null);
 
-              await apiUtils.setSection.getSectionsForSet.refetch({
-                organizationId: userMembership.organizationId,
-                setId: setData.id,
-              });
+          toast.success(`Section added to set`, { id: toastId });
 
-              await apiUtils.set.get.invalidate({
-                setId: setData.id,
-                organizationId: userMembership.organizationId,
-              });
+          try {
+            await apiUtils.setSection.getSectionsForSet.refetch({
+              organizationId: userMembership.organizationId,
+              setId: setData.id,
+            });
 
-              onSelectSetSection(newSetSection.id, 0);
-            }
-          },
+            await apiUtils.set.get.invalidate({
+              setId: setData.id,
+              organizationId: userMembership.organizationId,
+            });
+          } catch (error) {
+            console.error("Failed to refresh set section data", error);
+          }
 
-          onError(createSetSectionError) {
-            toast.error(
-              `Could not add section to set: ${createSetSectionError.message}`,
-              { id: toastId },
-            );
-          },
-        },
-      );
+          onSelectSetSection(newSetSection.id, 0);
+        }
+      } catch (createSetSectionError) {
+        const errorMessage =
+          createSetSectionError instanceof Error
+            ? createSetSectionError.message
+            : "Unknown error";
+
+        toast.error(`Could not add section to set: ${errorMessage}`, {
+          id: toastId,
+        });
+      }
     } else {
       toast.error("Section already exists on set", { id: toastId });
     }
