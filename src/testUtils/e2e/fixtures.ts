@@ -106,4 +106,17 @@ export const e2eData = {
     title: "E2E Chart",
     url: "https://example.com/e2e-chart",
   },
+  resourceLifecycle: {
+    host: "resource-lifecycle.invalid",
+    desktop: {
+      createTitle: "E2E Desktop Lifecycle Chart",
+      updatedTitle: "E2E Desktop Lifecycle Chart Updated",
+      url: "https://resource-lifecycle.invalid/desktop",
+    },
+    mobile: {
+      createTitle: "E2E Mobile Lifecycle Chart",
+      updatedTitle: "E2E Mobile Lifecycle Chart Updated",
+      url: "https://resource-lifecycle.invalid/mobile",
+    },
+  },
 } as const;
