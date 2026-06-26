@@ -45,15 +45,6 @@ const handler = async (req: NextRequest) => {
       req,
       router: appRouter,
       createContext: () => createContext(req, requestId, requestLogger),
-      onError: ({ path, error }) => {
-        requestLogger.error(
-          {
-            error,
-            path,
-          },
-          `tRPC failed on ${path ?? "<no-path>"}: ${error.message}`,
-        );
-      },
     });
 
     requestLogger.info(
