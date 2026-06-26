@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Plus } from "@phosphor-icons/react";
-import { toast } from "sonner";
 
 import { Button } from "@components/ui/button";
 import { type ComboboxOption } from "@components/ui/combobox";
@@ -10,6 +9,7 @@ import { Text } from "@components/Text";
 import { VStack } from "@components/VStack";
 import { SongContent } from "@modules/SetListCard/components/SongContent";
 import { SetSectionTypeCombobox } from "@modules/sets/components/SetSectionTypeCombobox";
+import { useCreateSetSection } from "@modules/setSections/hooks";
 import { SelectedSetCard } from "@modules/songs/forms/AddSongToSet/components";
 import { type SelectedSet } from "@modules/songs/forms/AddSongToSet/components/addSongToSetWorkflow";
 import { useUserQuery } from "@modules/users/api/queries";
@@ -35,8 +35,8 @@ export const SetSectionSelectionStep: React.FC<
   const { textSize, isDesktop } = useResponsive();
   const { userMembership } = useUserQuery();
 
-  const createSetSectionMutation = trpc.setSection.create.useMutation();
-  const apiUtils = trpc.useUtils();
+  const { createSetSection, isPending: isCreateSetSectionPending } =
+    useCreateSetSection();
 
   const { data: setData } = trpc.set.get.useQuery(
     {
@@ -66,64 +66,16 @@ export const SetSectionSelectionStep: React.FC<
   ) => {
     clickEvent.preventDefault();
 
-    if (!newSetSectionType) {
-      // TODO: this case shouldn't happen, but how would we properly handle it just in case?
-      return;
-    }
+    const result = await createSetSection({
+      setId: setData.id,
+      organizationId: userMembership.organizationId,
+      sectionType: newSetSectionType,
+      existingSetSections: setData.sections,
+    });
 
-    const setAlreadyHasSelectedSection = setData?.sections.some(
-      (setSection) => setSection.sectionTypeId === newSetSectionType.id,
-    );
-
-    const toastId = toast.loading("Adding section to set...");
-
-    if (!setAlreadyHasSelectedSection) {
-      const positionForNewSetSection = setData.sections.length;
-
-      try {
-        const createSetSectionMutationResult =
-          await createSetSectionMutation.mutateAsync({
-            setId: setData.id,
-            organizationId: userMembership.organizationId,
-            sectionTypeId: newSetSectionType.id,
-            position: positionForNewSetSection,
-          });
-
-        const [newSetSection] = createSetSectionMutationResult;
-
-        if (newSetSection) {
-          setNewSetSectionType(null);
-
-          toast.success(`Section added to set`, { id: toastId });
-
-          try {
-            await apiUtils.setSection.getSectionsForSet.refetch({
-              organizationId: userMembership.organizationId,
-              setId: setData.id,
-            });
-
-            await apiUtils.set.get.invalidate({
-              setId: setData.id,
-              organizationId: userMembership.organizationId,
-            });
-          } catch (error) {
-            console.error("Failed to refresh set section data", error);
-          }
-
-          onSelectSetSection(newSetSection.id, 0);
-        }
-      } catch (createSetSectionError) {
-        const errorMessage =
-          createSetSectionError instanceof Error
-            ? createSetSectionError.message
-            : "Unknown error";
-
-        toast.error(`Could not add section to set: ${errorMessage}`, {
-          id: toastId,
-        });
-      }
-    } else {
-      toast.error("Section already exists on set", { id: toastId });
+    if (result.status === "created") {
+      setNewSetSectionType(null);
+      onSelectSetSection(result.setSection.id, 0);
     }
   };
 
@@ -226,9 +178,9 @@ export const SetSectionSelectionStep: React.FC<
                   disabled={
                     !newSetSectionType ||
                     newSetSectionType.id === "" ||
-                    createSetSectionMutation.isPending
+                    isCreateSetSectionPending
                   }
-                  isLoading={createSetSectionMutation.isPending}
+                  isLoading={isCreateSetSectionPending}
                   className={cn(textSize)}
                 >
                   Add section to set
