@@ -1,7 +1,7 @@
 import { createTagFixture } from "@testUtils/fixtures/tags";
 import { createUuid } from "@testUtils/generators/createUuid";
 
-import { type Tag } from "@lib/types";
+import { type SetSection, type Tag } from "@lib/types";
 
 export type SongTagResult = {
   songId: string;
@@ -33,6 +33,13 @@ type CreateTagInput = {
   tag: string;
 };
 
+type CreateSetSectionInput = {
+  organizationId: string;
+  setId: string;
+  sectionTypeId: string;
+  position: number;
+};
+
 const createQueryResult = <Data>(data: Data): QueryResult<Data> => ({
   data,
   error: null,
@@ -43,6 +50,24 @@ let mockOrganizationTagsQuery = createQueryResult<Tag[]>([]);
 let mockSongTagsQuery = createQueryResult<SongTagResult[]>([]);
 let mockCreatedTag: Tag | undefined;
 let mockCreateTagHookCallbacks: MutationCallbacks<Tag> | undefined;
+let mockCreatedSetSection: SetSection | undefined;
+
+const createSetSectionMutationResult = async (
+  input: unknown,
+): Promise<SetSection[]> => {
+  const createInput = input as Partial<CreateSetSectionInput>;
+  const createdSetSection =
+    mockCreatedSetSection ??
+    ({
+      id: createUuid(),
+      organizationId: createInput.organizationId ?? createUuid(),
+      setId: createInput.setId ?? createUuid(),
+      sectionTypeId: createInput.sectionTypeId ?? createUuid(),
+      position: createInput.position ?? 0,
+    } as SetSection);
+
+  return [createdSetSection];
+};
 
 export const mockCreateSongTagMutate = jest.fn(
   (_input: unknown, callbacks?: MutationCallbacks) => {
@@ -75,9 +100,15 @@ export const mockCreateTagMutate = jest.fn(
   },
 );
 
+export const mockCreateSetSectionMutateAsync = jest.fn(
+  createSetSectionMutationResult,
+);
+
 export const mockInvalidateSongTags = jest.fn();
 export const mockInvalidateSong = jest.fn();
 export const mockInvalidateOrganizationTags = jest.fn();
+export const mockRefetchSetSections = jest.fn();
+export const mockInvalidateSet = jest.fn();
 
 export const setMockOrganizationTagsQuery = (
   queryResult: QueryResult<Tag[]>,
@@ -95,14 +126,43 @@ export const setMockCreatedTag = (tag: Tag) => {
   mockCreatedTag = tag;
 };
 
+export const setMockCreatedSetSection = (setSection: SetSection) => {
+  mockCreatedSetSection = setSection;
+};
+
 export const resetMockTrpc = () => {
   mockOrganizationTagsQuery = createQueryResult([]);
   mockSongTagsQuery = createQueryResult([]);
   mockCreatedTag = undefined;
   mockCreateTagHookCallbacks = undefined;
+  mockCreatedSetSection = undefined;
+  mockCreateSetSectionMutateAsync.mockReset();
+  mockCreateSetSectionMutateAsync.mockImplementation(
+    createSetSectionMutationResult,
+  );
+  mockRefetchSetSections.mockReset();
+  mockRefetchSetSections.mockResolvedValue(undefined);
+  mockInvalidateSet.mockReset();
+  mockInvalidateSet.mockResolvedValue(undefined);
 };
 
 export const mockTrpc = {
+  set: {
+    get: {
+      invalidate: mockInvalidateSet,
+    },
+  },
+  setSection: {
+    create: {
+      useMutation: jest.fn(() => ({
+        mutateAsync: mockCreateSetSectionMutateAsync,
+        isPending: false,
+      })),
+    },
+    getSectionsForSet: {
+      refetch: mockRefetchSetSections,
+    },
+  },
   songTag: {
     create: {
       useMutation: jest.fn(() => ({
@@ -139,6 +199,16 @@ export const mockTrpc = {
     },
   },
   useUtils: jest.fn(() => ({
+    set: {
+      get: {
+        invalidate: mockInvalidateSet,
+      },
+    },
+    setSection: {
+      getSectionsForSet: {
+        refetch: mockRefetchSetSections,
+      },
+    },
     song: {
       get: {
         invalidate: mockInvalidateSong,
