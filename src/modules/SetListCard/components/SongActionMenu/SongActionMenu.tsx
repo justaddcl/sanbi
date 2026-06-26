@@ -23,7 +23,7 @@ import { type SetSectionSongWithSongData } from "@lib/types";
 import {
   type MoveSectionDirection,
   type SwapSongDirection,
-} from "@server/mutations";
+} from "@server/services/setSectionSong/setSectionSongMutations";
 
 type SongActionMenuProps = {
   /** set section song object */
