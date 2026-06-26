@@ -182,7 +182,9 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
     const validationResult = tagNameSchema.safeParse(trimmedTag);
 
     if (!validationResult.success) {
-      const [formattedError] = z.flattenError(validationResult.error).formErrors;
+      const [formattedError] = z.flattenError(
+        validationResult.error,
+      ).formErrors;
       toast.error(formattedError);
       return;
     }
@@ -374,7 +376,11 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
               </HStack>
 
               {isLoading ? (
-                <VStack className="gap-6 p-5">
+                <VStack
+                  aria-label="Loading tags"
+                  className="gap-6 p-5"
+                  role="status"
+                >
                   <HStack className="h-5 justify-between">
                     <HStack className="gap-3">
                       <Skeleton className="w-4" />
@@ -395,17 +401,25 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
                   </HStack>
                 </VStack>
               ) : (
-                <ScrollArea className="max-h-[600px] flex-1 px-1 py-2">
+                <ScrollArea
+                  aria-label="Available tags"
+                  className="max-h-[600px] flex-1 px-1 py-2"
+                  role="group"
+                >
                   {filteredTags.length > 0 &&
                     filteredTags.map((tag, index: number) => {
                       const isSelected = isTagSelected(tag.id);
 
                       return (
                         <HStack
+                          as="button"
                           key={tag.id}
+                          type="button"
+                          aria-label={`${isSelected ? "Remove" : "Add"} ${tag.tag} tag`}
+                          aria-pressed={isSelected}
                           onClick={() => handleTagSelect(tag)}
                           className={cn(
-                            "items-center justify-between rounded-lg px-3 py-3 text-sm transition-colors",
+                            "w-full items-center justify-between rounded-lg px-3 py-3 text-left text-sm transition-colors",
                             "cursor-pointer",
                             "hover:bg-slate-100",
                           )}
@@ -426,9 +440,12 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
                     })}
                   {showCreateOption && (
                     <HStack
+                      as="button"
+                      type="button"
+                      aria-label={`Create ${search} tag`}
                       onClick={handleCreateTag}
                       className={cn(
-                        "items-center justify-between rounded-lg px-3 py-3 text-sm transition-colors",
+                        "w-full items-center justify-between rounded-lg px-3 py-3 text-left text-sm transition-colors",
                         "cursor-pointer",
                         "hover:bg-slate-100",
                       )}
@@ -538,7 +555,11 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
               </div>
             )} */}
             {isLoading ? (
-              <VStack className="gap-4 p-5">
+              <VStack
+                aria-label="Loading tags"
+                className="gap-4 p-5"
+                role="status"
+              >
                 <HStack className="h-5 justify-between">
                   <HStack className="gap-3">
                     <Skeleton className="w-4" />
@@ -560,17 +581,21 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
               </VStack>
             ) : (
               <ScrollArea className="h-full px-3">
-                <div className="py-2">
+                <div aria-label="Available tags" className="py-2" role="group">
                   {filteredTags.length > 0 &&
                     filteredTags.map((tag, index) => {
                       const isSelected = isTagSelected(tag.id);
 
                       return (
                         <HStack
+                          as="button"
                           key={tag.id}
+                          type="button"
+                          aria-label={`${isSelected ? "Remove" : "Add"} ${tag.tag} tag`}
+                          aria-pressed={isSelected}
                           onClick={() => handleTagSelect(tag)}
                           className={cn(
-                            "mx-1 items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors",
+                            "mx-1 w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm transition-colors",
                             "cursor-pointer",
                             "hover:bg-slate-100",
                             highlightedIndex === index && "bg-slate-100",
@@ -592,9 +617,12 @@ export const SongTagSelector: React.FC<SongTagSelectorProps> = ({
                     })}
                   {showCreateOption && (
                     <HStack
+                      as="button"
+                      type="button"
+                      aria-label={`Create ${search} tag`}
                       onClick={handleCreateTag}
                       className={cn(
-                        "mx-1 items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors",
+                        "mx-1 w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm transition-colors",
                         "cursor-pointer",
                         "hover:bg-slate-100",
                         highlightedIndex === filteredTags.length &&
