@@ -3,6 +3,7 @@ import { sql } from "drizzle-orm";
 import { pathToFileURL } from "node:url";
 import { z } from "zod";
 
+import { logger } from "@lib/loggers/logger";
 import type {
   NewEventType,
   NewOrganization,
@@ -49,7 +50,7 @@ export const seedE2eDatabase = async () => {
     users,
   } = await import("@server/db/schema");
 
-  console.log("Seeding E2E database...");
+  logger.info("Seeding E2E database...");
 
   await db.execute(sql`CREATE EXTENSION IF NOT EXISTS pg_trgm`);
   await db.execute(
@@ -318,7 +319,7 @@ export const seedE2eDatabase = async () => {
   await db.insert(songTags).values(songTag);
   await db.insert(resources).values(resource);
 
-  console.log("E2E database seed completed.");
+  logger.info("E2E database seed completed.");
 };
 
 const isDirectRun =
@@ -330,7 +331,7 @@ if (isDirectRun) {
       process.exit(0);
     })
     .catch((error) => {
-      console.error("E2E database seed failed.", error);
+      logger.error("E2E database seed failed.", error);
       process.exit(1);
     });
 }

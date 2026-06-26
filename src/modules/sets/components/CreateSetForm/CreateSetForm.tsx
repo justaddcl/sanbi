@@ -9,6 +9,7 @@ import { type z } from "zod";
 
 import { Button } from "@components/ui/button";
 import { TextareaFormField } from "@components/TextareaFormField";
+import { logger } from "@lib/loggers/logger";
 import { sanitizeInput } from "@lib/string";
 import { trpc } from "@lib/trpc";
 import { type SetType } from "@lib/types";
@@ -70,7 +71,7 @@ export const CreateSetForm: React.FC<CreateSetFormProps> = ({
         },
         {
           onSuccess(data) {
-            console.log("🤖 [createSetMutation/onSuccess] ~ data:", data);
+            logger.info("🤖 [createSetMutation/onSuccess] ~ data:", data);
             const [newSet] = data;
 
             toast.success("Set was created", { id: toastId });
@@ -85,7 +86,7 @@ export const CreateSetForm: React.FC<CreateSetFormProps> = ({
             }
           },
           onError(error) {
-            console.log("🤖 [createSetMutation/onError] ~ error:", error);
+            logger.info("🤖 [createSetMutation/onError] ~ error:", error);
             toast.error(`Could not create set: ${error.message}`, {
               id: toastId,
             });

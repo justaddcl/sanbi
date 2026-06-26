@@ -1,9 +1,11 @@
 "use server";
 
-import { db } from "@server/db";
-import { setSections, setSectionSongs } from "@server/db/schema";
 import { TRPCError } from "@trpc/server";
 import { and, eq, gt, sql } from "drizzle-orm";
+
+import { logger } from "@lib/loggers/logger";
+import { db } from "@server/db";
+import { setSections, setSectionSongs } from "@server/db/schema";
 
 export type SwapSongDirection = "up" | "down";
 
@@ -23,7 +25,7 @@ export const swapSongPosition = async (
       .where(eq(setSectionSongs.id, setSectionSongToSwapId))
       .limit(1);
     if (!currentSong) {
-      console.error(
+      logger.error(
         `🤖 - [setSectionSongs/swapSongPosition/${direction}] - Song ${setSectionSongToSwapId} not found`,
       );
       return {
@@ -44,7 +46,7 @@ export const swapSongPosition = async (
       (direction === "down" &&
         position === maxSongPositionResult?.maxSongPosition)
     ) {
-      console.error(
+      logger.error(
         `🤖 - [setSectionSongs/swapSongPosition/${direction}] - Cannot swap song ${direction} from position ${position}`,
       );
       return {
@@ -67,7 +69,7 @@ export const swapSongPosition = async (
       .limit(1);
 
     if (!songToSwap) {
-      console.error(
+      logger.error(
         `🤖 - [setSectionSongs/swapSongPosition/${direction}] - No song to swap with ${direction}`,
       );
       return {
@@ -76,7 +78,7 @@ export const swapSongPosition = async (
       };
     }
 
-    console.info(
+    logger.info(
       `🤖 - [setSectionSongs/swapSongPosition/${direction}] - Preparing to move song ${direction}, swapping with ${songToSwap.id}`,
     );
 
@@ -90,7 +92,7 @@ export const swapSongPosition = async (
       .set({ position })
       .where(eq(setSectionSongs.id, songToSwap.id));
 
-    console.info(
+    logger.info(
       `🤖 - [setSectionSongs/swapSongPosition/${direction}] - Successfully moved song ${direction}:\n${setSectionSongToSwapId} new position: ${targetPosition}.\n${songToSwap.id} new position: ${position}`,
     );
 
@@ -117,7 +119,7 @@ export const moveSongToAdjacentSection = async (
       });
 
     if (!targetSetSectionSong) {
-      console.error(
+      logger.error(
         `🤖 - [setSectionSongs/moveSongToAdjacentSection/${direction}] - Could not find set section song ${setSectionSongId}`,
       );
 
@@ -140,7 +142,7 @@ export const moveSongToAdjacentSection = async (
     });
 
     if (!targetSetSection) {
-      console.error(
+      logger.error(
         `🤖 - [setSectionSongs/moveSongToAdjacentSection/${direction}] - Could not find a set section ${direction} to ${targetSetSectionSong.setSectionId}`,
       );
 
@@ -177,7 +179,7 @@ export const moveSongToAdjacentSection = async (
       })
       .where(eq(setSectionSongs.id, setSectionSongId));
 
-    console.info(
+    logger.info(
       `🤖 - [setSectionSongs/moveSongToAdjacentSection/${direction}] - Successfully moved ${setSectionSongId} to ${direction} set section, ${targetSetSection.id}, with position ${songPositionAfterMove}`,
     );
 

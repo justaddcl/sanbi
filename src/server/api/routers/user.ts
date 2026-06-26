@@ -36,11 +36,11 @@ export const userRouter = createTRPCRouter({
     return ctx.db.query.users.findMany();
   }),
   createMe: authedProcedure.mutation(async ({ ctx }) => {
-    console.log("🤖 - Creating a user based on authed user - createMe");
+    ctx.logger.info("Creating a user based on authed user");
     const { userId } = ctx.auth;
 
     if (!userId) {
-      console.log("🤖 - No user is currently signed in - createMe");
+      ctx.logger.info("No user is currently signed in");
       throw new TRPCError({ code: "UNAUTHORIZED" });
     }
 
@@ -49,7 +49,7 @@ export const userRouter = createTRPCRouter({
     });
 
     if (matchingUser) {
-      console.log("🤖 - Matching sanbi user found - createMe", userId);
+      ctx.logger.info("Matching sanbi user found", userId);
       throw new TRPCError({
         code: "CONFLICT",
         message: `User ${userId} already exists`,
@@ -59,7 +59,7 @@ export const userRouter = createTRPCRouter({
     const user = await currentUser();
 
     if (!user) {
-      console.log("🤖 - Clerk user not found - createMe", userId);
+      ctx.logger.info("Clerk user not found", userId);
       throw new TRPCError({
         code: "NOT_FOUND",
         message: `User not found`,
@@ -68,8 +68,8 @@ export const userRouter = createTRPCRouter({
 
     const userEmail = user.primaryEmailAddress?.emailAddress;
     if (!userEmail) {
-      console.log(
-        `🤖 - Clerk user ${user.id} does not have primary email address - createMe`,
+      ctx.logger.info(
+        `Clerk user ${user.id} does not have primary email address`,
       );
       throw new TRPCError({
         code: "BAD_REQUEST",
@@ -78,9 +78,7 @@ export const userRouter = createTRPCRouter({
     }
 
     if (!user.firstName) {
-      console.log(
-        `🤖 - Clerk user ${user.id} does not have a first name - createMe`,
-      );
+      ctx.logger.info(`Clerk user ${user.id} does not have a first name`);
       throw new TRPCError({
         code: "BAD_REQUEST",
         message: "User must have a first name",
@@ -88,9 +86,7 @@ export const userRouter = createTRPCRouter({
     }
 
     if (!user.lastName) {
-      console.log(
-        `🤖 - Clerk user ${user.id} does not have a last name - createMe`,
-      );
+      ctx.logger.info(`Clerk user ${user.id} does not have a last name`);
       throw new TRPCError({
         code: "BAD_REQUEST",
         message: "User must have a last name",
@@ -103,7 +99,7 @@ export const userRouter = createTRPCRouter({
       firstName: user.firstName,
       lastName: user.lastName,
     };
-    console.log(`🤖 - New sanbi user - createMe`, newUser);
+    ctx.logger.info(`New sanbi user`, newUser);
 
     const createdUsers = await ctx.db
       .insert(users)
@@ -127,7 +123,7 @@ export const userRouter = createTRPCRouter({
       const [updatedPreference] = await ctx.db
         .insert(userPreferences)
         .values({
-          userId: ctx.auth.userId!,
+          userId: ctx.auth.userId,
           confirmResourceDelete: input.confirmResourceDelete,
         })
         .onConflictDoUpdate({

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
 import { eq } from "drizzle-orm";
 
+import { logger } from "@lib/loggers/logger";
 import { trpc } from "@lib/trpc/server";
 import { db } from "@/server/db";
 import { organizations } from "@/server/db/schema";
@@ -35,7 +36,7 @@ export default async function Home() {
     redirect("/create-team");
   }
 
-  console.log("🚀 ~ [[sign-in]] page ~ userMembership:", userMembership);
+  logger.info("🚀 ~ [[sign-in]] page ~ userMembership:", userMembership);
 
   redirect(`/${userMembership?.organizationId}`);
 }

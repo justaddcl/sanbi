@@ -1,6 +1,8 @@
+import { and, eq, gt, lt, sql } from "drizzle-orm";
+
+import { logger } from "@lib/loggers/logger";
 import { db } from "@server/db";
 import { setSections } from "@server/db/schema";
-import { and, eq, lt, gt, sql } from "drizzle-orm";
 
 export type SwapSetSectionPositionDirection = "first" | "up" | "down" | "last";
 
@@ -14,7 +16,7 @@ export const updateSetSectionPosition = async (
   setSectionToUpdate: string,
   direction: SwapSetSectionPositionDirection,
 ): Promise<SwapSetSectionPositionResult> => {
-  console.log(
+  logger.info(
     `🤖 - [setSection/swapWithPrevious/${direction}] - attempting to update set section`,
     { setSectionId: setSectionToUpdate },
   );
@@ -26,7 +28,7 @@ export const updateSetSectionPosition = async (
       .where(eq(setSections.id, setSectionToUpdate))
       .limit(1);
     if (!setSection) {
-      console.error(
+      logger.error(
         `🤖 - [setSection/updateSetSectionPosition/${direction}] - Set section ${setSectionToUpdate} not found`,
       );
       return {
@@ -43,7 +45,7 @@ export const updateSetSectionPosition = async (
       .where(eq(setSections.setId, setSection.setId));
 
     if (!maxSetSectionPositionResult?.maxSetSectionPosition) {
-      console.error(
+      logger.error(
         `🤖 - [setSection/updateSetSectionPosition/${direction}] - Cannot determine max section position value for set ${setSection.setId}`,
       );
       return {
@@ -57,7 +59,7 @@ export const updateSetSectionPosition = async (
       (direction === "down" &&
         position === maxSetSectionPositionResult?.maxSetSectionPosition)
     ) {
-      console.error(
+      logger.error(
         `🤖 - [setSection/updateSetSectionPosition/${direction}] - Cannot swap set section ${direction} from position ${position}`,
       );
       return {
@@ -98,7 +100,7 @@ export const updateSetSectionPosition = async (
         .limit(1);
 
       if (!setSectionToSwap) {
-        console.error(
+        logger.error(
           `🤖 - [setSection/updateSetSectionPosition/${direction}] - No set section to swap with ${direction}`,
         );
         return {
@@ -107,7 +109,7 @@ export const updateSetSectionPosition = async (
         };
       }
 
-      console.info(
+      logger.info(
         `🤖 - [setSection/updateSetSectionPosition/${direction}] - Preparing to move set section ${direction}, swapping with ${setSectionToSwap.id}`,
       );
 
@@ -121,11 +123,11 @@ export const updateSetSectionPosition = async (
         .set({ position: targetPosition })
         .where(eq(setSections.id, setSection.id));
 
-      console.info(
+      logger.info(
         `🤖 - [setSection/updateSetSectionPosition/${direction}] - Successfully moved set section ${direction}:\n${setSectionToUpdate} new position: ${targetPosition}.\n${setSectionToSwap.id} new position: ${position}`,
       );
     } else {
-      console.info(
+      logger.info(
         `🤖 - [setSection/updateSetSectionPosition/${direction}] - Preparing to move set section the ${direction} position`,
       );
 
@@ -149,7 +151,7 @@ export const updateSetSectionPosition = async (
         .set({ position: targetPosition })
         .where(eq(setSections.id, setSection.id));
 
-      console.info(
+      logger.info(
         `🤖 - [setSection/updateSetSectionPosition/${direction}] - Successfully moved set section to the ${direction} position:\n${setSectionToUpdate} new position: ${targetPosition}.`,
       );
     }

@@ -2,11 +2,12 @@ import { redirect } from "next/navigation";
 import { TRPCError } from "@trpc/server";
 import { validate as uuidValidate } from "uuid";
 
+import { logger } from "@lib/loggers/logger";
 import { trpc } from "@lib/trpc/server";
 
 export async function getOrganization(organizationId: string) {
   if (!uuidValidate(organizationId)) {
-    console.error(
+    logger.error(
       `🤖 - ${organizationId} is not a valid UUID - queries/getOrganization`,
     );
     redirect("/");
@@ -22,7 +23,7 @@ export async function getOrganization(organizationId: string) {
       switch (fetchOrganizationError.code) {
         case "FORBIDDEN":
         default:
-          console.error(
+          logger.error(
             `🤖 - [queries/getOrganization/${organizationId}]: ${fetchOrganizationError.message}`,
           );
           redirect("/");

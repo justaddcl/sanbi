@@ -26,8 +26,9 @@ export const resourceRouter = createTRPCRouter({
     .input(getResourcesBySongIdSchema)
     .query(async ({ ctx, input }) => {
       const { songId } = input;
+      const resourceLogger = ctx.logger;
 
-      console.info("🤖 - [resource/song] ~ attempting to get resources:", {
+      resourceLogger.info("attempting to get resources", {
         userId: ctx.user.id,
         queryInput: input,
       });
@@ -37,7 +38,7 @@ export const resourceRouter = createTRPCRouter({
       });
 
       if (!song) {
-        console.error(`🤖 - [resource/song] - could not find song ${songId}`);
+        resourceLogger.error(`could not find song ${songId}`);
 
         throw new TRPCError({
           code: "NOT_FOUND",
@@ -46,8 +47,8 @@ export const resourceRouter = createTRPCRouter({
       }
 
       if (song.organizationId !== ctx.user.membership.organizationId) {
-        console.error(
-          `🤖 - [resource/song] - song ${songId} is not associated with organization ${ctx.user.membership.organizationId}`,
+        resourceLogger.error(
+          `song ${songId} is not associated with organization ${ctx.user.membership.organizationId}`,
         );
 
         throw new TRPCError({
@@ -63,7 +64,7 @@ export const resourceRouter = createTRPCRouter({
         ),
       });
 
-      console.info("🤖 - [resource/song] - successfully retrieved resources", {
+      resourceLogger.info("successfully retrieved resources", {
         resourcesForSong,
         queryInput: input,
       });
@@ -74,7 +75,9 @@ export const resourceRouter = createTRPCRouter({
   previewMetadata: organizationProcedure
     .input(previewResourceMetadataSchema)
     .mutation(async ({ ctx, input }) => {
-      console.info("🤖 - [resource/preview] ~ attempting to preview metadata:", {
+      const resourceLogger = ctx.logger;
+
+      resourceLogger.info("attempting to preview metadata", {
         userId: ctx.user.id,
         mutationInput: input,
       });
@@ -82,17 +85,14 @@ export const resourceRouter = createTRPCRouter({
       try {
         const previewMetadata = await fetchResourcePreviewMetadata(input.url);
 
-        console.info(
-          "🤖 - [resource/preview] - successfully previewed metadata",
-          {
-            previewMetadata,
-            mutationInput: input,
-          },
-        );
+        resourceLogger.info("successfully previewed metadata", {
+          previewMetadata,
+          mutationInput: input,
+        });
 
         return previewMetadata;
       } catch (error) {
-        console.error("🤖 - [resource/preview] - could not preview metadata", {
+        resourceLogger.error("could not preview metadata", {
           error,
           mutationInput: input,
         });
@@ -106,8 +106,9 @@ export const resourceRouter = createTRPCRouter({
     .input(insertResourceSchema)
     .mutation(async ({ ctx, input }) => {
       const { organizationId, songId, url, title } = input;
+      const resourceLogger = ctx.logger;
 
-      console.info("🤖 - [resource/create] ~ attempting to create resource:", {
+      resourceLogger.info("attempting to create resource", {
         userId: ctx.user.id,
         mutationInput: input,
       });
@@ -117,7 +118,7 @@ export const resourceRouter = createTRPCRouter({
       });
 
       if (!songToCreateResourceFor) {
-        console.error(`🤖 - [resource/create] - could not find song ${songId}`);
+        resourceLogger.error(`could not find song ${songId}`);
 
         throw new TRPCError({
           code: "NOT_FOUND",
@@ -126,8 +127,8 @@ export const resourceRouter = createTRPCRouter({
       }
 
       if (songToCreateResourceFor.organizationId !== organizationId) {
-        console.error(
-          `🤖 - [resource/create] - song ${songId} is not associated with organization ${organizationId}`,
+        resourceLogger.error(
+          `song ${songId} is not associated with organization ${organizationId}`,
         );
 
         throw new TRPCError({
@@ -143,13 +144,10 @@ export const resourceRouter = createTRPCRouter({
       try {
         resolvedMetadata = await resolveResourceMetadataForUrl(url);
       } catch (error) {
-        console.error(
-          `🤖 - [resource/create] - could not resolve metadata for resource ${url}`,
-          {
-            error,
-            mutationInput: input,
-          },
-        );
+        resourceLogger.error(`could not resolve metadata for resource ${url}`, {
+          error,
+          mutationInput: input,
+        });
 
         throw error;
       }
@@ -169,8 +167,8 @@ export const resourceRouter = createTRPCRouter({
         .returning();
 
       if (!createdResource) {
-        console.error(
-          `🤖 - [resource/create] - could not create resource ${url} for song ${songId}`,
+        resourceLogger.error(
+          `could not create resource ${url} for song ${songId}`,
         );
 
         throw new TRPCError({
@@ -179,7 +177,7 @@ export const resourceRouter = createTRPCRouter({
         });
       }
 
-      console.info("🤖 - [resource/create] - new resource created", {
+      resourceLogger.info("new resource created", {
         createdResource,
         mutationInput: input,
       });
@@ -190,7 +188,9 @@ export const resourceRouter = createTRPCRouter({
   update: organizationProcedure
     .input(updateResourceSchema)
     .mutation(async ({ ctx, input }) => {
-      console.info("🤖 - [resource/update] ~ attempting to update resource:", {
+      const resourceLogger = ctx.logger;
+
+      resourceLogger.info("attempting to update resource", {
         userId: ctx.user.id,
         mutationInput: input,
       });
@@ -217,16 +217,17 @@ export const resourceRouter = createTRPCRouter({
               return updatedResource ?? null;
             },
           },
+          logger: resourceLogger,
         });
 
-        console.info("🤖 - [resource/update] - resource updated", {
+        resourceLogger.info("resource updated", {
           updatedResource,
           mutationInput: input,
         });
 
         return updatedResource;
       } catch (error) {
-        console.error("🤖 - [resource/update] - could not update resource", {
+        resourceLogger.error("could not update resource", {
           error,
           mutationInput: input,
         });
@@ -238,7 +239,9 @@ export const resourceRouter = createTRPCRouter({
   delete: organizationProcedure
     .input(deleteResourceSchema)
     .mutation(async ({ ctx, input }) => {
-      console.info("🤖 - [resource/delete] ~ attempting to delete resource:", {
+      const resourceLogger = ctx.logger;
+
+      resourceLogger.info("attempting to delete resource", {
         userId: ctx.user.id,
         mutationInput: input,
       });
@@ -269,16 +272,17 @@ export const resourceRouter = createTRPCRouter({
               return deletedResource ?? null;
             },
           },
+          logger: resourceLogger,
         });
 
-        console.info("🤖 - [resource/delete] - resource deleted", {
+        resourceLogger.info("resource deleted", {
           deletedResource,
           mutationInput: input,
         });
 
         return deletedResource;
       } catch (error) {
-        console.error("🤖 - [resource/delete] - could not delete resource", {
+        resourceLogger.error("could not delete resource", {
           error,
           mutationInput: input,
         });
@@ -290,13 +294,12 @@ export const resourceRouter = createTRPCRouter({
   refreshMetadata: organizationProcedure
     .input(refreshResourceMetadataSchema)
     .mutation(async ({ ctx, input }) => {
-      console.info(
-        "🤖 - [resource/refresh] ~ attempting to refresh resource metadata:",
-        {
-          userId: ctx.user.id,
-          mutationInput: input,
-        },
-      );
+      const resourceLogger = ctx.logger;
+
+      resourceLogger.info("attempting to refresh resource metadata", {
+        userId: ctx.user.id,
+        mutationInput: input,
+      });
 
       try {
         const refreshedResource = await refreshResourceMetadataForOrganization({
@@ -304,10 +307,9 @@ export const resourceRouter = createTRPCRouter({
           userOrganizationId: ctx.user.membership.organizationId,
           resourceDataAccess: {
             findResourceById: async (resourceId) => {
-              const resourceToRefresh =
-                await ctx.db.query.resources.findFirst({
-                  where: eq(resources.id, resourceId),
-                });
+              const resourceToRefresh = await ctx.db.query.resources.findFirst({
+                where: eq(resources.id, resourceId),
+              });
 
               return resourceToRefresh ?? null;
             },
@@ -321,25 +323,20 @@ export const resourceRouter = createTRPCRouter({
               return updatedResource ?? null;
             },
           },
+          logger: resourceLogger,
         });
 
-        console.info(
-          "🤖 - [resource/refresh] - resource metadata refreshed",
-          {
-            refreshedResource,
-            mutationInput: input,
-          },
-        );
+        resourceLogger.info("resource metadata refreshed", {
+          refreshedResource,
+          mutationInput: input,
+        });
 
         return refreshedResource;
       } catch (error) {
-        console.error(
-          "🤖 - [resource/refresh] - could not refresh resource metadata",
-          {
-            error,
-            mutationInput: input,
-          },
-        );
+        resourceLogger.error("could not refresh resource metadata", {
+          error,
+          mutationInput: input,
+        });
 
         throw error;
       }
