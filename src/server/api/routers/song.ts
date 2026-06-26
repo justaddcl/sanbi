@@ -43,13 +43,13 @@ export const songRouter = createTRPCRouter({
   get: organizationProcedure
     .input(getSongSchema)
     .query(async ({ ctx, input }) => {
-      console.log(`🤖 - [song/get] - attempting to get song ${input.songId}`);
+      ctx.logger.info(`attempting to get song ${input.songId}`);
 
       const { user } = ctx;
 
       if (user.membership.organizationId !== input.organizationId) {
-        console.error(
-          `🤖 - [song/get] - User's organization ID does not match the input organization ID`,
+        ctx.logger.error(
+          `User's organization ID does not match the input organization ID`,
           { user, queryInput: { ...input } },
         );
         throw new TRPCError({
@@ -63,7 +63,7 @@ export const songRouter = createTRPCRouter({
       });
 
       if (!song) {
-        console.error(`🤖 - [song/get] - Could not find song ${input.songId}`, {
+        ctx.logger.error(`Could not find song ${input.songId}`, {
           queryInput: { ...input },
         });
 
@@ -74,8 +74,8 @@ export const songRouter = createTRPCRouter({
       }
 
       if (song.organizationId !== user.membership.organizationId) {
-        console.error(
-          `🤖 - [song/get] - user ${user.id} is not authorized to get ${song.id}`,
+        ctx.logger.error(
+          `user ${user.id} is not authorized to get ${song.id}`,
           { song, queryInput: { ...input } },
         );
 
@@ -85,10 +85,7 @@ export const songRouter = createTRPCRouter({
         });
       }
 
-      console.info(
-        `🤖 - [song/get] - successfully retrieved song ${input.songId}`,
-        { song },
-      );
+      ctx.logger.info(`successfully retrieved song ${input.songId}`, { song });
 
       return song;
     }),
@@ -96,7 +93,7 @@ export const songRouter = createTRPCRouter({
   search: organizationProcedure
     .input(searchSongSchema)
     .query(async ({ ctx, input }) => {
-      console.log(`🤖 - [song/search] - searching for ${input.searchInput}`);
+      ctx.logger.info(`searching for ${input.searchInput}`);
 
       const normalizedSearchInput = input.searchInput.trim();
       if (!normalizedSearchInput) {
@@ -192,10 +189,7 @@ export const songRouter = createTRPCRouter({
         )
         .limit(searchResultLimit);
 
-      console.log(
-        `🤖 - [song/search] - result for ${input.searchInput}:`,
-        searchResults,
-      );
+      ctx.logger.info(`result for ${input.searchInput}:`, searchResults);
 
       return searchResults;
     }),
@@ -205,7 +199,7 @@ export const songRouter = createTRPCRouter({
     .input(insertSongSchema)
     .mutation(async ({ ctx, input }) => {
       const { user } = ctx;
-      console.log("🤖 - [song/create] ~ authed user:", user);
+      ctx.logger.info("authed user:", user);
 
       const {
         name,
@@ -233,7 +227,7 @@ export const songRouter = createTRPCRouter({
         favoritedAt: null,
       };
 
-      console.log(`🤖 - [song/create] - new song`, newSong);
+      ctx.logger.info(`new song`, newSong);
 
       return ctx.db.insert(songs).values(newSong).returning();
     }),
@@ -241,9 +235,7 @@ export const songRouter = createTRPCRouter({
   archive: adminProcedure
     .input(archiveSongSchema)
     .mutation(async ({ ctx, input }) => {
-      console.log(
-        `🤖 - [song/archive] - attempting to archive song ${input.songId}`,
-      );
+      ctx.logger.info(`attempting to archive song ${input.songId}`);
 
       const [archivedSong] = await ctx.db
         .update(songs)
@@ -252,22 +244,18 @@ export const songRouter = createTRPCRouter({
         .returning();
 
       if (archivedSong) {
-        console.info(
-          `🤖 - [song/archive] - Song ID ${archivedSong.id} ("${archivedSong.name}") has been archived`,
+        ctx.logger.info(
+          `Song ID ${archivedSong.id} ("${archivedSong.name}") has been archived`,
         );
       } else {
-        console.error(
-          `🤖 - [song/archive] - Song ID ${input.songId} could not be archived`,
-        );
+        ctx.logger.error(`Song ID ${input.songId} could not be archived`);
       }
     }),
 
   unarchive: adminProcedure
     .input(unarchiveSongSchema)
     .mutation(async ({ ctx, input }) => {
-      console.log(
-        `🤖 - [song/unarchive] - attempting to to unarchive song ${input.songId}`,
-      );
+      ctx.logger.info(`attempting to to unarchive song ${input.songId}`);
 
       const [unarchivedSong] = await ctx.db
         .update(songs)
@@ -276,22 +264,18 @@ export const songRouter = createTRPCRouter({
         .returning();
 
       if (unarchivedSong) {
-        console.info(
-          `🤖 - [song/unarchive] - Song ID ${unarchivedSong.id} ("${unarchivedSong.name}") has been unarchived`,
+        ctx.logger.info(
+          `Song ID ${unarchivedSong.id} ("${unarchivedSong.name}") has been unarchived`,
         );
       } else {
-        console.error(
-          `🤖 - [song/unarchive] - Song ID ${input.songId} could not be unarchived`,
-        );
+        ctx.logger.error(`Song ID ${input.songId} could not be unarchived`);
       }
     }),
 
   delete: adminProcedure
     .input(deleteSongSchema)
     .mutation(async ({ ctx, input }) => {
-      console.log(
-        `🤖 - [song/delete] - attempting to delete song ${input.songId}`,
-      );
+      ctx.logger.info(`attempting to delete song ${input.songId}`);
 
       const [deletedSong] = await ctx.db
         .delete(songs)
@@ -299,23 +283,19 @@ export const songRouter = createTRPCRouter({
         .returning();
 
       if (deletedSong) {
-        console.info(
-          `🤖 - [song/delete] - Song ID ${deletedSong.id} ("${deletedSong.name}") was successfully deleted`,
+        ctx.logger.info(
+          `Song ID ${deletedSong.id} ("${deletedSong.name}") was successfully deleted`,
         );
         return deletedSong;
       } else {
-        console.error(
-          `🤖 - [song/delete] - Song ID ${input.songId} could not be deleted`,
-        );
+        ctx.logger.error(`Song ID ${input.songId} could not be deleted`);
       }
     }),
 
   getLastPlayInstance: organizationProcedure
     .input(songGetLastPlayInstanceSchema)
     .query(async ({ ctx, input }) => {
-      console.log(
-        `🤖 - [song/getLastPlayInstance] - getting last play instance for ${input.songId}`,
-      );
+      ctx.logger.info(`getting last play instance for ${input.songId}`);
 
       const [lastPlayInstance] = await ctx.db
         .select({
@@ -360,8 +340,8 @@ export const songRouter = createTRPCRouter({
         .orderBy(desc(sets.date), desc(setSections.position))
         .limit(1);
 
-      console.log(
-        `🤖 - [song/getLastPlayInstance] - last play instance for ${input.songId}`,
+      ctx.logger.info(
+        `last play instance for ${input.songId}`,
         lastPlayInstance,
       );
 
@@ -371,9 +351,7 @@ export const songRouter = createTRPCRouter({
   getPlayHistory: organizationProcedure
     .input(songGetPlayHistorySchema)
     .query(async ({ ctx, input }) => {
-      console.log(
-        `🤖 - [song/getPlayHistory] - getting play history for ${input.songId}`,
-      );
+      ctx.logger.info(`getting play history for ${input.songId}`);
 
       const playHistory = await ctx.db
         .select({
@@ -418,8 +396,8 @@ export const songRouter = createTRPCRouter({
         )
         .orderBy(desc(sets.date), desc(setSections.position));
 
-      console.info(
-        `🤖 - [song/getPlayHistory] - found ${playHistory.length} play history items for ${input.songId}`,
+      ctx.logger.info(
+        `found ${playHistory.length} play history items for ${input.songId}`,
       );
 
       return playHistory;
@@ -428,17 +406,14 @@ export const songRouter = createTRPCRouter({
   updateName: organizationProcedure
     .input(songUpdateNameSchema)
     .mutation(async ({ ctx, input }) => {
-      console.log(
-        `🤖 - [song/updateName] - attempting to update song name for ${input.songId}:`,
-        { mutationInput: { ...input } },
-      );
+      ctx.logger.info(`attempting to update song name for ${input.songId}:`, {
+        mutationInput: { ...input },
+      });
 
       const trimmedName = input.name.trim();
 
       if (trimmedName === "") {
-        console.error(
-          `🤖 - [song/updateName] - New song name must not be blank`,
-        );
+        ctx.logger.error(`New song name must not be blank`);
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "New song name must not be blank",
@@ -451,9 +426,7 @@ export const songRouter = createTRPCRouter({
         });
 
         if (!songToUpdate) {
-          console.error(
-            `🤖 - [song/updateName] - could not find song ${input.songId}`,
-          );
+          ctx.logger.error(`could not find song ${input.songId}`);
           throw new TRPCError({
             code: "NOT_FOUND",
             message: "Could not find song",
@@ -463,8 +436,8 @@ export const songRouter = createTRPCRouter({
         if (
           songToUpdate.organizationId !== ctx.user.membership.organizationId
         ) {
-          console.error(
-            `🤖 - [song/updateName] - user ${ctx.user.id} is not authorized to update song ${input.songId}`,
+          ctx.logger.error(
+            `user ${ctx.user.id} is not authorized to update song ${input.songId}`,
           );
           throw new TRPCError({
             code: "FORBIDDEN",
@@ -491,10 +464,9 @@ export const songRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const { id: songId } = input;
 
-      console.log(
-        `🤖 - [song/updateNotes] - attempting to update song notes for ${songId}:`,
-        { mutationInput: { ...input } },
-      );
+      ctx.logger.info(`attempting to update song notes for ${songId}:`, {
+        mutationInput: { ...input },
+      });
 
       return await ctx.db.transaction(async (updateTransaction) => {
         const songToUpdate = await updateTransaction.query.songs.findFirst({
@@ -502,9 +474,7 @@ export const songRouter = createTRPCRouter({
         });
 
         if (!songToUpdate) {
-          console.error(
-            `🤖 - [song/updateNotes] - could not find song ${songId}`,
-          );
+          ctx.logger.error(`could not find song ${songId}`);
           throw new TRPCError({
             code: "NOT_FOUND",
             message: "Could not find song",
@@ -514,8 +484,8 @@ export const songRouter = createTRPCRouter({
         if (
           songToUpdate.organizationId !== ctx.user.membership.organizationId
         ) {
-          console.error(
-            `🤖 - [song/updateNotes] - user ${ctx.user.id} is not authorized to update song ${songId}`,
+          ctx.logger.error(
+            `user ${ctx.user.id} is not authorized to update song ${songId}`,
           );
           throw new TRPCError({
             code: "FORBIDDEN",
@@ -540,8 +510,8 @@ export const songRouter = createTRPCRouter({
   updatePreferredKey: organizationProcedure
     .input(songUpdatePreferredKeySchema)
     .mutation(async ({ ctx, input }) => {
-      console.log(
-        `🤖 - [song/updatePreferredKey] - attempting to update preferred key for ${input.songId}:`,
+      ctx.logger.info(
+        `attempting to update preferred key for ${input.songId}:`,
         { mutationInput: { ...input } },
       );
 
@@ -551,9 +521,7 @@ export const songRouter = createTRPCRouter({
         });
 
         if (!songToUpdate) {
-          console.error(
-            `🤖 - [song/updatePreferredKey] - could not find song ${input.songId}`,
-          );
+          ctx.logger.error(`could not find song ${input.songId}`);
           throw new TRPCError({
             code: "NOT_FOUND",
             message: "Could not find song",
@@ -563,8 +531,8 @@ export const songRouter = createTRPCRouter({
         if (
           songToUpdate.organizationId !== ctx.user.membership.organizationId
         ) {
-          console.error(
-            `🤖 - [song/updatePreferredKey] - user ${ctx.user.id} is not authorized to update song ${input.songId}`,
+          ctx.logger.error(
+            `user ${ctx.user.id} is not authorized to update song ${input.songId}`,
           );
           throw new TRPCError({
             code: "FORBIDDEN",
@@ -589,8 +557,8 @@ export const songRouter = createTRPCRouter({
   updateFavoriteStatus: organizationProcedure
     .input(songUpdateFavoriteSchema)
     .mutation(async ({ ctx, input }) => {
-      console.log(
-        `🤖 - [song/updateFavoriteStatus] - attempting to update favorite status for ${input.songId}:`,
+      ctx.logger.info(
+        `attempting to update favorite status for ${input.songId}:`,
         { mutationInput: { ...input } },
       );
 
@@ -600,9 +568,7 @@ export const songRouter = createTRPCRouter({
         });
 
         if (!songToUpdate) {
-          console.error(
-            `🤖 - [song/updateFavoriteStatus] - could not find song ${input.songId}`,
-          );
+          ctx.logger.error(`could not find song ${input.songId}`);
           throw new TRPCError({
             code: "NOT_FOUND",
             message: "Could not find song",
@@ -612,8 +578,8 @@ export const songRouter = createTRPCRouter({
         if (
           songToUpdate.organizationId !== ctx.user.membership.organizationId
         ) {
-          console.error(
-            `🤖 - [song/updateFavoriteStatus] - user ${ctx.user.id} is not authorized to update song ${input.songId}`,
+          ctx.logger.error(
+            `user ${ctx.user.id} is not authorized to update song ${input.songId}`,
           );
           throw new TRPCError({
             code: "FORBIDDEN",

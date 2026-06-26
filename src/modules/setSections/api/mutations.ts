@@ -1,5 +1,6 @@
 import { and, eq, gt, lt, sql } from "drizzle-orm";
 
+import { logger } from "@lib/loggers/logger";
 import { db } from "@server/db";
 import { setSections } from "@server/db/schema";
 import {
@@ -19,7 +20,7 @@ export const updateSetSectionPosition = async (
   setSectionToUpdate: string,
   direction: SwapSetSectionPositionDirection,
 ): Promise<SwapSetSectionPositionResult> => {
-  console.log(
+  logger.info(
     `🤖 - [setSection/swapWithPrevious/${direction}] - attempting to update set section`,
     { setSectionId: setSectionToUpdate },
   );

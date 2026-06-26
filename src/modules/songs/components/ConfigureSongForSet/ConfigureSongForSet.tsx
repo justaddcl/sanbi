@@ -44,6 +44,7 @@ import { type SongSearchResult } from "@modules/songs/components/SongSearch";
 import { type SongSearchDialogSteps } from "@modules/songs/components/SongSearchDialog";
 import { useUserQuery } from "@modules/users/api/queries";
 import { songKeys } from "@lib/constants";
+import { logger } from "@lib/loggers/logger";
 import { formatSongKey } from "@lib/string/formatSongKey";
 import { trpc } from "@lib/trpc";
 import { type SetSectionWithSongs } from "@lib/types";
@@ -250,7 +251,7 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
       },
       {
         async onSuccess(data) {
-          console.log(
+          logger.info(
             "🤖 [createSetSectionSongMutation/onSuccess] ~ data:",
             data,
           );

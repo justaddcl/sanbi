@@ -21,6 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@components/ui/select";
+import { logger } from "@lib/loggers/logger";
 import { sanitizeInput } from "@lib/string";
 import { trpc } from "@lib/trpc";
 import { insertSongSchema } from "@lib/types/zod";
@@ -68,13 +69,13 @@ export const CreateSongForm: React.FC<CreateSongFormProps> = ({ onSubmit }) => {
     isError: isGetUserQueryError,
     isLoading: isGetUserQueryLoading,
   } = trpc.user.getUser.useQuery(
-      {
-        userId: userId!,
-      },
-      {
-        enabled: !!userId,
-      },
-    );
+    {
+      userId: userId!,
+    },
+    {
+      enabled: !!userId,
+    },
+  );
 
   if (!userId) {
     return null;
@@ -102,7 +103,7 @@ export const CreateSongForm: React.FC<CreateSongFormProps> = ({ onSubmit }) => {
         },
         {
           onSuccess(data) {
-            console.log("🤖 [createSongMutation/onSuccess] ~ data:", data);
+            logger.info("🤖 [createSongMutation/onSuccess] ~ data:", data);
             const [newSong] = data;
 
             toast.success("Song was created", { id: toastId });
@@ -111,7 +112,7 @@ export const CreateSongForm: React.FC<CreateSongFormProps> = ({ onSubmit }) => {
             );
           },
           onError(error) {
-            console.log("🤖 [createSongMutation/onError] ~ error:", error);
+            logger.info("🤖 [createSongMutation/onError] ~ error:", error);
             toast.error(`Could not create song: ${error.message}`, {
               id: toastId,
             });

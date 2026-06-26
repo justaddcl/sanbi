@@ -7,19 +7,29 @@ import {
 import { createUuid } from "@testUtils/generators/createUuid";
 import { eq } from "drizzle-orm";
 
-import { logger } from "@lib/loggers/logger";
+import { getProcedureLogger } from "@lib/loggers/logger";
 import { setRouter } from "@server/api/routers/set";
 import { db } from "@server/db";
 import { organizations, sets, users } from "@server/db/schema";
+
+const procedureLogger = {
+  debug: jest.fn(),
+  error: jest.fn(),
+  fatal: jest.fn(),
+  info: jest.fn(),
+  trace: jest.fn(),
+  warn: jest.fn(),
+  child: jest.fn(),
+};
 
 jest.mock("@clerk/nextjs/server", () => ({
   auth: jest.fn(() => ({ userId: "user_123" })),
 }));
 jest.mock("@lib/loggers/logger", () => ({
+  getElapsedDurationMs: jest.fn(() => 1),
+  getProcedureLogger: jest.fn(() => procedureLogger),
   logger: {
-    child: jest.fn(() => ({
-      info: jest.fn(),
-    })),
+    child: jest.fn(() => procedureLogger),
   },
 }));
 jest.mock("superjson", () => ({
@@ -58,9 +68,7 @@ const mockedAuthDb = db as unknown as {
     };
   };
 };
-const mockedLogger = logger as unknown as {
-  child: jest.Mock;
-};
+const mockedGetProcedureLogger = getProcedureLogger as jest.Mock;
 
 describe("setRouter", () => {
   afterEach(() => {
@@ -175,18 +183,19 @@ describe("setRouter", () => {
         },
         orderBy: expect.any(Function) as unknown,
       });
-      expect(mockedLogger.child).toHaveBeenCalledWith({
-        route: "/set/organization",
-        input: { organizationId },
-        userId,
+      expect(mockedGetProcedureLogger).toHaveBeenCalledWith({
+        parentLogger: undefined,
+        path: "getOrganizationSets",
+        type: "query",
       });
-      const loggerChild = mockedLogger.child.mock.results[0]?.value as {
-        info: jest.Mock;
-      };
       const organizationSetsCount = organizationSets.length;
 
-      expect(loggerChild.info).toHaveBeenCalledWith(
-        { setCount: organizationSetsCount },
+      expect(procedureLogger.info).toHaveBeenCalledWith(
+        {
+          input: { organizationId },
+          setCount: organizationSetsCount,
+          userId,
+        },
         "1 set found for organization",
       );
     });

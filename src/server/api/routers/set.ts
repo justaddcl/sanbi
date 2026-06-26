@@ -1,7 +1,6 @@
 import { TRPCError } from "@trpc/server";
 import { and, asc, eq, gt, gte, inArray, lte, or, sql } from "drizzle-orm";
 
-import { logger } from "@lib/loggers/logger";
 import { pluralize } from "@lib/string";
 import { type NewSet } from "@lib/types";
 import {
@@ -30,16 +29,73 @@ import {
 type WhereClause = ReturnType<typeof eq> | ReturnType<typeof and>;
 const DATE_LOCALE = "en-CA";
 
+type UserLogData = {
+  id: string;
+  membership: {
+    organizationId: string;
+    permissionType?: string | null;
+    organization?: {
+      slug?: string | null;
+    } | null;
+  };
+};
+
+type SetLogData = {
+  id: string;
+  organizationId: string;
+  date: string;
+  isArchived: boolean;
+  eventType?: {
+    name?: string | null;
+  } | null;
+  sections?: Array<{
+    songs?: unknown[] | null;
+  }> | null;
+};
+
+const getUserLogSummary = (user: UserLogData) => ({
+  userId: user.id,
+  organizationId: user.membership.organizationId,
+  permissionType: user.membership.permissionType,
+  organizationSlug: user.membership.organization?.slug,
+});
+
+const getSetLogSummary = (setData: SetLogData | null | undefined) => {
+  if (!setData) {
+    return {
+      setFound: false,
+    };
+  }
+
+  const sectionCount = setData.sections?.length ?? 0;
+  const songCount =
+    setData.sections?.reduce(
+      (count, section) => count + (section.songs?.length ?? 0),
+      0,
+    ) ?? 0;
+
+  return {
+    setFound: true,
+    setId: setData.id,
+    organizationId: setData.organizationId,
+    date: setData.date,
+    eventType: setData.eventType?.name,
+    sectionCount,
+    songCount,
+    isArchived: setData.isArchived,
+  };
+};
+
 export const setRouter = createTRPCRouter({
   // Queries
   get: organizationProcedure
     .input(getSetSchema)
     .query(async ({ ctx, input }) => {
       const { user } = ctx;
-      console.log("🤖 - [set/get] ~ authed user:", user);
+      ctx.logger.info(getUserLogSummary(user), "Resolved authenticated user");
 
       const { setId } = input;
-      console.log(`🤖 ~ [set/get] ~ attempting to retrieve ${setId}`);
+      ctx.logger.info({ setId }, "Loading set");
 
       const setData = await ctx.db.query.sets.findFirst({
         where: eq(sets.id, setId),
@@ -61,7 +117,7 @@ export const setRouter = createTRPCRouter({
         },
       });
 
-      console.log("🤖 ~ [set/get] ~ setData:", setData);
+      ctx.logger.info(getSetLogSummary(setData), "Loaded set");
 
       if (user.membership.organizationId !== setData?.organizationId) {
         throw new TRPCError({
@@ -96,24 +152,22 @@ export const setRouter = createTRPCRouter({
       orderBy: (sets, { desc }) => [desc(sets.date)],
     });
 
-    logger
-      .child({
-        route: "/set/organization",
+    ctx.logger.info(
+      {
         input,
+        setCount: organizationSets.length,
         userId: ctx.user.id,
-      })
-      .info(
-        { setCount: organizationSets.length },
-        `${organizationSets.length} ${pluralize(organizationSets.length, { singular: "set", plural: "sets" })} found for organization`,
-      );
+      },
+      `${organizationSets.length} ${pluralize(organizationSets.length, { singular: "set", plural: "sets" })} found for organization`,
+    );
 
     return organizationSets;
   }),
 
   getUpcoming: organizationProcedure.query(async ({ ctx, input }) => {
     const { organizationId } = ctx.user.membership;
-    console.log(
-      `🤖 - [set/getUpcoming] - attempting to get the upcoming sets for ${organizationId}`,
+    ctx.logger.info(
+      `attempting to get the upcoming sets for ${organizationId}`,
     );
 
     const upcomingSetsSubquery = ctx.db.$with("next_sets").as(
@@ -165,9 +219,17 @@ export const setRouter = createTRPCRouter({
       )
       .orderBy(upcomingSetsSubquery.setDate, eventTypes.name);
 
-    console.log(
-      `🤖 - [set/getUpcoming] - ${upcomingSets.length} upcoming ${pluralize(upcomingSets.length, { singular: "set", plural: "sets" })} found for ${input.organizationId}`,
-      { queryInput: input, upcomingSets },
+    ctx.logger.info(
+      {
+        queryInput: input,
+        organizationId: input.organizationId,
+        upcomingSetCount: upcomingSets.length,
+        eventTypeCount: new Set(
+          upcomingSets.map((upcomingSet) => upcomingSet.eventTypeId),
+        ).size,
+        setIds: upcomingSets.map((upcomingSet) => upcomingSet.setId),
+      },
+      `${upcomingSets.length} upcoming ${pluralize(upcomingSets.length, { singular: "set", plural: "sets" })} found for organization`,
     );
 
     return upcomingSets;
@@ -176,8 +238,8 @@ export const setRouter = createTRPCRouter({
   getInfinite: organizationProcedure
     .input(getInfiniteSetsSchema)
     .query(async ({ ctx, input }) => {
-      console.log(
-        `🤖 - [set/getInfinite] - attempting to query sets for organization ${input.organizationId}`,
+      ctx.logger.info(
+        `attempting to query sets for organization ${input.organizationId}`,
         { queryInput: input },
       );
 
@@ -297,14 +359,17 @@ export const setRouter = createTRPCRouter({
         ? { date: setItemForCursor.date, id: setItemForCursor.id }
         : undefined;
 
-      console.log(
-        `🤖 - [set/getInfinite] - ${setsResults.length} ${pluralize(setsResults.length, { singular: "result", plural: "results" })} using cursor id ${input.cursor?.id} and date ${input.cursor?.date.toLocaleDateString(DATE_LOCALE)} ?? new Date().toLocaleDateString(DATE_LOCALE)}`,
+      ctx.logger.info(
         {
           queryInput: input,
-          setItems,
-          setsResults,
+          returnedSetCount: setItems.length,
+          fetchedSetCount: setsResults.length,
+          limit,
+          hasNextPage: Boolean(nextCursor),
           nextCursor,
+          setIds: setItems.map((setItem) => setItem.id),
         },
+        `${setItems.length} ${pluralize(setItems.length, { singular: "set", plural: "sets" })} returned for paginated set query`,
       );
 
       return {
@@ -318,7 +383,7 @@ export const setRouter = createTRPCRouter({
     .input(insertSetSchema)
     .mutation(async ({ ctx, input }) => {
       const { user } = ctx;
-      console.log("🤖 - [set/create] ~ authed user:", user);
+      ctx.logger.info(getUserLogSummary(user), "Resolved authenticated user");
 
       const { date, eventTypeId, notes, organizationId, isArchived } = input;
 
@@ -334,10 +399,9 @@ export const setRouter = createTRPCRouter({
       });
 
       if (!eventType) {
-        console.error(
-          `🤖 - [set/create] - could not find event type ${input.eventTypeId}`,
-          { mutationInput: input },
-        );
+        ctx.logger.error(`could not find event type ${input.eventTypeId}`, {
+          mutationInput: input,
+        });
 
         throw new TRPCError({
           code: "NOT_FOUND",
@@ -346,8 +410,8 @@ export const setRouter = createTRPCRouter({
       }
 
       if (eventType.organizationId !== input.organizationId) {
-        console.error(
-          `🤖 - [set/create] - user ${ctx.user.id} is not authorized to use event type ${input.eventTypeId}`,
+        ctx.logger.error(
+          `user ${ctx.user.id} is not authorized to use event type ${input.eventTypeId}`,
           { mutationInput: input },
         );
 
@@ -365,21 +429,42 @@ export const setRouter = createTRPCRouter({
         isArchived,
       };
 
-      console.log(`🤖 - [set/create] - new set`, newSet);
+      ctx.logger.info(
+        {
+          organizationId,
+          eventTypeId,
+          date,
+          isArchived,
+          hasNotes: Boolean(notes),
+        },
+        "Creating set",
+      );
 
-      return ctx.db
+      const createdSets = await ctx.db
         .insert(sets)
         .values(newSet)
         .onConflictDoNothing()
         .returning();
+
+      const [createdSet] = createdSets;
+      ctx.logger.info(
+        {
+          setId: createdSet?.id,
+          organizationId,
+          eventTypeId,
+          date,
+          createdSetCount: createdSets.length,
+        },
+        createdSet ? "Created set" : "Set create returned no rows",
+      );
+
+      return createdSets;
     }),
 
   archive: adminProcedure
     .input(archiveSetSchema)
     .mutation(async ({ ctx, input }) => {
-      console.log(
-        `🤖 - [set/archive] - attempting to archive set ${input.setId}`,
-      );
+      ctx.logger.info(`attempting to archive set ${input.setId}`);
 
       const [archivedSet] = await ctx.db
         .update(sets)
@@ -388,22 +473,16 @@ export const setRouter = createTRPCRouter({
         .returning();
 
       if (archivedSet) {
-        console.info(
-          `🤖 - [set/archive] - Set ID ${archivedSet.id} has been archived`,
-        );
+        ctx.logger.info(`Set ID ${archivedSet.id} has been archived`);
       } else {
-        console.error(
-          `🤖 - [set/archive] - Set ID ${input.setId} could not be archived`,
-        );
+        ctx.logger.error(`Set ID ${input.setId} could not be archived`);
       }
     }),
 
   unarchive: adminProcedure
     .input(unarchiveSetSchema)
     .mutation(async ({ ctx, input }) => {
-      console.log(
-        `🤖 - [set/unarchive] - attempting to to unarchive set ${input.setId}`,
-      );
+      ctx.logger.info(`attempting to to unarchive set ${input.setId}`);
 
       const [unarchivedSet] = await ctx.db
         .update(sets)
@@ -412,22 +491,16 @@ export const setRouter = createTRPCRouter({
         .returning();
 
       if (unarchivedSet) {
-        console.info(
-          `🤖 - [set/unarchived] - Set ID ${unarchivedSet.id} has been unarchived`,
-        );
+        ctx.logger.info(`Set ID ${unarchivedSet.id} has been unarchived`);
       } else {
-        console.error(
-          `🤖 - [set/unarchived] - Set ID ${input.setId} could not be unarchived`,
-        );
+        ctx.logger.error(`Set ID ${input.setId} could not be unarchived`);
       }
     }),
 
   delete: adminProcedure
     .input(deleteSetSchema)
     .mutation(async ({ ctx, input }) => {
-      console.log(
-        `🤖 - [set/delete] - attempting to delete set ${input.setId}`,
-      );
+      ctx.logger.info(`attempting to delete set ${input.setId}`);
 
       const [deletedSet] = await ctx.db
         .delete(sets)
@@ -435,24 +508,19 @@ export const setRouter = createTRPCRouter({
         .returning();
 
       if (deletedSet) {
-        console.info(
-          `🤖 - [set/delete] - Set ID ${deletedSet.id} was successfully deleted`,
-        );
+        ctx.logger.info(`Set ID ${deletedSet.id} was successfully deleted`);
         return deletedSet;
       } else {
-        console.error(
-          `🤖 - [set/delete] - Set ID ${input.setId} could not be deleted`,
-        );
+        ctx.logger.error(`Set ID ${input.setId} could not be deleted`);
       }
     }),
 
   updateDetails: organizationProcedure
     .input(updateSetDetailsSchema)
     .mutation(async ({ ctx, input }) => {
-      console.log(
-        `🤖 - [set/updateDetails] - attempting to updates details for set ${input.setId}`,
-        { ...input },
-      );
+      ctx.logger.info(`attempting to updates details for set ${input.setId}`, {
+        ...input,
+      });
 
       const { setId, date, eventTypeId } = input;
 
@@ -462,9 +530,7 @@ export const setRouter = createTRPCRouter({
         });
 
         if (!setToUpdate) {
-          console.error(
-            `🤖 - [set/updateDetails] - could not find set ${setId}`,
-          );
+          ctx.logger.error(`could not find set ${setId}`);
 
           throw new TRPCError({
             code: "NOT_FOUND",
@@ -473,8 +539,8 @@ export const setRouter = createTRPCRouter({
         }
 
         if (setToUpdate.organizationId !== ctx.user.membership.organizationId) {
-          console.error(
-            `🤖 - [set/updateDetails] - User ${ctx.user.id} not authorized to update set ${setId}`,
+          ctx.logger.error(
+            `User ${ctx.user.id} not authorized to update set ${setId}`,
           );
 
           throw new TRPCError({
@@ -489,9 +555,7 @@ export const setRouter = createTRPCRouter({
           });
 
         if (!updatedEventType) {
-          console.error(
-            `🤖 - [set/updateDetails] - could not find event type ${eventTypeId}`,
-          );
+          ctx.logger.error(`could not find event type ${eventTypeId}`);
 
           throw new TRPCError({
             code: "NOT_FOUND",
@@ -502,8 +566,8 @@ export const setRouter = createTRPCRouter({
         if (
           updatedEventType.organizationId !== ctx.user.membership.organizationId
         ) {
-          console.error(
-            `🤖 - [set/updateDetails] - User ${ctx.user.id} not authorized to use an event type from a different organization`,
+          ctx.logger.error(
+            `User ${ctx.user.id} not authorized to use an event type from a different organization`,
             {
               eventTypeId: updatedEventType.id,
               eventOrganizationId: updatedEventType.organizationId,
@@ -524,10 +588,10 @@ export const setRouter = createTRPCRouter({
           })
           .where(eq(sets.id, setId));
 
-        console.info(
-          `🤖 - [set/updateDetails] - Successfully updated set ${setId}'s details:`,
-          { date, eventTypeId },
-        );
+        ctx.logger.info(`Successfully updated set ${setId}'s details:`, {
+          date,
+          eventTypeId,
+        });
 
         return {
           success: true,
@@ -540,19 +604,16 @@ export const setRouter = createTRPCRouter({
   updateNotes: organizationProcedure
     .input(updateSetNotesSchema)
     .mutation(async ({ ctx, input }) => {
-      console.log(
-        `🤖 - [set/updateNotes] - attempting to updates notes for set ${input.setId}`,
-        { ...input },
-      );
+      ctx.logger.info(`attempting to updates notes for set ${input.setId}`, {
+        ...input,
+      });
 
       const setToUpdate = await ctx.db.query.sets.findFirst({
         where: eq(sets.id, input.setId),
       });
 
       if (!setToUpdate) {
-        console.error(
-          `🤖 - [set/updateNotes] - could not find set ${input.setId}`,
-        );
+        ctx.logger.error(`could not find set ${input.setId}`);
 
         throw new TRPCError({
           code: "NOT_FOUND",
@@ -561,8 +622,8 @@ export const setRouter = createTRPCRouter({
       }
 
       if (ctx.user.membership.organizationId !== setToUpdate.organizationId) {
-        console.error(
-          `🤖 - [set/updateNotes] - User ${ctx.user.id} not authorized to update set ${setToUpdate.id}`,
+        ctx.logger.error(
+          `User ${ctx.user.id} not authorized to update set ${setToUpdate.id}`,
         );
 
         throw new TRPCError({
@@ -576,19 +637,17 @@ export const setRouter = createTRPCRouter({
         .set({ notes: input.notes === "" ? null : input.notes })
         .where(eq(sets.id, setToUpdate.id));
 
-      console.log(
-        `🤖 - [set/updateNotes] - set notes updated for ${input.setId}`,
-        { notes: input.notes },
-      );
+      ctx.logger.info(`set notes updated for ${input.setId}`, {
+        notes: input.notes,
+      });
     }),
 
   duplicate: organizationProcedure
     .input(duplicateSetSchema)
     .mutation(async ({ ctx, input }) => {
-      console.log(
-        `🤖 - [set/duplicate] - attempting to duplicate set ${input.setToDuplicateId}`,
-        { ...input },
-      );
+      ctx.logger.info(`attempting to duplicate set ${input.setToDuplicateId}`, {
+        ...input,
+      });
 
       return await ctx.db.transaction(async (duplicateTransaction) => {
         const setToDuplicate = await duplicateTransaction.query.sets.findFirst({
@@ -596,8 +655,8 @@ export const setRouter = createTRPCRouter({
         });
 
         if (!setToDuplicate) {
-          console.error(
-            `🤖 - [set/duplicate] - could not find target set ${input.setToDuplicateId}`,
+          ctx.logger.error(
+            `could not find target set ${input.setToDuplicateId}`,
           );
 
           throw new TRPCError({
@@ -609,8 +668,8 @@ export const setRouter = createTRPCRouter({
         if (
           setToDuplicate.organizationId !== ctx.user.membership.organizationId
         ) {
-          console.error(
-            `🤖 - [set/duplicate] - User ${ctx.user.id} not authorized to duplicate set ${input.setToDuplicateId}`,
+          ctx.logger.error(
+            `User ${ctx.user.id} not authorized to duplicate set ${input.setToDuplicateId}`,
           );
 
           throw new TRPCError({
@@ -624,9 +683,7 @@ export const setRouter = createTRPCRouter({
         );
 
         if (!eventType) {
-          console.error(
-            `🤖 - [set/duplicate] - could not find event type ${input.eventTypeId}`,
-          );
+          ctx.logger.error(`could not find event type ${input.eventTypeId}`);
 
           throw new TRPCError({
             code: "NOT_FOUND",
@@ -635,8 +692,8 @@ export const setRouter = createTRPCRouter({
         }
 
         if (eventType.organizationId !== ctx.user.membership.organizationId) {
-          console.error(
-            `🤖 - [set/duplicate] - User ${ctx.user.id} not authorized to use event type ${input.eventTypeId}`,
+          ctx.logger.error(
+            `User ${ctx.user.id} not authorized to use event type ${input.eventTypeId}`,
           );
 
           throw new TRPCError({
@@ -659,10 +716,9 @@ export const setRouter = createTRPCRouter({
           .returning();
 
         if (!newSet) {
-          console.error(
-            `🤖 - [set/duplicate] - Could not create new set with inputs:`,
-            { ...input },
-          );
+          ctx.logger.error(`Could not create new set with inputs:`, {
+            ...input,
+          });
 
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
@@ -695,8 +751,8 @@ export const setRouter = createTRPCRouter({
           .returning();
 
         if (!newSetSections) {
-          console.error(
-            `🤖 - [set/duplicate] - Could not duplicate set sections from set ${input.setToDuplicateId}:`,
+          ctx.logger.error(
+            `Could not duplicate set sections from set ${input.setToDuplicateId}:`,
             { ...duplicatedSectionValues },
           );
 
@@ -707,8 +763,8 @@ export const setRouter = createTRPCRouter({
         }
 
         if (newSetSections.length !== originalSetSections.length) {
-          console.error(
-            `🤖 - [set/duplicate] - Mismatch between original and new set sections count:`,
+          ctx.logger.error(
+            `Mismatch between original and new set sections count:`,
             {
               originalSetSectionsCount: originalSetSections.length,
               newSetSectionsCount: newSetSections.length,
@@ -750,8 +806,8 @@ export const setRouter = createTRPCRouter({
           });
 
         if (!originalSetSectionSongs) {
-          console.error(
-            `🤖 - [set/duplicate] - Could not duplicate set section songs from set ${input.setToDuplicateId}:`,
+          ctx.logger.error(
+            `Could not duplicate set section songs from set ${input.setToDuplicateId}:`,
             { originalSetSectionIds },
           );
 
@@ -790,8 +846,8 @@ export const setRouter = createTRPCRouter({
           .returning();
 
         if (newSetSectionSongs.length !== originalSetSectionSongs.length) {
-          console.error(
-            `🤖 - [set/duplicate] - Mismatch between original and new set section songs count:`,
+          ctx.logger.error(
+            `Mismatch between original and new set section songs count:`,
             {
               originalSetSectionSongsCount: originalSetSectionSongs.length,
               newSetSectionSongsCount: newSetSectionSongs.length,
@@ -807,8 +863,8 @@ export const setRouter = createTRPCRouter({
           });
         }
 
-        console.info(
-          `🤖 - [set/duplicate] - Successfully duplicated set ${input.setToDuplicateId}:`,
+        ctx.logger.info(
+          `Successfully duplicated set ${input.setToDuplicateId}:`,
           {
             newSet,
             newSetSections,

@@ -22,7 +22,7 @@ export const setSectionRouter = createTRPCRouter({
   create: organizationProcedure
     .input(insertSetSectionSchema)
     .mutation(async ({ ctx, input }) => {
-      console.log("🤖 - [setSectionType/create] - input:", input);
+      ctx.logger.info("input:", input);
 
       const { setId, sectionTypeId, position, organizationId } = input;
 
@@ -39,8 +39,8 @@ export const setSectionRouter = createTRPCRouter({
   get: organizationProcedure
     .input(getSetSectionSchema)
     .query(async ({ ctx, input }) => {
-      console.log(
-        `🤖 ~ [setSection/get] ~ attempting to retrieve set sections for ${input.setSectionId}`,
+      ctx.logger.info(
+        `attempting to retrieve set sections for ${input.setSectionId}`,
       );
 
       const setSection = await ctx.db.query.setSections.findFirst({
@@ -56,8 +56,8 @@ export const setSectionRouter = createTRPCRouter({
       });
 
       if (!setSection) {
-        console.error(
-          `🤖 - [setSection/get] - could not find set section ${input.setSectionId}`,
+        ctx.logger.error(
+          `could not find set section ${input.setSectionId}`,
           input,
         );
 
@@ -68,8 +68,8 @@ export const setSectionRouter = createTRPCRouter({
       }
 
       if (setSection.organizationId !== input.organizationId) {
-        console.error(
-          `🤖 - [setSection/get] - User ${ctx.user.id} not authorized to retrieve set section ${setSection.id}`,
+        ctx.logger.error(
+          `User ${ctx.user.id} not authorized to retrieve set section ${setSection.id}`,
         );
 
         throw new TRPCError({
@@ -78,7 +78,7 @@ export const setSectionRouter = createTRPCRouter({
         });
       }
 
-      console.info(`🤖 - [setSection/get] - retrieved set section`, setSection);
+      ctx.logger.info(`retrieved set section`, setSection);
 
       return setSection;
     }),
@@ -87,9 +87,7 @@ export const setSectionRouter = createTRPCRouter({
     .input(getSectionsForSet)
     .query(async ({ ctx, input }) => {
       const { setId } = input;
-      console.log(
-        `🤖 ~ [setSection/getSectionsForSet] ~ attempting to retrieve set sections for ${setId}`,
-      );
+      ctx.logger.info(`attempting to retrieve set sections for ${setId}`);
 
       const sectionsForSetData = await ctx.db.query.setSections.findMany({
         where: eq(setSections.setId, setId),
@@ -103,10 +101,7 @@ export const setSectionRouter = createTRPCRouter({
         },
       });
 
-      console.log(
-        "🤖 ~ [setSection/getSectionsForSet] ~ sectionsForSetData:",
-        sectionsForSetData,
-      );
+      ctx.logger.info("sectionsForSetData:", sectionsForSetData);
 
       return sectionsForSetData;
     }),
@@ -116,10 +111,10 @@ export const setSectionRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const { id, sectionTypeId } = input;
 
-      console.log(
-        `🤖 - [setSection/changeType] - attempting to update set section`,
-        { id, sectionTypeId },
-      );
+      ctx.logger.info(`attempting to update set section`, {
+        id,
+        sectionTypeId,
+      });
 
       return await ctx.db.transaction(async (updateTransaction) => {
         const setSection = await updateTransaction.query.setSections.findFirst({
@@ -130,9 +125,7 @@ export const setSectionRouter = createTRPCRouter({
         });
 
         if (!setSection) {
-          console.error(
-            `🤖 - [setSection/changeType] - could not find set section ${id}`,
-          );
+          ctx.logger.error(`could not find set section ${id}`);
 
           throw new TRPCError({
             code: "NOT_FOUND",
@@ -143,8 +136,8 @@ export const setSectionRouter = createTRPCRouter({
         if (
           setSection.set.organizationId !== ctx.user.membership.organizationId
         ) {
-          console.error(
-            `🤖 - [setSection/changeType] - User ${ctx.user.id} not authorized to update set section ${setSection.id}`,
+          ctx.logger.error(
+            `User ${ctx.user.id} not authorized to update set section ${setSection.id}`,
           );
 
           throw new TRPCError({
@@ -159,9 +152,7 @@ export const setSectionRouter = createTRPCRouter({
           });
 
         if (!setSectionType) {
-          console.error(
-            `🤖 - [setSection/changeType] - could not find set section type ${sectionTypeId}`,
-          );
+          ctx.logger.error(`could not find set section type ${sectionTypeId}`);
 
           throw new TRPCError({
             code: "BAD_REQUEST",
@@ -174,8 +165,8 @@ export const setSectionRouter = createTRPCRouter({
           .set({ sectionTypeId })
           .where(eq(setSections.id, id));
 
-        console.info(
-          `🤖 - [setSection/changeType] - Successfully updated ${id}'s section type to ${sectionTypeId}`,
+        ctx.logger.info(
+          `Successfully updated ${id}'s section type to ${sectionTypeId}`,
         );
 
         return {
@@ -213,10 +204,7 @@ export const setSectionRouter = createTRPCRouter({
   delete: adminProcedure
     .input(deleteSetSectionSchema)
     .mutation(async ({ ctx, input }) => {
-      console.log(
-        `🤖 - [setSection/delete] - attempting to delete set section`,
-        { ...input },
-      );
+      ctx.logger.info(`attempting to delete set section`, { ...input });
 
       try {
         const deletedSetSection = await ctx.db.transaction(
@@ -227,8 +215,8 @@ export const setSectionRouter = createTRPCRouter({
               });
 
             if (!setSectionToDelete) {
-              console.error(
-                `🤖 - [setSection/delete] - could not find sets section ${input.setSectionId}`,
+              ctx.logger.error(
+                `could not find sets section ${input.setSectionId}`,
               );
 
               throw new TRPCError({
@@ -241,8 +229,8 @@ export const setSectionRouter = createTRPCRouter({
               setSectionToDelete.organizationId !==
               ctx.user.membership.organizationId
             ) {
-              console.error(
-                `🤖 - [setSection/delete] - User ${ctx.user.id} is not authorized to delete set section ${input.setSectionId}`,
+              ctx.logger.error(
+                `User ${ctx.user.id} is not authorized to delete set section ${input.setSectionId}`,
               );
 
               throw new TRPCError({
@@ -257,8 +245,8 @@ export const setSectionRouter = createTRPCRouter({
               .returning();
 
             if (!deletedSection) {
-              console.error(
-                `🤖 - [setSection/delete] - Could not delete set section ${input.setSectionId}. Aborting remaining sections reorder.`,
+              ctx.logger.error(
+                `Could not delete set section ${input.setSectionId}. Aborting remaining sections reorder.`,
               );
 
               throw new TRPCError({
@@ -281,14 +269,12 @@ export const setSectionRouter = createTRPCRouter({
           },
         );
 
-        console.info(
-          `🤖 - [setSection/delete] - SetSection ID ${deletedSetSection.id} was successfully deleted`,
+        ctx.logger.info(
+          `SetSection ID ${deletedSetSection.id} was successfully deleted`,
         );
         return deletedSetSection;
       } catch (deleteError) {
-        console.error(
-          `🤖 - [setSectionSong/delete] - Could not delete set section ${input.setSectionId}`,
-        );
+        ctx.logger.error(`Could not delete set section ${input.setSectionId}`);
 
         if (deleteError instanceof TRPCError) {
           throw deleteError;

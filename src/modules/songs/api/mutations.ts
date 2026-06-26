@@ -1,12 +1,14 @@
+import { TRPCError } from "@trpc/server";
+import { eq } from "drizzle-orm";
+
+import { logger } from "@lib/loggers/logger";
 import {
-  type UserWithMemberships,
-  type Song,
   type OrganizationMembership,
+  type Song,
+  type UserWithMemberships,
 } from "@lib/types";
 import { db } from "@server/db";
 import { songs } from "@server/db/schema";
-import { TRPCError } from "@trpc/server";
-import { eq } from "drizzle-orm";
 
 /**
  * Represents a user with at least one active organization membership.
@@ -35,7 +37,7 @@ export const updateSong = async ({
     });
 
     if (!songToUpdate) {
-      console.error(`🤖 - [song/updateName] - could not find song ${songId}`);
+      logger.error(`🤖 - [song/updateName] - could not find song ${songId}`);
       throw new TRPCError({
         code: "NOT_FOUND",
         message: "Could not find song",
@@ -43,7 +45,7 @@ export const updateSong = async ({
     }
 
     if (songToUpdate.organizationId !== organizationId) {
-      console.error(
+      logger.error(
         `🤖 - [song/update] - user ${userId} from org ${organizationId} is not authorized to update song ${songId} belonging to org ${songToUpdate.organizationId}`,
       );
       throw new TRPCError({
@@ -53,7 +55,7 @@ export const updateSong = async ({
     }
 
     if (Object.keys(songUpdates).length === 0) {
-      console.error(
+      logger.error(
         `🤖 - [song/update] - No valid fields provided for update on song ${songId}`,
       );
       throw new TRPCError({
@@ -68,7 +70,7 @@ export const updateSong = async ({
       .where(eq(songs.id, songId))
       .returning();
 
-    console.info(`🤖 - [song/update] - Song ${songId} updated successfully`, {
+    logger.info(`🤖 - [song/update] - Song ${songId} updated successfully`, {
       songUpdates,
       updatedSong,
     });

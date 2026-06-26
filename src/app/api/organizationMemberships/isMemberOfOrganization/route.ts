@@ -3,6 +3,7 @@ import { TRPCError } from "@trpc/server";
 import { getHTTPStatusCodeFromError } from "@trpc/server/http";
 import { z } from "zod";
 
+import { logger } from "@lib/loggers/logger";
 import { trpc } from "@lib/trpc/server";
 
 /**
@@ -11,7 +12,7 @@ import { trpc } from "@lib/trpc/server";
  */
 export async function POST(request: Request) {
   const input = (await request.json()) as { organizationId: string };
-  console.log("🚀 ~ POST ~ input:", input);
+  logger.info("🚀 ~ POST ~ input:", input);
 
   const validatedInput = z
     .object({ organizationId: z.uuid() })
