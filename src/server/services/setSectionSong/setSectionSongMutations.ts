@@ -116,12 +116,16 @@ type AddAndReorderSongsOptions = ServiceOptions & {
   input: z.infer<typeof addAndReorderSongsSchema>;
 };
 
+type OrganizationScopedEntity = {
+  organizationId: string;
+};
+
 const assertBelongsToOrganization = (
-  entity: { organizationId: string },
+  { organizationId: entityOrganizationId }: OrganizationScopedEntity,
   organizationId: string,
   message: string,
 ) => {
-  if (entity.organizationId !== organizationId) {
+  if (entityOrganizationId !== organizationId) {
     throw new TRPCError({
       code: "FORBIDDEN",
       message,
