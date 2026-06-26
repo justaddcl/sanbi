@@ -91,11 +91,11 @@ export const SongTags: React.FC<SongTagsProps> = ({
   return (
     <HStack as="dd" className="flex-wrap items-start gap-2">
       {isSongTagsQueryLoading && (
-        <>
+        <HStack aria-label="Loading song tags" className="gap-2" role="status">
           <Skeleton className="h-5 w-20" />
           <Skeleton className="h-5 w-16" />
           <Skeleton className="h-5 w-24" />
-        </>
+        </HStack>
       )}
       {!isSongTagsQueryLoading &&
         songTags?.map((tag) => (
@@ -103,6 +103,7 @@ export const SongTags: React.FC<SongTagsProps> = ({
             variant="secondary"
             key={tag.tagId}
             dismissable
+            dismissLabel={`Remove ${tag.tag.tag} tag`}
             onDismiss={() => {
               deleteSongTag(tag.tagId);
             }}
