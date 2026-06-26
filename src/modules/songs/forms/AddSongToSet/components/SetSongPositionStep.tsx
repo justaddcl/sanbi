@@ -32,9 +32,20 @@ export const SetSongPositionStep: React.FC<SetSongPositionStepProps> = ({
   newSongInitialPosition,
   onSongPositionSet,
 }) => {
-  const [inputPositionValue, setInputPositionValue] = useState(
-    newSongInitialPosition,
-  );
+  const [inputPositionState, setInputPositionState] = useState({
+    initialPosition: newSongInitialPosition,
+    position: newSongInitialPosition,
+  });
+  const inputPositionValue =
+    inputPositionState.initialPosition === newSongInitialPosition
+      ? inputPositionState.position
+      : newSongInitialPosition;
+  const setInputPositionValue = (position: number) => {
+    setInputPositionState({
+      initialPosition: newSongInitialPosition,
+      position,
+    });
+  };
 
   const { userMembership } = useUserQuery();
 

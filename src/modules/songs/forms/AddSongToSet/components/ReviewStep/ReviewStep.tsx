@@ -113,17 +113,27 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
           onAddSong?.();
 
           void (async () => {
-            try {
-              await apiUtils.song.get.invalidate({ songId: song.id });
-              await apiUtils.set.get.invalidate({ setId: selectedSetId });
-              // FIXME: doesn't seem to update the SSR data on the song page
-              // await apiUtils.song.getPlayHistory.invalidate({
-              //   songId: song.id,
-              //   // organizationId: userMembership.organizationId,
-              // });
-            } catch (error) {
-              console.error("Failed to refresh song/set data", error);
-            }
+            const invalidateResults = await Promise.allSettled([
+              apiUtils.song.get.invalidate({ songId: song.id }),
+              apiUtils.set.get.invalidate({ setId: selectedSetId }),
+            ]);
+
+            invalidateResults.forEach((invalidateResult, index) => {
+              if (invalidateResult.status === "rejected") {
+                console.error(
+                  index === 0
+                    ? "Failed to refresh song data"
+                    : "Failed to refresh set data",
+                  invalidateResult.reason,
+                );
+              }
+            });
+
+            // FIXME: doesn't seem to update the SSR data on the song page
+            // await apiUtils.song.getPlayHistory.invalidate({
+            //   songId: song.id,
+            //   // organizationId: userMembership.organizationId,
+            // });
           })();
         },
         onError(addSongError) {

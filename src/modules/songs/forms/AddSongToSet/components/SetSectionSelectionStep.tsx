@@ -80,49 +80,48 @@ export const SetSectionSelectionStep: React.FC<
     if (!setAlreadyHasSelectedSection) {
       const positionForNewSetSection = setData.sections.length;
 
-      await createSetSectionMutation.mutateAsync(
-        {
-          setId: setData.id,
-          organizationId: userMembership.organizationId,
-          sectionTypeId: newSetSectionType.id,
-          position: positionForNewSetSection,
-        },
-        {
-          onSuccess(createSetSectionMutationResult) {
-            const [newSetSection] = createSetSectionMutationResult;
+      try {
+        const createSetSectionMutationResult =
+          await createSetSectionMutation.mutateAsync({
+            setId: setData.id,
+            organizationId: userMembership.organizationId,
+            sectionTypeId: newSetSectionType.id,
+            position: positionForNewSetSection,
+          });
 
-            if (newSetSection) {
-              setNewSetSectionType(null);
+        const [newSetSection] = createSetSectionMutationResult;
 
-              toast.success(`Section added to set`, { id: toastId });
-              onSelectSetSection(newSetSection.id, 0);
+        if (newSetSection) {
+          setNewSetSectionType(null);
 
-              void (async () => {
-                try {
-                  await apiUtils.setSection.getSectionsForSet.refetch({
-                    organizationId: userMembership.organizationId,
-                    setId: setData.id,
-                  });
+          toast.success(`Section added to set`, { id: toastId });
 
-                  await apiUtils.set.get.invalidate({
-                    setId: setData.id,
-                    organizationId: userMembership.organizationId,
-                  });
-                } catch (error) {
-                  console.error("Failed to refresh set section data", error);
-                }
-              })();
-            }
-          },
+          try {
+            await apiUtils.setSection.getSectionsForSet.refetch({
+              organizationId: userMembership.organizationId,
+              setId: setData.id,
+            });
 
-          onError(createSetSectionError) {
-            toast.error(
-              `Could not add section to set: ${createSetSectionError.message}`,
-              { id: toastId },
-            );
-          },
-        },
-      );
+            await apiUtils.set.get.invalidate({
+              setId: setData.id,
+              organizationId: userMembership.organizationId,
+            });
+          } catch (error) {
+            console.error("Failed to refresh set section data", error);
+          }
+
+          onSelectSetSection(newSetSection.id, 0);
+        }
+      } catch (createSetSectionError) {
+        const errorMessage =
+          createSetSectionError instanceof Error
+            ? createSetSectionError.message
+            : "Unknown error";
+
+        toast.error(`Could not add section to set: ${errorMessage}`, {
+          id: toastId,
+        });
+      }
     } else {
       toast.error("Section already exists on set", { id: toastId });
     }
