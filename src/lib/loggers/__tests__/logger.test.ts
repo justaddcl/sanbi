@@ -33,7 +33,8 @@ jest.mock("pino", () => {
 const { mockPinoLogger } = jest.requireMock<{
   mockPinoLogger: MockPinoLogger;
 }>("pino");
-const { logger } = jest.requireActual<typeof LoggerModule>("../logger");
+const { getProcedureLogger, logger } =
+  jest.requireActual<typeof LoggerModule>("../logger");
 
 describe("logger", () => {
   beforeEach(() => {
@@ -90,5 +91,19 @@ describe("logger", () => {
       { err: error, route: "/resource/update" },
       "failed",
     );
+  });
+
+  it("uses procedureRoute for procedure logger route bindings", () => {
+    getProcedureLogger({
+      path: "resource.update",
+      type: "mutation",
+    });
+
+    expect(mockPinoLogger.child).toHaveBeenCalledWith({
+      router: "resource",
+      procedure: "update",
+      procedureRoute: "/resource/update",
+      procedureType: "mutation",
+    });
   });
 });

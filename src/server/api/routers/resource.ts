@@ -20,6 +20,71 @@ import {
 } from "@server/services/resource/resourceMetadata";
 import { updateResourceForOrganization } from "@server/services/resource/updateResource";
 
+type ResourceLogData = {
+  id?: string;
+  songId?: string;
+  organizationId?: string;
+  title?: string | null;
+  url?: string | null;
+  status?: string | null;
+  metaTitle?: string | null;
+  imageUrl?: string | null;
+  faviconUrl?: string | null;
+  lastFetchedAt?: unknown;
+};
+
+type ResourceMetadataLogData = {
+  normalizedUrl?: string | null;
+  status?: string | null;
+  title?: string | null;
+  imageUrl?: string | null;
+  faviconUrl?: string | null;
+  lastFetchedAt?: unknown;
+};
+
+const getResourceLogSummary = (
+  resource: ResourceLogData | null | undefined,
+) => {
+  if (!resource) {
+    return {
+      resourceFound: false,
+    };
+  }
+
+  return {
+    resourceFound: true,
+    resourceId: resource.id,
+    songId: resource.songId,
+    organizationId: resource.organizationId,
+    url: resource.url,
+    status: resource.status,
+    hasTitle: Boolean(resource.title ?? resource.metaTitle),
+    hasImage: Boolean(resource.imageUrl),
+    hasFavicon: Boolean(resource.faviconUrl),
+    lastFetchedAt: resource.lastFetchedAt,
+  };
+};
+
+const getResourceMetadataLogSummary = (
+  metadata: ResourceMetadataLogData | null | undefined,
+) => {
+  if (!metadata) {
+    return {
+      metadataFound: false,
+    };
+  }
+
+  return {
+    metadataFound: true,
+    normalizedUrl: metadata.normalizedUrl,
+    status: metadata.status,
+    hasTitle: Boolean(metadata.title),
+    hasImage: Boolean(metadata.imageUrl),
+    hasFavicon: Boolean(metadata.faviconUrl),
+    lastFetchedAt: metadata.lastFetchedAt,
+  };
+};
+
 export const resourceRouter = createTRPCRouter({
   // QUERIES
   getBySongId: organizationProcedure
@@ -64,10 +129,15 @@ export const resourceRouter = createTRPCRouter({
         ),
       });
 
-      resourceLogger.info("successfully retrieved resources", {
-        resourcesForSong,
-        queryInput: input,
-      });
+      resourceLogger.info(
+        {
+          queryInput: input,
+          resourceCount: resourcesForSong.length,
+          resourceIds: resourcesForSong.map((resource) => resource.id),
+          resourceStatuses: resourcesForSong.map((resource) => resource.status),
+        },
+        "successfully retrieved resources",
+      );
 
       return resourcesForSong;
     }),
@@ -85,10 +155,13 @@ export const resourceRouter = createTRPCRouter({
       try {
         const previewMetadata = await fetchResourcePreviewMetadata(input.url);
 
-        resourceLogger.info("successfully previewed metadata", {
-          previewMetadata,
-          mutationInput: input,
-        });
+        resourceLogger.info(
+          {
+            ...getResourceMetadataLogSummary(previewMetadata),
+            mutationInput: input,
+          },
+          "successfully previewed metadata",
+        );
 
         return previewMetadata;
       } catch (error) {
@@ -177,10 +250,13 @@ export const resourceRouter = createTRPCRouter({
         });
       }
 
-      resourceLogger.info("new resource created", {
-        createdResource,
-        mutationInput: input,
-      });
+      resourceLogger.info(
+        {
+          ...getResourceLogSummary(createdResource),
+          mutationInput: input,
+        },
+        "new resource created",
+      );
 
       return createdResource;
     }),
@@ -220,10 +296,13 @@ export const resourceRouter = createTRPCRouter({
           logger: resourceLogger,
         });
 
-        resourceLogger.info("resource updated", {
-          updatedResource,
-          mutationInput: input,
-        });
+        resourceLogger.info(
+          {
+            ...getResourceLogSummary(updatedResource),
+            mutationInput: input,
+          },
+          "resource updated",
+        );
 
         return updatedResource;
       } catch (error) {
@@ -275,10 +354,13 @@ export const resourceRouter = createTRPCRouter({
           logger: resourceLogger,
         });
 
-        resourceLogger.info("resource deleted", {
-          deletedResource,
-          mutationInput: input,
-        });
+        resourceLogger.info(
+          {
+            ...getResourceLogSummary(deletedResource),
+            mutationInput: input,
+          },
+          "resource deleted",
+        );
 
         return deletedResource;
       } catch (error) {
@@ -326,10 +408,13 @@ export const resourceRouter = createTRPCRouter({
           logger: resourceLogger,
         });
 
-        resourceLogger.info("resource metadata refreshed", {
-          refreshedResource,
-          mutationInput: input,
-        });
+        resourceLogger.info(
+          {
+            ...getResourceLogSummary(refreshedResource),
+            mutationInput: input,
+          },
+          "resource metadata refreshed",
+        );
 
         return refreshedResource;
       } catch (error) {

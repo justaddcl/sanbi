@@ -25,7 +25,7 @@ const handler = async (req: NextRequest) => {
   const requestId = req.headers.get("x-request-id") ?? createRequestId();
   const requestLogger = logger.child({
     requestId,
-    route: "/api/trpc",
+    httpRoute: "/api/trpc",
     method: req.method,
   });
   const startedAt = performance.now();

@@ -41,15 +41,18 @@ export const createTRPCContext = async (opts: {
 }) => {
   const requestId = opts.requestId ?? createRequestId();
   const source = opts.headers.get("x-trpc-source") ?? "unknown";
+  const contextLogger = opts.logger
+    ? opts.logger.child({ source })
+    : logger.child({
+        requestId,
+        source,
+      });
 
   return {
     ...opts,
     db,
     auth: await auth(),
-    logger: (opts.logger ?? logger).child({
-      requestId,
-      source,
-    }),
+    logger: contextLogger,
     requestId,
   };
 };

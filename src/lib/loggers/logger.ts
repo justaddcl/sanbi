@@ -182,7 +182,7 @@ export const getProcedureLogger = ({
   return (parentLogger ?? logger).child({
     router,
     procedure,
-    route,
+    procedureRoute: route,
     procedureType: type,
   });
 };

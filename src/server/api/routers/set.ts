@@ -29,16 +29,73 @@ import {
 type WhereClause = ReturnType<typeof eq> | ReturnType<typeof and>;
 const DATE_LOCALE = "en-CA";
 
+type UserLogData = {
+  id: string;
+  membership: {
+    organizationId: string;
+    permissionType?: string | null;
+    organization?: {
+      slug?: string | null;
+    } | null;
+  };
+};
+
+type SetLogData = {
+  id: string;
+  organizationId: string;
+  date: string;
+  isArchived: boolean;
+  eventType?: {
+    name?: string | null;
+  } | null;
+  sections?: Array<{
+    songs?: unknown[] | null;
+  }> | null;
+};
+
+const getUserLogSummary = (user: UserLogData) => ({
+  userId: user.id,
+  organizationId: user.membership.organizationId,
+  permissionType: user.membership.permissionType,
+  organizationSlug: user.membership.organization?.slug,
+});
+
+const getSetLogSummary = (setData: SetLogData | null | undefined) => {
+  if (!setData) {
+    return {
+      setFound: false,
+    };
+  }
+
+  const sectionCount = setData.sections?.length ?? 0;
+  const songCount =
+    setData.sections?.reduce(
+      (count, section) => count + (section.songs?.length ?? 0),
+      0,
+    ) ?? 0;
+
+  return {
+    setFound: true,
+    setId: setData.id,
+    organizationId: setData.organizationId,
+    date: setData.date,
+    eventType: setData.eventType?.name,
+    sectionCount,
+    songCount,
+    isArchived: setData.isArchived,
+  };
+};
+
 export const setRouter = createTRPCRouter({
   // Queries
   get: organizationProcedure
     .input(getSetSchema)
     .query(async ({ ctx, input }) => {
       const { user } = ctx;
-      ctx.logger.info("authed user:", user);
+      ctx.logger.info(getUserLogSummary(user), "Resolved authenticated user");
 
       const { setId } = input;
-      ctx.logger.info(`attempting to retrieve ${setId}`);
+      ctx.logger.info({ setId }, "Loading set");
 
       const setData = await ctx.db.query.sets.findFirst({
         where: eq(sets.id, setId),
@@ -60,7 +117,7 @@ export const setRouter = createTRPCRouter({
         },
       });
 
-      ctx.logger.info("setData:", setData);
+      ctx.logger.info(getSetLogSummary(setData), "Loaded set");
 
       if (user.membership.organizationId !== setData?.organizationId) {
         throw new TRPCError({
@@ -163,8 +220,16 @@ export const setRouter = createTRPCRouter({
       .orderBy(upcomingSetsSubquery.setDate, eventTypes.name);
 
     ctx.logger.info(
-      `${upcomingSets.length} upcoming ${pluralize(upcomingSets.length, { singular: "set", plural: "sets" })} found for ${input.organizationId}`,
-      { queryInput: input, upcomingSets },
+      {
+        queryInput: input,
+        organizationId: input.organizationId,
+        upcomingSetCount: upcomingSets.length,
+        eventTypeCount: new Set(
+          upcomingSets.map((upcomingSet) => upcomingSet.eventTypeId),
+        ).size,
+        setIds: upcomingSets.map((upcomingSet) => upcomingSet.setId),
+      },
+      `${upcomingSets.length} upcoming ${pluralize(upcomingSets.length, { singular: "set", plural: "sets" })} found for organization`,
     );
 
     return upcomingSets;
@@ -295,13 +360,16 @@ export const setRouter = createTRPCRouter({
         : undefined;
 
       ctx.logger.info(
-        `${setsResults.length} ${pluralize(setsResults.length, { singular: "result", plural: "results" })} using cursor id ${input.cursor?.id} and date ${input.cursor?.date.toLocaleDateString(DATE_LOCALE)} ?? new Date().toLocaleDateString(DATE_LOCALE)}`,
         {
           queryInput: input,
-          setItems,
-          setsResults,
+          returnedSetCount: setItems.length,
+          fetchedSetCount: setsResults.length,
+          limit,
+          hasNextPage: Boolean(nextCursor),
           nextCursor,
+          setIds: setItems.map((setItem) => setItem.id),
         },
+        `${setItems.length} ${pluralize(setItems.length, { singular: "set", plural: "sets" })} returned for paginated set query`,
       );
 
       return {
@@ -315,7 +383,7 @@ export const setRouter = createTRPCRouter({
     .input(insertSetSchema)
     .mutation(async ({ ctx, input }) => {
       const { user } = ctx;
-      ctx.logger.info("authed user:", user);
+      ctx.logger.info(getUserLogSummary(user), "Resolved authenticated user");
 
       const { date, eventTypeId, notes, organizationId, isArchived } = input;
 
@@ -361,13 +429,36 @@ export const setRouter = createTRPCRouter({
         isArchived,
       };
 
-      ctx.logger.info(`new set`, newSet);
+      ctx.logger.info(
+        {
+          organizationId,
+          eventTypeId,
+          date,
+          isArchived,
+          hasNotes: Boolean(notes),
+        },
+        "Creating set",
+      );
 
-      return ctx.db
+      const createdSets = await ctx.db
         .insert(sets)
         .values(newSet)
         .onConflictDoNothing()
         .returning();
+
+      const [createdSet] = createdSets;
+      ctx.logger.info(
+        {
+          setId: createdSet?.id,
+          organizationId,
+          eventTypeId,
+          date,
+          createdSetCount: createdSets.length,
+        },
+        createdSet ? "Created set" : "Set create returned no rows",
+      );
+
+      return createdSets;
     }),
 
   archive: adminProcedure
