@@ -91,9 +91,11 @@ export const setSectionRouter = createTRPCRouter({
 
       const sectionsForSetData = await ctx.db.query.setSections.findMany({
         where: eq(setSections.setId, setId),
+        orderBy: (sections, { asc }) => [asc(sections.position)],
         with: {
           type: true,
           songs: {
+            orderBy: (songs, { asc }) => [asc(songs.position)],
             with: {
               song: true,
             },

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useReducer, useState } from "react";
 import { Plus } from "@phosphor-icons/react";
 import { type inferProcedureOutput } from "@trpc/server";
 
@@ -11,24 +11,17 @@ import {
   SetSelectionStep,
   SetSongKeyStep,
 } from "@modules/songs/forms/AddSongToSet/components";
-import { type SongKey } from "@lib/constants";
-import { type SetType } from "@lib/types";
 import { type AppRouter } from "@server/api/root";
 
+import {
+  AddSongToSetDialogStep,
+  addSongToSetWorkflowReducer,
+  getAddSongToSetInvalidStepRecovery,
+  getAddSongToSetReviewInput,
+  initialAddSongToSetWorkflowState,
+} from "./addSongToSetWorkflow";
 import { SetSectionSelectionStep } from "./SetSectionSelectionStep";
 import { SetSongPositionStep } from "./SetSongPositionStep";
-
-export type SelectedSet = Pick<SetType, "id"> & {
-  songCount: number;
-};
-
-export enum AddSongToSetDialogStep {
-  SELECT_SET = 1,
-  SELECT_SET_SECTION = 2,
-  SET_POSITION = 3,
-  SET_KEY = 4,
-  REVIEW = 5,
-}
 
 const contentMap: Record<
   AddSongToSetDialogStep,
@@ -74,25 +67,36 @@ export const AddSongToSetDialog: React.FC<AddSongToSetDialogProps> = ({
   trigger,
 }) => {
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
-  const [currentStep, setCurrentStep] = useState(
-    AddSongToSetDialogStep.SELECT_SET,
-  );
-  const [isCreatingNewSet, setIsCreatingNewSet] = useState(false);
-  const [selectedSet, setSelectedSet] = useState<SelectedSet | null>(null);
-
-  const [selectedSetSection, setSelectedSetSection] = useState<string | null>(
-    null,
+  const [workflowState, dispatchWorkflowAction] = useReducer(
+    addSongToSetWorkflowReducer,
+    initialAddSongToSetWorkflowState,
   );
 
-  const [initialSongPosition, setInitialSongPosition] = useState(0);
-  const [songPosition, setSongPosition] = useState<number | null>(null);
-  const [updatedSetSectionOrderedSongIds, setUpdatedSetSectionOrderedSongIds] =
-    useState<string[]>([]);
-
-  const [selectedKey, setSelectedKey] = useState<SongKey | null>(null);
-
-  const totalSteps = Object.keys(AddSongToSetDialogStep).length / 2; // this is divided by 2 since the length property combines the number of keys and values
+  const totalSteps = Object.keys(AddSongToSetDialogStep).length;
   const isOpen = open ?? uncontrolledOpen;
+  const {
+    currentStep,
+    isCreatingNewSet,
+    selectedSet,
+    selectedSetSection,
+    initialSongPosition,
+    songPosition,
+  } = workflowState;
+  const invalidStepRecovery =
+    getAddSongToSetInvalidStepRecovery(workflowState);
+  const reviewInput = getAddSongToSetReviewInput(workflowState);
+  const displayedStep = invalidStepRecovery ?? currentStep;
+
+  useEffect(() => {
+    if (!invalidStepRecovery) {
+      return;
+    }
+
+    dispatchWorkflowAction({
+      type: "recoverInvalidStep",
+      step: invalidStepRecovery,
+    });
+  }, [invalidStepRecovery]);
 
   const setDialogOpen = (nextOpen: boolean) => {
     if (open === undefined) {
@@ -103,44 +107,36 @@ export const AddSongToSetDialog: React.FC<AddSongToSetDialogProps> = ({
   };
 
   const goBack = () => {
-    if (currentStep === AddSongToSetDialogStep.SELECT_SET && isCreatingNewSet) {
-      setIsCreatingNewSet(false);
-    } else if (currentStep > AddSongToSetDialogStep.SELECT_SET) {
-      setCurrentStep((step) => step - 1);
-
-      // reset selected song position if user goes back from the set position step
-      if (currentStep === AddSongToSetDialogStep.SET_POSITION) {
-        setSongPosition(null);
-      }
-    } else {
+    if (
+      currentStep === AddSongToSetDialogStep.SELECT_SET &&
+      !isCreatingNewSet
+    ) {
       resetDialog();
+      return;
     }
+
+    dispatchWorkflowAction({ type: "goBack" });
   };
 
   const resetDialog = (nextOpen = false) => {
     setDialogOpen(nextOpen);
-    setIsCreatingNewSet(false);
-    setCurrentStep(AddSongToSetDialogStep.SELECT_SET);
-    setSelectedSet(null);
-    setSelectedSetSection(null);
-    setInitialSongPosition(0);
-    setSongPosition(null);
-    setSelectedKey(null);
-    setUpdatedSetSectionOrderedSongIds([]);
+    dispatchWorkflowAction({ type: "reset" });
   };
 
   const renderStepContent = () => {
-    switch (currentStep) {
+    switch (displayedStep) {
       case AddSongToSetDialogStep.SELECT_SET:
         return (
           <SetSelectionStep
             isCreatingNewSet={isCreatingNewSet}
             onCreateSetClick={() => {
-              setIsCreatingNewSet(true);
+              dispatchWorkflowAction({ type: "startCreatingNewSet" });
             }}
             onSetSelect={(selectedSetSummary) => {
-              setSelectedSet(selectedSetSummary);
-              setCurrentStep(AddSongToSetDialogStep.SELECT_SET_SECTION);
+              dispatchWorkflowAction({
+                type: "selectSet",
+                selectedSet: selectedSetSummary,
+              });
             }}
           />
         );
@@ -149,9 +145,11 @@ export const AddSongToSetDialog: React.FC<AddSongToSetDialogProps> = ({
           <SetSectionSelectionStep
             selectedSet={selectedSet}
             onSelectSetSection={(setSectionId, setSectionSongCount) => {
-              setSelectedSetSection(setSectionId);
-              setCurrentStep(AddSongToSetDialogStep.SET_POSITION);
-              setInitialSongPosition(setSectionSongCount);
+              dispatchWorkflowAction({
+                type: "selectSetSection",
+                setSectionId,
+                setSectionSongCount,
+              });
             }}
           />
         );
@@ -162,12 +160,11 @@ export const AddSongToSetDialog: React.FC<AddSongToSetDialogProps> = ({
             song={song}
             newSongInitialPosition={songPosition ?? initialSongPosition}
             onSongPositionSet={(orderedSongIds) => {
-              const songPosition = orderedSongIds.findIndex(
-                (songId) => songId === song.id,
-              );
-              setSongPosition(songPosition);
-              setUpdatedSetSectionOrderedSongIds(orderedSongIds);
-              setCurrentStep(AddSongToSetDialogStep.SET_KEY);
+              dispatchWorkflowAction({
+                type: "setSongPosition",
+                songId: song.id,
+                orderedSongIds,
+              });
             }}
           />
         );
@@ -175,44 +172,24 @@ export const AddSongToSetDialog: React.FC<AddSongToSetDialogProps> = ({
         return (
           <SetSongKeyStep
             songId={song.id}
-            preferredKey={song.preferredKey!} // TODO: can we drop this non-null assertion?
+            preferredKey={song.preferredKey}
             onKeySelect={(selectedKey) => {
-              setSelectedKey(selectedKey);
-              setCurrentStep(AddSongToSetDialogStep.REVIEW);
+              dispatchWorkflowAction({ type: "selectKey", selectedKey });
             }}
           />
         );
       case AddSongToSetDialogStep.REVIEW:
-        if (!selectedSet) {
-          setCurrentStep(AddSongToSetDialogStep.SELECT_SET);
-          return null;
-        }
-
-        if (!selectedSetSection) {
-          setCurrentStep(AddSongToSetDialogStep.SELECT_SET_SECTION);
-          return null;
-        }
-
-        if (
-          !updatedSetSectionOrderedSongIds ||
-          updatedSetSectionOrderedSongIds.length === 0
-        ) {
-          setCurrentStep(AddSongToSetDialogStep.SET_POSITION);
-          return null;
-        }
-
-        if (!selectedKey) {
-          setCurrentStep(AddSongToSetDialogStep.SET_KEY);
+        if (!reviewInput) {
           return null;
         }
 
         return (
           <ReviewStep
-            selectedSetId={selectedSet.id}
-            selectedSetSection={selectedSetSection}
+            selectedSetId={reviewInput.selectedSetId}
+            selectedSetSection={reviewInput.selectedSetSection}
             song={song}
-            orderedSongIds={updatedSetSectionOrderedSongIds}
-            songKey={selectedKey}
+            orderedSongIds={reviewInput.orderedSongIds}
+            songKey={reviewInput.songKey}
             onAddSong={() => {
               resetDialog();
             }}
@@ -252,13 +229,13 @@ export const AddSongToSetDialog: React.FC<AddSongToSetDialogProps> = ({
       >
         <AddSongToSetDialogHeader
           title={
-            currentStep === AddSongToSetDialogStep.SELECT_SET &&
+            displayedStep === AddSongToSetDialogStep.SELECT_SET &&
             isCreatingNewSet
               ? (contentMap[AddSongToSetDialogStep.SELECT_SET].alternateTitle ??
                 "Create new set")
-              : contentMap[currentStep].title
+              : contentMap[displayedStep].title
           }
-          step={currentStep}
+          step={displayedStep}
           totalSteps={totalSteps}
           onBack={goBack}
           onClose={resetDialog}
