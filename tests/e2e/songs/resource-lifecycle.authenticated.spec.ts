@@ -6,29 +6,20 @@ import {
   type TestInfo,
 } from "@playwright/test";
 import { e2eData, e2eIds } from "@testUtils/e2e/fixtures";
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 
 import { db } from "@server/db";
 import { resources, userPreferences } from "@server/db/schema";
 
-const sharedResourceLifecycle = {
-  host: "resource-lifecycle.invalid",
-  legacyUrl: "https://resource-lifecycle.invalid/create",
-} as const;
-
 const getResourceLifecycleFixture = (projectName: TestInfo["project"]["name"]) =>
   projectName.includes("mobile")
     ? {
-        createTitle: "E2E Mobile Lifecycle Chart",
-        updatedTitle: "E2E Mobile Lifecycle Chart Updated",
-        url: "https://resource-lifecycle.invalid/mobile",
-        host: sharedResourceLifecycle.host,
+        ...e2eData.resourceLifecycle.mobile,
+        host: e2eData.resourceLifecycle.host,
       }
     : {
-        createTitle: "E2E Desktop Lifecycle Chart",
-        updatedTitle: "E2E Desktop Lifecycle Chart Updated",
-        url: "https://resource-lifecycle.invalid/desktop",
-        host: sharedResourceLifecycle.host,
+        ...e2eData.resourceLifecycle.desktop,
+        host: e2eData.resourceLifecycle.host,
       };
 
 type ResourceLifecycleFixture = ReturnType<typeof getResourceLifecycleFixture>;
@@ -80,10 +71,7 @@ const resetResourceLifecycleFixture = async (
       .where(
         and(
           eq(resources.songId, e2eIds.firstSongId),
-          inArray(resources.url, [
-            fixture.url,
-            sharedResourceLifecycle.legacyUrl,
-          ]),
+          eq(resources.url, fixture.url),
         ),
       );
 
@@ -180,6 +168,7 @@ test("song detail resource lifecycle can link, update, and unlink a resource", a
   const updatedResourceLink = getUpdatedResourceLink(page, fixture);
   await expect(updatedResourceLink).toBeVisible();
   await expect(updatedResourceLink).toContainText(fixture.host);
+  await expect(updatedResourceLink).toHaveAttribute("href", fixture.url);
 
   await getResourceActionMenu(page, fixture.updatedTitle).click();
   await page.getByRole("menuitem", { name: "Unlink resource" }).click();
