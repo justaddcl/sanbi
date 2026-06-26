@@ -7,12 +7,17 @@
  * need to use are documented accordingly near the end.
  */
 import { auth } from "@clerk/nextjs/server";
-import { type ORPCMeta } from "@orpc/trpc";
 import { initTRPC, TRPCError } from "@trpc/server";
 import { and, eq } from "drizzle-orm";
 import superjson from "superjson";
 import * as z from "zod";
 
+import {
+  type AppLogger,
+  getElapsedDurationMs,
+  getProcedureLogger,
+  logger,
+} from "@lib/loggers/logger";
 import { db } from "@/server/db";
 
 import { organizationMemberships, organizations, users } from "../db/schema";
@@ -29,13 +34,27 @@ import { organizationMemberships, organizations, users } from "../db/schema";
  *
  * @see https://trpc.io/docs/server/context
  */
-export const createTRPCContext = async (opts: { headers: Headers }) => {
+export const createTRPCContext = async (opts: {
+  headers: Headers;
+  logger?: AppLogger;
+  requestId?: string;
+}) => {
+  const requestId = opts.requestId ?? createRequestId();
+  const source = opts.headers.get("x-trpc-source") ?? "unknown";
+
   return {
+    ...opts,
     db,
     auth: await auth(),
-    ...opts,
+    logger: (opts.logger ?? logger).child({
+      requestId,
+      source,
+    }),
+    requestId,
   };
 };
+
+export const createRequestId = () => globalThis.crypto.randomUUID();
 
 /**
  * 2. INITIALIZATION
@@ -44,30 +63,27 @@ export const createTRPCContext = async (opts: { headers: Headers }) => {
  * ZodErrors so that you get typesafety on the frontend if your procedure fails due to validation
  * errors on the backend.
  */
-const t = initTRPC
-  .context<typeof createTRPCContext>()
-  .meta<ORPCMeta>()
-  .create({
-    transformer: superjson,
-    errorFormatter({ shape, error }) {
-      return {
-        ...shape,
-        data: {
-          ...shape.data,
-          // FIXME: fix the types and expose the error.cause.field
-          // field:
-          //   error?.cause && Object.keys(error.cause).includes("field")
-          //     ? error.cause.field
-          //     : null,
-          zodError:
-            error.code === "BAD_REQUEST" && error.cause instanceof z.ZodError
-              ? // TODO: see if we need to use z.flattenError() instead
-                z.treeifyError(error.cause)
-              : null,
-        },
-      };
-    },
-  });
+const t = initTRPC.context<typeof createTRPCContext>().create({
+  transformer: superjson,
+  errorFormatter({ shape, error }) {
+    return {
+      ...shape,
+      data: {
+        ...shape.data,
+        // FIXME: fix the types and expose the error.cause.field
+        // field:
+        //   error?.cause && Object.keys(error.cause).includes("field")
+        //     ? error.cause.field
+        //     : null,
+        zodError:
+          error.code === "BAD_REQUEST" && error.cause instanceof z.ZodError
+            ? // TODO: see if we need to use z.flattenError() instead
+              z.treeifyError(error.cause)
+            : null,
+      },
+    };
+  },
+});
 
 /**
  * Create a server-side caller.
@@ -90,6 +106,43 @@ export const createCallerFactory = t.createCallerFactory;
  */
 export const createTRPCRouter = t.router;
 
+const loggingMiddleware = t.middleware(async (opts) => {
+  const startedAt = performance.now();
+  const procedureLogger = getProcedureLogger({
+    parentLogger: opts.ctx.logger,
+    path: opts.path,
+    type: opts.type,
+  });
+
+  procedureLogger.info(
+    { input: await opts.getRawInput() },
+    "tRPC procedure started",
+  );
+
+  const result = await opts.next({
+    ctx: {
+      logger: procedureLogger,
+    },
+  });
+  const durationMs = getElapsedDurationMs(startedAt);
+
+  if (!result.ok) {
+    procedureLogger.error(
+      {
+        durationMs,
+        error: result.error,
+      },
+      "tRPC procedure failed",
+    );
+
+    return result;
+  }
+
+  procedureLogger.info({ durationMs }, "tRPC procedure completed");
+
+  return result;
+});
+
 /**
  * Public (unauthenticated) procedure
  *
@@ -97,9 +150,9 @@ export const createTRPCRouter = t.router;
  * guarantee that a user querying is authorized, but you can still access user session data if they
  * are logged in.
  */
-export const publicProcedure = t.procedure;
+export const publicProcedure = t.procedure.use(loggingMiddleware);
 
-export const authedProcedure = t.procedure.use(async (opts) => {
+export const authedProcedure = publicProcedure.use(async (opts) => {
   const { ctx } = opts;
 
   if (!ctx.auth.userId) {
@@ -152,9 +205,9 @@ export const organizationProcedure = authedProcedure
     });
 
     if (!organization) {
-      console.log(
-        `🤖 - organizationProcedure: organization ${input.organizationId} could not be found`,
+      ctx.logger.warn(
         { procedureInput: input },
+        `organizationProcedure: organization ${input.organizationId} could not be found`,
       );
 
       throw new TRPCError({
