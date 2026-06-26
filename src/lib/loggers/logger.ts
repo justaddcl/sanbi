@@ -63,9 +63,26 @@ const baseLogger = pino({
   },
 });
 
-const asError = (value: unknown) => {
+const normalizeLogValue = (value: unknown): unknown => {
   if (value instanceof Error) {
     return { err: value };
+  }
+
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return value;
+  }
+
+  const logObject = value as LoggerBindings;
+  const errorValue = logObject.error;
+
+  if (errorValue instanceof Error) {
+    const rest = { ...logObject };
+    delete rest.error;
+
+    return {
+      ...rest,
+      err: errorValue,
+    };
   }
 
   return value;
@@ -89,11 +106,11 @@ const logWith =
         typeof firstArg === "object" &&
         remainingArgs.length === 0
       ) {
-        log(asError(firstArg), messageOrObject);
+        log(normalizeLogValue(firstArg), messageOrObject);
         return;
       }
 
-      log({ args: args.map(asError) }, messageOrObject);
+      log({ args: args.map(normalizeLogValue) }, messageOrObject);
       return;
     }
 
@@ -103,21 +120,21 @@ const logWith =
     }
 
     if (args.length === 0) {
-      log(asError(messageOrObject));
+      log(normalizeLogValue(messageOrObject));
       return;
     }
 
     const [message, ...remainingArgs] = args;
 
     if (typeof message === "string") {
-      log(asError(messageOrObject), message, ...remainingArgs);
+      log(normalizeLogValue(messageOrObject), message, ...remainingArgs);
       return;
     }
 
     log(
       {
-        value: asError(messageOrObject),
-        args: args.map(asError),
+        value: normalizeLogValue(messageOrObject),
+        args: args.map(normalizeLogValue),
       },
       "structured log arguments",
     );
