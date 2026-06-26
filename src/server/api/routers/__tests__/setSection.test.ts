@@ -76,16 +76,24 @@ const createCaller = (db: MockSetSectionRouterDb) =>
 
 const createDeleteSetSectionDb = ({
   deletedSectionId,
+  deleteReturnsSection = true,
   sections,
 }: {
   deletedSectionId: string;
+  deleteReturnsSection?: boolean;
   sections: ReturnType<typeof createSetSectionFixture>[];
 }) => {
   let deletedSection: ReturnType<typeof createSetSectionFixture> | undefined;
-  const findFirst = jest.fn(async () => {
+  const findFirst = jest.fn(async (args: { where: unknown }) => {
+    expect(args).toEqual({ where: eq(setSections.id, deletedSectionId) });
+
     return sections.find((section) => section.id === deletedSectionId) ?? null;
   });
   const deleteReturning = jest.fn(async () => {
+    if (!deleteReturnsSection) {
+      return [];
+    }
+
     const deletedSectionIndex = sections.findIndex(
       (section) => section.id === deletedSectionId,
     );
@@ -287,6 +295,30 @@ describe("setSectionRouter", () => {
           gt(setSections.position, deletedSection.position),
         ),
       );
+    });
+
+    it("returns INTERNAL_SERVER_ERROR when delete returns no set section", async () => {
+      const setSection = createSetSectionFixture({
+        organizationId,
+      });
+      const { db, deleteReturning, updateTable } = createDeleteSetSectionDb({
+        deletedSectionId: setSection.id,
+        deleteReturnsSection: false,
+        sections: [setSection],
+      });
+
+      await expect(
+        createCaller(db).delete({
+          organizationId,
+          setSectionId: setSection.id,
+        }),
+      ).rejects.toMatchObject({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to delete set section",
+      });
+
+      expect(deleteReturning).toHaveBeenCalled();
+      expect(updateTable).not.toHaveBeenCalled();
     });
 
     it("maps unexpected delete failures to INTERNAL_SERVER_ERROR", async () => {
