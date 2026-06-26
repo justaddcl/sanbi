@@ -22,14 +22,12 @@ export const organizationRouter = createTRPCRouter({
   create: authedProcedure
     .input(insertOrganizationSchema)
     .mutation(async ({ ctx, input }) => {
-      console.log("🤖 - Creating a new organization");
+      ctx.logger.info("Creating a new organization");
 
       const { userId } = ctx.auth;
 
       if (!userId) {
-        console.log(
-          "🤖 - No user is currently signed in - organization/create",
-        );
+        ctx.logger.info("No user is currently signed in");
         throw new TRPCError({
           code: "UNAUTHORIZED",
           message: "User must be signed in to create an organization",
@@ -37,8 +35,8 @@ export const organizationRouter = createTRPCRouter({
       }
 
       if (!isValidSlug(input.slug)) {
-        console.error(
-          `🤖 - URL slug, ${input.slug}, contains invalid characters - organization/create`,
+        ctx.logger.error(
+          `URL slug, ${input.slug}, contains invalid characters`,
         );
         throw new TRPCError({
           code: "BAD_REQUEST",
@@ -63,8 +61,8 @@ export const organizationRouter = createTRPCRouter({
         });
 
       if (matchingOrganizationName) {
-        console.error(
-          `🤖 - Organization name, ${input.name}, already in use - organization/create`,
+        ctx.logger.error(
+          `Organization name, ${input.name}, already in use`,
           matchingOrganizationName,
         );
         throw new TRPCError({
@@ -90,8 +88,8 @@ export const organizationRouter = createTRPCRouter({
         });
 
       if (matchingOrganizationSlug) {
-        console.error(
-          `🤖 - Organization URL slug, ${input.slug}, already in use - organization/create`,
+        ctx.logger.error(
+          `Organization URL slug, ${input.slug}, already in use`,
           matchingOrganizationSlug,
         );
         throw new TRPCError({
@@ -113,10 +111,7 @@ export const organizationRouter = createTRPCRouter({
         slug: input.slug,
       };
 
-      console.log(
-        `🤖 - New organization - organization/create`,
-        newOrganization,
-      );
+      ctx.logger.info(`New organization`, newOrganization);
 
       return ctx.db
         .insert(organizations)
@@ -127,8 +122,8 @@ export const organizationRouter = createTRPCRouter({
   delete: authedProcedure
     .input(deleteOrganizationSchema)
     .mutation(async ({ ctx, input }) => {
-      console.log(
-        `🤖 - [organization/delete] - attempting to delete organization ${input.organizationId}`,
+      ctx.logger.info(
+        `attempting to delete organization ${input.organizationId}`,
       );
 
       const [deletedOrganization] = await ctx.db
@@ -137,12 +132,12 @@ export const organizationRouter = createTRPCRouter({
         .returning();
 
       if (deletedOrganization) {
-        console.info(
-          `🤖 - [organization/delete] - Organization, ${deletedOrganization.name} (ID: ${deletedOrganization.id}), has been deleted`,
+        ctx.logger.info(
+          `Organization, ${deletedOrganization.name} (ID: ${deletedOrganization.id}), has been deleted`,
         );
       } else {
-        console.error(
-          `🤖 - [organization/delete] - Organization ID ${input.organizationId} could not be deleted`,
+        ctx.logger.error(
+          `Organization ID ${input.organizationId} could not be deleted`,
         );
       }
     }),

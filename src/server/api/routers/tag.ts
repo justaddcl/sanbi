@@ -1,17 +1,18 @@
+import { TRPCError } from "@trpc/server";
+import { asc, eq } from "drizzle-orm";
+
 import { type NewTag } from "@lib/types";
 import { createTagSchema, getTagsByOrganizationSchema } from "@lib/types/zod";
 import { createTRPCRouter, organizationProcedure } from "@server/api/trpc";
 import { tags } from "@server/db/schema";
-import { TRPCError } from "@trpc/server";
-import { asc, eq } from "drizzle-orm";
 
 export const tagRouter = createTRPCRouter({
   // Queries
   getByOrganization: organizationProcedure
     .input(getTagsByOrganizationSchema)
     .query(async ({ ctx, input }) => {
-      console.log(
-        `🤖 - [tag/getByOrganization] - attempting to get song tags for organization ${input.organizationId}`,
+      ctx.logger.info(
+        `attempting to get song tags for organization ${input.organizationId}`,
       );
 
       const organizationTags = await ctx.db
@@ -26,8 +27,8 @@ export const tagRouter = createTRPCRouter({
         .where(eq(tags.organizationId, input.organizationId))
         .orderBy(asc(tags.tag));
 
-      console.info(
-        `🤖 - [tag/getByOrganization] - found ${organizationTags.length} tags for organization ${input.organizationId}`,
+      ctx.logger.info(
+        `found ${organizationTags.length} tags for organization ${input.organizationId}`,
       );
 
       return organizationTags;
@@ -37,7 +38,7 @@ export const tagRouter = createTRPCRouter({
   create: organizationProcedure
     .input(createTagSchema)
     .mutation(async ({ ctx, input }) => {
-      console.log(`🤖 - [tag/create] - attempting to create tag`, {
+      ctx.logger.info(`attempting to create tag`, {
         mutationInput: input,
       });
 
@@ -56,8 +57,8 @@ export const tagRouter = createTRPCRouter({
           .returning();
 
         if (!createdTag) {
-          console.error(
-            `🤖 - [tag/create] - tag ${input.tag} already exists for organization ${input.organizationId}`,
+          ctx.logger.error(
+            `tag ${input.tag} already exists for organization ${input.organizationId}`,
           );
           throw new TRPCError({
             code: "CONFLICT",
@@ -65,8 +66,8 @@ export const tagRouter = createTRPCRouter({
           });
         }
 
-        console.info(
-          `🤖 - [tag/create] - new tag created for organization ${input.organizationId}`,
+        ctx.logger.info(
+          `new tag created for organization ${input.organizationId}`,
           {
             createdTag,
           },

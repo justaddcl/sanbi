@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { type z } from "zod";
 
-import { type getRouteLogger } from "@lib/loggers/logger";
+import { type AppLogger } from "@lib/loggers/logger";
 import { type Resource } from "@lib/types";
 import { type updateResourceSchema } from "@lib/types/zod";
 import { isUniqueConstraintViolation } from "@server/utils/db/postgres";
@@ -16,7 +16,6 @@ type UpdateResourceInput = z.infer<typeof updateResourceSchema>;
 
 type ResourceUpdateValues = Pick<Resource, "title" | "url"> &
   ResourceMetadataWriteValues;
-type UpdateResourceLogger = NonNullable<ReturnType<typeof getRouteLogger>>;
 
 export type UpdateResourceDataAccess = {
   findResourceById: (resourceId: string) => Promise<Resource | null>;
@@ -30,7 +29,7 @@ type UpdateResourceForOrganizationOptions = {
   input: UpdateResourceInput;
   userOrganizationId: string;
   resourceDataAccess: UpdateResourceDataAccess;
-  logger?: UpdateResourceLogger;
+  logger?: AppLogger;
 };
 
 export const updateResourceForOrganization = async ({
@@ -48,7 +47,8 @@ export const updateResourceForOrganization = async ({
 
     throw new TRPCError({
       code: "FORBIDDEN",
-      message: "User is not authorized to update resources for this organization",
+      message:
+        "User is not authorized to update resources for this organization",
     });
   }
 

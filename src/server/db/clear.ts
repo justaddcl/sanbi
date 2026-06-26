@@ -1,8 +1,10 @@
 import { sql } from "drizzle-orm";
+
+import { logger } from "@lib/loggers/logger";
 import { db } from "@/server/db";
 
 const clear = async () => {
-  console.log("🧹 Clearing database...");
+  logger.info("🧹 Clearing database...");
 
   /** clear the organization table */
   await db.execute(sql`TRUNCATE TABLE sanbi_organizations CASCADE`);
@@ -40,13 +42,13 @@ const clear = async () => {
 
 clear()
   .catch((error) => {
-    console.error(
+    logger.error(
       "⚠️ A problem appears to have occurred during clearing",
       error,
     );
     process.exit(1);
   })
   .finally(() => {
-    console.log("✨ Clearing completed");
+    logger.info("✨ Clearing completed");
     process.exit(0);
   });

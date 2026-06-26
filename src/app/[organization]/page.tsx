@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { validate as uuidValidate } from "uuid";
 
 import { OrganizationDashboardSets } from "@modules/sets/components/OrganizationDashboardSets";
+import { logger } from "@lib/loggers/logger";
 import { HydrateClient, trpc } from "@lib/trpc/server";
 
 export default async function Dashboard({
@@ -14,7 +15,7 @@ export default async function Dashboard({
   const { organization } = await params;
   const isOrgIdValidUuid = uuidValidate(organization);
   if (!isOrgIdValidUuid) {
-    console.error(
+    logger.error(
       `🤖 - ${organization} is not a valid UUID - queries/getOrganization`,
     );
     notFound();
