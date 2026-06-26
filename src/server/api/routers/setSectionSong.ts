@@ -135,11 +135,13 @@ export const setSectionSongRouter = createTRPCRouter({
   updateDetails: organizationProcedure
     .input(updateSetSectionSongSchema)
     .mutation(async ({ ctx, input }) => {
-      return await updateSetSectionSongDetailsForOrganization({
-        input,
-        userOrganizationId: ctx.user.membership.organizationId,
-        setSectionSongDataAccess: createSetSectionSongDataAccess(ctx.db),
-        logger: ctx.logger,
+      return await ctx.db.transaction(async (transaction) => {
+        return await updateSetSectionSongDetailsForOrganization({
+          input,
+          userOrganizationId: ctx.user.membership.organizationId,
+          setSectionSongDataAccess: createSetSectionSongDataAccess(transaction),
+          logger: ctx.logger,
+        });
       });
     }),
 

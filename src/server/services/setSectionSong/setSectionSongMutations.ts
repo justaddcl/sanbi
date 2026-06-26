@@ -157,8 +157,6 @@ export const createSetSectionSongForOrganization = async ({
     });
   }
 
-  await setSectionSongDataAccess.lockSetSectionForUpdate(setSectionId);
-
   const setSection =
     await setSectionSongDataAccess.findSetSectionById(setSectionId);
 
@@ -168,6 +166,8 @@ export const createSetSectionSongForOrganization = async ({
       message: "Set section not found",
     });
   }
+
+  await setSectionSongDataAccess.lockSetSectionForUpdate(setSectionId);
 
   assertSetSectionBelongsToOrganization(
     setSection,

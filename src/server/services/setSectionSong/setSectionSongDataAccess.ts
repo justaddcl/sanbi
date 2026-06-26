@@ -1,4 +1,4 @@
-import { and, eq, gt, gte, sql } from "drizzle-orm";
+import { and, eq, gte, sql } from "drizzle-orm";
 
 import { type NewSetSectionSong } from "@lib/types";
 import { type db } from "@server/db";
@@ -91,9 +91,7 @@ export const createSetSectionSongDataAccess = (
       .where(
         and(
           eq(setSectionSongs.setSectionId, setSectionId),
-          offset === 1
-            ? gte(setSectionSongs.position, position)
-            : gt(setSectionSongs.position, position - 1),
+          gte(setSectionSongs.position, position),
         ),
       );
   },
