@@ -4,7 +4,7 @@ import {
   createUserFixture,
 } from "@testUtils/fixtures";
 import { createUuid } from "@testUtils/generators/createUuid";
-import { and, eq, gt } from "drizzle-orm";
+import { and, eq, gt, sql } from "drizzle-orm";
 
 import { setSectionRouter } from "@server/api/routers/setSection";
 import { organizations, setSections, users } from "@server/db/schema";
@@ -335,7 +335,7 @@ describe("setSectionRouter", () => {
       );
       expect(updateTable).toHaveBeenCalledWith(setSections);
       expect(updateSet).toHaveBeenCalledWith({
-        position: expect.any(Object) as unknown,
+        position: sql`position - 1`,
       });
       expect(updateWhere).toHaveBeenCalledWith(
         and(
