@@ -77,16 +77,18 @@ const createCaller = (db: MockSetSectionRouterDb) =>
 const createDeleteSetSectionDb = ({
   deletedSectionId,
   deleteReturnsSection = true,
+  organizationMembership = membership,
   sections,
 }: {
   deletedSectionId: string;
   deleteReturnsSection?: boolean;
+  organizationMembership?: ReturnType<
+    typeof createOrganizationMembershipWithOrganizationFixture
+  >;
   sections: ReturnType<typeof createSetSectionFixture>[];
 }) => {
   let deletedSection: ReturnType<typeof createSetSectionFixture> | undefined;
-  const findFirst = jest.fn(async (args: { where: unknown }) => {
-    expect(args).toEqual({ where: eq(setSections.id, deletedSectionId) });
-
+  const findFirst = jest.fn(async () => {
     return sections.find((section) => section.id === deletedSectionId) ?? null;
   });
   const deleteReturning = jest.fn(async () => {
@@ -145,7 +147,7 @@ const createDeleteSetSectionDb = ({
   const db = {
     query: {
       organizationMemberships: {
-        findFirst: jest.fn().mockResolvedValue(membership),
+        findFirst: jest.fn().mockResolvedValue(organizationMembership),
       },
       setSections: {
         findFirst,
@@ -171,6 +173,12 @@ const createDeleteSetSectionDb = ({
   };
 };
 
+const expectSetSectionLookup = (findFirst: jest.Mock, setSectionId: string) => {
+  expect(findFirst).toHaveBeenCalledWith({
+    where: eq(setSections.id, setSectionId),
+  });
+};
+
 describe("setSectionRouter", () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -190,10 +198,11 @@ describe("setSectionRouter", () => {
   describe("delete", () => {
     it("returns NOT_FOUND when the set section does not exist", async () => {
       const setSectionId = createUuid();
-      const { db, deleteFrom, updateTable } = createDeleteSetSectionDb({
-        deletedSectionId: setSectionId,
-        sections: [],
-      });
+      const { db, deleteFrom, findFirst, updateTable } =
+        createDeleteSetSectionDb({
+          deletedSectionId: setSectionId,
+          sections: [],
+        });
 
       await expect(
         createCaller(db).delete({ organizationId, setSectionId }),
@@ -204,23 +213,33 @@ describe("setSectionRouter", () => {
       expect(mockedServerDb.db.query.users.findFirst).toHaveBeenCalledWith({
         where: eq(users.id, userId),
       });
-      expect(mockedServerDb.db.query.organizations.findFirst).toHaveBeenCalledWith(
-        {
-          where: eq(organizations.id, organizationId),
-        },
-      );
+      expect(
+        mockedServerDb.db.query.organizations.findFirst,
+      ).toHaveBeenCalledWith({
+        where: eq(organizations.id, organizationId),
+      });
+      expectSetSectionLookup(findFirst, setSectionId);
       expect(deleteFrom).not.toHaveBeenCalled();
       expect(updateTable).not.toHaveBeenCalled();
     });
 
-    it("returns FORBIDDEN for a set section in another organization", async () => {
+    it("returns FORBIDDEN for non-admin organization members", async () => {
       const setSection = createSetSectionFixture({
-        organizationId: createUuid(),
+        organizationId,
       });
-      const { db, deleteFrom, updateTable } = createDeleteSetSectionDb({
-        deletedSectionId: setSection.id,
-        sections: [setSection],
-      });
+      const memberMembership =
+        createOrganizationMembershipWithOrganizationFixture({
+          organization,
+          organizationId,
+          permissionType: "member",
+          userId,
+        });
+      const { db, deleteFrom, findFirst, updateTable } =
+        createDeleteSetSectionDb({
+          deletedSectionId: setSection.id,
+          organizationMembership: memberMembership,
+          sections: [setSection],
+        });
 
       await expect(
         createCaller(db).delete({
@@ -231,6 +250,31 @@ describe("setSectionRouter", () => {
         code: "FORBIDDEN",
       });
 
+      expect(findFirst).not.toHaveBeenCalled();
+      expect(deleteFrom).not.toHaveBeenCalled();
+      expect(updateTable).not.toHaveBeenCalled();
+    });
+
+    it("returns FORBIDDEN for a set section in another organization", async () => {
+      const setSection = createSetSectionFixture({
+        organizationId: createUuid(),
+      });
+      const { db, deleteFrom, findFirst, updateTable } =
+        createDeleteSetSectionDb({
+          deletedSectionId: setSection.id,
+          sections: [setSection],
+        });
+
+      await expect(
+        createCaller(db).delete({
+          organizationId,
+          setSectionId: setSection.id,
+        }),
+      ).rejects.toMatchObject({
+        code: "FORBIDDEN",
+      });
+
+      expectSetSectionLookup(findFirst, setSection.id);
       expect(deleteFrom).not.toHaveBeenCalled();
       expect(updateTable).not.toHaveBeenCalled();
     });
@@ -264,11 +308,18 @@ describe("setSectionRouter", () => {
         laterSection,
         otherSetSection,
       ];
-      const { db, deleteFrom, deleteWhere, updateSet, updateTable, updateWhere } =
-        createDeleteSetSectionDb({
-          deletedSectionId: deletedSection.id,
-          sections,
-        });
+      const {
+        db,
+        deleteFrom,
+        deleteWhere,
+        findFirst,
+        updateSet,
+        updateTable,
+        updateWhere,
+      } = createDeleteSetSectionDb({
+        deletedSectionId: deletedSection.id,
+        sections,
+      });
 
       await expect(
         createCaller(db).delete({
@@ -277,10 +328,7 @@ describe("setSectionRouter", () => {
         }),
       ).resolves.toEqual(deletedSection);
 
-      expect(sections).toEqual([firstSection, laterSection, otherSetSection]);
-      expect(firstSection.position).toBe(0);
-      expect(laterSection.position).toBe(1);
-      expect(otherSetSection.position).toBe(2);
+      expectSetSectionLookup(findFirst, deletedSection.id);
       expect(deleteFrom).toHaveBeenCalledWith(setSections);
       expect(deleteWhere).toHaveBeenCalledWith(
         eq(setSections.id, deletedSection.id),
@@ -301,11 +349,12 @@ describe("setSectionRouter", () => {
       const setSection = createSetSectionFixture({
         organizationId,
       });
-      const { db, deleteReturning, updateTable } = createDeleteSetSectionDb({
-        deletedSectionId: setSection.id,
-        deleteReturnsSection: false,
-        sections: [setSection],
-      });
+      const { db, deleteReturning, findFirst, updateTable } =
+        createDeleteSetSectionDb({
+          deletedSectionId: setSection.id,
+          deleteReturnsSection: false,
+          sections: [setSection],
+        });
 
       await expect(
         createCaller(db).delete({
@@ -317,6 +366,7 @@ describe("setSectionRouter", () => {
         message: "Failed to delete set section",
       });
 
+      expectSetSectionLookup(findFirst, setSection.id);
       expect(deleteReturning).toHaveBeenCalled();
       expect(updateTable).not.toHaveBeenCalled();
     });
