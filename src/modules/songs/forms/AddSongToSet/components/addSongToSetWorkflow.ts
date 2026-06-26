@@ -5,13 +5,16 @@ export type SelectedSet = Pick<SetType, "id"> & {
   songCount: number;
 };
 
-export enum AddSongToSetDialogStep {
-  SELECT_SET = 1,
-  SELECT_SET_SECTION = 2,
-  SET_POSITION = 3,
-  SET_KEY = 4,
-  REVIEW = 5,
-}
+export const AddSongToSetDialogStep = {
+  SELECT_SET: 1,
+  SELECT_SET_SECTION: 2,
+  SET_POSITION: 3,
+  SET_KEY: 4,
+  REVIEW: 5,
+} as const;
+
+export type AddSongToSetDialogStep =
+  (typeof AddSongToSetDialogStep)[keyof typeof AddSongToSetDialogStep];
 
 export type AddSongToSetWorkflowState = {
   currentStep: AddSongToSetDialogStep;
@@ -166,7 +169,7 @@ export const addSongToSetWorkflowReducer = (
       if (state.currentStep > AddSongToSetDialogStep.SELECT_SET) {
         return {
           ...state,
-          currentStep: state.currentStep - 1,
+          currentStep: (state.currentStep - 1) as AddSongToSetDialogStep,
           songPosition:
             state.currentStep === AddSongToSetDialogStep.SET_POSITION
               ? null
@@ -178,9 +181,34 @@ export const addSongToSetWorkflowReducer = (
     case "reset":
       return initialAddSongToSetWorkflowState;
     case "recoverInvalidStep":
-      return {
-        ...state,
-        currentStep: action.step,
-      };
+      switch (action.step) {
+        case AddSongToSetDialogStep.SELECT_SET:
+          return initialAddSongToSetWorkflowState;
+        case AddSongToSetDialogStep.SELECT_SET_SECTION:
+          return {
+            ...initialAddSongToSetWorkflowState,
+            currentStep: AddSongToSetDialogStep.SELECT_SET_SECTION,
+            selectedSet: state.selectedSet,
+          };
+        case AddSongToSetDialogStep.SET_POSITION:
+          return {
+            ...state,
+            currentStep: AddSongToSetDialogStep.SET_POSITION,
+            songPosition: null,
+            updatedSetSectionOrderedSongIds: [],
+            selectedKey: null,
+          };
+        case AddSongToSetDialogStep.SET_KEY:
+          return {
+            ...state,
+            currentStep: AddSongToSetDialogStep.SET_KEY,
+            selectedKey: null,
+          };
+        case AddSongToSetDialogStep.REVIEW:
+          return {
+            ...state,
+            currentStep: AddSongToSetDialogStep.REVIEW,
+          };
+      }
   }
 };

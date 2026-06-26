@@ -72,7 +72,7 @@ export const AddSongToSetDialog: React.FC<AddSongToSetDialogProps> = ({
     initialAddSongToSetWorkflowState,
   );
 
-  const totalSteps = Object.keys(AddSongToSetDialogStep).length / 2; // this is divided by 2 since the length property combines the number of keys and values
+  const totalSteps = Object.keys(AddSongToSetDialogStep).length;
   const isOpen = open ?? uncontrolledOpen;
   const {
     currentStep,
@@ -85,6 +85,7 @@ export const AddSongToSetDialog: React.FC<AddSongToSetDialogProps> = ({
   const invalidStepRecovery =
     getAddSongToSetInvalidStepRecovery(workflowState);
   const reviewInput = getAddSongToSetReviewInput(workflowState);
+  const displayedStep = invalidStepRecovery ?? currentStep;
 
   useEffect(() => {
     if (!invalidStepRecovery) {
@@ -123,7 +124,7 @@ export const AddSongToSetDialog: React.FC<AddSongToSetDialogProps> = ({
   };
 
   const renderStepContent = () => {
-    switch (currentStep) {
+    switch (displayedStep) {
       case AddSongToSetDialogStep.SELECT_SET:
         return (
           <SetSelectionStep
@@ -228,13 +229,13 @@ export const AddSongToSetDialog: React.FC<AddSongToSetDialogProps> = ({
       >
         <AddSongToSetDialogHeader
           title={
-            currentStep === AddSongToSetDialogStep.SELECT_SET &&
+            displayedStep === AddSongToSetDialogStep.SELECT_SET &&
             isCreatingNewSet
               ? (contentMap[AddSongToSetDialogStep.SELECT_SET].alternateTitle ??
                 "Create new set")
-              : contentMap[currentStep].title
+              : contentMap[displayedStep].title
           }
-          step={currentStep}
+          step={displayedStep}
           totalSteps={totalSteps}
           onBack={goBack}
           onClose={resetDialog}

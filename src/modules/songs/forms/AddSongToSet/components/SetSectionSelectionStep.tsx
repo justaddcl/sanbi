@@ -95,19 +95,22 @@ export const SetSectionSelectionStep: React.FC<
               setNewSetSectionType(null);
 
               toast.success(`Section added to set`, { id: toastId });
+              onSelectSetSection(newSetSection.id, 0);
 
               void (async () => {
-                await apiUtils.setSection.getSectionsForSet.refetch({
-                  organizationId: userMembership.organizationId,
-                  setId: setData.id,
-                });
+                try {
+                  await apiUtils.setSection.getSectionsForSet.refetch({
+                    organizationId: userMembership.organizationId,
+                    setId: setData.id,
+                  });
 
-                await apiUtils.set.get.invalidate({
-                  setId: setData.id,
-                  organizationId: userMembership.organizationId,
-                });
-
-                onSelectSetSection(newSetSection.id, 0);
+                  await apiUtils.set.get.invalidate({
+                    setId: setData.id,
+                    organizationId: userMembership.organizationId,
+                  });
+                } catch (error) {
+                  console.error("Failed to refresh set section data", error);
+                }
               })();
             }
           },

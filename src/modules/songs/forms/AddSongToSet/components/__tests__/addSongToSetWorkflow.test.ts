@@ -100,4 +100,37 @@ describe("addSongToSetWorkflow", () => {
       }),
     ).toBe(AddSongToSetDialogStep.SET_KEY);
   });
+
+  it("clears downstream fields when recovering to an earlier step", () => {
+    const selectedSet = {
+      id: createUuid(),
+      songCount: 1,
+    };
+    const selectedSetSection = createUuid();
+    const selectedKey = "g";
+    const orderedSongIds = [createUuid(), createUuid()];
+
+    const recoveredState = addSongToSetWorkflowReducer(
+      {
+        ...initialAddSongToSetWorkflowState,
+        currentStep: AddSongToSetDialogStep.REVIEW,
+        selectedSet,
+        selectedSetSection,
+        initialSongPosition: 1,
+        songPosition: 1,
+        updatedSetSectionOrderedSongIds: orderedSongIds,
+        selectedKey,
+      },
+      {
+        type: "recoverInvalidStep",
+        step: AddSongToSetDialogStep.SELECT_SET_SECTION,
+      },
+    );
+
+    expect(recoveredState).toEqual({
+      ...initialAddSongToSetWorkflowState,
+      currentStep: AddSongToSetDialogStep.SELECT_SET_SECTION,
+      selectedSet,
+    });
+  });
 });
