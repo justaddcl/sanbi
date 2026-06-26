@@ -196,11 +196,11 @@ describe("ReviewStep", () => {
       expect(mockInvalidateSet).toHaveBeenCalledWith({
         setId: setWithSections.id,
       });
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        "Failed to refresh song data",
+        invalidateError,
+      );
     });
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      "Failed to refresh song data",
-      invalidateError,
-    );
 
     consoleErrorSpy.mockRestore();
   });
