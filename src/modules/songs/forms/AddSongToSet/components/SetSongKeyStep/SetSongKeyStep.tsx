@@ -15,7 +15,7 @@ import { useResponsive } from "@/hooks/useResponsive";
 
 type SetSongKeyStepProps = {
   songId: string;
-  preferredKey: SongKey;
+  preferredKey: SongKey | null;
   onKeySelect: (selectedKey: SongKey) => void;
 };
 
@@ -24,14 +24,9 @@ export const SetSongKeyStep: React.FC<SetSongKeyStepProps> = ({
   preferredKey,
   onKeySelect,
 }) => {
-  const { textSize, isDesktop } = useResponsive();
+  const { isDesktop } = useResponsive();
 
-  const {
-    data: userData,
-    isLoading: isUserQueryLoading,
-    isAuthLoaded,
-    userMembership,
-  } = useUserQuery();
+  const { userMembership } = useUserQuery();
 
   const { data: lastPlayInstance, isLoading: isLastPlayInstanceQueryLoading } =
     trpc.song.getLastPlayInstance.useQuery(
@@ -60,7 +55,7 @@ export const SetSongKeyStep: React.FC<SetSongKeyStepProps> = ({
               variant="outline"
               className={cn({
                 // TODO: update colors when brand colors are decided on
-                "border-red-300": key === preferredKey,
+                "border-red-300": preferredKey && key === preferredKey,
                 "border-blue-300": key === lastPlayInstance?.song.key,
               })}
               onClick={() => {
@@ -72,12 +67,14 @@ export const SetSongKeyStep: React.FC<SetSongKeyStepProps> = ({
           ))}
         </div>
         <VStack className=" gap-2 text-slate-500">
-          <HStack className="items-center gap-1">
-            <Heart />
-            <Text style={isDesktop ? "body-small" : "small"}>
-              Preferred key: {formatSongKey(preferredKey)}
-            </Text>
-          </HStack>
+          {preferredKey && (
+            <HStack className="items-center gap-1">
+              <Heart />
+              <Text style={isDesktop ? "body-small" : "small"}>
+                Preferred key: {formatSongKey(preferredKey)}
+              </Text>
+            </HStack>
+          )}
           {isLastPlayInstanceQueryLoading && <Skeleton className="h-4 w-40" />}
           {!isLastPlayInstanceQueryLoading && lastPlayInstance?.song.key && (
             <HStack className=" items-center gap-1">

@@ -394,12 +394,12 @@ describe("SongResources resource editing", () => {
 
     await waitFor(() => {
       expect(screen.getByLabelText("Name")).toHaveValue(suggestedResourceName);
+      expect(
+        screen.getByText(
+          "Suggested from the page title, but feel free to rename it.",
+        ),
+      ).toBeInTheDocument();
     });
-    expect(
-      screen.getByText(
-        "Suggested from the page title, but feel free to rename it.",
-      ),
-    ).toBeInTheDocument();
 
     fireEvent.change(screen.getByLabelText("Name"), {
       target: { value: "Custom resource name" },
