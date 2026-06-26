@@ -116,25 +116,12 @@ type AddAndReorderSongsOptions = ServiceOptions & {
   input: z.infer<typeof addAndReorderSongsSchema>;
 };
 
-const assertSetSectionBelongsToOrganization = (
-  setSection: SetSection,
+const assertBelongsToOrganization = (
+  entity: { organizationId: string },
   organizationId: string,
   message: string,
 ) => {
-  if (setSection.organizationId !== organizationId) {
-    throw new TRPCError({
-      code: "FORBIDDEN",
-      message,
-    });
-  }
-};
-
-const assertSetSectionSongBelongsToOrganization = (
-  setSectionSong: SetSectionSong,
-  organizationId: string,
-  message: string,
-) => {
-  if (setSectionSong.organizationId !== organizationId) {
+  if (entity.organizationId !== organizationId) {
     throw new TRPCError({
       code: "FORBIDDEN",
       message,
@@ -169,7 +156,7 @@ export const createSetSectionSongForOrganization = async ({
 
   await setSectionSongDataAccess.lockSetSectionForUpdate(setSectionId);
 
-  assertSetSectionBelongsToOrganization(
+  assertBelongsToOrganization(
     setSection,
     organizationId,
     "Not authorized to update this set section",
@@ -221,7 +208,7 @@ export const deleteSetSectionSongForOrganization = async ({
     });
   }
 
-  assertSetSectionSongBelongsToOrganization(
+  assertBelongsToOrganization(
     setSectionSong,
     userOrganizationId,
     "Not authorized to delete this set section song",
@@ -271,7 +258,7 @@ export const swapSetSectionSongPositionForOrganization = async ({
     };
   }
 
-  assertSetSectionSongBelongsToOrganization(
+  assertBelongsToOrganization(
     currentSong,
     userOrganizationId,
     "Not authorized to reorder this set section song",
@@ -350,7 +337,7 @@ export const moveSetSectionSongToAdjacentSectionForOrganization = async ({
     });
   }
 
-  assertSetSectionSongBelongsToOrganization(
+  assertBelongsToOrganization(
     targetSetSectionSong,
     userOrganizationId,
     "Not authorized to move this set section song",
@@ -372,7 +359,7 @@ export const moveSetSectionSongToAdjacentSectionForOrganization = async ({
     });
   }
 
-  assertSetSectionBelongsToOrganization(
+  assertBelongsToOrganization(
     targetSetSection,
     userOrganizationId,
     "Not authorized to move this set section song",
@@ -429,7 +416,7 @@ export const replaceSetSectionSongForOrganization = async ({
     });
   }
 
-  assertSetSectionSongBelongsToOrganization(
+  assertBelongsToOrganization(
     setSectionSong,
     userOrganizationId,
     "Not authorized to replace this song",
@@ -506,7 +493,7 @@ export const updateSetSectionSongDetailsForOrganization = async ({
     });
   }
 
-  assertSetSectionSongBelongsToOrganization(
+  assertBelongsToOrganization(
     setSectionSong,
     userOrganizationId,
     "Not authorized to update this song",
@@ -592,7 +579,7 @@ export const addAndReorderSongsForOrganization = async ({
     });
   }
 
-  assertSetSectionBelongsToOrganization(
+  assertBelongsToOrganization(
     setSection,
     userOrganizationId,
     "Not authorized to update this set section",
