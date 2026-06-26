@@ -97,6 +97,13 @@ export const updateSetSectionPositionForSet = async ({
     return 0;
   })();
 
+  if (targetPosition === position) {
+    return {
+      success: true,
+      message: `Successfully moved set section ${setSectionId} ${direction}`,
+    };
+  }
+
   if (direction === "up" || direction === "down") {
     const setSectionToSwap =
       await setSectionPositionDataAccess.findSetSectionBySetIdAndPosition(

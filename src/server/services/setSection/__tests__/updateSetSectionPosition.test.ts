@@ -158,6 +158,12 @@ describe("updateSetSectionPositionForSet", () => {
       );
 
       expect(setSection.position).toBe(0);
+      expect(
+        setSectionPositionDataAccess.updateSetSectionPosition,
+      ).not.toHaveBeenCalled();
+      expect(
+        setSectionPositionDataAccess.shiftSetSectionPositions,
+      ).not.toHaveBeenCalled();
     },
   );
 
@@ -238,6 +244,37 @@ describe("updateSetSectionPositionForSet", () => {
       setSectionPositionDataAccess.shiftSetSectionPositions,
     ).not.toHaveBeenCalled();
   });
+
+  it.each([
+    { direction: "up" as const, position: 2 },
+    { direction: "down" as const, position: 0 },
+  ])(
+    "returns a failure result when moving $direction without an adjacent swap section",
+    async ({ direction, position }) => {
+      const setSections = createSetSectionsForSet([0, 2]);
+      const movedSection = findSetSectionByPosition(setSections, position);
+      const setSectionPositionDataAccess =
+        createSetSectionPositionDataAccessFixture(setSections);
+
+      await expect(
+        updateSetSectionPositionForSet({
+          direction,
+          setSectionId: movedSection.id,
+          setSectionPositionDataAccess,
+        }),
+      ).resolves.toEqual({
+        success: false,
+        message: `No set section to swap with ${direction}`,
+      });
+
+      expect(
+        setSectionPositionDataAccess.updateSetSectionPosition,
+      ).not.toHaveBeenCalled();
+      expect(
+        setSectionPositionDataAccess.shiftSetSectionPositions,
+      ).not.toHaveBeenCalled();
+    },
+  );
 
   it("swaps exactly two positions when moving a section down", async () => {
     const setSections = createSetSectionsForSet([0, 1, 2]);
