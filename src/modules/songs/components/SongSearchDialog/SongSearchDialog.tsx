@@ -46,8 +46,9 @@ export const SongSearchDialog: React.FC<SongSearchDialogProps> = ({
   const router = useRouter();
 
   const [dialogStep, setDialogStep] = useState<SongSearchDialogSteps>("search");
-  const [selectedSong, setSelectedSong] =
-    useState<SongSearchResult | null>(null);
+  const [selectedSong, setSelectedSong] = useState<SongSearchResult | null>(
+    null,
+  );
   const [dismissedPreSelectedSongId, setDismissedPreSelectedSongId] = useState<
     string | null
   >(null);
@@ -117,11 +118,21 @@ export const SongSearchDialog: React.FC<SongSearchDialogProps> = ({
     onOpenChange?.(isOpen);
   };
 
-  const handleSongSelect = (song?: SongSearchResult) => {
-    if (song) {
-      setSelectedSong(song);
-      setDialogStep("configure");
-    }
+  const resetDialogState = () => {
+    setSelectedSong(null);
+    setDismissedPreSelectedSongId(null);
+    setDialogStep("search");
+    songSearchState.resetSearchInput();
+  };
+
+  const closeDialog = () => {
+    setOpen(false);
+    resetDialogState();
+  };
+
+  const handleSongSelect = (song: SongSearchResult) => {
+    setSelectedSong(song);
+    setDialogStep("configure");
   };
 
   const handleDialogStepChange: Dispatch<
@@ -135,6 +146,7 @@ export const SongSearchDialog: React.FC<SongSearchDialogProps> = ({
     if (nextStep === "search") {
       setSelectedSong(null);
       setDismissedPreSelectedSongId(preSelectedSongId ?? null);
+      songSearchState.resetSearchInput();
     }
 
     setDialogStep(nextStep);
@@ -148,11 +160,8 @@ export const SongSearchDialog: React.FC<SongSearchDialogProps> = ({
         setOpen(open);
 
         if (!open) {
-          setSelectedSong(null);
-          setDismissedPreSelectedSongId(null);
+          resetDialogState();
         }
-
-        setDialogStep("search");
       }}
       shouldFilter={false}
       fixed
@@ -182,9 +191,7 @@ export const SongSearchDialog: React.FC<SongSearchDialogProps> = ({
           existingSetSections={existingSetSections}
           selectedSong={activeSelectedSong}
           setDialogStep={handleDialogStepChange}
-          onSubmit={() => {
-            setOpen(false);
-          }}
+          onSubmit={closeDialog}
           setId={setId}
           prePopulatedSetSectionId={prePopulatedSetSectionId}
         />
