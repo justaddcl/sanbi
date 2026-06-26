@@ -1,5 +1,6 @@
 export * from "./AddSongToSetDialog";
 export * from "./AddSongToSetDialogHeader";
+export * from "./addSongToSetWorkflow";
 export * from "./ReviewStep/ReviewStep";
 export * from "./SelectedSetCard/SelectedSetCard";
 export * from "./SetSelectionFilters";
