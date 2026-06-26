@@ -187,41 +187,34 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
     if (!setAlreadyHasSelectedSection) {
       const positionForNewSetSection = sectionsForSetData.length;
 
-      await createSetSectionMutation.mutateAsync(
-        {
+      const [newSetSection] = await createSetSectionMutation.mutateAsync({
+        setId,
+        organizationId: userMembership.organizationId,
+        sectionTypeId: newSetSectionType.id,
+        position: positionForNewSetSection,
+      });
+
+      if (newSetSection) {
+        setValue("setSectionId", newSetSection.id, {
+          shouldValidate: true,
+          shouldDirty: true,
+          shouldTouch: true,
+        });
+
+        setNewSetSectionType(null);
+
+        toast.success(`Section added to set`);
+
+        await apiUtils.setSection.getSectionsForSet.refetch({
+          organizationId: userMembership.organizationId,
+          setId,
+        });
+
+        await apiUtils.set.get.invalidate({
           setId,
           organizationId: userMembership.organizationId,
-          sectionTypeId: newSetSectionType.id,
-          position: positionForNewSetSection,
-        },
-        {
-          async onSuccess(createSetSectionMutationResult) {
-            const [newSetSection] = createSetSectionMutationResult;
-
-            if (newSetSection) {
-              setValue("setSectionId", newSetSection.id, {
-                shouldValidate: true,
-                shouldDirty: true,
-                shouldTouch: true,
-              });
-
-              setNewSetSectionType(null);
-
-              toast.success(`Section added to set`);
-
-              await apiUtils.setSection.getSectionsForSet.refetch({
-                organizationId: userMembership.organizationId,
-                setId,
-              });
-
-              await apiUtils.set.get.invalidate({
-                setId,
-                organizationId: userMembership.organizationId,
-              });
-            }
-          },
-        },
-      );
+        });
+      }
     } else {
       setError("setSectionId", {
         type: "custom",
@@ -240,37 +233,29 @@ export const ConfigureSongForSet: React.FC<ConfigureSongForSetProps> = ({
     );
     const setSectionSongPosition = setSectionToAddTo!.songs.length; // using non-null assertion since in the happiest path where we don't add any new set sections to the set, this set section already exists
 
-    await addSetSectionSongMutation.mutateAsync(
-      {
-        organizationId: userMembership.organizationId,
-        songId,
-        setSectionId,
-        key: key!,
-        position: setSectionSongPosition,
-        notes: notes ?? null,
-      },
-      {
-        async onSuccess(data) {
-          logger.info(
-            "🤖 [createSetSectionSongMutation/onSuccess] ~ data:",
-            data,
-          );
+    const data = await addSetSectionSongMutation.mutateAsync({
+      organizationId: userMembership.organizationId,
+      songId,
+      setSectionId,
+      key: key!,
+      position: setSectionSongPosition,
+      notes: notes ?? null,
+    });
 
-          await apiUtils.set.get.invalidate({
-            setId,
-          });
+    logger.info("🤖 [createSetSectionSongMutation/onSuccess] ~ data:", data);
 
-          toast.success("Song added to the set!");
+    await apiUtils.set.get.invalidate({
+      setId,
+    });
 
-          setDialogStep("search");
+    toast.success("Song added to the set!");
 
-          if (!addAnotherSong) {
-            // close the dialog
-            onSubmit?.();
-          }
-        },
-      },
-    );
+    setDialogStep("search");
+
+    if (!addAnotherSong) {
+      // close the dialog
+      onSubmit?.();
+    }
   };
 
   const goBackToSearch = () => setDialogStep("search");

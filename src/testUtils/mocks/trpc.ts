@@ -1,6 +1,7 @@
 import { createTagFixture } from "@testUtils/fixtures/tags";
 import { createUuid } from "@testUtils/generators/createUuid";
 
+import { type SearchSongResult } from "@modules/search/components/types";
 import { type Tag } from "@lib/types";
 
 export type SongTagResult = {
@@ -16,6 +17,12 @@ export type QueryResult<Data> = {
   data: Data | undefined;
   isLoading: boolean;
   error: Error | null;
+};
+
+export type SongSearchQueryResult = {
+  data: SearchSongResult[];
+  isFetching: boolean;
+  isError: boolean;
 };
 
 export type MutationCallbacks<Result = unknown> = {
@@ -39,8 +46,17 @@ const createQueryResult = <Data>(data: Data): QueryResult<Data> => ({
   isLoading: false,
 });
 
+const createSongSearchQueryResult = (
+  data: SearchSongResult[] = [],
+): SongSearchQueryResult => ({
+  data,
+  isError: false,
+  isFetching: false,
+});
+
 let mockOrganizationTagsQuery = createQueryResult<Tag[]>([]);
 let mockSongTagsQuery = createQueryResult<SongTagResult[]>([]);
+let mockSongSearchQuery = createSongSearchQueryResult();
 let mockCreatedTag: Tag | undefined;
 let mockCreateTagHookCallbacks: MutationCallbacks<Tag> | undefined;
 
@@ -75,9 +91,16 @@ export const mockCreateTagMutate = jest.fn(
   },
 );
 
+export const mockReplaceSongMutate = jest.fn(
+  (_input: unknown, callbacks?: MutationCallbacks) => {
+    void callbacks?.onSuccess?.({});
+  },
+);
+
 export const mockInvalidateSongTags = jest.fn();
 export const mockInvalidateSong = jest.fn();
 export const mockInvalidateOrganizationTags = jest.fn();
+export const mockInvalidateSet = jest.fn();
 
 export const setMockOrganizationTagsQuery = (
   queryResult: QueryResult<Tag[]>,
@@ -91,6 +114,12 @@ export const setMockSongTagsQuery = (
   mockSongTagsQuery = queryResult;
 };
 
+export const setMockSongSearchQuery = (
+  queryResult: SongSearchQueryResult,
+) => {
+  mockSongSearchQuery = queryResult;
+};
+
 export const setMockCreatedTag = (tag: Tag) => {
   mockCreatedTag = tag;
 };
@@ -98,11 +127,17 @@ export const setMockCreatedTag = (tag: Tag) => {
 export const resetMockTrpc = () => {
   mockOrganizationTagsQuery = createQueryResult([]);
   mockSongTagsQuery = createQueryResult([]);
+  mockSongSearchQuery = createSongSearchQueryResult();
   mockCreatedTag = undefined;
   mockCreateTagHookCallbacks = undefined;
 };
 
 export const mockTrpc = {
+  song: {
+    search: {
+      useQuery: jest.fn(() => mockSongSearchQuery),
+    },
+  },
   songTag: {
     create: {
       useMutation: jest.fn(() => ({
@@ -116,6 +151,13 @@ export const mockTrpc = {
     },
     getBySongId: {
       useQuery: jest.fn(() => mockSongTagsQuery),
+    },
+  },
+  setSectionSong: {
+    replaceSong: {
+      useMutation: jest.fn(() => ({
+        mutate: mockReplaceSongMutate,
+      })),
     },
   },
   tag: {
@@ -139,6 +181,11 @@ export const mockTrpc = {
     },
   },
   useUtils: jest.fn(() => ({
+    set: {
+      get: {
+        invalidate: mockInvalidateSet,
+      },
+    },
     song: {
       get: {
         invalidate: mockInvalidateSong,

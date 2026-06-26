@@ -10,7 +10,7 @@ import {
   CommandGroup,
   CommandList,
 } from "@components/ui/command";
-import { DialogDescription, DialogTitle } from "@components/ui/dialog";
+import { DialogDescription } from "@components/ui/dialog";
 import { HStack } from "@components/HStack";
 import { Text } from "@components/Text";
 import { VStack } from "@components/VStack";
@@ -63,8 +63,9 @@ export const ReplaceSongDialog: React.FC<ReplaceSongDialogProps> = ({
 
   const [dialogStep, setDialogStep] =
     useState<ReplaceSongDialogSteps>("search");
-  const [selectedSong, setSelectedSong] =
-    useState<SongSearchResult | null>(null);
+  const [selectedSong, setSelectedSong] = useState<SongSearchResult | null>(
+    null,
+  );
 
   const replaceSongMutation =
     trpc.setSectionSong.replaceSong.useMutation<Error>();
@@ -116,14 +117,14 @@ export const ReplaceSongDialog: React.FC<ReplaceSongDialogProps> = ({
           replacementSongId: selectedSong?.songId,
         },
         {
-          async onSuccess() {
+          onSuccess() {
             toast.dismiss();
             toast.success("Song replaced");
             handleCloseDialog();
-            await apiUtils.set.get.invalidate({ setId });
+            void apiUtils.set.get.invalidate({ setId });
           },
 
-          async onError() {
+          onError() {
             toast.dismiss();
             toast.error("Song could not be replaced");
           },
@@ -178,7 +179,13 @@ export const ReplaceSongDialog: React.FC<ReplaceSongDialogProps> = ({
               >
                 <CaretLeft aria-hidden />
               </Button>
-              <DialogTitle className="text-center">Replace song</DialogTitle>
+              <Text
+                asElement="h2"
+                align="center"
+                className="text-center text-lg font-semibold tracking-tight"
+              >
+                Replace song
+              </Text>
             </div>
             <DialogDescription className="mt-2" asChild>
               <VStack className="gap-8 px-4">
