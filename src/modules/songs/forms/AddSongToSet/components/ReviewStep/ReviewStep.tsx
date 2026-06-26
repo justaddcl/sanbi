@@ -110,16 +110,20 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
         onSuccess() {
           toast.success("Song added to set!", { id: toastId });
 
-          void (async () => {
-            await apiUtils.song.get.invalidate({ songId: song.id });
-            await apiUtils.set.get.invalidate({ setId: selectedSetId });
-            // FIXME: doesn't seem to update the SSR data on the song page
-            // await apiUtils.song.getPlayHistory.invalidate({
-            //   songId: song.id,
-            //   // organizationId: userMembership.organizationId,
-            // });
+          onAddSong?.();
 
-            onAddSong?.();
+          void (async () => {
+            try {
+              await apiUtils.song.get.invalidate({ songId: song.id });
+              await apiUtils.set.get.invalidate({ setId: selectedSetId });
+              // FIXME: doesn't seem to update the SSR data on the song page
+              // await apiUtils.song.getPlayHistory.invalidate({
+              //   songId: song.id,
+              //   // organizationId: userMembership.organizationId,
+              // });
+            } catch (error) {
+              console.error("Failed to refresh song/set data", error);
+            }
           })();
         },
         onError(addSongError) {
