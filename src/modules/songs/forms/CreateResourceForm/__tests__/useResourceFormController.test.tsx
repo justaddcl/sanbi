@@ -11,13 +11,17 @@ import {
 } from "@testUtils/models/user/fixtures";
 import { toast } from "sonner";
 
+import type { RouterOutputs } from "@lib/trpc";
 import type { Resource, UserWithMemberships } from "@lib/types";
 
 import { useResourceFormController } from "../useResourceFormController";
 
 const mockCreateResource = jest.fn<Promise<Resource>, [unknown]>();
 const mockUpdateResource = jest.fn<Promise<Resource>, [unknown]>();
-const mockPreviewMetadata = jest.fn<Promise<unknown>, [unknown]>();
+const mockPreviewMetadata = jest.fn<
+  Promise<RouterOutputs["resource"]["previewMetadata"]>,
+  [{ organizationId: string; url: string }]
+>();
 const mockInvalidateResources = jest.fn();
 let mockUserData: NonNullable<UserWithMemberships>;
 
@@ -79,6 +83,19 @@ jest.mock("@sentry/nextjs", () => ({
 const songId = createUuid();
 const organizationId = createUuid();
 
+const createPreviewMetadataFixture = (
+  overrides: Partial<RouterOutputs["resource"]["previewMetadata"]> = {},
+): RouterOutputs["resource"]["previewMetadata"] => ({
+  normalizedUrl: createResourceUrl(),
+  status: "ready",
+  title: null,
+  description: null,
+  faviconUrl: null,
+  imageUrl: null,
+  lastFetchedAt: new Date(),
+  ...overrides,
+});
+
 const createUserDataFixture = (overrides: Partial<typeof mockUserData> = {}) =>
   createUserWithMembershipsFixture({
     memberships: [
@@ -99,7 +116,7 @@ describe("useResourceFormController", () => {
     mockUpdateResource.mockResolvedValue(
       createResourceFixture({ songId, organizationId }),
     );
-    mockPreviewMetadata.mockResolvedValue(null);
+    mockPreviewMetadata.mockResolvedValue(createPreviewMetadataFixture());
     mockInvalidateResources.mockResolvedValue(undefined);
   });
 
@@ -213,15 +230,10 @@ describe("useResourceFormController", () => {
   it("suggests and clears generated names from preview metadata", async () => {
     const resourceUrl = createResourceUrl();
     const suggestedResourceName = createResourceName();
-    mockPreviewMetadata.mockResolvedValue({
+    mockPreviewMetadata.mockResolvedValue(createPreviewMetadataFixture({
       normalizedUrl: resourceUrl,
-      status: "ready",
       title: suggestedResourceName,
-      description: null,
-      faviconUrl: null,
-      imageUrl: null,
-      lastFetchedAt: new Date(),
-    });
+    }));
     const { result } = renderHook(() =>
       useResourceFormController({
         mode: "create",
