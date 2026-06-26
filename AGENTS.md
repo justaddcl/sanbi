@@ -14,7 +14,7 @@ This file captures project conventions for coding agents and reviewers. It appli
 - Prefer real application code in tests. Mock only hard boundaries such as network clients, auth/session providers, browser APIs, time, randomness, or data access seams.
 - When mocking is necessary, keep the mock narrow and explicit. Avoid mocking components only to make assertions easier; assert behavior through accessible UI, submitted inputs, query invalidation, or injected dependency calls.
 - Put reusable test helpers in `src/testUtils` and import them through `@testUtils/*`.
-- Organize test helpers by model/domain or concern, for example `models/resource`, `models/user`, `generators`, and `orpc`.
+- Organize test helpers by model/domain or concern, for example `models/resource`, `models/user`, and `generators`.
 - Fixture helpers should return complete valid objects and accept partial overrides.
 - Generate IDs, names, URLs, and other incidental data through shared generators instead of hard-coded literals.
 - Assertions should reference values from fixture objects or test-local variables. Avoid duplicating exact strings or manually retyping input values unless the literal text is the behavior under test.

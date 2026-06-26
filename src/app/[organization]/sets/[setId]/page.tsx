@@ -35,6 +35,7 @@ import { getSetSongNumbering } from "@modules/sets/utils/getSetSongNumbering";
 import { ArchivedBanner } from "@modules/shared/components";
 import { type ConfigureSongForSetProps } from "@modules/songs/components/ConfigureSongForSet/ConfigureSongForSet";
 import { SongSearchDialog } from "@modules/songs/components/SongSearchDialog";
+import { logger } from "@lib/loggers/logger";
 import { trpc } from "@lib/trpc";
 import { cn } from "@lib/utils";
 import { useResponsive } from "@/hooks/useResponsive";
@@ -112,17 +113,15 @@ export default function SetListPage({
     const isOrganizationIdValidUuid = uuidValidate(params.organization);
     const isSetIdValidUuid = uuidValidate(params.setId);
     if (!isOrganizationIdValidUuid) {
-      console.error(
-        `🤖 - ${params.organization} is an invalid organization ID`,
-      );
+      logger.error(`🤖 - ${params.organization} is an invalid organization ID`);
     }
 
     if (!isSetIdValidUuid) {
-      console.error(`🤖 - ${params.setId} is invalid set ID`);
+      logger.error(`🤖 - ${params.setId} is invalid set ID`);
     }
 
     if (!isOrganizationIdValidUuid || !isSetIdValidUuid) {
-      console.error(`🤖 - Invalid params`);
+      logger.error(`🤖 - Invalid params`);
       // notFound();
     }
   }, [params.organization, params.setId]);

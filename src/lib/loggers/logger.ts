@@ -1,42 +1,188 @@
-import { getLogger, type LoggerContext } from "@orpc/experimental-pino";
-import pino from "pino";
+import pino, { type Logger as PinoLogger } from "pino";
 
 const isDev = process.env.NODE_ENV !== "production";
 
-export const logger = pino({
+type LogMethod = (messageOrObject?: unknown, ...args: unknown[]) => void;
+type LogLevel = "trace" | "debug" | "info" | "warn" | "error" | "fatal";
+type LogMethods = Record<LogLevel, LogMethod>;
+
+export type LoggerBindings = Record<string, unknown>;
+
+export type AppLogger = LogMethods & {
+  child: (bindings: LoggerBindings) => AppLogger;
+};
+
+const baseLogger = pino({
   level: isDev ? "trace" : "info",
 
-  // scrub sensitive stuff – tweak as needed
   redact: {
     paths: [
+      "authorization",
+      "cookie",
+      "headers.authorization",
+      "headers.cookie",
+      "queryInput.authorization",
+      "queryInput.cookie",
+      "queryInput.headers.authorization",
+      "queryInput.headers.cookie",
+      "mutationInput.authorization",
+      "mutationInput.cookie",
+      "mutationInput.headers.authorization",
+      "mutationInput.headers.cookie",
       "req.headers.authorization",
       "req.headers.cookie",
       "auth",
       "auth.*",
-      "user.password",
+      "password",
       "*.password",
+      "input.password",
+      "input.*.password",
+      "queryInput.password",
+      "queryInput.*.password",
+      "mutationInput.password",
+      "mutationInput.*.password",
+      "user.token",
+      "*.token",
+      "queryInput.token",
+      "queryInput.*.token",
+      "mutationInput.token",
+      "mutationInput.*.token",
+      "session",
+      "session.*",
+      "queryInput.session",
+      "queryInput.*.session",
+      "mutationInput.session",
+      "mutationInput.*.session",
+      "user.password",
     ],
     remove: true,
   },
 
-  // optional: add a base app name
   base: {
     app: "sanbi",
   },
 });
 
+const normalizeLogValue = (value: unknown): unknown => {
+  if (value instanceof Error) {
+    return { err: value };
+  }
+
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return value;
+  }
+
+  const logObject = value as LoggerBindings;
+  const errorValue = logObject.error;
+
+  if (errorValue instanceof Error) {
+    const rest = { ...logObject };
+    delete rest.error;
+
+    return {
+      ...rest,
+      err: errorValue,
+    };
+  }
+
+  return value;
+};
+
+const logWith =
+  (pinoLogger: PinoLogger, level: LogLevel): LogMethod =>
+  (messageOrObject?: unknown, ...args: unknown[]) => {
+    const log = pinoLogger[level].bind(pinoLogger);
+
+    if (typeof messageOrObject === "string") {
+      if (args.length === 0) {
+        log(messageOrObject);
+        return;
+      }
+
+      const [firstArg, ...remainingArgs] = args;
+
+      if (
+        firstArg &&
+        typeof firstArg === "object" &&
+        remainingArgs.length === 0
+      ) {
+        log(normalizeLogValue(firstArg), messageOrObject);
+        return;
+      }
+
+      log({ args: args.map(normalizeLogValue) }, messageOrObject);
+      return;
+    }
+
+    if (messageOrObject === undefined) {
+      log("");
+      return;
+    }
+
+    if (args.length === 0) {
+      log(normalizeLogValue(messageOrObject));
+      return;
+    }
+
+    const [message, ...remainingArgs] = args;
+
+    if (typeof message === "string") {
+      log(normalizeLogValue(messageOrObject), message, ...remainingArgs);
+      return;
+    }
+
+    log(
+      {
+        value: normalizeLogValue(messageOrObject),
+        args: args.map(normalizeLogValue),
+      },
+      "structured log arguments",
+    );
+  };
+
+const wrapLogger = (pinoLogger: PinoLogger): AppLogger => ({
+  trace: logWith(pinoLogger, "trace"),
+  debug: logWith(pinoLogger, "debug"),
+  info: logWith(pinoLogger, "info"),
+  warn: logWith(pinoLogger, "warn"),
+  error: logWith(pinoLogger, "error"),
+  fatal: logWith(pinoLogger, "fatal"),
+  child: (bindings) => wrapLogger(pinoLogger.child(bindings)),
+});
+
+export const logger = wrapLogger(baseLogger);
+
 export const getRouteLogger = (
-  context: LoggerContext | undefined,
+  parentLogger: AppLogger | undefined,
   route: string,
-  extra: Record<string, unknown> = {},
+  extra: LoggerBindings = {},
 ) => {
-  if (!context) return undefined;
-
-  const logger = getLogger(context);
-  if (!logger) return undefined;
-
-  return logger.child({
+  return (parentLogger ?? logger).child({
     route,
     ...extra,
+  });
+};
+
+export const getElapsedDurationMs = (startedAt: number) =>
+  Math.round(performance.now() - startedAt);
+
+export const getProcedureLogger = ({
+  parentLogger,
+  path,
+  type,
+}: {
+  parentLogger?: AppLogger;
+  path: string;
+  type: string;
+}) => {
+  const [router, ...procedureParts] = path.split(".");
+  const procedure = procedureParts.join(".");
+  const route = procedure ? `/${router}/${procedure}` : `/${router}`;
+
+  return (parentLogger ?? logger).child({
+    router,
+    procedure,
+    procedureRoute: route,
+    procedureType: type,
   });
 };

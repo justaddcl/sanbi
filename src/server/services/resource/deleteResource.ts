@@ -1,13 +1,11 @@
 import { TRPCError } from "@trpc/server";
 import { type z } from "zod";
 
-import { type getRouteLogger } from "@lib/loggers/logger";
+import { type AppLogger } from "@lib/loggers/logger";
 import { type Resource } from "@lib/types";
 import { type deleteResourceSchema } from "@lib/types/zod";
 
 type DeleteResourceInput = z.infer<typeof deleteResourceSchema>;
-type DeleteResourceLogger = NonNullable<ReturnType<typeof getRouteLogger>>;
-
 export type DeleteResourceDataAccess = {
   findResourceById: (resourceId: string) => Promise<Resource | null>;
   deleteResource: (
@@ -20,7 +18,7 @@ type DeleteResourceForOrganizationOptions = {
   input: DeleteResourceInput;
   userOrganizationId: string;
   resourceDataAccess: DeleteResourceDataAccess;
-  logger?: DeleteResourceLogger;
+  logger?: AppLogger;
 };
 
 export const deleteResourceForOrganization = async ({
@@ -38,7 +36,8 @@ export const deleteResourceForOrganization = async ({
 
     throw new TRPCError({
       code: "FORBIDDEN",
-      message: "User is not authorized to delete resources for this organization",
+      message:
+        "User is not authorized to delete resources for this organization",
     });
   }
 

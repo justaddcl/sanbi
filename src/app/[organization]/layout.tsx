@@ -2,6 +2,8 @@ import { notFound } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
 import { validate as uuidValidate } from "uuid";
 
+import { logger } from "@lib/loggers/logger";
+
 export default async function DashboardLayout({
   params,
   children,
@@ -16,7 +18,7 @@ export default async function DashboardLayout({
   const { organization } = await params;
   const isOrgIdValidUuid = uuidValidate(organization);
   if (!isOrgIdValidUuid) {
-    console.error(`Invalid Organization ID: ${organization}`);
+    logger.error(`Invalid Organization ID: ${organization}`);
     notFound();
   }
 

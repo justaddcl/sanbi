@@ -1,3 +1,6 @@
+import { TRPCError } from "@trpc/server";
+import { and, asc, eq } from "drizzle-orm";
+
 import { type NewSongTag } from "@lib/types";
 import {
   createSongTagSchema,
@@ -6,8 +9,6 @@ import {
 } from "@lib/types/zod";
 import { createTRPCRouter, organizationProcedure } from "@server/api/trpc";
 import { songs, songTags, tags } from "@server/db/schema";
-import { TRPCError } from "@trpc/server";
-import { and, eq, asc } from "drizzle-orm";
 
 export const songTagRouter = createTRPCRouter({
   // Queries
@@ -19,9 +20,7 @@ export const songTagRouter = createTRPCRouter({
       });
 
       if (!songToQuery) {
-        console.error(
-          `🤖 - [songTag/getBySongId] - could not find song ${input.songId}`,
-        );
+        ctx.logger.error(`could not find song ${input.songId}`);
         throw new TRPCError({
           code: "NOT_FOUND",
           message: "Could not find song",
@@ -29,8 +28,8 @@ export const songTagRouter = createTRPCRouter({
       }
 
       if (songToQuery.organizationId !== ctx.user.membership.organizationId) {
-        console.error(
-          `🤖 - [songTag/getBySongId] - user ${ctx.user.id} is not authorized to query song ${songToQuery.id}`,
+        ctx.logger.error(
+          `user ${ctx.user.id} is not authorized to query song ${songToQuery.id}`,
         );
         throw new TRPCError({
           code: "FORBIDDEN",
@@ -57,8 +56,8 @@ export const songTagRouter = createTRPCRouter({
         )
         .orderBy(asc(tags.tag));
 
-      console.info(
-        `🤖 - [songTags/getBySongId] - found ${songTagsResult.length} tags for song ${input.songId}`,
+      ctx.logger.info(
+        `found ${songTagsResult.length} tags for song ${input.songId}`,
       );
 
       return songTagsResult;
@@ -68,12 +67,9 @@ export const songTagRouter = createTRPCRouter({
   create: organizationProcedure
     .input(createSongTagSchema)
     .mutation(async ({ ctx, input }) => {
-      console.log(
-        `🤖 - [songTag/create] - attempting to create a new song tag`,
-        {
-          mutationInput: input,
-        },
-      );
+      ctx.logger.info(`attempting to create a new song tag`, {
+        mutationInput: input,
+      });
 
       return ctx.db.transaction(async (createMutation) => {
         const songToCreateTagFor = await createMutation.query.songs.findFirst({
@@ -81,9 +77,7 @@ export const songTagRouter = createTRPCRouter({
         });
 
         if (!songToCreateTagFor) {
-          console.error(
-            `🤖 - [songTag/create] - could not find song ${input.songId}`,
-          );
+          ctx.logger.error(`could not find song ${input.songId}`);
           throw new TRPCError({
             code: "NOT_FOUND",
             message: "Could not find target song",
@@ -94,8 +88,8 @@ export const songTagRouter = createTRPCRouter({
           songToCreateTagFor.organizationId !==
           ctx.user.membership.organizationId
         ) {
-          console.error(
-            `🤖 - [songTag/create] - user ${ctx.user.id} is not authorized to use song ${songToCreateTagFor.id}`,
+          ctx.logger.error(
+            `user ${ctx.user.id} is not authorized to use song ${songToCreateTagFor.id}`,
           );
           throw new TRPCError({
             code: "FORBIDDEN",
@@ -108,9 +102,7 @@ export const songTagRouter = createTRPCRouter({
         });
 
         if (!tagToAttach) {
-          console.error(
-            `🤖 - [songTag/create] - could not find tag ${input.tagId}`,
-          );
+          ctx.logger.error(`could not find tag ${input.tagId}`);
           throw new TRPCError({
             code: "NOT_FOUND",
             message: "Could not find target tag",
@@ -118,8 +110,8 @@ export const songTagRouter = createTRPCRouter({
         }
 
         if (tagToAttach.organizationId !== ctx.user.membership.organizationId) {
-          console.error(
-            `🤖 - [songTag/create] - user ${ctx.user.id} is not authorized to use tag ${tagToAttach.id}`,
+          ctx.logger.error(
+            `user ${ctx.user.id} is not authorized to use tag ${tagToAttach.id}`,
           );
           throw new TRPCError({
             code: "FORBIDDEN",
@@ -140,8 +132,8 @@ export const songTagRouter = createTRPCRouter({
           .returning();
 
         if (!songTag) {
-          console.error(
-            `🤖 - [songTag/create] - tag ${input.tagId} already attached to song ${input.songId}`,
+          ctx.logger.error(
+            `tag ${input.tagId} already attached to song ${input.songId}`,
           );
           throw new TRPCError({
             code: "CONFLICT",
@@ -149,7 +141,7 @@ export const songTagRouter = createTRPCRouter({
           });
         }
 
-        console.log(`🤖 - [songTag/create] - new song tag created`, {
+        ctx.logger.info(`new song tag created`, {
           songTag,
           mutationInput: input,
         });
@@ -165,8 +157,8 @@ export const songTagRouter = createTRPCRouter({
   delete: organizationProcedure
     .input(deleteSongTagSchema)
     .mutation(async ({ ctx, input }) => {
-      console.log(
-        `🤖 - [songTag/delete] - attempting to delete tag ${input.tagId} from song ${input.songId}`,
+      ctx.logger.info(
+        `attempting to delete tag ${input.tagId} from song ${input.songId}`,
         {
           mutationInput: input,
         },
@@ -178,9 +170,7 @@ export const songTagRouter = createTRPCRouter({
         });
 
         if (!songToRemoveTagFrom) {
-          console.error(
-            `🤖 - [songTag/delete] - could not find song ${input.songId}`,
-          );
+          ctx.logger.error(`could not find song ${input.songId}`);
           throw new TRPCError({
             code: "NOT_FOUND",
             message: "Could not find target song",
@@ -191,8 +181,8 @@ export const songTagRouter = createTRPCRouter({
           songToRemoveTagFrom.organizationId !==
           ctx.user.membership.organizationId
         ) {
-          console.error(
-            `🤖 - [songTag/delete] - user ${ctx.user.id} is not authorized to modify song ${songToRemoveTagFrom.id}`,
+          ctx.logger.error(
+            `user ${ctx.user.id} is not authorized to modify song ${songToRemoveTagFrom.id}`,
           );
           throw new TRPCError({
             code: "FORBIDDEN",
@@ -211,8 +201,8 @@ export const songTagRouter = createTRPCRouter({
           .returning();
 
         if (!deletedSongTag) {
-          console.error(
-            `🤖 - [songTag/delete] - Tag ${input.tagId} not attached to song ${input.songId} and could not be deleted`,
+          ctx.logger.error(
+            `Tag ${input.tagId} not attached to song ${input.songId} and could not be deleted`,
           );
           throw new TRPCError({
             code: "NOT_FOUND",
@@ -220,7 +210,7 @@ export const songTagRouter = createTRPCRouter({
           });
         }
 
-        console.info(`🤖 - [songTag/delete] - tag removed from song`, {
+        ctx.logger.info(`tag removed from song`, {
           deletedSongTag,
           mutationInput: input,
         });

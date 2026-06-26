@@ -2,6 +2,7 @@ import { faker } from "@faker-js/faker";
 import { addWeeks, subMonths } from "date-fns";
 import { sql } from "drizzle-orm";
 
+import { logger } from "@lib/loggers/logger";
 import {
   type NewEventType,
   type NewOrganization,
@@ -72,19 +73,18 @@ const seedUser: NewUser = {
  * since using the inferred drizzle insert types leads to "Unsafe argument
  * of type `any` assigned to a parameter of type errors". Not sure why 🤷🏻‍♂️
  */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 
 /**
  * We disable the rule to enforce delete with where since we want to delete
  * all existing rows as we're just seeding the database
  */
-/* eslint-disable drizzle/enforce-delete-with-where */
+
 const seed = async () => {
-  console.log("🌱 Seeding database...");
+  logger.info("🌱 Seeding database...");
 
   /** enable the pg_trgm extension if needed */
   await db.execute(sql`CREATE EXTENSION IF NOT EXISTS pg_trgm`);
-  console.log("🚀 ~ seed ~ enable trigram extension (if necessary)");
+  logger.info("🚀 ~ seed ~ enable trigram extension (if necessary)");
 
   /** seed the organization table */
   await db.execute(sql`TRUNCATE TABLE sanbi_organizations CASCADE`);
@@ -97,7 +97,7 @@ const seed = async () => {
   if (!organization) {
     throw new Error("Failed to create seed organization");
   }
-  console.log("🚀 ~ seed ~ organization:", organization);
+  logger.info("🚀 ~ seed ~ organization:", organization);
   const organizationId = organization.id;
 
   /** seed the users table */
@@ -106,7 +106,7 @@ const seed = async () => {
   if (!user) {
     throw new Error("Failed to create seed user");
   }
-  console.log("🚀 ~ seed ~ user:", user);
+  logger.info("🚀 ~ seed ~ user:", user);
 
   /** seed the organisation members table */
   await db.execute(sql`TRUNCATE TABLE sanbi_organization_memberships CASCADE`);
@@ -120,7 +120,7 @@ const seed = async () => {
     .values(newOrgMembership)
     .onConflictDoNothing()
     .returning();
-  console.log("🚀 ~ seed ~ orgMembership:", orgMembership);
+  logger.info("🚀 ~ seed ~ orgMembership:", orgMembership);
 
   /** seed the event types table */
   const eventTypesFavoritedAt = new Date();
@@ -144,7 +144,7 @@ const seed = async () => {
     .values(seedEventTypes)
     .onConflictDoNothing()
     .returning();
-  console.log("🚀 ~ seed ~ seededEventTypes:", seededEventTypes);
+  logger.info("🚀 ~ seed ~ seededEventTypes:", seededEventTypes);
 
   /** seed the section types table */
   const seedSetSectionTypes: NewSetSectionType[] = [
@@ -158,7 +158,7 @@ const seed = async () => {
     .values(seedSetSectionTypes)
     .onConflictDoNothing()
     .returning();
-  console.log("🚀 ~ seed ~ seededSectionTypes:", seededSectionTypes);
+  logger.info("🚀 ~ seed ~ seededSectionTypes:", seededSectionTypes);
 
   /** seed the tags table */
   await db.execute(sql`TRUNCATE TABLE sanbi_tags CASCADE`);
@@ -172,7 +172,7 @@ const seed = async () => {
     { tag: "Forgiveness", organizationId },
   ];
   const seededTags = await db.insert(tags).values(seedTags).returning();
-  console.log("🚀 ~ seed ~ seededTags:", seededTags);
+  logger.info("🚀 ~ seed ~ seededTags:", seededTags);
 
   /** seed the songs table */
   await db.execute(sql`TRUNCATE TABLE sanbi_songs CASCADE`);
@@ -262,7 +262,7 @@ const seed = async () => {
     .values(seedSongs)
     .onConflictDoNothing()
     .returning();
-  console.log("🚀 ~ seed ~ seededSongs:", seededSongs);
+  logger.info("🚀 ~ seed ~ seededSongs:", seededSongs);
 
   /** seed the song tags table */
   await db.execute(sql`TRUNCATE TABLE sanbi_song_tags CASCADE`);
@@ -278,7 +278,7 @@ const seed = async () => {
   });
 
   const [seededSongTags] = await Promise.all(insertSongTagsPromises);
-  console.log("🚀 ~ seed ~ seededSongTags:", seededSongTags);
+  logger.info("🚀 ~ seed ~ seededSongTags:", seededSongTags);
 
   /** seed the sets table */
   await db.execute(sql`TRUNCATE TABLE sanbi_sets CASCADE`);
@@ -332,7 +332,7 @@ const seed = async () => {
     .values(seedSets)
     .onConflictDoNothing()
     .returning();
-  console.log("🚀 ~ seed ~ seededSets:", seededSets);
+  logger.info("🚀 ~ seed ~ seededSets:", seededSets);
 
   /** seed the set sections table */
   await db.execute(sql`TRUNCATE TABLE sanbi_set_sections CASCADE`);
@@ -354,7 +354,7 @@ const seed = async () => {
   });
 
   const seededSetSections = await Promise.all(insertSetSectionsPromises);
-  console.log("🚀 ~ seed ~ seededSetSections:", seededSetSections);
+  logger.info("🚀 ~ seed ~ seededSetSections:", seededSetSections);
 
   /** seed the set section songs table */
   await db.execute(sql`TRUNCATE TABLE sanbi_set_section_songs CASCADE`);
@@ -401,7 +401,7 @@ const seed = async () => {
   const flattenedPromises = seedPromises.flat();
 
   const seededSetSectionSongs = await Promise.all(flattenedPromises);
-  console.log("🚀 ~ seed ~ seededSetSectionSongs:", seededSetSectionSongs);
+  logger.info("🚀 ~ seed ~ seededSetSectionSongs:", seededSetSectionSongs);
 
   /** seed the resources table */
   await db.execute(sql`TRUNCATE TABLE sanbi_resources CASCADE`);
@@ -444,18 +444,15 @@ const seed = async () => {
   });
 
   const seededResources = await Promise.all(insertResourcesPromises);
-  console.log("🚀 ~ seed ~ seededResources:", seededResources);
+  logger.info("🚀 ~ seed ~ seededResources:", seededResources);
 };
 
 seed()
   .catch((error) => {
-    console.error(
-      "⚠️ A problem appears to have occurred during seeding",
-      error,
-    );
+    logger.error("⚠️ A problem appears to have occurred during seeding", error);
     process.exit(1);
   })
   .finally(() => {
-    console.log("🌲 Seeding completed");
+    logger.info("🌲 Seeding completed");
     process.exit(0);
   });
