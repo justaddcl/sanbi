@@ -1,4 +1,10 @@
-export const createUpsertUserPreferencesDb = (updatedPreference: unknown) => {
+import { createUserFixture } from "./fixtures";
+
+export const createUpsertUserPreferencesDb = (
+  updatedPreference: unknown,
+  user = createUserFixture(),
+) => {
+  const findFirst = jest.fn().mockResolvedValue(user);
   const returning = jest
     .fn()
     .mockResolvedValue(updatedPreference ? [updatedPreference] : []);
@@ -7,10 +13,19 @@ export const createUpsertUserPreferencesDb = (updatedPreference: unknown) => {
   const insert = jest.fn(() => ({ values }));
 
   return {
-    db: { insert },
+    db: {
+      query: {
+        users: {
+          findFirst,
+        },
+      },
+      insert,
+    },
+    findFirst,
     insert,
     values,
     onConflictDoUpdate,
     returning,
+    user,
   };
 };

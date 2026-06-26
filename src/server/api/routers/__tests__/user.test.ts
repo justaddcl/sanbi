@@ -1,15 +1,32 @@
 import { currentUser } from "@clerk/nextjs/server";
-import { createCreateUserDb } from "@testUtils/models/user/createUserDb";
-import { createUserPreferencesFixture } from "@testUtils/models/user/fixtures";
+import {
+  createUserPreferencesFixture,
+  createUserWithMembershipsFixture,
+} from "@testUtils/models/user/fixtures";
 import { createUpsertUserPreferencesDb } from "@testUtils/models/user/upsertUserPreferencesDb";
-import { eq } from "drizzle-orm";
 
 import { userRouter } from "@server/api/routers/user";
-import { userPreferences, users } from "@server/db/schema";
+import {
+  ClerkUserSyncError,
+  ensureSanbiUserFromClerkSession,
+} from "@server/auth/clerkUserSync";
+import { userPreferences } from "@server/db/schema";
 
 jest.mock("@clerk/nextjs/server", () => ({
   auth: jest.fn(() => ({ userId: "user_123" })),
   currentUser: jest.fn(),
+}));
+jest.mock("@server/auth/clerkUserSync", () => ({
+  ClerkUserSyncError: class ClerkUserSyncError extends Error {
+    constructor(
+      message = "Clerk user sync failed",
+      public readonly code = "MISSING_PRIMARY_EMAIL",
+    ) {
+      super(message);
+      this.name = "ClerkUserSyncError";
+    }
+  },
+  ensureSanbiUserFromClerkSession: jest.fn(),
 }));
 jest.mock("superjson", () => ({
   __esModule: true,
@@ -34,55 +51,60 @@ describe("userRouter", () => {
     jest.useRealTimers();
   });
 
-  it("creates a default opt-out resource delete confirmation preference for new users", async () => {
-    const clerkUser = {
+  it("ensures a Sanbi user exists for the authenticated Clerk session", async () => {
+    const syncedUser = createUserWithMembershipsFixture({
       id: userId,
-      firstName: "Ada",
-      lastName: "Lovelace",
-      primaryEmailAddress: {
-        emailAddress: "ada@example.com",
-      },
-    };
-    const createdUser = {
-      id: userId,
-      firstName: clerkUser.firstName,
-      lastName: clerkUser.lastName,
-      email: clerkUser.primaryEmailAddress.emailAddress,
-    };
-    const db = createCreateUserDb(createdUser);
-    const caller = createUserRouterCaller(db.db);
-
-    (currentUser as jest.Mock).mockResolvedValue(clerkUser);
-
-    await expect(caller.createMe()).resolves.toEqual([createdUser]);
-
-    expect(db.findFirst).toHaveBeenCalledWith({
-      where: eq(users.id, userId),
+      memberships: [],
     });
-    expect(db.insert).toHaveBeenNthCalledWith(1, users);
-    expect(db.userValues).toHaveBeenCalledWith(createdUser);
-    expect(db.userOnConflictDoNothing).toHaveBeenCalledWith({
-      target: users.id,
+    const db = {};
+    const caller = createUserRouterCaller(db);
+
+    (ensureSanbiUserFromClerkSession as jest.Mock).mockResolvedValue(
+      syncedUser,
+    );
+
+    await expect(caller.hello()).resolves.toEqual({
+      greeting: `Hello ${userId}`,
     });
-    expect(db.insert).toHaveBeenNthCalledWith(2, userPreferences);
-    expect(db.preferenceValues).toHaveBeenCalledWith({
+
+    expect(currentUser).not.toHaveBeenCalled();
+    expect(ensureSanbiUserFromClerkSession).toHaveBeenCalledWith({
+      database: db,
       userId,
-      confirmResourceDelete: true,
     });
-    expect(db.preferenceOnConflictDoNothing).toHaveBeenCalledWith({
-      target: userPreferences.userId,
+  });
+
+  it("returns UNAUTHORIZED when the authenticated Sanbi user is auth-deleted", async () => {
+    const caller = createUserRouterCaller({});
+
+    (ensureSanbiUserFromClerkSession as jest.Mock).mockRejectedValueOnce(
+      new ClerkUserSyncError(
+        "Sanbi user is marked as auth-deleted",
+        "SANBI_USER_AUTH_DELETED",
+      ),
+    );
+
+    await expect(caller.hello()).rejects.toMatchObject({
+      code: "UNAUTHORIZED",
     });
   });
 
   it("upserts the authenticated user's resource delete confirmation preference", async () => {
     const updatedAt = new Date("2026-05-17T00:00:00Z");
+    const resolvedUser = createUserWithMembershipsFixture({
+      id: userId,
+      memberships: [],
+    });
     const updatedPreference = createUserPreferencesFixture({
-      userId,
+      userId: resolvedUser.id,
       confirmResourceDelete: false,
     });
-    const db = createUpsertUserPreferencesDb(updatedPreference);
+    const db = createUpsertUserPreferencesDb(updatedPreference, resolvedUser);
     const caller = createUserRouterCaller(db.db);
 
+    (ensureSanbiUserFromClerkSession as jest.Mock).mockResolvedValue(
+      resolvedUser,
+    );
     jest.useFakeTimers().setSystemTime(updatedAt);
 
     await expect(
@@ -93,7 +115,7 @@ describe("userRouter", () => {
 
     expect(db.insert).toHaveBeenCalledWith(userPreferences);
     expect(db.values).toHaveBeenCalledWith({
-      userId,
+      userId: resolvedUser.id,
       confirmResourceDelete: updatedPreference.confirmResourceDelete,
     });
     expect(db.onConflictDoUpdate).toHaveBeenCalledWith({
@@ -106,8 +128,16 @@ describe("userRouter", () => {
   });
 
   it("returns INTERNAL_SERVER_ERROR when the authenticated user's preferences cannot be upserted", async () => {
-    const db = createUpsertUserPreferencesDb(null);
+    const resolvedUser = createUserWithMembershipsFixture({
+      id: userId,
+      memberships: [],
+    });
+    const db = createUpsertUserPreferencesDb(null, resolvedUser);
     const caller = createUserRouterCaller(db.db);
+
+    (ensureSanbiUserFromClerkSession as jest.Mock).mockResolvedValue(
+      resolvedUser,
+    );
 
     await expect(
       caller.updateResourceDeleteConfirmationPreference({

@@ -12,7 +12,11 @@ import {
 import { type organizationInputSchema } from "@lib/types/zod";
 import { db } from "@/server/db";
 
-import { organizationMemberships, organizations, users } from "../db/schema";
+import {
+  ClerkUserSyncError,
+  ensureSanbiUserFromClerkSession,
+} from "../auth/clerkUserSync";
+import { organizationMemberships, organizations } from "../db/schema";
 
 export const createORPCContext = async (opts: { headers: HeadersInit }) => {
   return {
@@ -78,14 +82,38 @@ const requireOrganizationMembership = o
     const organizationInput = input as z.infer<typeof organizationInputSchema>;
     const { organizationId } = organizationInput;
 
-    const user = await context.db.query.users.findFirst({
-      where: eq(users.id, context.auth.userId),
-    });
-
-    if (!user) {
-      throw new ORPCError("NOT_FOUND", {
-        message: `Sanbi user, ${context.auth.userId}, not found`,
+    let user;
+    try {
+      user = await ensureSanbiUserFromClerkSession({
+        database: context.db,
+        userId: context.auth.userId,
       });
+    } catch (error) {
+      if (error instanceof ClerkUserSyncError) {
+        if (error.code === "SANBI_USER_AUTH_DELETED") {
+          throw new ORPCError("UNAUTHORIZED", {
+            message: error.message,
+          });
+        }
+
+        if (error.code === "CLERK_USER_NOT_FOUND") {
+          throw new ORPCError("NOT_FOUND", {
+            message: error.message,
+          });
+        }
+
+        if (error.code === "SANBI_USER_SYNC_FAILED") {
+          throw new ORPCError("INTERNAL_SERVER_ERROR", {
+            message: error.message,
+          });
+        }
+
+        throw new ORPCError("BAD_REQUEST", {
+          message: error.message,
+        });
+      }
+
+      throw error;
     }
 
     const organization = await context.db.query.organizations.findFirst({
