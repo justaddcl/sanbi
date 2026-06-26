@@ -23,7 +23,7 @@ export const setSectionSongRouter = createTRPCRouter({
   create: organizationProcedure
     .input(insertSetSectionSongSchema)
     .mutation(async ({ ctx, input }) => {
-      console.log("🤖 - [setSectionSong/create] - input:", input);
+      ctx.logger.info("input:", input);
 
       const { user } = ctx;
       const { organizationId, songId, setSectionId, key, position, notes } =
@@ -94,10 +94,7 @@ export const setSectionSongRouter = createTRPCRouter({
     .input(deleteSetSectionSongSchema)
     .mutation(async ({ ctx, input }) => {
       const { user } = ctx;
-      console.log(
-        "🤖 - [setSectionSong/delete] - Attempting to delete:",
-        input.setSectionSongId,
-      );
+      ctx.logger.info("Attempting to delete:", input.setSectionSongId);
 
       // Fetch the set section song to validate organization
       const setSectionSong = await ctx.db.query.setSectionSongs.findFirst({
@@ -136,8 +133,8 @@ export const setSectionSongRouter = createTRPCRouter({
             .returning();
 
           if (!deletedSetSectionSong) {
-            console.error(
-              `🤖 - [setSectionSong/delete] - Could not delete SetSectionSong ID ${input.setSectionSongId}. Aborting song reorder.`,
+            ctx.logger.error(
+              `Could not delete SetSectionSong ID ${input.setSectionSongId}. Aborting song reorder.`,
             );
 
             throw new TRPCError({
@@ -162,13 +159,13 @@ export const setSectionSongRouter = createTRPCRouter({
             );
           return deletedSetSectionSong;
         });
-        console.info(
-          `🤖 - [setSectionSong/delete] - SetSectionSong ID ${deletedSong.id} was successfully deleted`,
+        ctx.logger.info(
+          `SetSectionSong ID ${deletedSong.id} was successfully deleted`,
         );
         return deletedSong;
       } catch (deleteError) {
-        console.error(
-          `🤖 - [setSectionSong/delete] - SetSectionSong ID ${input.setSectionSongId} could not be deleted`,
+        ctx.logger.error(
+          `SetSectionSong ID ${input.setSectionSongId} could not be deleted`,
         );
 
         if (deleteError instanceof TRPCError) {
@@ -212,8 +209,8 @@ export const setSectionSongRouter = createTRPCRouter({
   replaceSong: organizationProcedure
     .input(replaceSetSectionSongSongSchema)
     .mutation(async ({ ctx, input }) => {
-      console.log(
-        `🤖 - [setSectionSong/replaceSong] - attempting to update ${input.setSectionSongId}'s song to ${input.replacementSongId}:`,
+      ctx.logger.info(
+        `attempting to update ${input.setSectionSongId}'s song to ${input.replacementSongId}:`,
       );
 
       return await ctx.db.transaction(async (replaceTransaction) => {
@@ -230,8 +227,8 @@ export const setSectionSongRouter = createTRPCRouter({
           });
 
         if (!setSectionSong) {
-          console.error(
-            `🤖 - [setSectionSong/replaceSong] - could not find set section song ${input.setSectionSongId}`,
+          ctx.logger.error(
+            `could not find set section song ${input.setSectionSongId}`,
           );
 
           throw new TRPCError({
@@ -243,8 +240,8 @@ export const setSectionSongRouter = createTRPCRouter({
         if (
           setSectionSong.organizationId !== ctx.user.membership.organizationId
         ) {
-          console.error(
-            `🤖 - [setSectionSong/replaceSong] - User ${ctx.user.id} not authorized to replace song on ${setSectionSong.id}`,
+          ctx.logger.error(
+            `User ${ctx.user.id} not authorized to replace song on ${setSectionSong.id}`,
           );
 
           throw new TRPCError({
@@ -258,9 +255,7 @@ export const setSectionSongRouter = createTRPCRouter({
         });
 
         if (!replacementSong) {
-          console.error(
-            `🤖 - [setSectionSong/replaceSong] - could not find song ${input.replacementSongId}`,
-          );
+          ctx.logger.error(`could not find song ${input.replacementSongId}`);
 
           throw new TRPCError({
             code: "BAD_REQUEST",
@@ -269,8 +264,8 @@ export const setSectionSongRouter = createTRPCRouter({
         }
 
         if (replacementSong.organizationId !== setSectionSong.organizationId) {
-          console.error(
-            `🤖 - [setSectionSong/replaceSong] - Cannot update setSectionSong ${setSectionSong.id} with a song from a different organization: ${replacementSong.id}`,
+          ctx.logger.error(
+            `Cannot update setSectionSong ${setSectionSong.id} with a song from a different organization: ${replacementSong.id}`,
           );
 
           throw new TRPCError({
@@ -284,8 +279,8 @@ export const setSectionSongRouter = createTRPCRouter({
           .set({ songId: input.replacementSongId })
           .where(eq(setSectionSongs.id, input.setSectionSongId));
 
-        console.info(
-          `🤖 - [setSectionSong/replaceSong] - Successfully updated ${input.setSectionSongId}'s song to ${input.replacementSongId}`,
+        ctx.logger.info(
+          `Successfully updated ${input.setSectionSongId}'s song to ${input.replacementSongId}`,
         );
 
         return {
@@ -312,9 +307,7 @@ export const setSectionSongRouter = createTRPCRouter({
       });
 
       if (!setSectionSong) {
-        console.error(
-          `🤖 - [setSectionSong/updateDetails] - could not find set section song ${setSectionSongId}`,
-        );
+        ctx.logger.error(`could not find set section song ${setSectionSongId}`);
 
         throw new TRPCError({
           code: "BAD_REQUEST",
@@ -325,8 +318,8 @@ export const setSectionSongRouter = createTRPCRouter({
       if (
         setSectionSong.organizationId !== ctx.user.membership.organizationId
       ) {
-        console.error(
-          `🤖 - [setSectionSong/updateDetails] - User ${ctx.user.id} not authorized to update set section song ${setSectionSong.id}`,
+        ctx.logger.error(
+          `User ${ctx.user.id} not authorized to update set section song ${setSectionSong.id}`,
         );
 
         throw new TRPCError({
@@ -335,8 +328,8 @@ export const setSectionSongRouter = createTRPCRouter({
         });
       }
 
-      console.info(
-        `🤖 - [setSectionSong/updateDetails] - Attempting to update set section song ${setSectionSongId} with the following updates:`,
+      ctx.logger.info(
+        `Attempting to update set section song ${setSectionSongId} with the following updates:`,
         updates,
       );
 
@@ -349,8 +342,8 @@ export const setSectionSongRouter = createTRPCRouter({
         .where(eq(setSectionSongs.id, setSectionSongId))
         .returning();
 
-      console.info(
-        `🤖 - [setSectionSong/updateDetails] - Successfully updated details for ${setSectionSongId}:`,
+      ctx.logger.info(
+        `Successfully updated details for ${setSectionSongId}:`,
         updatedSong,
       );
 
@@ -360,8 +353,8 @@ export const setSectionSongRouter = createTRPCRouter({
   addAndReorderSongs: organizationProcedure
     .input(addAndReorderSongsSchema)
     .mutation(async ({ ctx, input }) => {
-      console.log(
-        `🤖 - [setSectionSong/addAndReorderSongs] - attempting to add a new song and reorder songs in set section ${input.setSectionId}`,
+      ctx.logger.info(
+        `attempting to add a new song and reorder songs in set section ${input.setSectionId}`,
         input,
       );
 
@@ -379,9 +372,7 @@ export const setSectionSongRouter = createTRPCRouter({
       });
 
       if (!setSection) {
-        console.error(
-          `🤖 - [setSectionSong/addAndReorderSongs] - could not find set section ${setSectionId}`,
-        );
+        ctx.logger.error(`could not find set section ${setSectionId}`);
         throw new TRPCError({
           code: "NOT_FOUND",
           message: `Cannot find the set section`,
@@ -389,8 +380,8 @@ export const setSectionSongRouter = createTRPCRouter({
       }
 
       if (setSection.organizationId !== organizationId) {
-        console.error(
-          `🤖 - [setSectionSong/addAndReorderSongs] - User ${user.id} not authorized to update set section ${setSectionId}`,
+        ctx.logger.error(
+          `User ${user.id} not authorized to update set section ${setSectionId}`,
         );
         throw new TRPCError({
           code: "FORBIDDEN",
@@ -407,8 +398,8 @@ export const setSectionSongRouter = createTRPCRouter({
         const newSongPosition = orderedSongIds.indexOf(newSongTempId);
 
         if (newSongPosition === -1) {
-          console.error(
-            `🤖 - [setSectionSong/addAndReorderSongs] - New song's temporary ID ${newSongTempId} not found in the provided ordered list.`,
+          ctx.logger.error(
+            `New song's temporary ID ${newSongTempId} not found in the provided ordered list.`,
           );
           throw new TRPCError({
             code: "BAD_REQUEST",
@@ -440,8 +431,8 @@ export const setSectionSongRouter = createTRPCRouter({
           .returning();
 
         if (!insertedSetSectionSong) {
-          console.error(
-            `🤖 - [setSectionSong/addAndReorderSongs] - could not create a new setSectionSong using the input`,
+          ctx.logger.error(
+            `could not create a new setSectionSong using the input`,
             newSetSectionSongData,
           );
 
@@ -451,15 +442,12 @@ export const setSectionSongRouter = createTRPCRouter({
           });
         }
 
-        console.info(
-          `🤖 - [setSectionSong/addAndReorderSongs] - Created new setSectionSong`,
-          {
-            insertedSetSectionSong,
-          },
-        );
+        ctx.logger.info(`Created new setSectionSong`, {
+          insertedSetSectionSong,
+        });
 
-        console.info(
-          `🤖 - [setSectionSong/addAndReorderSongs] - Current song positions for set section ${setSectionId}`,
+        ctx.logger.info(
+          `Current song positions for set section ${setSectionId}`,
           {
             currentSetSectionSongs,
           },
@@ -508,8 +496,8 @@ export const setSectionSongRouter = createTRPCRouter({
               position: desiredPosition,
             });
 
-            console.info(
-              `🤖 - [setSectionSong/addAndReorderSongs] - Attempting to update song position affected by adding the new song`,
+            ctx.logger.info(
+              `Attempting to update song position affected by adding the new song`,
               {
                 setSectionSongId,
                 currentPosition,
@@ -531,8 +519,8 @@ export const setSectionSongRouter = createTRPCRouter({
         // 5. Execute all position updates in parallel
         await Promise.all(updatePromises);
 
-        console.info(
-          `🤖 - [setSectionSong/addAndReorderSongs] - Successfully added new setSectionSong ${insertedSetSectionSong.id} and reordered songs for set section ${setSectionId}`,
+        ctx.logger.info(
+          `Successfully added new setSectionSong ${insertedSetSectionSong.id} and reordered songs for set section ${setSectionId}`,
           { insertedSetSectionSong, updatedSetSectionSongs },
         );
 

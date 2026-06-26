@@ -6,6 +6,7 @@ import { useAuth } from "@clerk/nextjs";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { type z } from "zod";
 
+import { logger } from "@lib/loggers/logger";
 import { trpc } from "@lib/trpc";
 import { Button } from "@/components/ui/button";
 import {
@@ -79,7 +80,7 @@ export const CreateTeamForm: React.FC = () => {
       },
       onError(error) {
         // FIXME: migrating to zod 4 has apparently broken the form validation
-        console.log(
+        logger.info(
           "🚀 ~ createTeamForm.tsx:80 ~ handleCreateOrganizationMembershipSubmit ~ error:",
           JSON.stringify({ error }, null, 2),
         );

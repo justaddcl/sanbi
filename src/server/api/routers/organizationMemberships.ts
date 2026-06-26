@@ -15,13 +15,11 @@ export const organizationMembershipsRouter = createTRPCRouter({
   create: authedProcedure
     .input(insertOrganizationMembershipSchema)
     .mutation(async ({ ctx, input }) => {
-      console.log("🤖 - Creating a new organization membership");
+      ctx.logger.info("Creating a new organization membership");
       const { userId } = ctx.auth;
 
       if (!userId) {
-        console.log(
-          "🤖 - No user is currently signed in - organization/create",
-        );
+        ctx.logger.info("No user is currently signed in");
         throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
@@ -34,9 +32,7 @@ export const organizationMembershipsRouter = createTRPCRouter({
       });
 
       if (!matchingUser) {
-        console.error(
-          `🤖 - User ${input.userId} does not exist - organizationMembership/create`,
-        );
+        ctx.logger.error(`User ${input.userId} does not exist`);
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "User does not exist",
@@ -44,9 +40,7 @@ export const organizationMembershipsRouter = createTRPCRouter({
       }
 
       if (!matchingOrganization) {
-        console.error(
-          `🤖 - Organization ${input.organizationId} does not exist - organizationMembership/create`,
-        );
+        ctx.logger.error(`Organization ${input.organizationId} does not exist`);
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "Organization does not exist",
@@ -62,8 +56,8 @@ export const organizationMembershipsRouter = createTRPCRouter({
         });
 
       if (matchingMembership) {
-        console.error(
-          `🤖 - User ${input.userId} is already a member of ${input.organizationId} - organizationMembership/create`,
+        ctx.logger.error(
+          `User ${input.userId} is already a member of ${input.organizationId}`,
         );
         throw new TRPCError({
           code: "CONFLICT",
@@ -77,10 +71,7 @@ export const organizationMembershipsRouter = createTRPCRouter({
         permissionType: input.permissionType ?? "member",
       };
 
-      console.log(
-        `🤖 - New organization membership - organizationMembership/create`,
-        newOrganizationMembership,
-      );
+      ctx.logger.info(`New organization membership`, newOrganizationMembership);
 
       return ctx.db
         .insert(organizationMemberships)
@@ -110,9 +101,7 @@ export const organizationMembershipsRouter = createTRPCRouter({
   forUser: authedProcedure
     .input(z.object({ userId: z.string() }))
     .query(async ({ ctx, input }) => {
-      console.log(
-        `🤖 - Fetching memberships for ${input.userId} - organizationMemberships/forUser`,
-      );
+      ctx.logger.info(`Fetching memberships for ${input.userId}`);
       return await ctx.db.query.organizationMemberships.findFirst({
         where: eq(organizationMemberships.userId, input.userId),
         with: {

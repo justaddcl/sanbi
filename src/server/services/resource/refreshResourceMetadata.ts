@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { type z } from "zod";
 
-import { type getRouteLogger } from "@lib/loggers/logger";
+import { type AppLogger } from "@lib/loggers/logger";
 import { type Resource } from "@lib/types";
 import { type refreshResourceMetadataSchema } from "@lib/types/zod";
 import { isUniqueConstraintViolation } from "@server/utils/db/postgres";
@@ -15,9 +15,6 @@ import {
 
 type RefreshResourceMetadataInput = z.infer<
   typeof refreshResourceMetadataSchema
->;
-type RefreshResourceMetadataLogger = NonNullable<
-  ReturnType<typeof getRouteLogger>
 >;
 type ResourceRefreshMetadataValues = Pick<Resource, "url"> &
   ResourceMetadataWriteValues;
@@ -35,7 +32,7 @@ type RefreshResourceMetadataForOrganizationOptions = {
   userOrganizationId: string;
   resourceDataAccess: RefreshResourceMetadataDataAccess;
   fetchMetadata?: (url: string) => Promise<ResourcePreviewMetadata>;
-  logger?: RefreshResourceMetadataLogger;
+  logger?: AppLogger;
 };
 
 export const refreshResourceMetadataForOrganization = async ({
@@ -54,7 +51,8 @@ export const refreshResourceMetadataForOrganization = async ({
 
     throw new TRPCError({
       code: "FORBIDDEN",
-      message: "User is not authorized to refresh resources for this organization",
+      message:
+        "User is not authorized to refresh resources for this organization",
     });
   }
 
