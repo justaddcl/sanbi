@@ -61,38 +61,37 @@ export const CreateSetForm: React.FC<CreateSetFormProps> = ({
         return;
       }
 
-      await createSetMutation.mutateAsync(
-        {
+      try {
+        const data = await createSetMutation.mutateAsync({
           date,
           eventTypeId,
           notes: notes ? sanitizeInput(notes) : null,
           organizationId: organizationMembership.organizationId,
           isArchived: false,
-        },
-        {
-          onSuccess(data) {
-            logger.info("🤖 [createSetMutation/onSuccess] ~ data:", data);
-            const [newSet] = data;
+        });
 
-            toast.success("Set was created", { id: toastId });
+        logger.info("🤖 [createSetMutation/onSuccess] ~ data:", data);
+        const [newSet] = data;
 
-            if (newSet) {
-              onCreationSuccess?.(newSet);
-            } else {
-              toast.warning(
-                "Set was created, but the set data wasn't returned...",
-                { id: toastId },
-              );
-            }
-          },
-          onError(error) {
-            logger.info("🤖 [createSetMutation/onError] ~ error:", error);
-            toast.error(`Could not create set: ${error.message}`, {
-              id: toastId,
-            });
-          },
-        },
-      );
+        toast.success("Set was created", { id: toastId });
+
+        if (newSet) {
+          onCreationSuccess?.(newSet);
+        } else {
+          toast.warning("Set was created, but the set data wasn't returned...", {
+            id: toastId,
+          });
+        }
+      } catch (error) {
+        logger.info("🤖 [createSetMutation/onError] ~ error:", error);
+
+        const errorMessage =
+          error instanceof Error ? error.message : "Unknown error";
+
+        toast.error(`Could not create set: ${errorMessage}`, {
+          id: toastId,
+        });
+      }
     }
   };
 

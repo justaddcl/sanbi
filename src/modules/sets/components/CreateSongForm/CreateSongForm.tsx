@@ -92,33 +92,34 @@ export const CreateSongForm: React.FC<CreateSongFormProps> = ({ onSubmit }) => {
         return;
       }
 
-      await createSongMutation.mutateAsync(
-        {
+      try {
+        const data = await createSongMutation.mutateAsync({
           name,
           preferredKey,
           notes: sanitizeInput(notes ?? "") || null,
           organizationId: organizationMembership.organizationId,
           createdBy: userData.id,
           isArchived: false,
-        },
-        {
-          onSuccess(data) {
-            logger.info("🤖 [createSongMutation/onSuccess] ~ data:", data);
-            const [newSong] = data;
+        });
 
-            toast.success("Song was created", { id: toastId });
-            router.push(
-              `/${organizationMembership.organizationId}/songs/${newSong?.id}`,
-            );
-          },
-          onError(error) {
-            logger.info("🤖 [createSongMutation/onError] ~ error:", error);
-            toast.error(`Could not create song: ${error.message}`, {
-              id: toastId,
-            });
-          },
-        },
-      );
+        logger.info("🤖 [createSongMutation/onSuccess] ~ data:", data);
+        const [newSong] = data;
+
+        toast.success("Song was created", { id: toastId });
+        router.push(
+          `/${organizationMembership.organizationId}/songs/${newSong?.id}`,
+        );
+      } catch (error) {
+        logger.info("🤖 [createSongMutation/onError] ~ error:", error);
+
+        const errorMessage =
+          error instanceof Error ? error.message : "Unknown error";
+
+        toast.error(`Could not create song: ${errorMessage}`, {
+          id: toastId,
+        });
+        return;
+      }
     }
 
     // close the dialog

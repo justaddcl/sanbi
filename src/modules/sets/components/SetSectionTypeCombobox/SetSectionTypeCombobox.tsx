@@ -68,33 +68,30 @@ export const SetSectionTypeCombobox: React.FC<SetSectionTypeComboboxProps> = ({
 
     if (!trimmedInput) return;
 
-    await createSetSectionTypeMutation.mutateAsync(
-      { name: trimmedInput, organizationId },
-      {
-        async onSuccess(createSetSectionTypeMutationResult) {
-          const [newSetSectionType] = createSetSectionTypeMutationResult;
+    const [newSetSectionType] =
+      await createSetSectionTypeMutation.mutateAsync({
+        name: trimmedInput,
+        organizationId,
+      });
 
-          if (newSetSectionType) {
-            toast.success(`${newSetSectionType.name} set section type created`);
+    if (newSetSectionType) {
+      toast.success(`${newSetSectionType.name} set section type created`);
 
-            // If a callback was provided, call it with the new section type
-            if (onCreateSuccess) {
-              onCreateSuccess(newSetSectionType);
-            }
+      // If a callback was provided, call it with the new section type
+      if (onCreateSuccess) {
+        onCreateSuccess(newSetSectionType);
+      }
 
-            // Update the selected value
-            onChange({
-              id: newSetSectionType.id,
-              label: newSetSectionType.name,
-            });
+      // Update the selected value
+      onChange({
+        id: newSetSectionType.id,
+        label: newSetSectionType.name,
+      });
 
-            await apiUtils.setSectionType.getTypes.invalidate({
-              organizationId,
-            });
-          }
-        },
-      },
-    );
+      await apiUtils.setSectionType.getTypes.invalidate({
+        organizationId,
+      });
+    }
 
     setIsOpen(false);
     setNewSetSectionInputValue("");
