@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 
 import { Button } from "@components/ui/button";
 import { Input } from "@components/ui/input";
@@ -35,13 +35,12 @@ export const SetSongPositionStep: React.FC<SetSongPositionStepProps> = ({
   const [inputPositionValue, setInputPositionValue] = useState(
     newSongInitialPosition,
   );
-  const [songItems, setSongItems] = useState<DraggableSongListItem[]>([]);
 
   const { userMembership } = useUserQuery();
 
   const { data: setSectionData } = trpc.setSection.get.useQuery(
     {
-      setSectionId: selectedSetSection!,
+      setSectionId: selectedSetSection ?? "",
       organizationId: userMembership?.organizationId ?? "",
     },
     {
@@ -49,9 +48,9 @@ export const SetSongPositionStep: React.FC<SetSongPositionStepProps> = ({
     },
   );
 
-  useEffect(() => {
+  const songItems = useMemo(() => {
     if (!setSectionData) {
-      return;
+      return [];
     }
 
     const existingItems: DraggableSongListItem[] = setSectionData.songs.map(
@@ -76,7 +75,7 @@ export const SetSongPositionStep: React.FC<SetSongPositionStepProps> = ({
       type: "new",
     };
 
-    setSongItems(existingItems.toSpliced(songPosition, 0, newSongItem));
+    return existingItems.toSpliced(songPosition, 0, newSongItem);
   }, [inputPositionValue, setSectionData, song]);
 
   if (!selectedSetSection || !userMembership) {

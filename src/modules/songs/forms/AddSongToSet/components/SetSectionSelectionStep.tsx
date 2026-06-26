@@ -11,7 +11,7 @@ import { VStack } from "@components/VStack";
 import { SongContent } from "@modules/SetListCard/components/SongContent";
 import { SetSectionTypeCombobox } from "@modules/sets/components/SetSectionTypeCombobox";
 import { SelectedSetCard } from "@modules/songs/forms/AddSongToSet/components";
-import { type SelectedSet } from "@modules/songs/forms/AddSongToSet/components/AddSongToSetDialog";
+import { type SelectedSet } from "@modules/songs/forms/AddSongToSet/components/addSongToSetWorkflow";
 import { useUserQuery } from "@modules/users/api/queries";
 import { trpc } from "@lib/trpc";
 import { cn } from "@lib/utils";
@@ -40,8 +40,8 @@ export const SetSectionSelectionStep: React.FC<
 
   const { data: setData } = trpc.set.get.useQuery(
     {
-      setId: selectedSet!.id,
-      organizationId: userMembership!.organizationId,
+      setId: selectedSet?.id ?? "",
+      organizationId: userMembership?.organizationId ?? "",
     },
     {
       enabled: !!selectedSet && !!userMembership,
@@ -88,7 +88,7 @@ export const SetSectionSelectionStep: React.FC<
           position: positionForNewSetSection,
         },
         {
-          async onSuccess(createSetSectionMutationResult) {
+          onSuccess(createSetSectionMutationResult) {
             const [newSetSection] = createSetSectionMutationResult;
 
             if (newSetSection) {
@@ -96,17 +96,19 @@ export const SetSectionSelectionStep: React.FC<
 
               toast.success(`Section added to set`, { id: toastId });
 
-              await apiUtils.setSection.getSectionsForSet.refetch({
-                organizationId: userMembership.organizationId,
-                setId: setData.id,
-              });
+              void (async () => {
+                await apiUtils.setSection.getSectionsForSet.refetch({
+                  organizationId: userMembership.organizationId,
+                  setId: setData.id,
+                });
 
-              await apiUtils.set.get.invalidate({
-                setId: setData.id,
-                organizationId: userMembership.organizationId,
-              });
+                await apiUtils.set.get.invalidate({
+                  setId: setData.id,
+                  organizationId: userMembership.organizationId,
+                });
 
-              onSelectSetSection(newSetSection.id, 0);
+                onSelectSetSection(newSetSection.id, 0);
+              })();
             }
           },
 

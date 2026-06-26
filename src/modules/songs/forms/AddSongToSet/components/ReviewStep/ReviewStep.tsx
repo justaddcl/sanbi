@@ -36,24 +36,33 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
   const [notes, setNotes] = useState<string>("");
 
   const { userMembership } = useUserQuery();
-
-  if (!userMembership) {
-    return null;
-  }
-
   const apiUtils = trpc.useUtils();
   const addSetSectionSongAndReorderSongsMutation =
     trpc.setSectionSong.addAndReorderSongs.useMutation();
 
-  const { data: setData } = trpc.set.get.useQuery({
-    setId: selectedSetId,
-    organizationId: userMembership.organizationId,
-  });
+  const { data: setData } = trpc.set.get.useQuery(
+    {
+      setId: selectedSetId,
+      organizationId: userMembership?.organizationId ?? "",
+    },
+    {
+      enabled: !!userMembership,
+    },
+  );
 
-  const { data: setSectionData } = trpc.setSection.get.useQuery({
-    setSectionId: selectedSetSection,
-    organizationId: userMembership.organizationId,
-  });
+  const { data: setSectionData } = trpc.setSection.get.useQuery(
+    {
+      setSectionId: selectedSetSection,
+      organizationId: userMembership?.organizationId ?? "",
+    },
+    {
+      enabled: !!userMembership,
+    },
+  );
+
+  if (!userMembership) {
+    return null;
+  }
 
   // TODO: figure out better handling
   if (!setData || !setSectionData) {
@@ -98,18 +107,20 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
         organizationId: userMembership.organizationId,
       },
       {
-        async onSuccess() {
+        onSuccess() {
           toast.success("Song added to set!", { id: toastId });
 
-          await apiUtils.song.get.invalidate({ songId: song.id });
-          await apiUtils.set.get.invalidate({ setId: selectedSetId });
-          // FIXME: doesn't seem to update the SSR data on the song page
-          // await apiUtils.song.getPlayHistory.invalidate({
-          //   songId: song.id,
-          //   // organizationId: userMembership.organizationId,
-          // });
+          void (async () => {
+            await apiUtils.song.get.invalidate({ songId: song.id });
+            await apiUtils.set.get.invalidate({ setId: selectedSetId });
+            // FIXME: doesn't seem to update the SSR data on the song page
+            // await apiUtils.song.getPlayHistory.invalidate({
+            //   songId: song.id,
+            //   // organizationId: userMembership.organizationId,
+            // });
 
-          onAddSong?.();
+            onAddSong?.();
+          })();
         },
         onError(addSongError) {
           toast.error(`Could not add song to set: ${addSongError.message}`, {
