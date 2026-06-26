@@ -2,25 +2,12 @@
 import { use, useCallback, useEffect, useState } from "react";
 import { redirect } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
-import { CaretDown, CaretUp } from "@phosphor-icons/react";
-import { Archive, Plus } from "@phosphor-icons/react/dist/ssr";
-import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
-import { toast } from "sonner";
+import { Plus } from "@phosphor-icons/react/dist/ssr";
 import { validate as uuidValidate } from "uuid";
 
-import { Alert, AlertDescription, AlertTitle } from "@components/ui/alert";
 import { Button } from "@components/ui/button";
-import { type ComboboxOption } from "@components/ui/combobox";
 import { HStack } from "@components/HStack";
 import { PageContentContainer } from "@components/PageContentContainer";
-import {
-  ResponsiveDialog,
-  ResponsiveDialogContent,
-  ResponsiveDialogDescription,
-  ResponsiveDialogHeader,
-  ResponsiveDialogTitle,
-} from "@components/ResponsiveDialog";
-import { Text } from "@components/Text";
 import { VStack } from "@components/VStack";
 import { useSetQuery } from "@modules/sets/api";
 import { SetActionsMenu } from "@modules/sets/components/SetActionsMenu";
@@ -30,15 +17,13 @@ import { SetPageErrorState } from "@modules/sets/components/SetErrorState";
 import { SetPageLoadingState } from "@modules/sets/components/SetLoadingState";
 import { SetNotes } from "@modules/sets/components/SetNotes";
 import { SetSectionCard } from "@modules/sets/components/SetSectionCard";
-import { SetSectionTypeCombobox } from "@modules/sets/components/SetSectionTypeCombobox";
+import { SetSectionCreationDialog } from "@modules/sets/components/SetSectionCreationDialog";
 import { getSetSongNumbering } from "@modules/sets/utils/getSetSongNumbering";
 import { ArchivedBanner } from "@modules/shared/components";
 import { type ConfigureSongForSetProps } from "@modules/songs/components/ConfigureSongForSet/ConfigureSongForSet";
 import { SongSearchDialog } from "@modules/songs/components/SongSearchDialog";
 import { logger } from "@lib/loggers/logger";
 import { trpc } from "@lib/trpc";
-import { cn } from "@lib/utils";
-import { useResponsive } from "@/hooks/useResponsive";
 
 type SearchParamsRecord = Record<string, string | string[] | undefined>;
 
@@ -74,8 +59,6 @@ export default function SetListPage({
   const params = use(paramsPromise);
   const searchParams = use(searchParamsPromise);
 
-  const { textSize } = useResponsive();
-
   const [isEditingSetDetails, setIsEditingSetDetails] =
     useState<boolean>(false);
   const [prePopulatedSetSectionId, setPrePopulatedSetSectionId] =
@@ -85,13 +68,8 @@ export default function SetListPage({
   );
   const [isSongSearchDialogOpen, setIsSongSearchDialogOpen] =
     useState<boolean>(false);
-  const [newSetSectionType, setNewSetSectionType] =
-    useState<ComboboxOption | null>(null);
   const [isAddSectionDialogOpen, setIsAddSectionDialogOpen] =
     useState<boolean>(false);
-
-  const createSetSectionMutation = trpc.setSection.create.useMutation();
-  const apiUtils = trpc.useUtils();
 
   useEffect(() => {
     const addSongDialogOpen = getSearchParamValue(
@@ -183,52 +161,6 @@ export default function SetListPage({
     setIsSongSearchDialogOpen(true);
   };
 
-  const handleAddSetSection = () => {
-    const toastId = toast.loading("Adding section to set...");
-
-    if (!newSetSectionType) {
-      toast.error("Please select a section type", { id: toastId });
-      return;
-    }
-
-    const setAlreadyHasSelectedSection = setData.sections.some(
-      (setSection) => setSection.sectionTypeId === newSetSectionType.id,
-    );
-
-    if (setAlreadyHasSelectedSection) {
-      toast.error("Section type already exists on this set", { id: toastId });
-      return;
-    }
-
-    const positionForNewSetSection = setData.sections.length;
-
-    createSetSectionMutation.mutate(
-      {
-        setId: setData.id,
-        organizationId: userMembership.organizationId,
-        sectionTypeId: newSetSectionType.id,
-        position: positionForNewSetSection,
-      },
-      {
-        async onSuccess() {
-          toast.success(`Section added to set!`, { id: toastId });
-
-          setNewSetSectionType(null);
-
-          await apiUtils.setSection.getSectionsForSet.refetch({
-            organizationId: userMembership.organizationId,
-            setId: setData.id,
-          });
-
-          await apiUtils.set.get.invalidate({
-            setId: setData.id,
-            organizationId: userMembership.organizationId,
-          });
-        },
-      },
-    );
-  };
-
   return (
     <PageContentContainer className="gap-8 lg:mb-16">
       <VStack className="gap-4">
@@ -301,66 +233,13 @@ export default function SetListPage({
           </Button>
         </VStack>
       )}
-      {/* TODO: extract to separate AddSectionDialog? */}
-      <ResponsiveDialog
+      <SetSectionCreationDialog
         open={isAddSectionDialogOpen}
-        onOpenChange={(isOpen) => {
-          setIsAddSectionDialogOpen(isOpen);
-          if (!isOpen) {
-            setNewSetSectionType(null);
-          }
-        }}
-        drawerProps={{ repositionInputs: true }}
-      >
-        <ResponsiveDialogContent className="p-6 lg:p-8">
-          <ResponsiveDialogHeader>
-            <ResponsiveDialogDescription asChild>
-              <VisuallyHidden.Root>
-                Dialog to add section to set
-              </VisuallyHidden.Root>
-            </ResponsiveDialogDescription>
-          </ResponsiveDialogHeader>
-          <ResponsiveDialogTitle
-            dialogProps={{ className: "flex-wrap text-xl" }}
-            drawerProps={{ className: "flex-wrap text-xl" }}
-          >
-            Add section to set
-          </ResponsiveDialogTitle>
-          <VStack className="mt-4 gap-4 lg:mt-0 lg:gap-8">
-            <SetSectionTypeCombobox
-              placeholder="Select a section type to add"
-              value={newSetSectionType}
-              onChange={setNewSetSectionType}
-              textStyles={cn("text-slate-700", textSize)}
-              organizationId={userMembership.organizationId}
-            />
-            <div className="mt-2 flex justify-end gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                className={cn(textSize)}
-                onClick={() => setIsAddSectionDialogOpen(false)}
-              >
-                Cancel
-              </Button>
-              <Button
-                size="sm"
-                onClick={() => {
-                  setIsAddSectionDialogOpen(false);
-                  handleAddSetSection();
-                }}
-                disabled={
-                  !newSetSectionType?.id || createSetSectionMutation.isPending
-                }
-                isLoading={createSetSectionMutation.isPending}
-                className={cn(textSize)}
-              >
-                Add section to set
-              </Button>
-            </div>
-          </VStack>
-        </ResponsiveDialogContent>
-      </ResponsiveDialog>
+        onOpenChange={setIsAddSectionDialogOpen}
+        setId={setData.id}
+        organizationId={userMembership.organizationId}
+        existingSetSections={setData.sections}
+      />
 
       <SongSearchDialog
         open={isSongSearchDialogOpen}
